@@ -53,6 +53,9 @@ public:
 
     network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
 
+    bool isMPOInitialised() const { return m_bMPOInitialised; }
+    void setMPOInitialised() { m_bMPOInitialised = true; }
+
     MPO getMPO() const
     {
         VERIFY_RTE( m_mpo.has_value() );
@@ -68,6 +71,7 @@ private:
     network::ReceiverChannel               m_receiverChannel;
     Leaf                                   m_leaf;
     std::optional< mega::MPO >             m_mpo;
+    bool                                   m_bMPOInitialised = false;
     mutable std::optional< mega::Project > m_project;
 };
 } // namespace mega::service::python

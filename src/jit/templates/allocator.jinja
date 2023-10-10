@@ -40,21 +40,25 @@ namespace mega::mangle
 {% endfor %}
 
     mega::TypeID iterator_state( void* );
-    void iterator_object_start( void*, mega::TypeID );
-    void iterator_object_end( void* );
-    void iterator_action_start( void*, mega::TypeID, mega::Instance );
-    void iterator_action_end( void*, mega::TypeID );
-    void iterator_event_start( void*, mega::TypeID, mega::Instance );
-    void iterator_event_end( void*, mega::TypeID );
-    void iterator_link_start( void*, mega::TypeID, bool bOwning, bool bOwned );
-    void iterator_link_end( void*, mega::TypeID, bool bOwning, bool bOwned );
-    void iterator_interupt_start( void*, mega::TypeID );
-    void iterator_interupt_end( void*, mega::TypeID );
-    void iterator_function_start( void*, mega::TypeID );
-    void iterator_function_end( void*, mega::TypeID );
-    void iterator_namespace_start( void*, mega::TypeID );
-    void iterator_namespace_end( void*, mega::TypeID );
-    void iterator_dimension( void*, mega::TypeID );
+    void iterator_object_start( void*, const char* pszType, mega::TypeID );
+    void iterator_object_end( void*, const char* pszType );
+    void iterator_component_start( void*, const char* pszType, mega::TypeID, mega::Instance );
+    void iterator_component_end( void*, const char* pszType, mega::TypeID );
+    void iterator_action_start( void*, const char* pszType, mega::TypeID, mega::Instance );
+    void iterator_action_end( void*, const char* pszType, mega::TypeID );
+    void iterator_state_start( void*, const char* pszType, mega::TypeID, mega::Instance );
+    void iterator_state_end( void*, const char* pszType, mega::TypeID );
+    void iterator_event_start( void*, const char* pszType, mega::TypeID, mega::Instance );
+    void iterator_event_end( void*, const char* pszType, mega::TypeID );
+    void iterator_link_start( void*, const char* pszType, mega::TypeID, bool bOwning, bool bOwned );
+    void iterator_link_end( void*, const char* pszType, mega::TypeID, bool bOwning, bool bOwned );
+    void iterator_interupt_start( void*, const char* pszType, mega::TypeID );
+    void iterator_interupt_end( void*, const char* pszType, mega::TypeID );
+    void iterator_function_start( void*, const char* pszType, mega::TypeID );
+    void iterator_function_end( void*, const char* pszType, mega::TypeID );
+    void iterator_namespace_start( void*, const char* pszType, mega::TypeID );
+    void iterator_namespace_end( void*, const char* pszType, mega::TypeID );
+    void iterator_dimension( void*, const char* pszType, mega::TypeID );
 }
 
 void ctor_{{ objectTypeID }}( void* pBuffer )
@@ -179,47 +183,59 @@ void traverse_{{ objectTypeID }}( void* pIterator )
 
 {% if state.type == "object" %}
 {% if state.start %}
-            mega::mangle::iterator_object_start( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_object_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% else %}
-            mega::mangle::iterator_object_end( pIterator );
+            mega::mangle::iterator_object_end( pIterator, "{{ state.name }}" );
+{% endif %}
+{% else if state.type == "component" %}
+{% if state.start %}
+            mega::mangle::iterator_component_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} }, {{ state.local_domain_size }} );
+{% else %}
+            mega::mangle::iterator_component_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% endif %}
 {% else if state.type == "action" %}
 {% if state.start %}
-            mega::mangle::iterator_action_start( pIterator, mega::TypeID{ {{ state.successor }} }, {{ state.local_domain_size }} );
+            mega::mangle::iterator_action_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} }, {{ state.local_domain_size }} );
 {% else %}
-            mega::mangle::iterator_action_end( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_action_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
+{% endif %}
+{% else if state.type == "state" %}
+{% if state.start %}
+            mega::mangle::iterator_state_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} }, {{ state.local_domain_size }} );
+{% else %}
+            mega::mangle::iterator_state_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% endif %}
 {% else if state.type == "event" %}
 {% if state.start %}
-            mega::mangle::iterator_event_start( pIterator, mega::TypeID{ {{ state.successor }} }, {{ state.local_domain_size }} );
+            mega::mangle::iterator_event_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} }, {{ state.local_domain_size }} );
 {% else %}
-            mega::mangle::iterator_event_end( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_event_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% endif %}
 {% else if state.type == "link" %}
 {% if state.start %}
-            mega::mangle::iterator_link_start( pIterator, mega::TypeID{ {{ state.successor }} }, {{ state.owning }}, {{ state.owned }} );
+            mega::mangle::iterator_link_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} }, {{ state.owning }}, {{ state.owned }} );
 {% else %}
-            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ {{ state.successor }} }, {{ state.owning }}, {{ state.owned }} );
+            mega::mangle::iterator_link_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} }, {{ state.owning }}, {{ state.owned }} );
 {% endif %}
 {% else if state.type == "dimension" %}
-            mega::mangle::iterator_dimension( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_dimension( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% else if state.type == "interupt" %}
 {% if state.start %}
-            mega::mangle::iterator_interupt_start( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_interupt_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% else %}
-            mega::mangle::iterator_interupt_end( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_interupt_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% endif %}
 {% else if state.type == "function" %}
 {% if state.start %}
-            mega::mangle::iterator_function_start( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_function_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% else %}
-            mega::mangle::iterator_function_end( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_function_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% endif %}
 {% else if state.type == "namespace" %}
 {% if state.start %}
-            mega::mangle::iterator_namespace_start( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_namespace_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% else %}
-            mega::mangle::iterator_namespace_end( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_namespace_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% endif %}
 {% endif %}
         break;

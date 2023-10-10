@@ -27,7 +27,10 @@
 #include "mega/any.hpp"
 #include "mega/any_io.hpp"
 
+#include <boost/algorithm/string.hpp>
+
 #include <ostream>
+#include <iomanip>
 
 namespace mega
 {
@@ -40,68 +43,95 @@ class LogicalTreePrinter
     void push() { indent.push_back(' ');indent.push_back(' '); }
     void pop() { indent.pop_back(); indent.pop_back(); }
 
+    inline std::string lastType( const char* pszType )
+    {
+        std::string s( pszType );
+        auto iFind = std::find( s.rbegin(), s.rend(), ':' );
+        return std::string( iFind.base(), s.end() );
+    }
+
 public:
     LogicalTreePrinter( std::ostream& os ) : os( os ) {}
 
-    void on_object_start( const LogicalReference& ref )
+    void on_object_start( const char* pszType, const LogicalReference& ref )
     {
         using ::operator<<;
-        os << indent << "object: " << ref.id << " " << ref.typeInstance << std::endl;
+        os << indent << "obj: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
         push();
     }
-    void on_object_end( const LogicalReference& ref )
+    void on_object_end( const char* pszType, const LogicalReference& ref )
     {
         pop();
     }
-    void on_action_start( const LogicalReference& ref )
+    void on_component_start( const char* pszType, const LogicalReference& ref )
     {
         using ::operator<<;
-        os << indent << "action: " << ref.id << " " << ref.typeInstance << std::endl;
+        os << indent << "com: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
         push();
     }
-    void on_action_end( const LogicalReference& ref )
+    void on_component_end( const char* pszType, const LogicalReference& ref )
     {
         pop();
     }
-    void on_event_start( const LogicalReference& ref )
+    void on_action_start( const char* pszType, const LogicalReference& ref )
     {
         using ::operator<<;
-        os << indent << "event: " << ref.id << " " << ref.typeInstance << std::endl;
+        os << indent << "act: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
         push();
     }
-    void on_event_end( const LogicalReference& ref )
+    void on_action_end( const char* pszType, const LogicalReference& ref )
     {
         pop();
     }
-    void on_link_start( const LogicalReference& ref, bool bOwning, bool bOwned )
+    void on_state_start( const char* pszType, const LogicalReference& ref )
     {
         using ::operator<<;
-        os << indent << "link: " << ref.id << " " << ref.typeInstance << std::endl;
+        os << indent << "sta: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
         push();
     }
-    void on_link_end( const LogicalReference& ref, bool bOwning, bool bOwned )
+    void on_state_end( const char* pszType, const LogicalReference& ref )
     {
         pop();
     }
-    void on_interupt( const LogicalReference& ref )
+    void on_event_start( const char* pszType, const LogicalReference& ref )
     {
         using ::operator<<;
-        os << indent << "interupt: " << ref.id << " " << ref.typeInstance << std::endl;
+        os << indent << "eve: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        push();
     }
-    void on_function( const LogicalReference& ref )
+    void on_event_end( const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
-        os << indent << "function: " << ref.id << " " << ref.typeInstance << std::endl;
+        pop();
     }
-    void on_namespace( const LogicalReference& ref )
+    void on_link_start( const char* pszType, const LogicalReference& ref, bool bOwning, bool bOwned )
     {
         using ::operator<<;
-        os << indent << "namespace: " << ref.id << " " << ref.typeInstance << std::endl;
+        os << indent << "lin: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        push();
     }
-    void on_dimension( const LogicalReference& ref, const mega::Any& value )
+    void on_link_end( const char* pszType, const LogicalReference& ref, bool bOwning, bool bOwned )
+    {
+        pop();
+    }
+    void on_interupt( const char* pszType, const LogicalReference& ref )
     {
         using ::operator<<;
-        os << indent << "dimension: " << ref.id << " " << ref.typeInstance << " " << value << std::endl;
+        os << indent << "int: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+    }
+    void on_function( const char* pszType, const LogicalReference& ref )
+    {
+        using ::operator<<;
+        os << indent << "fun: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+    }
+    void on_namespace( const char* pszType, const LogicalReference& ref )
+    {
+        using ::operator<<;
+        os << indent << "nam: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+    }
+    void on_dimension( const char* pszType, const LogicalReference& ref, const mega::Any& value )
+    {
+        using ::operator<<;
+        os << indent << "dim: " << lastType( pszType ) << " " << ref.typeInstance << " " << value << std::endl;
     }
 };
 }

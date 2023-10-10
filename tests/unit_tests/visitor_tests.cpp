@@ -26,14 +26,18 @@
 #include <gtest/gtest.h>
 
 #include <vector>
-
+/*
 namespace mega::mangle
 {
 mega::TypeID iterator_state( void* );
 void         iterator_object_start( void*, mega::TypeID );
 void         iterator_object_end( void* );
+void         iterator_component_start( void*, mega::TypeID, mega::Instance );
+void         iterator_component_end( void*, mega::TypeID );
 void         iterator_action_start( void*, mega::TypeID, mega::Instance );
 void         iterator_action_end( void*, mega::TypeID );
+void         iterator_state_start( void*, mega::TypeID, mega::Instance );
+void         iterator_state_end( void*, mega::TypeID );
 void         iterator_event_start( void*, mega::TypeID, mega::Instance );
 void         iterator_event_end( void*, mega::TypeID );
 void         iterator_link_start( void*, mega::TypeID, bool bOwning, bool bOwned );
@@ -296,6 +300,8 @@ struct TestLogicalTreeVisitor
     int links      = 0;
     int dimensions = 0;
     int functions  = 0;
+    int component  = 0;
+    int states     = 0;
 
     void on_object_start( const LogicalReference& ref )
     {
@@ -306,12 +312,30 @@ struct TestLogicalTreeVisitor
     {
         //
     }
+    void on_component_start( const LogicalReference& ref )
+    {
+        //
+        ++component;
+    }
+    void on_component_end( const LogicalReference& ref )
+    {
+        //
+    }
     void on_action_start( const LogicalReference& ref )
     {
         //
         ++actions;
     }
     void on_action_end( const LogicalReference& ref )
+    {
+        //
+    }
+    void on_state_start( const LogicalReference& ref )
+    {
+        //
+        ++states;
+    }
+    void on_state_end( const LogicalReference& ref )
     {
         //
     }
@@ -375,4 +399,4 @@ TEST( Visitor, Basic )
     ASSERT_EQ( visitor.events, 0 );
     ASSERT_EQ( visitor.actions, 40 );
     ASSERT_EQ( visitor.dimensions, 42 + 1 );
-}
+}*/

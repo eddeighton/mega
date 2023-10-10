@@ -266,79 +266,99 @@ mega::TypeID iterator_state( void* pIterator )
     return iterator.getState();
 }
 
-void iterator_object_start( void* pIterator, mega::TypeID successor )
+void iterator_object_start( void* pIterator, const char* pszType, mega::TypeID successor )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.object_start( successor );
+    iterator.object_start( pszType, successor );
 }
-void iterator_object_end( void* pIterator )
+void iterator_object_end( void* pIterator, const char* pszType )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.object_end();
+    iterator.object_end( pszType );
 }
-void iterator_action_start( void* pIterator, mega::TypeID successor, mega::Instance localDomainSize )
+void iterator_component_start( void* pIterator, const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.action_start( successor, localDomainSize );
+    iterator.component_start( pszType, successor, localDomainSize );
 }
-void iterator_action_end( void* pIterator, mega::TypeID successor )
+void iterator_component_end( void* pIterator, const char* pszType, mega::TypeID successor )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.action_end( successor );
+    iterator.component_end( pszType, successor );
 }
-void iterator_event_start( void* pIterator, mega::TypeID successor, mega::Instance localDomainSize )
+void iterator_action_start( void* pIterator, const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.event_start( successor, localDomainSize );
+    iterator.action_start( pszType, successor, localDomainSize );
 }
-void iterator_event_end( void* pIterator, mega::TypeID successor )
+void iterator_action_end( void* pIterator, const char* pszType, mega::TypeID successor )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.event_end( successor );
+    iterator.action_end( pszType, successor );
 }
-void iterator_link_start( void* pIterator, mega::TypeID successor, bool bOwning, bool bOwned )
+void iterator_state_start( void* pIterator, const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.link_start( successor, bOwning, bOwned );
+    iterator.state_start( pszType, successor, localDomainSize );
 }
-void iterator_link_end( void* pIterator, mega::TypeID successor, bool bOwning, bool bOwned )
+void iterator_state_end( void* pIterator, const char* pszType, mega::TypeID successor )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.link_end( successor, bOwning, bOwned );
+    iterator.state_end( pszType, successor );
 }
-void iterator_interupt_start( void* pIterator, mega::TypeID successor )
+void iterator_event_start( void* pIterator, const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.interupt_start( successor );
+    iterator.event_start( pszType, successor, localDomainSize );
 }
-void iterator_interupt_end( void* pIterator, mega::TypeID successor )
+void iterator_event_end( void* pIterator, const char* pszType, mega::TypeID successor )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.interupt_end( successor );
+    iterator.event_end( pszType, successor );
 }
-void iterator_function_start( void* pIterator, mega::TypeID successor )
+void iterator_link_start( void* pIterator, const char* pszType, mega::TypeID successor, bool bOwning, bool bOwned )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.function_start( successor );
+    iterator.link_start( pszType, successor, bOwning, bOwned );
 }
-void iterator_function_end( void* pIterator, mega::TypeID successor )
+void iterator_link_end( void* pIterator, const char* pszType, mega::TypeID successor, bool bOwning, bool bOwned )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.function_end( successor );
+    iterator.link_end( pszType, successor, bOwning, bOwned );
 }
-void iterator_namespace_start( void* pIterator, mega::TypeID successor )
+void iterator_interupt_start( void* pIterator, const char* pszType, mega::TypeID successor )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.namespace_start( successor );
+    iterator.interupt_start( pszType, successor );
 }
-void iterator_namespace_end( void* pIterator, mega::TypeID successor )
+void iterator_interupt_end( void* pIterator, const char* pszType, mega::TypeID successor )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.namespace_end( successor );
+    iterator.interupt_end( pszType, successor );
 }
-void iterator_dimension( void* pIterator, mega::TypeID successor )
+void iterator_function_start( void* pIterator, const char* pszType, mega::TypeID successor )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.dimension( successor );
+    iterator.function_start( pszType, successor );
+}
+void iterator_function_end( void* pIterator, const char* pszType, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.function_end( pszType, successor );
+}
+void iterator_namespace_start( void* pIterator, const char* pszType, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.namespace_start( pszType, successor );
+}
+void iterator_namespace_end( void* pIterator, const char* pszType, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.namespace_end( pszType, successor );
+}
+void iterator_dimension( void* pIterator, const char* pszType, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.dimension( pszType, successor );
 }
 } // namespace mega::mangle

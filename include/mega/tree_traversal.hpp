@@ -42,8 +42,12 @@ struct LogicalTreeVisitor
 {
     void on_object_start( const LogicalReference& ref )
     void on_object_end( const LogicalReference& ref )
+    void on_component_start( const LogicalReference& ref )
+    void on_component_end( const LogicalReference& ref )
     void on_action_start( const LogicalReference& ref )
     void on_action_end( const LogicalReference& ref )
+    void on_state_start( const LogicalReference& ref )
+    void on_state_end( const LogicalReference& ref )
     void on_event_start( const LogicalReference& ref )
     void on_event_end( const LogicalReference& ref )
     void on_link_start( const LogicalReference& ref, bool bOwning, bool bOwned )
@@ -110,21 +114,21 @@ public:
 private:
     TypeID start() const override { return std::get< ObjectFrame >( m_stack.back() ).object.getType(); }
 
-    void on_object_start( const TypeInstance& typeInstance ) override
+    void on_object_start( const char* pszType, const TypeInstance& typeInstance ) override
     {
         ASSERT( !m_stack.empty() );
         ASSERT( std::get< ObjectFrame >( m_stack.back() ).object.getType() == typeInstance.type );
-        m_visitor.on_object_start( getReference( typeInstance ) );
+        m_visitor.on_object_start( pszType, getReference( typeInstance ) );
     }
 
-    std::optional< TypeID > on_object_end( const TypeInstance& typeInstance ) override
+    std::optional< TypeID > on_object_end( const char* pszType, const TypeInstance& typeInstance ) override
     {
         ASSERT( !m_stack.empty() );
         ASSERT_MSG( std::get< ObjectFrame >( m_stack.back() ).object.getType() == typeInstance.type,
                     "Unexpected object frame type: " << std::hex << typeInstance.type << " expected: " << std::hex
                                                      << std::get< ObjectFrame >( m_stack.back() ).object.getType() );
 
-        m_visitor.on_object_end( getReference( typeInstance ) );
+        m_visitor.on_object_end( pszType, getReference( typeInstance ) );
 
         // pop the object frame
         m_stack.pop_back();
@@ -140,24 +144,40 @@ private:
         }
     }
 
-    void on_action_start( const TypeInstance& typeInstance ) override
+    void on_component_start( const char* pszType, const TypeInstance& typeInstance ) override
     {
-        m_visitor.on_action_start( getReference( typeInstance ) );
+        m_visitor.on_component_start( pszType, getReference( typeInstance ) );
     }
-    void on_action_end( const TypeInstance& typeInstance ) override
+    void on_component_end( const char* pszType, const TypeInstance& typeInstance ) override
     {
-        m_visitor.on_action_end( getReference( typeInstance ) );
+        m_visitor.on_component_end( pszType, getReference( typeInstance ) );
     }
-    void on_event_start( const TypeInstance& typeInstance ) override
+    void on_action_start( const char* pszType, const TypeInstance& typeInstance ) override
     {
-        m_visitor.on_event_start( getReference( typeInstance ) );
+        m_visitor.on_action_start( pszType, getReference( typeInstance ) );
     }
-    void on_event_end( const TypeInstance& typeInstance ) override
+    void on_action_end( const char* pszType, const TypeInstance& typeInstance ) override
     {
-        m_visitor.on_event_end( getReference( typeInstance ) );
+        m_visitor.on_action_end( pszType, getReference( typeInstance ) );
+    }
+    void on_state_start( const char* pszType, const TypeInstance& typeInstance ) override
+    {
+        m_visitor.on_state_start( pszType, getReference( typeInstance ) );
+    }
+    void on_state_end( const char* pszType, const TypeInstance& typeInstance ) override
+    {
+        m_visitor.on_state_end( pszType, getReference( typeInstance ) );
+    }
+    void on_event_start( const char* pszType, const TypeInstance& typeInstance ) override
+    {
+        m_visitor.on_event_start( pszType, getReference( typeInstance ) );
+    }
+    void on_event_end( const char* pszType, const TypeInstance& typeInstance ) override
+    {
+        m_visitor.on_event_end( pszType, getReference( typeInstance ) );
     }
 
-    void on_link_start( const TypeInstance& typeInstance, bool bOwning, bool bOwned ) override
+    void on_link_start( const char* pszType, const TypeInstance& typeInstance, bool bOwning, bool bOwned ) override
     {
         ASSERT( !m_stack.empty() );
 
@@ -167,10 +187,10 @@ private:
         const U64   linkSize    = m_instantiation.linkSize( linkRef, bOwning, bOwned );
         LinkFrame   frame{ linkRef, 0, linkSize };
         m_stack.push_back( frame );
-        m_visitor.on_link_start( linkRef, bOwning, bOwned );
+        m_visitor.on_link_start( pszType, linkRef, bOwning, bOwned );
     }
 
-    std::optional< TypeID > on_link_end( const TypeInstance& typeInstance, bool bOwning, bool bOwned ) override
+    std::optional< TypeID > on_link_end( const char* pszType, const TypeInstance& typeInstance, bool bOwning, bool bOwned ) override
     {
         ASSERT( !m_stack.empty() );
 
@@ -189,30 +209,30 @@ private:
         {
             // pop the link frame
             m_stack.pop_back();
-            m_visitor.on_link_end( frame.link, bOwning, bOwned );
+            m_visitor.on_link_end( pszType, frame.link, bOwning, bOwned );
             return {};
         }
     }
 
-    void on_interupt( const TypeInstance& typeInstance ) override
+    void on_interupt( const char* pszType, const TypeInstance& typeInstance ) override
     {
-        m_visitor.on_interupt( getReference( typeInstance ) );
+        m_visitor.on_interupt( pszType, getReference( typeInstance ) );
     }
 
-    void on_function( const TypeInstance& typeInstance ) override
+    void on_function( const char* pszType, const TypeInstance& typeInstance ) override
     {
-        m_visitor.on_function( getReference( typeInstance ) );
+        m_visitor.on_function( pszType, getReference( typeInstance ) );
     }
 
-    void on_namespace( const TypeInstance& typeInstance ) override
+    void on_namespace( const char* pszType, const TypeInstance& typeInstance ) override
     {
-        m_visitor.on_namespace( getReference( typeInstance ) );
+        m_visitor.on_namespace( pszType, getReference( typeInstance ) );
     }
 
-    void on_dimension( const TypeInstance& typeInstance ) override
+    void on_dimension( const char* pszType, const TypeInstance& typeInstance ) override
     {
         const Reference ref = getReference( typeInstance );
-        m_visitor.on_dimension( ref, m_instantiation.read( ref ) );
+        m_visitor.on_dimension( pszType, ref, m_instantiation.read( ref ) );
     }
 };
 } // namespace mega

@@ -71,3 +71,5 @@ def test():
     
     r = mega.getMPO().getRoot()
     t = mega.new( Type.Toaster )
+    dump( r )
+    dump( t )

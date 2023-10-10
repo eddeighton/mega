@@ -275,6 +275,12 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
         m_python.logicalthreadInitiated( m_mpoLogicalThread );
     }
 
+    // wait for the MPO conversation to have started up and been specified its MPO
+    while( !m_python.isMPOInitialised() )
+    {
+        run_one();
+    }
+
     // initialise type system
     const auto& project = m_python.getProject();
     VERIFY_RTE_MSG( project.has_value(), "Could not find mega structure project" );

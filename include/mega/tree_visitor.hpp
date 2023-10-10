@@ -31,40 +31,52 @@ struct TreeVisitor
 {
     using Reference = ReferenceType;
 
-    void on_object_start( const Reference& ref )
+    void on_object_start( const char* pszType, const Reference& ref )
     {
     }
-    void on_object_end( const Reference& ref )
+    void on_object_end( const char* pszType, const Reference& ref )
     {
     }
-    void on_action_start( const Reference& ref )
+    void on_component_start( const char* pszType, const Reference& ref )
     {
     }
-    void on_action_end( const Reference& ref )
+    void on_component_end( const char* pszType, const Reference& ref )
     {
     }
-    void on_event_start( const Reference& ref )
+    void on_action_start( const char* pszType, const Reference& ref )
     {
     }
-    void on_event_end( const Reference& ref )
+    void on_action_end( const char* pszType, const Reference& ref )
     {
     }
-    void on_link_start( const Reference& ref, bool bOwning, bool bOwned )
+    void on_state_start( const char* pszType, const Reference& ref )
     {
     }
-    void on_link_end( const Reference& ref, bool bOwning, bool bOwned )
+    void on_state_end( const char* pszType, const Reference& ref )
     {
     }
-    void on_interupt( const Reference& ref )
+    void on_event_start( const char* pszType, const Reference& ref )
     {
     }
-    void on_function( const Reference& ref )
+    void on_event_end( const char* pszType, const Reference& ref )
     {
     }
-    void on_namespace( const Reference& ref )
+    void on_link_start( const char* pszType, const Reference& ref, bool bOwning, bool bOwned )
     {
     }
-    void on_dimension( const Reference& ref, const mega::Any& value )
+    void on_link_end( const char* pszType, const Reference& ref, bool bOwning, bool bOwned )
+    {
+    }
+    void on_interupt( const char* pszType, const Reference& ref )
+    {
+    }
+    void on_function( const char* pszType, const Reference& ref )
+    {
+    }
+    void on_namespace( const char* pszType, const Reference& ref )
+    {
+    }
+    void on_dimension( const char* pszType, const Reference& ref, const mega::Any& value )
     {
     }
 };

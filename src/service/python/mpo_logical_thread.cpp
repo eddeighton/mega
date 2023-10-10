@@ -172,19 +172,12 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
 
         for( const auto& msg : m_messageQueue )
         {
-            /*if( msg.msg.getID() == network::python::MSG_PythonGetIdentities_Request::ID )
-            {
-                SPDLOG_TRACE( "PYTHON RootSimRun: run got network::python::MSG_PythonGetIdentities_Request::ID" );
-                acknowledgeInboundRequest( msg, yield_ctx );
-            }
-            else*/
-            {
-                SPDLOG_ERROR( "Unexpected pending message when starting up MPOLogicalThread: {}", msg.msg );
-                using ::operator<<;
-                THROW_RTE( "Unexpected pending message when starting up MPOLogicalThread: " << msg.msg );
-            }
+            SPDLOG_ERROR( "Unexpected pending message when starting up MPOLogicalThread: {}", msg.msg );
+            using ::operator<<;
+            THROW_RTE( "Unexpected pending message when starting up MPOLogicalThread: " << msg.msg );
         }
 
+        m_python.setMPOInitialised();
         while( m_bRunning )
         {
             run_one( yield_ctx );

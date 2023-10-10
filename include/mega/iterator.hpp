@@ -40,18 +40,23 @@ struct TraversalVisitor
 {
     virtual TypeID start() const = 0;
 
-    virtual void                          on_object_start( const TypeInstance& typeInstance ) = 0;
-    virtual std::optional< mega::TypeID > on_object_end( const TypeInstance& typeInstance )   = 0;
-    virtual void                          on_action_start( const TypeInstance& typeInstance ) = 0;
-    virtual void                          on_action_end( const TypeInstance& typeInstance )   = 0;
-    virtual void                          on_event_start( const TypeInstance& typeInstance )  = 0;
-    virtual void                          on_event_end( const TypeInstance& typeInstance )    = 0;
-    virtual void                          on_interupt( const TypeInstance& typeInstance )     = 0;
-    virtual void                          on_function( const TypeInstance& typeInstance )     = 0;
-    virtual void                          on_namespace( const TypeInstance& typeInstance )    = 0;
-    virtual void                          on_dimension( const TypeInstance& typeInstance )    = 0;
-    virtual void on_link_start( const TypeInstance& typeInstance, bool bOwning, bool bOwned ) = 0;
-    virtual std::optional< mega::TypeID > on_link_end( const TypeInstance& typeInstance, bool bOwning, bool bOwned )
+    virtual void                          on_object_start( const char* pszType, const TypeInstance& typeInstance ) = 0;
+    virtual std::optional< mega::TypeID > on_object_end( const char* pszType, const TypeInstance& typeInstance )   = 0;
+    virtual void on_component_start( const char* pszType, const TypeInstance& typeInstance )                       = 0;
+    virtual void on_component_end( const char* pszType, const TypeInstance& typeInstance )                         = 0;
+    virtual void on_action_start( const char* pszType, const TypeInstance& typeInstance )                          = 0;
+    virtual void on_action_end( const char* pszType, const TypeInstance& typeInstance )                            = 0;
+    virtual void on_state_start( const char* pszType, const TypeInstance& typeInstance )                           = 0;
+    virtual void on_state_end( const char* pszType, const TypeInstance& typeInstance )                             = 0;
+    virtual void on_event_start( const char* pszType, const TypeInstance& typeInstance )                           = 0;
+    virtual void on_event_end( const char* pszType, const TypeInstance& typeInstance )                             = 0;
+    virtual void on_interupt( const char* pszType, const TypeInstance& typeInstance )                              = 0;
+    virtual void on_function( const char* pszType, const TypeInstance& typeInstance )                              = 0;
+    virtual void on_namespace( const char* pszType, const TypeInstance& typeInstance )                             = 0;
+    virtual void on_dimension( const char* pszType, const TypeInstance& typeInstance )                             = 0;
+    virtual void on_link_start( const char* pszType, const TypeInstance& typeInstance, bool bOwning, bool bOwned ) = 0;
+    virtual std::optional< mega::TypeID > on_link_end( const char* pszType, const TypeInstance& typeInstance,
+                                                       bool bOwning, bool bOwned )
         = 0;
 };
 
@@ -107,19 +112,19 @@ public:
 
     inline TypeID getState() const { return m_state; }
 
-    inline void object_start( mega::TypeID successor )
+    inline void object_start( const char* pszType, mega::TypeID successor )
     {
         Domain domain{ true, 0, 1, successor };
         m_domainStack.emplace_back( std::move( domain ) );
 
-        m_visitor.on_object_start( getTypeInstance( m_state ) );
+        m_visitor.on_object_start( pszType, getTypeInstance( m_state ) );
         m_state = successor;
     }
 
-    inline void object_end()
+    inline void object_end( const char* pszType )
     {
         std::optional< mega::TypeID > nextState
-            = m_visitor.on_object_end( getTypeInstance( TypeID::make_start_state( m_state ) ) );
+            = m_visitor.on_object_end( pszType, getTypeInstance( TypeID::make_start_state( m_state ) ) );
         if( nextState.has_value() )
         {
             m_state = nextState.value();
@@ -131,17 +136,17 @@ public:
         m_domainStack.pop_back();
     }
 
-    inline void action_start( mega::TypeID successor, mega::Instance localDomainSize )
+    inline void component_start( const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
     {
         Domain domain{ false, 0, localDomainSize, successor };
         m_domainStack.emplace_back( std::move( domain ) );
-        m_visitor.on_action_start( getTypeInstance( m_state ) );
+        m_visitor.on_component_start( pszType, getTypeInstance( m_state ) );
         m_state = successor;
     }
 
-    inline void action_end( mega::TypeID successor )
+    inline void component_end( const char* pszType, mega::TypeID successor )
     {
-        m_visitor.on_action_end( getTypeInstance( m_state ) );
+        m_visitor.on_component_end( pszType, getTypeInstance( m_state ) );
         auto& domain = m_domainStack.back();
         ++domain.iter;
         if( domain.iter == domain.total )
@@ -151,22 +156,22 @@ public:
         }
         else
         {
-            m_visitor.on_action_start( getTypeInstance( TypeID::make_start_state( m_state ) ) );
+            m_visitor.on_component_start( pszType, getTypeInstance( TypeID::make_start_state( m_state ) ) );
             m_state = domain.successor;
         }
     }
 
-    inline void event_start( mega::TypeID successor, mega::Instance localDomainSize )
+    inline void action_start( const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
     {
         Domain domain{ false, 0, localDomainSize, successor };
         m_domainStack.emplace_back( std::move( domain ) );
-        m_visitor.on_event_start( getTypeInstance( m_state ) );
+        m_visitor.on_action_start( pszType, getTypeInstance( m_state ) );
         m_state = successor;
     }
 
-    inline void event_end( mega::TypeID successor )
+    inline void action_end( const char* pszType, mega::TypeID successor )
     {
-        m_visitor.on_event_end( getTypeInstance( m_state ) );
+        m_visitor.on_action_end( pszType, getTypeInstance( m_state ) );
         auto& domain = m_domainStack.back();
         ++domain.iter;
         if( domain.iter == domain.total )
@@ -176,21 +181,71 @@ public:
         }
         else
         {
-            m_visitor.on_event_start( getTypeInstance( TypeID::make_start_state( m_state ) ) );
+            m_visitor.on_action_start( pszType, getTypeInstance( TypeID::make_start_state( m_state ) ) );
             m_state = domain.successor;
         }
     }
 
-    inline void link_start( mega::TypeID successor, bool bOwning, bool bOwned )
+    inline void state_start( const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
     {
-        m_visitor.on_link_start( getTypeInstance( m_state ), bOwning, bOwned );
+        Domain domain{ false, 0, localDomainSize, successor };
+        m_domainStack.emplace_back( std::move( domain ) );
+        m_visitor.on_state_start( pszType, getTypeInstance( m_state ) );
         m_state = successor;
     }
 
-    inline void link_end( mega::TypeID successor, bool bOwning, bool bOwned )
+    inline void state_end( const char* pszType, mega::TypeID successor )
+    {
+        m_visitor.on_state_end( pszType, getTypeInstance( m_state ) );
+        auto& domain = m_domainStack.back();
+        ++domain.iter;
+        if( domain.iter == domain.total )
+        {
+            m_domainStack.pop_back();
+            m_state = successor;
+        }
+        else
+        {
+            m_visitor.on_state_start( pszType, getTypeInstance( TypeID::make_start_state( m_state ) ) );
+            m_state = domain.successor;
+        }
+    }
+
+    inline void event_start( const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
+    {
+        Domain domain{ false, 0, localDomainSize, successor };
+        m_domainStack.emplace_back( std::move( domain ) );
+        m_visitor.on_event_start( pszType, getTypeInstance( m_state ) );
+        m_state = successor;
+    }
+
+    inline void event_end( const char* pszType, mega::TypeID successor )
+    {
+        m_visitor.on_event_end( pszType, getTypeInstance( m_state ) );
+        auto& domain = m_domainStack.back();
+        ++domain.iter;
+        if( domain.iter == domain.total )
+        {
+            m_domainStack.pop_back();
+            m_state = successor;
+        }
+        else
+        {
+            m_visitor.on_event_start( pszType, getTypeInstance( TypeID::make_start_state( m_state ) ) );
+            m_state = domain.successor;
+        }
+    }
+
+    inline void link_start( const char* pszType, mega::TypeID successor, bool bOwning, bool bOwned )
+    {
+        m_visitor.on_link_start( pszType, getTypeInstance( m_state ), bOwning, bOwned );
+        m_state = successor;
+    }
+
+    inline void link_end( const char* pszType, mega::TypeID successor, bool bOwning, bool bOwned )
     {
         std::optional< mega::TypeID > nextState
-            = m_visitor.on_link_end( getTypeInstance( TypeID::make_start_state( m_state ) ), bOwning, bOwned );
+            = m_visitor.on_link_end( pszType, getTypeInstance( TypeID::make_start_state( m_state ) ), bOwning, bOwned );
         if( nextState.has_value() )
         {
             m_state = nextState.value();
@@ -201,27 +256,27 @@ public:
         }
     }
 
-    inline void interupt_start( mega::TypeID successor )
+    inline void interupt_start( const char* pszType, mega::TypeID successor )
     {
-        m_visitor.on_interupt( getTypeInstance( m_state ) );
+        m_visitor.on_interupt( pszType, getTypeInstance( m_state ) );
         m_state = successor;
     }
-    inline void interupt_end( mega::TypeID successor ) { m_state = successor; }
-    inline void function_start( mega::TypeID successor )
+    inline void interupt_end( const char* pszType, mega::TypeID successor ) { m_state = successor; }
+    inline void function_start( const char* pszType, mega::TypeID successor )
     {
-        m_visitor.on_function( getTypeInstance( m_state ) );
+        m_visitor.on_function( pszType, getTypeInstance( m_state ) );
         m_state = successor;
     }
-    inline void function_end( mega::TypeID successor ) { m_state = successor; }
-    inline void namespace_start( mega::TypeID successor )
+    inline void function_end( const char* pszType, mega::TypeID successor ) { m_state = successor; }
+    inline void namespace_start( const char* pszType, mega::TypeID successor )
     {
-        m_visitor.on_namespace( getTypeInstance( m_state ) );
+        m_visitor.on_namespace( pszType, getTypeInstance( m_state ) );
         m_state = successor;
     }
-    inline void namespace_end( mega::TypeID successor ) { m_state = successor; }
-    inline void dimension( mega::TypeID successor )
+    inline void namespace_end( const char* pszType, mega::TypeID successor ) { m_state = successor; }
+    inline void dimension( const char* pszType, mega::TypeID successor )
     {
-        m_visitor.on_dimension( getTypeInstance( m_state ) );
+        m_visitor.on_dimension( pszType, getTypeInstance( m_state ) );
         m_state = successor;
     }
 };
