@@ -81,7 +81,6 @@ namespace Symbols
         opt< ref< Concrete::Context >                    >  context;
         opt< ref< Concrete::Dimensions::User >           >  dim_user;
         opt< ref< Concrete::Dimensions::Link >           >  dim_link;
-        opt< ref< Concrete::Dimensions::Allocation >     >  dim_allocation;
     }
     
     object SymbolTable -> SymbolAnalysis::SymbolTable
@@ -93,7 +92,6 @@ namespace Symbols
         map< value< mega::TypeID >,         ref< InterfaceTypeID > >  interface_type_ids;
 
         map< value< mega::TypeIDSequence >, ref< ConcreteTypeID > > concrete_type_id_sequences -> ConcreteTypeAnalysis::ConcreteTable;
-        map< value< mega::TypeIDSequence >, ref< ConcreteTypeID > > concrete_type_id_seq_alloc -> ConcreteTypeAnalysis::ConcreteTable;
         map< value< mega::TypeIDSequence >, ref< ConcreteTypeID > > concrete_type_id_set_link  -> ConcreteTypeAnalysis::ConcreteTable;
 
         map< value< mega::TypeID >,         ref< ConcreteTypeID > >   concrete_type_ids -> ConcreteTypeAnalysis::ConcreteTable;
@@ -146,67 +144,27 @@ namespace HyperGraph
     }
 }
 
-namespace Allocators
-{
-    object Allocator -> MemoryStage::MemoryLayout
-    {
-        opt< ref< Concrete::Context > > parent_context;
-        ref< Concrete::Context > allocated_context;
-        late< opt< ref< Concrete::Dimensions::Allocator > > > dimension;
-    }
-
-    object Nothing : Allocator -> MemoryStage::MemoryLayout
-    {
-    }
-
-    object Singleton : Allocator -> MemoryStage::MemoryLayout
-    {
-    }
-
-    object Range : Allocator -> MemoryStage::MemoryLayout
-    {
-        value< mega::U64 > local_size;
-    }
-
-    object Range32 : Range -> MemoryStage::MemoryLayout
-    {
-    }
-
-    object Range64 : Range -> MemoryStage::MemoryLayout
-    {
-    }
-
-    object RangeAny : Range -> MemoryStage::MemoryLayout
-    {
-    }
-}
-
 namespace MemoryLayout
 {
     object Part -> MemoryStage::MemoryLayout
     {
-        value< mega::U64 >                                  total_domain_size;
-        ref< Concrete::Context >                            context;
-        array< ref< Concrete::Dimensions::User > >          user_dimensions;
-        array< ref< Concrete::Dimensions::Link > >          link_dimensions;
-        array< ref< Concrete::Dimensions::Allocation > >    allocation_dimensions;
+        value< mega::U64 > total_domain_size;
 
-        late< value< mega::U64 > >  size;
-        late< value< mega::U64 > >  alignment;
-        late< value< mega::U64 > >  offset;
-        late< ref< Buffer > >       buffer;
+        late< value< mega::U64 > >                              size;
+        late< value< mega::U64 > >                              alignment;
+        late< array< ref< Concrete::Dimensions::User > > >      user_dimensions;
+        late< array< ref< Concrete::Dimensions::Link > > >      link_dimensions;
+        late< array< ref< Concrete::Dimensions::Bitset > > >    bitset_dimensions;
+
+        late< value< mega::U64 > > offset;
+        late< ref< Buffer > >      buffer;
     }
 
     object Buffer -> MemoryStage::MemoryLayout
     {
         array< ref< Part > > parts;
-        value< mega::U64 > size;
-        value< mega::U64 > alignment;
-    }
-
-    object NonSimpleBuffer : Buffer -> MemoryStage::MemoryLayout
-    {
-
+        value< mega::U64 >   size;
+        value< mega::U64 >   alignment;
     }
 
     object SimpleBuffer : Buffer -> MemoryStage::MemoryLayout
@@ -214,18 +172,13 @@ namespace MemoryLayout
 
     }
 
-    object GPUBuffer : Buffer -> MemoryStage::MemoryLayout
-    {
-        
-    }
-
     object MemoryMap -> GlobalMemoryStage::GlobalMemoryLayout
     {
-        ref< Interface::IContext >          interface;
-        value< mega::U64 >                  block_size;
-        value< mega::U64 >                  block_alignment;
-        value< mega::U64 >                  fixed_allocation;
-        array< ref< Concrete::Object > >    concrete;
+        ref< Interface::IContext >       interface;
+        value< mega::U64 >               block_size;
+        value< mega::U64 >               block_alignment;
+        value< mega::U64 >               fixed_allocation;
+        array< ref< Concrete::Object > > concrete;
 
         // this does not work - due to per source versus global :(
         // late< array< ref< Concrete::MemoryMappedObject > > > concrete -> GlobalMemoryStageRollout::GlobalMemoryRollout;

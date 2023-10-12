@@ -73,18 +73,6 @@ add_custom_target( generate_mangle_types
 )
 add_dependencies( generate_mangle_types inja )
 
-# add_custom_target( generate_mangle_allocators
-#     COMMAND inja
-#         --data ${MEGA_API_DIR}/mega/types/allocators.json
-#         --template ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja
-#         --output ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
-#     DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja inja
-#     BYPRODUCTS  ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
-#     COMMENT "Generating Type Mangle for Allocators" 
-#     SOURCES ${MEGA_API_DIR}/mega/types/allocators.json
-# )
-# add_dependencies( generate_mangle_allocators inja )
-
 add_custom_target( generate_python_mangle_types
     COMMAND inja
         --data ${MEGA_API_DIR}/mega/types/types.json
@@ -96,19 +84,6 @@ add_custom_target( generate_python_mangle_types
     SOURCES ${MEGA_API_DIR}/mega/types/types.json
 )
 add_dependencies( generate_python_mangle_types inja )
-
-# add_custom_target( generate_python_mangle_allocators
-#     COMMAND inja
-#         --data ${MEGA_API_DIR}/mega/types/allocators.json
-#         --template ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja
-#         --output ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
-#     DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja inja
-#     BYPRODUCTS  ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
-#     COMMENT "Generating Python Type Mangle for Allocators" 
-#     SOURCES ${MEGA_API_DIR}/mega/types/allocators.json
-# )
-# add_dependencies( generate_python_mangle_allocators inja )
-
 
 add_custom_target( generate_mega_mangle_meta
     COMMAND inja
@@ -126,14 +101,10 @@ set_target_properties( generate_any_impl PROPERTIES FOLDER service )
 set_target_properties( generate_mangle_rtti PROPERTIES FOLDER service )
 set_target_properties( generate_mangle_types PROPERTIES FOLDER service )
 set_target_properties( generate_python_mangle_types PROPERTIES FOLDER service )
-# set_target_properties( generate_mangle_allocators PROPERTIES FOLDER service )
-# set_target_properties( generate_python_mangle_allocators PROPERTIES FOLDER service )
 set_target_properties( generate_mega_mangle_meta PROPERTIES FOLDER service )
 
 set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/address_table.hpp
-    ${MEGA_API_DIR}/mega/allocator_io.hpp
-    ${MEGA_API_DIR}/mega/allocator.hpp
     ${MEGA_API_DIR}/mega/any_io.hpp
     ${MEGA_API_DIR}/mega/any.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
@@ -177,6 +148,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/result_type.hpp
     ${MEGA_API_DIR}/mega/resumption.hpp
     ${MEGA_API_DIR}/mega/return_reason.hpp
+    ${MEGA_API_DIR}/mega/ring_allocator.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
     ${MEGA_API_DIR}/mega/tag_parser.hpp

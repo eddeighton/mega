@@ -24,8 +24,8 @@ namespace Concrete
     {
         object Vertex -> ConcreteStage::Concrete
         {
-            array< ref< Edge > >        out_edges                   -> HyperGraphAnalysisRollout::PerSourceModel;
-            array< ref< Edge > >        in_edges                    -> HyperGraphAnalysisRollout::PerSourceModel;
+            array< ref< Edge > > out_edges   -> HyperGraphAnalysisRollout::PerSourceModel;
+            array< ref< Edge > > in_edges    -> HyperGraphAnalysisRollout::PerSourceModel;
         }
 
         object Edge -> HyperGraphAnalysis::Model
@@ -40,21 +40,20 @@ namespace Concrete
     {
         object User : Graph::Vertex -> ConcreteStage::Concrete
         {
-            ref< Concrete::Context > parent_context;
-            ref< Interface::DimensionTrait > interface_dimension;
+            ref< Concrete::Context >            parent_context;
+            ref< Interface::DimensionTrait >    interface_dimension;
+
+            ref< MemoryLayout::Part >   part    -> MemoryStage::MemoryLayout;
+            value< mega::U64 >          offset  -> MemoryStage::MemoryLayout;
 
             value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
-
-            value< mega::U64 >          offset      -> MemoryStage::MemoryLayout;
-            ref< MemoryLayout::Part >   part        -> MemoryStage::MemoryLayout;
         }
 
         // HyperGraph
         object Link : Graph::Vertex -> ConcreteStage::Concrete
         {
-            ref< Concrete::Context > parent_context;
-
-            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
+            ref< Concrete::Context >    parent_context;
+            late< ref< LinkType > >     link_type;
 
             ref< HyperGraph::Relation > relation    -> HyperGraphAnalysisRollout::PerSourceModel;
             value< bool >               owning      -> HyperGraphAnalysisRollout::PerSourceModel;
@@ -62,9 +61,10 @@ namespace Concrete
             value< bool >               source      -> HyperGraphAnalysisRollout::PerSourceModel;
             value< bool >               singular    -> HyperGraphAnalysisRollout::PerSourceModel;
 
-            value< mega::U64 >          offset      -> MemoryStage::MemoryLayout;
-            ref< MemoryLayout::Part >   part        -> MemoryStage::MemoryLayout;
-            ref< LinkType >             link_type   -> MemoryStage::MemoryLayout;
+            ref< MemoryLayout::Part >  part     -> MemoryStage::MemoryLayout;
+            value< mega::U64 >         offset   -> MemoryStage::MemoryLayout;
+
+            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
         }
 
         object UserLink : Link -> ConcreteStage::Concrete
@@ -76,28 +76,41 @@ namespace Concrete
         {
         }
 
-        object LinkType -> MemoryStage::MemoryLayout
+        object LinkType -> ConcreteStage::Concrete
         {
             ref< Concrete::Context >    parent_context;
-            value< mega::U64 >          offset;
-            ref< MemoryLayout::Part >   part;
+            ref< Link >                 link;
 
-            late< ref< Link >  >        link;
+            ref< MemoryLayout::Part >  part     -> MemoryStage::MemoryLayout;
+            value< mega::U64 >         offset   -> MemoryStage::MemoryLayout;
         }
 
-        // MemoryStage
-        object Allocation -> MemoryStage::MemoryLayout
+        // State machine
+        object Bitset -> ConcreteStage::Concrete
         {
-            ref< Concrete::Context > parent_context;
-            late< ref< MemoryLayout::Part > > part;
-            late< value< mega::U64 > > offset;
+            ref< Concrete::Object > parent_object;
+
+            value< mega::U64 >          size    -> MemoryStage::MemoryLayout;
+            ref< MemoryLayout::Part >   part    -> MemoryStage::MemoryLayout;
+            value< mega::U64 >          offset  -> MemoryStage::MemoryLayout;
 
             value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
         }
 
-        object Allocator : Allocation -> MemoryStage::MemoryLayout
+        object Configuration : Bitset -> ConcreteStage::Concrete
         {
-            ref< Allocators::Allocator > allocator;
+        }
+
+        object Activation : Bitset -> ConcreteStage::Concrete
+        {
+        }
+
+        object Enablement : Bitset -> ConcreteStage::Concrete
+        {
+        }
+
+        object History : Bitset -> ConcreteStage::Concrete
+        {
         }
     }
 
@@ -108,17 +121,16 @@ namespace Concrete
 
     object Context : ContextGroup -> ConcreteStage::Concrete
     {
-        ref< Components::Component > component;
-        late< opt< ref< Object > > > concrete_object;
-        ref< ContextGroup > parent;
-        ref< Interface::IContext > interface;
+        ref< Components::Component >        component;
+        late< opt< ref< Object > > >        concrete_object;
+        ref< ContextGroup >                 parent;
+        ref< Interface::IContext >          interface;
         array< ref< Interface::IContext > > inheritance;
+
+        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
+        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
         
         value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
-
-        // MemoryStage::MemoryLayout
-        ref< Allocators::Allocator > allocator -> MemoryStage::MemoryLayout;
-        array< ref< Dimensions::Allocator > > allocation_dimensions -> MemoryStage::MemoryLayout;
     }
 
     object Interupt : Context -> ConcreteStage::Concrete
@@ -137,8 +149,9 @@ namespace Concrete
 
     object UserDimensionContext : Context  -> ConcreteStage::Concrete
     {
-        array< ref< Dimensions::User > >        dimensions;
-        array< ref< Dimensions::Link > >        links;
+        array< ref< Dimensions::User > >    dimensions;
+        array< ref< Dimensions::Link > >    links;
+        array< ref< Dimensions::Bitset > >  bitsets;
     }
 
     object Namespace : UserDimensionContext -> ConcreteStage::Concrete
@@ -149,9 +162,6 @@ namespace Concrete
     object State : UserDimensionContext -> ConcreteStage::Concrete
     {
         ref< Interface::State > interface_state;
-
-        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
-        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Action : State -> ConcreteStage::Concrete
@@ -167,15 +177,17 @@ namespace Concrete
     object Event : UserDimensionContext -> ConcreteStage::Concrete
     {
         ref< Interface::Event > interface_event;
-
-        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
-        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Object : UserDimensionContext -> ConcreteStage::Concrete
     {
-        ref< Interface::Object >                    interface_object;
-        late< ref< Dimensions::OwnershipLink > >    ownership_link;
+        ref< Interface::Object > interface_object;
+
+        late< ref< Dimensions::OwnershipLink > > ownership_link;
+        late< ref< Dimensions::Configuration > > configuration;
+        late< ref< Dimensions::Activation >    > activation;
+        late< ref< Dimensions::Enablement >    > enablement;
+        late< ref< Dimensions::History >       > history;
 
         array< ref< MemoryLayout::Buffer > > buffers -> MemoryStage::MemoryLayout;
 

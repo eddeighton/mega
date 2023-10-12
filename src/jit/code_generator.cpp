@@ -47,52 +47,6 @@ CodeGenerator::CodeGenerator( const mega::MegastructureInstallation& megastructu
 {
 }
 
-std::string CodeGenerator::allocatorTypeName( const JITDatabase&                           database,
-                                              FinalStage::Concrete::Dimensions::Allocator* pAllocDim )
-{
-    using namespace FinalStage;
-
-    std::ostringstream     osTypeName;
-    Allocators::Allocator* pAllocator = pAllocDim->get_allocator();
-
-    // paranoia check - ensure the local domain size matches up
-    const auto localDomainSize = database.getLocalDomainSize( pAllocator->get_allocated_context()->get_concrete_id() );
-
-    if( db_cast< Allocators::Nothing >( pAllocator ) )
-    {
-        // do nothing
-        THROW_RTE( "Unreachable" );
-    }
-    else if( db_cast< Allocators::Singleton >( pAllocator ) )
-    {
-        VERIFY_RTE( localDomainSize == 1 );
-        osTypeName << "bool";
-    }
-    else if( auto pAlloc32 = db_cast< Allocators::Range32 >( pAllocator ) )
-    {
-        const auto allocatorSize = pAlloc32->get_local_size();
-        VERIFY_RTE( localDomainSize == allocatorSize );
-        osTypeName << "mega::Bitmask32Allocator< " << allocatorSize << " >";
-    }
-    else if( auto pAlloc64 = db_cast< Allocators::Range64 >( pAllocator ) )
-    {
-        const auto allocatorSize = pAlloc64->get_local_size();
-        VERIFY_RTE( localDomainSize == allocatorSize );
-        osTypeName << "mega::Bitmask64Allocator< " << allocatorSize << " >";
-    }
-    else if( auto pAllocAny = db_cast< Allocators::RangeAny >( pAllocator ) )
-    {
-        const auto allocatorSize = pAllocAny->get_local_size();
-        VERIFY_RTE( localDomainSize == allocatorSize );
-        osTypeName << "mega::RingAllocator< mega::Instance, " << allocatorSize << " >";
-    }
-    else
-    {
-        THROW_RTE( "Unknown allocator type" );
-    }
-    return osTypeName.str();
-}
-
 nlohmann::json CodeGenerator::generate( const JITDatabase& database, const mega::InvocationID& invocationID,
                                         std::string& strName ) const
 {

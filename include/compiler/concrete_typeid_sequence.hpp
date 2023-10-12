@@ -67,22 +67,5 @@ struct TypeIDSequenceGen
             THROW_RTE( "Unknown link type" );
         }
     }
-
-    mega::TypeIDSequence operator()( Concrete::Dimensions::Allocation* pDimAlloc ) const
-    {
-        if( auto pDimAllocator = db_cast< Concrete::Dimensions::Allocator >( pDimAlloc ) )
-        {
-            auto pAllocator        = pDimAllocator->get_allocator();
-            auto pAllocatedContext = pAllocator->get_allocated_context();
-
-            mega::TypeIDSequence sequence{ getTypeID( pAllocatedContext->get_interface() ) };
-            recurse( pAllocatedContext->get_parent(), sequence );
-
-            return sequence;
-        }
-        else
-        {
-            THROW_RTE( "Unknown allocator dimension type" );
-        }
-    }
+    
 };

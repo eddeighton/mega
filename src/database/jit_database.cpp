@@ -80,10 +80,6 @@ void JITDatabase::getConcreteToInterface( ConcreteToInterface& objectTypes ) con
             objectTypes.push_back(
                 { id, pConcreteTypeID->get_dim_user().value()->get_interface_dimension()->get_interface_id() } );
         }
-        else if( pConcreteTypeID->get_dim_allocation().has_value() )
-        {
-            // do nothing
-        }
         else if( pConcreteTypeID->get_dim_link().has_value() )
         {
             // do nothing
@@ -113,12 +109,6 @@ mega::SizeAlignment JITDatabase::getObjectSize( mega::TypeID objectType ) const
         for( auto pBuffer : getObject( objectType )->get_buffers() )
         {
             if( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
-            {
-                VERIFY_RTE( sizeAlignment.size == 0U );
-                sizeAlignment.size      = pBuffer->get_size();
-                sizeAlignment.alignment = pBuffer->get_alignment();
-            }
-            else if( db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
             {
                 VERIFY_RTE( sizeAlignment.size == 0U );
                 sizeAlignment.size      = pBuffer->get_size();
@@ -209,10 +199,6 @@ mega::TypeID JITDatabase::getInterfaceTypeID( mega::TypeID concreteTypeID ) cons
     else if( pConcreteTypeID->get_dim_user().has_value() )
     {
         return pConcreteTypeID->get_dim_user().value()->get_interface_dimension()->get_interface_id();
-    }
-    else if( pConcreteTypeID->get_dim_allocation().has_value() )
-    {
-        THROW_RTE( "JITDatabase::getInterfaceTypeID: " << concreteTypeID << " asked for allocation dimension" );
     }
     else if( pConcreteTypeID->get_dim_link().has_value() )
     {
@@ -398,11 +384,6 @@ std::vector< FinalStage::Concrete::Dimensions::User* > JITDatabase::getUserDimen
 std::vector< FinalStage::Concrete::Dimensions::Link* > JITDatabase::getLinkDimensions() const
 {
     return getPerCompilationFileType< FinalStage::Concrete::Dimensions::Link >( m_manifest, m_database );
-}
-
-std::vector< FinalStage::Concrete::Dimensions::Allocation* > JITDatabase::getAllocationDimensions() const
-{
-    return getPerCompilationFileType< FinalStage::Concrete::Dimensions::Allocation >( m_manifest, m_database );
 }
 
 JITDatabase::PrefabBindings JITDatabase::getPrefabBindings() const

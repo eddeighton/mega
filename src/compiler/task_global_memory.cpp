@@ -78,7 +78,7 @@ public:
             if( sizeOpt.has_value() )
             {
                 VERIFY_RTE_MSG( !pMemoryMappedContext,
-                                "Type: " << printIContextFullType( pObject->get_interface() )
+                                "Type: " << Interface::printIContextFullType( pObject->get_interface() )
                                          << " has MULTIPLE memory mapping size specifications" );
                 pMemoryMappedContext = pContext;
             }

@@ -27,6 +27,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/array.hpp>
+#include <boost/serialization/bitset.hpp>
 #include <boost/serialization/utility.hpp>
 
 #include <optional>

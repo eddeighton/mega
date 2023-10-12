@@ -32,6 +32,7 @@
 
 #include <string>
 #include <vector>
+#include <bitset>
 
 namespace boost::archive
 {

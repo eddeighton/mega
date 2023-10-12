@@ -52,7 +52,7 @@ static void printDerivationStep( Edge* pEdge, std::string& strIndent, bool bShow
             THROW_RTE( "Unknown step type" );
         }
 
-        printContextFullType( pStep->get_vertex(), os );
+        Concrete::printContextFullType( pStep->get_vertex(), os );
         if( pEdge->get_eliminated() )
         {
             os << " <eliminated>";
@@ -84,7 +84,7 @@ static void printDerivationStep( Root* pRoot, bool bShowEliminated, std::ostream
                 bFirst = false;
             else
                 os << ", ";
-            printContextFullType( pContext, os );
+            Concrete::printContextFullType( pContext, os );
         }
         os << ")\n";
     }

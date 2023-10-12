@@ -49,9 +49,6 @@ class JIT_EXPORT CodeGenerator
 public:
     using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
 
-    static std::string allocatorTypeName( const JITDatabase&                           database,
-                                          FinalStage::Concrete::Dimensions::Allocator* pAllocDim );
-
     class LLVMCompiler
     {
     public:

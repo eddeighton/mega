@@ -110,9 +110,9 @@ namespace Interface
 
     object IContext : ContextGroup -> InterfaceStage::Tree
     {
-        value< std::string > identifier;
-        ref< ContextGroup > parent;
-        ref< Components::Component > component;
+        value< std::string >            identifier;
+        ref< ContextGroup >             parent;
+        ref< Components::Component >    component;
         
         value< mega::TypeID > symbol_id     -> SymbolRollout::PerSourceSymbols;
         value< mega::TypeID > interface_id  -> SymbolRollout::PerSourceSymbols;
@@ -174,22 +174,26 @@ namespace Interface
         late< opt< ref< InheritanceTrait > > >      inheritance_trait;
         late< opt< ref< SizeTrait > > >             size_trait;
     }
+
     object Interupt : InvocationContext -> InterfaceStage::Tree
     {
         array< ref< Parser::InteruptDef > >         interupt_defs;
         late< ref< EventTypeTrait > >               events_trait;
         late< opt< ref< TransitionTypeTrait > > >   transition_trait;
     }
+
     object Requirement : Interupt -> InterfaceStage::Tree
     {
 
     }
+
     object Function : InvocationContext -> InterfaceStage::Tree
     {
         array< ref< Parser::FunctionDef > >     function_defs;
         late< ref< ReturnTypeTrait > >          return_type_trait;
         late< ref< ArgumentListTrait > >        arguments_trait;
     }
+
     object Object : IContext -> InterfaceStage::Tree
     {
         array< ref< Parser::ObjectDef > >           object_defs;

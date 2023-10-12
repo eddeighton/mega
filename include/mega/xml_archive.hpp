@@ -26,7 +26,6 @@
 #include "mega/tag_parser.hpp"
 #include "mega/type_id_io.hpp"
 #include "mega/reference_io.hpp"
-#include "mega/allocator.hpp"
 #include "mega/maths_types.hpp"
 
 #include "common/file.hpp"
@@ -94,27 +93,6 @@ public:
             save( nullptr, v );
             *m_pFileStream << "</element>";
         }
-        end( name );
-    }
-
-    template < mega::U64 SIZE >
-    inline void save( const char* name, const mega::Bitmask32Allocator< SIZE >& value )
-    {
-        begin( name );
-        end( name );
-    }
-
-    template < mega::U64 SIZE >
-    inline void save( const char* name, const mega::Bitmask64Allocator< SIZE >& value )
-    {
-        begin( name );
-        end( name );
-    }
-
-    template < typename TInstanceType, mega::U64 SIZE >
-    inline void save( const char* name, const mega::RingAllocator< TInstanceType, SIZE >& value )
-    {
-        begin( name );
         end( name );
     }
 
@@ -231,27 +209,6 @@ public:
             load( nullptr, v );
             mega::consumeEnd( *m_pFileStream, "element" );
         }*/
-        mega::consumeEnd( *m_pFileStream, name );
-    }
-
-    template < mega::U64 SIZE >
-    inline void load( const char* name, mega::Bitmask32Allocator< SIZE >& value )
-    {
-        mega::consumeStart( *m_pFileStream, name );
-        mega::consumeEnd( *m_pFileStream, name );
-    }
-
-    template < mega::U64 SIZE >
-    inline void load( const char* name, mega::Bitmask64Allocator< SIZE >& value )
-    {
-        mega::consumeStart( *m_pFileStream, name );
-        mega::consumeEnd( *m_pFileStream, name );
-    }
-
-    template < typename TInstanceType, mega::U64 SIZE >
-    inline void load( const char* name, mega::RingAllocator< TInstanceType, SIZE >& value )
-    {
-        mega::consumeStart( *m_pFileStream, name );
         mega::consumeEnd( *m_pFileStream, name );
     }
 

@@ -1032,6 +1032,8 @@ public:
             }
         }
 
+        
+
         return database.construct< ObjectDef >( ObjectDef::Args{ body, pSize, pInheritance } );
     }
 

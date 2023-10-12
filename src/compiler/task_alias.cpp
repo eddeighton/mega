@@ -432,14 +432,14 @@ public:
                 case AliasAnalysis::Derivation::eFailure:
                 {
                     THROW_RTE( "Component Link Failed: Failed to derive component link type for: "
-                               << printIContextFullType( pComponentLink->get_parent() )
+                               << Interface::printIContextFullType( pComponentLink->get_parent() )
                                << " of: " << printLinkTraitTypePath( pComponentLink ) );
                 }
                 break;
                 case AliasAnalysis::Derivation::eAmbiguous:
                 {
                     THROW_RTE( "Component Link Ambiguous: Failed to derive component link type for: "
-                               << printIContextFullType( pComponentLink->get_parent() )
+                               << Interface::printIContextFullType( pComponentLink->get_parent() )
                                << " of: " << printLinkTraitTypePath( pComponentLink ) );
                 }
                 break;

@@ -181,8 +181,8 @@ public:
                 if( !bUnique )
                 {
                     Interface::IContext* pContext = i->first;
-                    THROW_RTE( "Non unique target concrete sets in objects links from: " << printIContextFullType(
-                                   pContext ) << " to " << printIContextFullType( pTargetContext ) );
+                    THROW_RTE( "Non unique target concrete sets in objects links from: " << Interface::printIContextFullType(
+                                   pContext ) << " to " << Interface::printIContextFullType( pTargetContext ) );
                 }
             }
         }*/

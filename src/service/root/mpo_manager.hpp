@@ -20,7 +20,7 @@
 #ifndef MPO_MANAGER_25_AUG_2022
 #define MPO_MANAGER_25_AUG_2022
 
-#include "mega/allocator.hpp"
+#include "mega/ring_allocator.hpp"
 #include "mega/reference_io.hpp"
 
 #include "service/protocol/common/logical_thread_id.hpp"

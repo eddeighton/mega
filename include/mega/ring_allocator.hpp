@@ -42,15 +42,10 @@
 
 namespace mega
 {
-
-template < typename T >
-struct DimensionTraits;
-
+/*
 template < mega::U64 _Size >
 class Bitmask32Allocator
 {
-    friend struct mega::DimensionTraits< mega::Bitmask32Allocator< _Size > >;
-
 public:
     static const mega::U64 Size = _Size;
 
@@ -107,8 +102,6 @@ private:
 template < mega::U64 _Size >
 class Bitmask64Allocator
 {
-    friend struct mega::DimensionTraits< mega::Bitmask64Allocator< _Size > >;
-
 public:
     static const mega::U64 Size = _Size;
 
@@ -170,13 +163,11 @@ public:
 
 private:
     std::bitset< Size > m_bitset;
-};
+};*/
 
 template < typename TInstanceType, mega::U64 _Size >
 class RingAllocator
 {
-    friend struct mega::DimensionTraits< mega::RingAllocator< TInstanceType, _Size > >;
-
 public:
     using FreeList                  = boost::circular_buffer< TInstanceType >;
     using InstanceType              = TInstanceType;
@@ -242,10 +233,10 @@ public:
 private:
     FreeList m_free;
 };
-
+/*
 template < Instance _Size >
 using InstanceAllocator = RingAllocator< Instance, _Size >;
-
+*/
 } // namespace mega
 
 #endif // EG_ALLOCATORS_GUARD_20_JULY_2020

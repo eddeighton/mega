@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 
-#include "mega/allocator.hpp"
+#include "mega/ring_allocator.hpp"
 
 #include <set>
 #include <algorithm>

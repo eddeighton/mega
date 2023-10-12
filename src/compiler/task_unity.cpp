@@ -115,7 +115,7 @@ public:
 
                             if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
                             {
-                                osFullTypeName << printIContextFullType( pContext );
+                                osFullTypeName << Interface::printIContextFullType( pContext );
                                 nlohmann::json typeInfo{
                                     { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
                                 data[ "objects" ].push_back( typeInfo );
@@ -321,7 +321,7 @@ public:
                 for( Concrete::Link* pLink : pRootObject->get_all_links() )
                 {
                     std::ostringstream osTypeName;
-                    osTypeName << printIContextFullType( pLink->get_link() );
+                    osTypeName << Interface::printIContextFullType( pLink->get_link() );
                     UnityAnalysis::LinkBinding* pLinkBinding
                         = database.construct< UnityAnalysis::LinkBinding >( UnityAnalysis::LinkBinding::Args{
                             osTypeName.str(), pLink->get_link()->get_interface_id() } );

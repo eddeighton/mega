@@ -29,6 +29,7 @@
 #include <utility>
 
 #include <vector>
+#include <bitset>
 
 // #include <stdbool.h>
 
@@ -100,6 +101,16 @@ using LinkTypeVector = std::vector< mega::TypeID >;
 
 static constexpr char psz_link_type[]        = "class mega::TypeID";
 static constexpr char psz_link_type_vector[] = "class std::vector<class mega::TypeID>";
+
+using Bitset064 = std::bitset< 064 >;
+using Bitset128 = std::bitset< 128 >;
+using Bitset192 = std::bitset< 192 >;
+using Bitset256 = std::bitset< 256 >;
+using Bitset320 = std::bitset< 320 >;
+using Bitset384 = std::bitset< 384 >;
+using Bitset448 = std::bitset< 448 >;
+using Bitset512 = std::bitset< 512 >;
+
 } // namespace mega
 
 #endif // EG_DEFAULT_TRAITS

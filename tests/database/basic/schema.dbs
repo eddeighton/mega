@@ -90,4 +90,5 @@ namespace TestNamespace
         value< int > second_stage_inherited_value;
         value< int > third_stage_inherited_value -> ThirdStage::FourthFile;
     }
+
 }

@@ -29,13 +29,14 @@
 
 #include "mega/maths_types_io.hpp"
 #include "mega/native_types_io.hpp"
-#include "mega/allocator_io.hpp"
 #include "mega/type_id_io.hpp"
 #include "mega/reference_io.hpp"
 
 #include "mega/bin_archive.hpp"
 #include "mega/xml_archive.hpp"
 #include "mega/record_archive.hpp"
+
+#include "utilities/serialization_helpers.hpp"
 
 #include "service/protocol/common/context.hpp"
 

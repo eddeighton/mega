@@ -296,49 +296,16 @@ stage AliasAnalysisRollout
     global accessor ref< HyperGraph::Graph >;
 }
 
-stage MemoryStage
-{
-    source .mega;
-    dependency AliasAnalysisRollout;
-
-    file MemoryLayout;
-
-    persource accessor array< ref< Interface::IContext > >;
-    persource accessor ref< Concrete::Root >;
-}
-
-stage GlobalMemoryStage
-{
-    source .manifest;
-    dependency MemoryStage;
-
-    file GlobalMemoryLayout;
-
-    persource accessor array< ref< Concrete::Object > >;
-}
-
-stage GlobalMemoryStageRollout
-{
-    source .mega;
-    dependency GlobalMemoryStage;
-
-    file GlobalMemoryRollout;
-
-    global accessor array< ref< MemoryLayout::MemoryMap > >;
-    persource accessor array< ref< Concrete::Object > >;
-}
-
 stage ConcreteTypeAnalysis
 {
     source .manifest;
-    dependency GlobalMemoryStageRollout;
+    dependency AliasAnalysisRollout;
 
     file ConcreteTable;
 
     persource accessor ref< Concrete::Context >;
     persource accessor ref< Concrete::Dimensions::User >;
     persource accessor ref< Concrete::Dimensions::Link >;
-    persource accessor ref< Concrete::Dimensions::Allocation >;
     global accessor ref< Symbols::SymbolTable >;
 
 }
@@ -362,14 +329,47 @@ stage ConcreteTypeRollout
     persource accessor ref< Concrete::Context >;
     persource accessor ref< Concrete::Dimensions::User >;
     persource accessor ref< Concrete::Dimensions::Link >;
-    persource accessor ref< Concrete::Dimensions::Allocation >;
     global accessor ref< Symbols::SymbolTable >;
+}
+
+
+stage MemoryStage
+{
+    source .mega;
+    dependency ConcreteTypeRollout;
+
+    file MemoryLayout;
+
+    persource accessor array< ref< Interface::IContext > >;
+    persource accessor ref< Concrete::Root >;
+    persource accessor ref< Concrete::Object >;
+}
+
+stage GlobalMemoryStage
+{
+    source .manifest;
+    dependency MemoryStage;
+
+    file GlobalMemoryLayout;
+
+    persource accessor array< ref< Concrete::Object > >;
+}
+
+stage GlobalMemoryStageRollout
+{
+    source .mega;
+    dependency GlobalMemoryStage;
+
+    file GlobalMemoryRollout;
+
+    global accessor array< ref< MemoryLayout::MemoryMap > >;
+    persource accessor array< ref< Concrete::Object > >;
 }
 
 stage AutomataStage
 {
     source .mega;
-    dependency ConcreteTypeRollout;
+    dependency GlobalMemoryStageRollout;
 
     file AutomataAnalysis;
 }
@@ -469,7 +469,6 @@ stage FinalStage
     persource accessor array< ref< Parser::CPPInclude > >;
     persource accessor array< ref< Concrete::Dimensions::User > >;
     persource accessor array< ref< Concrete::Dimensions::Link > >;
-    persource accessor array< ref< Concrete::Dimensions::Allocation > >;
     persource accessor array< ref< Concrete::Graph::Vertex > >;
     persource accessor array< ref< Concrete::Graph::Edge > >;
     

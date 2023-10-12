@@ -48,76 +48,27 @@
 #include <iostream>
 #include <unordered_set>
 
+namespace FinalStage
+{
+#include "compiler/interface_printer.hpp"
+#include "compiler/concrete_printer.hpp"
+} // namespace FinalStage
+
 namespace driver
 {
 namespace symbols
 {
-namespace
-{
-
-const std::string& getIdentifier( FinalStage::Interface::IContext* pContext )
-{
-    return pContext->get_identifier();
-}
-const std::string& getIdentifier( FinalStage::Concrete::Context* pContext )
-{
-    return pContext->get_interface()->get_identifier();
-}
-const std::string& getIdentifier( FinalStage::Concrete::Dimensions::User* pDim )
-{
-    return pDim->get_interface_dimension()->get_id()->get_str();
-}
-
-const std::string& getIdentifier( FinalStage::Concrete::Dimensions::UserLink* pLink )
-{
-    return pLink->get_interface_link()->get_id()->get_str();
-}
-
-template < typename TContextType >
-std::string getContextFullTypeName( TContextType* pContext, std::string strDelim = "_" )
-{
-    using namespace FinalStage;
-
-    std::vector< TContextType* > path;
-    {
-        while( pContext )
-        {
-            path.push_back( pContext );
-            pContext = db_cast< TContextType >( pContext->get_parent() );
-        }
-        std::reverse( path.begin(), path.end() );
-    }
-
-    std::ostringstream os;
-    {
-        bool bFirst = true;
-        for( TContextType* pIter : path )
-        {
-            if( !bFirst )
-            {
-                os << strDelim;
-            }
-            else
-            {
-                bFirst = false;
-            }
-            os << getIdentifier( pIter );
-        }
-    }
-
-    return os.str();
-}
-} // namespace
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             strGraphType;
     boost::filesystem::path databaseArchivePath, outputFilePath;
     bool                    bConcrete = false;
-    bool                    bSymbols = false;
+    bool                    bSymbols  = false;
 
     namespace po = boost::program_options;
-    po::options_description commandOptions( " Print TypeIDs.  Defaults to interface types but can show concrete or symbols" );
+    po::options_description commandOptions(
+        " Print TypeIDs.  Defaults to interface types but can show concrete or symbols" );
     {
         // clang-format off
         commandOptions.add_options()
@@ -148,7 +99,6 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
             Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
 
-
             if( bSymbols )
             {
                 for( const auto& [ typeID, pSymbol ] : pSymbolTable->get_symbol_type_ids() )
@@ -163,13 +113,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     if( pConcreteTypeID->get_context().has_value() )
                     {
                         std::cout << concreteTypeID << " "
-                                  << getContextFullTypeName( pConcreteTypeID->get_context().value() ) << "\n";
+                                  << Concrete::printContextFullType( pConcreteTypeID->get_context().value() ) << "\n";
                     }
                     else if( pConcreteTypeID->get_dim_user().has_value() )
                     {
                         auto pDimension = pConcreteTypeID->get_dim_user().value();
-                        std::cout << concreteTypeID << " " << getContextFullTypeName( pDimension->get_parent_context() )
-                                  << "::" << getIdentifier( pDimension )
+                        std::cout << concreteTypeID << " " << printContextFullType( pDimension->get_parent_context() )
+                                  << "::" << Concrete::getIdentifier( pDimension )
                                   << " type:" << pDimension->get_interface_dimension()->get_canonical_type() << "\n";
                     }
                     else if( pConcreteTypeID->get_dim_link().has_value() )
@@ -177,24 +127,18 @@ void command( bool bHelp, const std::vector< std::string >& args )
                         auto pLink = pConcreteTypeID->get_dim_link().value();
                         if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
                         {
-                            std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent_context() )
-                                      << "::" << getIdentifier( pUserLink ) << "\n";
+                            std::cout << concreteTypeID << " " << printContextFullType( pLink->get_parent_context() )
+                                      << "::" << Concrete::getIdentifier( pUserLink ) << "\n";
                         }
                         else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pLink ) )
                         {
-                            std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent_context() )
+                            std::cout << concreteTypeID << " " << printContextFullType( pLink->get_parent_context() )
                                       << "::" << ::mega::EG_OWNERSHIP << "\n";
                         }
                         else
                         {
                             THROW_RTE( "Unknown link type" );
                         }
-                    }
-                    else if( pConcreteTypeID->get_dim_allocation().has_value() )
-                    {
-                        auto pAllocation = pConcreteTypeID->get_dim_allocation().value();
-                        std::cout << concreteTypeID << " "
-                                  << getContextFullTypeName( pAllocation->get_parent_context() ) << "::_allocation_\n";
                     }
                     else
                     {
@@ -209,13 +153,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     if( pInterfaceTypeID->get_context().has_value() )
                     {
                         std::cout << interfaceTypeID << " "
-                                  << getContextFullTypeName( pInterfaceTypeID->get_context().value() ) << "\n";
+                                  << Interface::printIContextFullType( pInterfaceTypeID->get_context().value() ) << "\n";
                     }
                     else if( pInterfaceTypeID->get_dimension().has_value() )
                     {
                         Interface::DimensionTrait* pDimension = pInterfaceTypeID->get_dimension().value();
 
-                        std::cout << interfaceTypeID << " " << getContextFullTypeName( pDimension->get_parent() )
+                        std::cout << interfaceTypeID << " " << Interface::printIContextFullType( pDimension->get_parent() )
                                   << "::" << pDimension->get_id()->get_str()
                                   << " type:" << pDimension->get_canonical_type() << "\n";
                     }
@@ -223,7 +167,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     {
                         Interface::LinkTrait* pLink = pInterfaceTypeID->get_link().value();
 
-                        std::cout << interfaceTypeID << " " << getContextFullTypeName( pLink->get_parent() )
+                        std::cout << interfaceTypeID << " " << Interface::printIContextFullType( pLink->get_parent() )
                                   << "::" << pLink->get_id()->get_str() << " owning:" << pLink->get_owning() << "\n";
                     }
                     else

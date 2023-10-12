@@ -49,6 +49,12 @@
 #include <iostream>
 #include <unordered_set>
 
+namespace FinalStage
+{
+#include "compiler/interface_printer.hpp"
+#include "compiler/concrete_printer.hpp"
+} // namespace FinalStage
+
 namespace driver
 {
 namespace graph
@@ -108,101 +114,6 @@ nlohmann::json make_property( const std::string& strName, const std::string& str
 #define PROP( node, name, value )                                                    \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _osValue; _osValue << value; \
                                      node = make_property( name, _osValue.str() ); )
-
-const std::string& getIdentifier( FinalStage::Interface::IContext* pContext )
-{
-    return pContext->get_identifier();
-}
-const std::string& getIdentifier( FinalStage::Concrete::Context* pContext )
-{
-    return pContext->get_interface()->get_identifier();
-}
-const std::string& getIdentifier( FinalStage::Concrete::Dimensions::User* pDim )
-{
-    return pDim->get_interface_dimension()->get_id()->get_str();
-}
-const std::string& getIdentifier( FinalStage::Concrete::Dimensions::Link* pDim )
-{
-    if( auto pUserLink = db_cast< FinalStage::Concrete::Dimensions::UserLink >( pDim ) )
-    {
-        return pUserLink->get_interface_link()->get_id()->get_str();
-    }
-    else
-    {
-        static const std::string str = ::mega::EG_OWNERSHIP;
-        return str;
-    }
-}
-
-template < typename TContextType >
-std::string getContextFullTypeName( TContextType* pContext, std::string strDelim = "_" )
-{
-    using namespace FinalStage;
-
-    std::vector< TContextType* > path;
-    {
-        while( pContext )
-        {
-            path.push_back( pContext );
-            pContext = db_cast< TContextType >( pContext->get_parent() );
-        }
-        std::reverse( path.begin(), path.end() );
-    }
-
-    std::ostringstream os;
-    {
-        bool bFirst = true;
-        for( TContextType* pIter : path )
-        {
-            if( !bFirst )
-            {
-                os << strDelim;
-            }
-            else
-            {
-                bFirst = false;
-            }
-            os << getIdentifier( pIter );
-        }
-    }
-
-    return os.str();
-}
-
-template < typename TContextType, typename TDimensionType >
-std::string getDimensionFullTypeName( TDimensionType* pDim, std::string strDelim = "_" )
-{
-    TContextType* pParent = pDim->get_parent_context();
-    VERIFY_RTE( pParent );
-    std::ostringstream os;
-    os << getContextFullTypeName( pParent, strDelim ) << strDelim << getIdentifier( pDim );
-    return os.str();
-}
-
-std::string getVertexFullTypeName( FinalStage::Concrete::Graph::Vertex* pVertex, std::string strDelim = "_" )
-{
-    using namespace FinalStage;
-    if( auto pContext = db_cast< Concrete::Context >( pVertex ) )
-    {
-        return getContextFullTypeName( pContext, strDelim );
-    }
-    else if( auto pDim = db_cast< Concrete::Dimensions::User >( pVertex ) )
-    {
-        return getDimensionFullTypeName< Concrete::Context >( pDim, strDelim );
-    }
-    else if( auto pLink = db_cast< Concrete::Dimensions::Link >( pVertex ) )
-    {
-        return getDimensionFullTypeName< Concrete::Context >( pLink, strDelim );
-    }
-    else if( auto pContextGroup = db_cast< Concrete::ContextGroup >( pVertex ) )
-    {
-        return "_context_";
-    }
-    else
-    {
-        THROW_RTE( "Unknown vertex type" );
-    }
-}
 
 std::string getNodeInfo( FinalStage::Interface::IContext* pContext )
 {
@@ -342,23 +253,23 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     std::ostringstream os;
 
     nlohmann::json node;
-    NODE( node, getContextFullTypeName< FinalStage::Interface::IContext >( pContext ), "" );
+    NODE( node, Interface::printIContextFullType( pContext, "_" ), "" );
 
     if( auto pNamespace = db_cast< Namespace >( pContext ) )
     {
-        os << "Namespace: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Namespace: " << Interface::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pNamespace->get_dimension_traits() );
     }
     else if( auto pAbstract = db_cast< Abstract >( pContext ) )
     {
-        os << "Interface: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Interface: " << Interface::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pAbstract->get_inheritance_trait(), node );
     }
     else if( auto pAction = db_cast< Action >( pContext ) )
     {
-        os << "Action: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Action: " << Interface::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pAction->get_inheritance_trait(), node );
         addProperties( node, pAction->get_dimension_traits() );
@@ -366,7 +277,7 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     }
     else if( auto pComponent = db_cast< Component >( pContext ) )
     {
-        os << "Component: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Component: " << Interface::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pComponent->get_inheritance_trait(), node );
         addProperties( node, pComponent->get_dimension_traits() );
@@ -374,7 +285,7 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     }
     else if( auto pState = db_cast< State >( pContext ) )
     {
-        os << "State: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "State: " << Interface::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pState->get_inheritance_trait(), node );
         addProperties( node, pState->get_dimension_traits() );
@@ -382,21 +293,21 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     }
     else if( auto pEvent = db_cast< Event >( pContext ) )
     {
-        os << "Event: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Event: " << Interface::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pEvent->get_inheritance_trait(), node );
         addProperties( node, pEvent->get_dimension_traits() );
     }
     else if( auto pInterupt = db_cast< Interupt >( pContext ) )
     {
-        os << "Interupt: " << getIdentifier( pInterupt ) << " " << getNodeInfo( pInterupt );
+        os << "Interupt: " << Interface::getIdentifier( pInterupt ) << " " << getNodeInfo( pInterupt );
         node[ "label" ] = os.str();
         addTransition( pInterupt->get_transition_trait(), node );
         addEvent( pInterupt->get_events_trait(), node );
     }
     else if( auto pFunction = db_cast< Function >( pContext ) )
     {
-        os << "Function: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Function: " << Interface::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         {
             nlohmann::json     arguments;
@@ -413,7 +324,7 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     }
     else if( auto pObject = db_cast< Object >( pContext ) )
     {
-        os << "Object: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Object: " << Interface::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pObject->get_inheritance_trait(), node );
         addProperties( node, pObject->get_dimension_traits() );
@@ -429,10 +340,9 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     {
         recurse( data, pChildContext );
 
-        nlohmann::json edge
-            = nlohmann::json::object( { { "from", getContextFullTypeName< Interface::IContext >( pContext ) },
-                                        { "to", getContextFullTypeName< Interface::IContext >( pChildContext ) },
-                                        { "colour", "000000" } } );
+        nlohmann::json edge = nlohmann::json::object( { { "from", Interface::printIContextFullType( pContext, "_" ) },
+                                                        { "to", Interface::printIContextFullType( pChildContext, "_" ) },
+                                                        { "colour", "000000" } } );
         data[ "edges" ].push_back( edge );
     }
 }
@@ -452,12 +362,7 @@ std::string getNodeInfo( FinalStage::Concrete::Dimensions::User* pUserDimension 
        << ",con:" << pUserDimension->get_concrete_id() << ")";
     return os.str();
 }
-std::string getNodeInfo( FinalStage::Concrete::Dimensions::Allocation* pAllocationDimension )
-{
-    std::ostringstream os;
-    os << "(con:" << pAllocationDimension->get_concrete_id() << ")";
-    return os.str();
-}
+
 std::string getNodeInfo( FinalStage::Concrete::Dimensions::Link* pLinkDimension )
 {
     std::ostringstream os;
@@ -487,47 +392,47 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
     std::ostringstream os;
 
     nlohmann::json node;
-    NODE( node, getContextFullTypeName< Concrete::Context >( pContext ), "" );
+    NODE( node, Concrete::printContextFullType( pContext, "_" ), "" );
 
     if( Namespace* pNamespace = db_cast< Namespace >( pContext ) )
     {
-        os << "Namespace: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Namespace: " << Concrete::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pNamespace->get_dimensions() );
     }
     else if( Component* pComponent = db_cast< Component >( pContext ) )
     {
-        os << "Component: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Component: " << Concrete::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pComponent->get_dimensions() );
     }
     else if( Action* pAction = db_cast< Action >( pContext ) )
     {
-        os << "Action: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Action: " << Concrete::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pAction->get_dimensions() );
     }
     else if( State* pState = db_cast< State >( pContext ) )
     {
-        os << "State: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "State: " << Concrete::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pState->get_dimensions() );
     }
     else if( Event* pEvent = db_cast< Event >( pContext ) )
     {
-        os << "Event: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Event: " << Concrete::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pEvent->get_dimensions() );
     }
     else if( Interupt* pInterupt = db_cast< Interupt >( pContext ) )
     {
-        os << "Interupt: " << getIdentifier( pInterupt ) << " " << getNodeInfo( pInterupt );
+        os << "Interupt: " << Concrete::getIdentifier( pInterupt ) << " " << getNodeInfo( pInterupt );
         node[ "label" ] = os.str();
         // addProperties( node, pInterupt->get_interface_interupt()->get_events_trait() );
     }
     else if( Function* pFunction = db_cast< Function >( pContext ) )
     {
-        os << "Function: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Function: " << Concrete::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         {
             std::ostringstream osArgs;
@@ -544,7 +449,7 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
     }
     else if( Object* pObject = db_cast< Object >( pContext ) )
     {
-        os << "Object: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Object: " << Concrete::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pObject->get_dimensions() );
     }
@@ -559,10 +464,9 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
     {
         recurse( data, pChildContext );
 
-        nlohmann::json edge
-            = nlohmann::json::object( { { "from", getContextFullTypeName< Concrete::Context >( pContext ) },
-                                        { "to", getContextFullTypeName< Concrete::Context >( pChildContext ) },
-                                        { "colour", "000000" } } );
+        nlohmann::json edge = nlohmann::json::object( { { "from", Concrete::printContextFullType( pContext, "_" ) },
+                                                        { "to", Concrete::printContextFullType( pChildContext, "_" ) },
+                                                        { "colour", "000000" } } );
         data[ "edges" ].push_back( edge );
     }
 }
@@ -620,14 +524,14 @@ void createGraphNode( std::set< FinalStage::Interface::LinkTrait* >& links, Fina
 
     /*std::ostringstream os;
     if( bInterface )
-        os << "Interface: " << getContextFullTypeName< Interface::IContext >( pLink );
+        os << "Interface: " << Concrete::printContextFullType< Interface::IContext >( pLink );
     else
-        os << "Link: " << getContextFullTypeName< Interface::IContext >( pLink );
+        os << "Link: " << Concrete::printContextFullType< Interface::IContext >( pLink );
 
     if( links.find( pLink ) == links.end() )
     {
         nlohmann::json node;
-        NODE( node, getContextFullTypeName< Interface::IContext >( pLink ), os.str() );
+        NODE( node, Concrete::printContextFullType< Interface::IContext >( pLink ), os.str() );
         data[ "nodes" ].push_back( node );
         links.insert( pLink );
     }*/
@@ -675,8 +579,13 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
             {
                 continue;
             }
+            if( db_cast< Concrete::ContextGroup >( pVertex ) )
+            {
+                if( !db_cast< Concrete::Context >( pVertex ) )
+                    continue;
+            }
 
-            auto           strVertexName = getVertexFullTypeName( pVertex );
+            auto           strVertexName = Concrete::printContextFullType( pVertex, "_" );
             nlohmann::json node;
             NODE( node, strVertexName, strVertexName );
             data[ "nodes" ].push_back( node );
@@ -694,7 +603,7 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
                     case mega::EdgeType::ePolySingularOptional:
                     case mega::EdgeType::eMonoNonSingularOptional:
                     case mega::EdgeType::ePolyNonSingularOptional:
-                    
+
                     case mega::EdgeType::ePolyParent:
                         strColour = "FF0000";
                         break;
@@ -720,8 +629,8 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
                 if( !strColour.empty() )
                 {
                     nlohmann::json edge
-                        = nlohmann::json::object( { { "from", getVertexFullTypeName( pEdge->get_source() ) },
-                                                    { "to", getVertexFullTypeName( pEdge->get_target() ) },
+                        = nlohmann::json::object( { { "from", Concrete::printContextFullType( pEdge->get_source(), "_" ) },
+                                                    { "to", Concrete::printContextFullType( pEdge->get_target(), "_" ) },
                                                     { "colour", strColour } } );
                     data[ "edges" ].push_back( edge );
                 }
@@ -756,8 +665,8 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
     else if( Object* pObject = db_cast< Object >( pContext ) )
     {
         nlohmann::json node;
-        NODE( node, getContextFullTypeName< Concrete::Context >( pContext ), "" );
-        os << "Object: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        NODE( node, Concrete::printContextFullType( pContext ), "" );
+        os << "Object: " << Concrete::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         data[ "nodes" ].push_back( node );
     }
@@ -765,8 +674,8 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
     {
         {
             nlohmann::json node;
-            NODE( node, getContextFullTypeName< Concrete::Context >( pContext ), "" );
-            os << "Link: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+            NODE( node, Concrete::printContextFullType< Concrete::Context >( pContext ), "" );
+            os << "Link: " << Concrete::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
             node[ "label" ] = os.str();
             data[ "nodes" ].push_back( node );
         }
@@ -788,8 +697,8 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
                     for( auto pConcreteLink : pTarget->get_concrete() )
                     {
                         nlohmann::json edge = nlohmann::json::object(
-                            { { "from", getContextFullTypeName< Concrete::Context >( pLink ) },
-                              { "to", getContextFullTypeName< Concrete::Context >( pConcreteLink ) },
+                            { { "from", Concrete::printContextFullType< Concrete::Context >( pLink ) },
+                              { "to", Concrete::printContextFullType< Concrete::Context >( pConcreteLink ) },
                               { "colour", "FF0000" } } );
                         data[ "edges" ].push_back( edge );
                     }
@@ -805,8 +714,8 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
                     for( auto pConcreteLink : pTarget->get_concrete() )
                     {
                         nlohmann::json edge = nlohmann::json::object(
-                            { { "from", getContextFullTypeName< Concrete::Context >( pLink ) },
-                              { "to", getContextFullTypeName< Concrete::Context >( pConcreteLink ) },
+                            { { "from", Concrete::printContextFullType< Concrete::Context >( pLink ) },
+                              { "to", Concrete::printContextFullType< Concrete::Context >( pConcreteLink ) },
                               { "colour", "FF0000" } } );
                         data[ "edges" ].push_back( edge );
                     }
@@ -831,10 +740,9 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
         /*if( db_cast< Object >( pChildContext ) || db_cast< Link >( pChildContext ) )
         {
             nlohmann::json edge
-                = nlohmann::json::object( { { "from", getContextFullTypeName< Concrete::Context >( pContext ) },
-                                            { "to", getContextFullTypeName< Concrete::Context >( pChildContext ) },
-                                            { "colour", "000000" } } );
-            data[ "edges" ].push_back( edge );
+                = nlohmann::json::object( { { "from", Concrete::printContextFullType< Concrete::Context >( pContext ) },
+                                            { "to", Concrete::printContextFullType< Concrete::Context >( pChildContext )
+        }, { "colour", "000000" } } ); data[ "edges" ].push_back( edge );
         }*/
     }
 }
@@ -865,10 +773,10 @@ std::string createMemoryNode( FinalStage::Concrete::Object* pObject, nlohmann::j
     using namespace FinalStage;
 
     std::ostringstream osName;
-    osName << "object_" << getContextFullTypeName( pObject );
+    osName << "object_" << Concrete::printContextFullType( pObject );
 
     nlohmann::json node;
-    NODE( node, osName.str(), getContextFullTypeName( pObject ) << getNodeInfo( pObject ) );
+    NODE( node, osName.str(), Concrete::printContextFullType( pObject ) << getNodeInfo( pObject ) );
     data[ "nodes" ].push_back( node );
     return osName.str();
 }
@@ -886,14 +794,6 @@ std::string createMemoryNode( FinalStage::MemoryLayout::Buffer* pBuffer, nlohman
     if( MemoryLayout::SimpleBuffer* pSimpleBuffer = db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
     {
         os << "Simple";
-    }
-    else if( MemoryLayout::NonSimpleBuffer* pNonSimpleBuffer = db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
-    {
-        os << "NonSimple";
-    }
-    else if( MemoryLayout::GPUBuffer* pGPUBuffer = db_cast< MemoryLayout::GPUBuffer >( pBuffer ) )
-    {
-        os << "GPU";
     }
     else
     {
@@ -916,7 +816,7 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
            << pPart->_get_object_info().getType() << "_" << pPart->_get_object_info().getIndex();
 
     std::ostringstream os;
-    os << "Part: " << getContextFullTypeName( pPart->get_context() );
+    os << "Part: ";
 
     nlohmann::json node;
     NODE( node, osName.str(),
@@ -926,57 +826,22 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
     for( auto p : pPart->get_user_dimensions() )
     {
         nlohmann::json property;
-        PROP( property, p->get_interface_dimension()->get_id()->get_str(),
+        PROP( property, Concrete::getIdentifier( p ),
               getNodeInfo( p ) << " offset " << p->get_offset() << " size " << p->get_interface_dimension()->get_size()
                                << " alignment " << p->get_interface_dimension()->get_alignment() );
         node[ "properties" ].push_back( property );
     }
-    for( auto p : pPart->get_allocation_dimensions() )
-    {
-        if( Concrete::Dimensions::Allocator* pAllocatorDimension = db_cast< Concrete::Dimensions::Allocator >( p ) )
-        {
-            Allocators::Allocator* pAllocator = pAllocatorDimension->get_allocator();
-            Concrete::Context*     pAllocated = pAllocator->get_allocated_context();
 
-            std::ostringstream osValue;
-            {
-                if( auto pNothing = db_cast< Allocators::Nothing >( pAllocator ) )
-                {
-                    osValue << "Nothing";
-                }
-                else if( auto pSingleton = db_cast< Allocators::Singleton >( pAllocator ) )
-                {
-                    osValue << "Singleton";
-                }
-                else if( auto pRange32 = db_cast< Allocators::Range32 >( pAllocator ) )
-                {
-                    osValue << "Range32";
-                }
-                else if( auto pRange64 = db_cast< Allocators::Range64 >( pAllocator ) )
-                {
-                    osValue << "Range64";
-                }
-                else if( auto pRangeAny = db_cast< Allocators::RangeAny >( pAllocator ) )
-                {
-                    osValue << "RangeAny";
-                }
-                else
-                {
-                    THROW_RTE( "Unknown allocator type" );
-                }
-            }
-            {
-                nlohmann::json property;
-                PROP(
-                    property, pAllocated->get_interface()->get_identifier(),
-                    getNodeInfo( p ) << " offset " << pAllocatorDimension->get_offset() << " value " << osValue.str() );
-                node[ "properties" ].push_back( property );
-            }
-        }
-        else
-        {
-            THROW_RTE( "Unknown allocator dimension type" );
-        }
+    for( auto p : pPart->get_link_dimensions() )
+    {
+        // pLink->
+        nlohmann::json property;
+        PROP( property, Concrete::getIdentifier( p ),
+              getNodeInfo( p ) << " offset " << p->get_offset() << " singular " << p->get_singular() );
+        node[ "properties" ].push_back( property );
+    }
+    for( auto p : pPart->get_bitset_dimensions() )
+    {
     }
     // THROW_TODO;
     /*for( auto p : pPart->get_link_dimensions() )
@@ -1059,11 +924,11 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
         Concrete::Object* pObject = pBinding->get_object();
 
         std::ostringstream osObjectName;
-        osObjectName << "object_" << getContextFullTypeName( pObject );
+        osObjectName << "object_" << Concrete::printContextFullType( pObject );
 
         nlohmann::json node;
         {
-            NODE( node, osObjectName.str(), getContextFullTypeName( pObject, "::" ) << getNodeInfo( pObject ) );
+            NODE( node, osObjectName.str(), Concrete::printContextFullType( pObject, "::" ) << getNodeInfo( pObject ) );
             {
                 nlohmann::json property;
                 PROP( property, "Name", strName );
@@ -1082,9 +947,8 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
             nlohmann::json dataNode;
 
             std::ostringstream osName;
-            osName << "dim_" << getDimensionFullTypeName< Concrete::Context >( pDim );
-            NODE( dataNode, osName.str(),
-                  getDimensionFullTypeName< Concrete::Context >( pDim, "::" ) << getNodeInfo( pDim ) );
+            osName << "dim_" << Concrete::printContextFullType( pDim );
+            NODE( dataNode, osName.str(), Concrete::printContextFullType( pDim, "::" ) << getNodeInfo( pDim ) );
             {
                 nlohmann::json property;
                 PROP( property, "Type", pBinding->get_typeName() );
@@ -1103,8 +967,8 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
                 nlohmann::json dataNode;
 
                 std::ostringstream osName;
-                osName << "link_" << getContextFullTypeName( pLink );
-                NODE( dataNode, osName.str(), getContextFullTypeName( pLink, "::" ) << getNodeInfo( pLink ) );
+                osName << "link_" << Concrete::printContextFullType( pLink );
+                NODE( dataNode, osName.str(), Concrete::printContextFullType( pLink, "::" ) << getNodeInfo( pLink ) );
                 {
                     nlohmann::json property;
                     PROP( property, "Type", pBinding->get_typeName() );
@@ -1176,11 +1040,11 @@ void automataRecurse( nlohmann::json& data, const std::string& strAutomataName,
     for( auto pAction : pBlock->get_actions() )
     {
         std::ostringstream osActionName;
-        osActionName << "action_" << strAutomataName << getContextFullTypeName( pAction );
+        osActionName << "action_" << strAutomataName << Concrete::printContextFullType( pAction );
         if( actions.find( osActionName.str() ) == actions.end() )
         {
             nlohmann::json node;
-            NODE( node, osActionName.str(), getContextFullTypeName( pAction, "::" ) << getNodeInfo( pAction ) );
+            NODE( node, osActionName.str(), Concrete::printContextFullType( pAction, "::" ) << getNodeInfo( pAction ) );
             data[ "nodes" ].push_back( node );
             actions.insert( osActionName.str() );
         }
@@ -1221,12 +1085,13 @@ void generateAutomataGraphViz( std::ostream& os, mega::io::Environment& environm
         /*for( Automata::Start* pAutomata : database.many< Automata::Start >( sourceFilePath ) )
         {
             std::ostringstream osAutomataName;
-            osAutomataName << "automata_" << getContextFullTypeName( pAutomata );
+            osAutomataName << "automata_" << Concrete::printContextFullType( pAutomata );
 
             nlohmann::json node;
             {
                 NODE(
-                    node, osAutomataName.str(), getContextFullTypeName( pAutomata, "::" ) << getNodeInfo( pAutomata ) );
+                    node, osAutomataName.str(), Concrete::printContextFullType( pAutomata, "::" ) << getNodeInfo(
+        pAutomata ) );
                 {
                     nlohmann::json property;
                     PROP( property, "Name", pAutomata->get_identifier() );

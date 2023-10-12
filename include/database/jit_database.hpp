@@ -74,7 +74,6 @@ public:
 
     std::vector< FinalStage::Concrete::Dimensions::User* >       getUserDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::Link* >       getLinkDimensions() const;
-    std::vector< FinalStage::Concrete::Dimensions::Allocation* > getAllocationDimensions() const;
 
     using ConcreteToInterface = std::vector< std::pair< TypeID, TypeID > >;
     void getConcreteToInterface( ConcreteToInterface& concreteToInterface ) const;

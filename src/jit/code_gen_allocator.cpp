@@ -292,15 +292,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
             for( auto pPart : pBuffer->get_parts() )
             {
-                std::ostringstream osPartType;
-                std::ostringstream osPartName;
-
-                osPartType << pPart->get_context()->get_interface()->get_identifier();
-                osPartName << pPart->get_context()->get_interface()->get_identifier();
-
-                nlohmann::json part( { { "type", osPartType.str() },
-                                       { "name", osPartName.str() },
-                                       { "size", pPart->get_size() },
+                nlohmann::json part( { { "size", pPart->get_size() },
                                        { "offset", pPart->get_offset() },
                                        { "total_domain", pPart->get_total_domain_size() },
                                        { "members", nlohmann::json::array() },
@@ -353,33 +345,6 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                     } );
 
                     part[ "links" ].push_back( link );
-                }
-
-                for( auto pAllocDim : pPart->get_allocation_dimensions() )
-                {
-                    if( auto pAllocator = db_cast< Concrete::Dimensions::Allocator >( pAllocDim ) )
-                    {
-                        const std::string strAllocatorTypeName = allocatorTypeName( database, pAllocator );
-                        const std::string strMangle            = megaMangle( strAllocatorTypeName );
-
-                        std::ostringstream osAllocName;
-                        osAllocName << "alloc_"
-                                    << printTypeID(
-                                           pAllocator->get_allocator()->get_allocated_context()->get_concrete_id() );
-
-                        mangledDataTypes.insert( strMangle );
-
-                        nlohmann::json member( { { "type", strAllocatorTypeName },
-                                                 { "type_id", printTypeID( pAllocDim->get_concrete_id() ) },
-                                                 { "mangle", strMangle },
-                                                 { "name", osAllocName.str() },
-                                                 { "offset", pAllocator->get_offset() } } );
-                        part[ "members" ].push_back( member );
-                    }
-                    else
-                    {
-                        THROW_RTE( "Unknown allocation dimension type" );
-                    }
                 }
 
                 data[ "parts" ].push_back( part );

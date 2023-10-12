@@ -4330,16 +4330,16 @@ namespace Concrete
     // struct Concrete_Dimensions_User : public mega::io::Object
     Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_User >( loader, this ) )          , p_Concrete_Concrete_Graph_Vertex( loader )
-          , p_PerSourceConcreteTable_Concrete_Dimensions_User( loader )
           , p_MemoryLayout_Concrete_Dimensions_User( loader )
+          , p_PerSourceConcreteTable_Concrete_Dimensions_User( loader )
           , parent_context( loader )
           , interface_dimension( loader )
     {
     }
     Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context, const data::Ptr< data::Tree::Interface_DimensionTrait >& interface_dimension)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_User >( loader, this ) )          , p_Concrete_Concrete_Graph_Vertex( loader )
-          , p_PerSourceConcreteTable_Concrete_Dimensions_User( loader )
           , p_MemoryLayout_Concrete_Dimensions_User( loader )
+          , p_PerSourceConcreteTable_Concrete_Dimensions_User( loader )
           , parent_context( parent_context )
           , interface_dimension( interface_dimension )
     {
@@ -4390,17 +4390,18 @@ namespace Concrete
     // struct Concrete_Dimensions_Link : public mega::io::Object
     Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_Link >( loader, this ) )          , p_Concrete_Concrete_Graph_Vertex( loader )
-          , p_PerSourceConcreteTable_Concrete_Dimensions_Link( loader )
           , p_PerSourceModel_Concrete_Dimensions_Link( loader )
           , p_MemoryLayout_Concrete_Dimensions_Link( loader )
+          , p_PerSourceConcreteTable_Concrete_Dimensions_Link( loader )
           , parent_context( loader )
+          , link_type( loader )
     {
     }
     Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_Link >( loader, this ) )          , p_Concrete_Concrete_Graph_Vertex( loader )
-          , p_PerSourceConcreteTable_Concrete_Dimensions_Link( loader )
           , p_PerSourceModel_Concrete_Dimensions_Link( loader )
           , p_MemoryLayout_Concrete_Dimensions_Link( loader )
+          , p_PerSourceConcreteTable_Concrete_Dimensions_Link( loader )
           , parent_context( parent_context )
     {
     }
@@ -4416,11 +4417,14 @@ namespace Concrete
     {
         loader.load( p_Concrete_Concrete_Graph_Vertex );
         loader.load( parent_context );
+        loader.load( link_type );
     }
     void Concrete_Dimensions_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Graph_Vertex );
         storer.store( parent_context );
+        VERIFY_RTE_MSG( link_type.has_value(), "Concrete::Concrete_Dimensions_Link.link_type has NOT been set" );
+        storer.store( link_type );
     }
     void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
     {
@@ -4436,6 +4440,11 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parent_context", parent_context } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link_type", link_type.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -4521,6 +4530,241 @@ namespace Concrete
             });
     }
         
+    // struct Concrete_Dimensions_LinkType : public mega::io::Object
+    Concrete_Dimensions_LinkType::Concrete_Dimensions_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_LinkType >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_LinkType( loader )
+          , parent_context( loader )
+          , link( loader )
+    {
+    }
+    Concrete_Dimensions_LinkType::Concrete_Dimensions_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context, const data::Ptr< data::Concrete::Concrete_Dimensions_Link >& link)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_LinkType >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_LinkType( loader )
+          , parent_context( parent_context )
+          , link( link )
+    {
+    }
+    bool Concrete_Dimensions_LinkType::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Dimensions_LinkType >( loader, const_cast< Concrete_Dimensions_LinkType* >( this ) ) };
+    }
+    void Concrete_Dimensions_LinkType::set_inheritance_pointer()
+    {
+    }
+    void Concrete_Dimensions_LinkType::load( mega::io::Loader& loader )
+    {
+        loader.load( parent_context );
+        loader.load( link );
+    }
+    void Concrete_Dimensions_LinkType::store( mega::io::Storer& storer ) const
+    {
+        storer.store( parent_context );
+        storer.store( link );
+    }
+    void Concrete_Dimensions_LinkType::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_LinkType" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parent_context", parent_context } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link", link } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_Bitset : public mega::io::Object
+    Concrete_Dimensions_Bitset::Concrete_Dimensions_Bitset( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_Bitset >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Bitset( loader )
+          , p_PerSourceConcreteTable_Concrete_Dimensions_Bitset( loader )
+          , parent_object( loader )
+    {
+    }
+    Concrete_Dimensions_Bitset::Concrete_Dimensions_Bitset( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Object >& parent_object)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_Bitset >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Bitset( loader )
+          , p_PerSourceConcreteTable_Concrete_Dimensions_Bitset( loader )
+          , parent_object( parent_object )
+    {
+    }
+    bool Concrete_Dimensions_Bitset::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Dimensions_Bitset >( loader, const_cast< Concrete_Dimensions_Bitset* >( this ) ) };
+    }
+    void Concrete_Dimensions_Bitset::set_inheritance_pointer()
+    {
+    }
+    void Concrete_Dimensions_Bitset::load( mega::io::Loader& loader )
+    {
+        loader.load( parent_object );
+    }
+    void Concrete_Dimensions_Bitset::store( mega::io::Storer& storer ) const
+    {
+        storer.store( parent_object );
+    }
+    void Concrete_Dimensions_Bitset::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Bitset" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parent_object", parent_object } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_Configuration : public mega::io::Object
+    Concrete_Dimensions_Configuration::Concrete_Dimensions_Configuration( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_Configuration >( loader, this ) )          , p_Concrete_Concrete_Dimensions_Bitset( loader )
+    {
+    }
+    bool Concrete_Dimensions_Configuration::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Dimensions_Configuration >( loader, const_cast< Concrete_Dimensions_Configuration* >( this ) ) };
+    }
+    void Concrete_Dimensions_Configuration::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_Bitset->m_inheritance = data::Ptr< data::Concrete::Concrete_Dimensions_Configuration >( p_Concrete_Concrete_Dimensions_Bitset, this );
+    }
+    void Concrete_Dimensions_Configuration::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_Bitset );
+    }
+    void Concrete_Dimensions_Configuration::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_Bitset );
+    }
+    void Concrete_Dimensions_Configuration::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Configuration" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Concrete_Dimensions_Activation : public mega::io::Object
+    Concrete_Dimensions_Activation::Concrete_Dimensions_Activation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_Activation >( loader, this ) )          , p_Concrete_Concrete_Dimensions_Bitset( loader )
+    {
+    }
+    bool Concrete_Dimensions_Activation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Dimensions_Activation >( loader, const_cast< Concrete_Dimensions_Activation* >( this ) ) };
+    }
+    void Concrete_Dimensions_Activation::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_Bitset->m_inheritance = data::Ptr< data::Concrete::Concrete_Dimensions_Activation >( p_Concrete_Concrete_Dimensions_Bitset, this );
+    }
+    void Concrete_Dimensions_Activation::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_Bitset );
+    }
+    void Concrete_Dimensions_Activation::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_Bitset );
+    }
+    void Concrete_Dimensions_Activation::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Activation" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Concrete_Dimensions_Enablement : public mega::io::Object
+    Concrete_Dimensions_Enablement::Concrete_Dimensions_Enablement( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_Enablement >( loader, this ) )          , p_Concrete_Concrete_Dimensions_Bitset( loader )
+    {
+    }
+    bool Concrete_Dimensions_Enablement::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Dimensions_Enablement >( loader, const_cast< Concrete_Dimensions_Enablement* >( this ) ) };
+    }
+    void Concrete_Dimensions_Enablement::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_Bitset->m_inheritance = data::Ptr< data::Concrete::Concrete_Dimensions_Enablement >( p_Concrete_Concrete_Dimensions_Bitset, this );
+    }
+    void Concrete_Dimensions_Enablement::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_Bitset );
+    }
+    void Concrete_Dimensions_Enablement::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_Bitset );
+    }
+    void Concrete_Dimensions_Enablement::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Enablement" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Concrete_Dimensions_History : public mega::io::Object
+    Concrete_Dimensions_History::Concrete_Dimensions_History( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_History >( loader, this ) )          , p_Concrete_Concrete_Dimensions_Bitset( loader )
+    {
+    }
+    bool Concrete_Dimensions_History::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Dimensions_History >( loader, const_cast< Concrete_Dimensions_History* >( this ) ) };
+    }
+    void Concrete_Dimensions_History::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_Bitset->m_inheritance = data::Ptr< data::Concrete::Concrete_Dimensions_History >( p_Concrete_Concrete_Dimensions_Bitset, this );
+    }
+    void Concrete_Dimensions_History::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_Bitset );
+    }
+    void Concrete_Dimensions_History::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_Bitset );
+    }
+    void Concrete_Dimensions_History::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_History" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
     // struct Concrete_ContextGroup : public mega::io::Object
     Concrete_ContextGroup::Concrete_ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_ContextGroup >( loader, this ) )          , p_Concrete_Concrete_Graph_Vertex( loader )
@@ -4570,8 +4814,8 @@ namespace Concrete
     // struct Concrete_Context : public mega::io::Object
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
-          , p_PerSourceConcreteTable_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Context( loader )
+          , p_PerSourceConcreteTable_Concrete_Context( loader )
           , component( loader )
           , parent( loader )
           , interface( loader )
@@ -4579,8 +4823,8 @@ namespace Concrete
     }
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Components::Components_Component >& component, const data::Ptr< data::Concrete::Concrete_ContextGroup >& parent, const data::Ptr< data::Tree::Interface_IContext >& interface, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& inheritance)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
-          , p_PerSourceConcreteTable_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Context( loader )
+          , p_PerSourceConcreteTable_Concrete_Context( loader )
           , component( component )
           , parent( parent )
           , interface( interface )
@@ -4785,10 +5029,11 @@ namespace Concrete
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_UserDimensionContext >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
     {
     }
-    Concrete_UserDimensionContext::Concrete_UserDimensionContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& links)
+    Concrete_UserDimensionContext::Concrete_UserDimensionContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& links, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Bitset > >& bitsets)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_UserDimensionContext >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
           , dimensions( dimensions )
           , links( links )
+          , bitsets( bitsets )
     {
     }
     bool Concrete_UserDimensionContext::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4804,12 +5049,14 @@ namespace Concrete
         loader.load( p_Concrete_Concrete_Context );
         loader.load( dimensions );
         loader.load( links );
+        loader.load( bitsets );
     }
     void Concrete_UserDimensionContext::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Context );
         storer.store( dimensions );
         storer.store( links );
+        storer.store( bitsets );
     }
     void Concrete_UserDimensionContext::to_json( nlohmann::json& _part__ ) const
     {
@@ -4830,6 +5077,11 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "links", links } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "bitsets", bitsets } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -4884,13 +5136,11 @@ namespace Concrete
     // struct Concrete_State : public mega::io::Object
     Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_State >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
-          , p_MemoryLayout_Concrete_State( loader )
           , interface_state( loader )
     {
     }
     Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_State >& interface_state)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_State >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
-          , p_MemoryLayout_Concrete_State( loader )
           , interface_state( interface_state )
     {
     }
@@ -5027,13 +5277,11 @@ namespace Concrete
     // struct Concrete_Event : public mega::io::Object
     Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
-          , p_MemoryLayout_Concrete_Event( loader )
           , interface_event( loader )
     {
     }
     Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Event >& interface_event)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
-          , p_MemoryLayout_Concrete_Event( loader )
           , interface_event( interface_event )
     {
     }
@@ -5080,6 +5328,10 @@ namespace Concrete
           , p_PerSourceModel_Concrete_Object( loader )
           , interface_object( loader )
           , ownership_link( loader )
+          , configuration( loader )
+          , activation( loader )
+          , enablement( loader )
+          , history( loader )
     {
     }
     Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object)
@@ -5102,6 +5354,10 @@ namespace Concrete
         loader.load( p_Concrete_Concrete_UserDimensionContext );
         loader.load( interface_object );
         loader.load( ownership_link );
+        loader.load( configuration );
+        loader.load( activation );
+        loader.load( enablement );
+        loader.load( history );
     }
     void Concrete_Object::store( mega::io::Storer& storer ) const
     {
@@ -5109,6 +5365,14 @@ namespace Concrete
         storer.store( interface_object );
         VERIFY_RTE_MSG( ownership_link.has_value(), "Concrete::Concrete_Object.ownership_link has NOT been set" );
         storer.store( ownership_link );
+        VERIFY_RTE_MSG( configuration.has_value(), "Concrete::Concrete_Object.configuration has NOT been set" );
+        storer.store( configuration );
+        VERIFY_RTE_MSG( activation.has_value(), "Concrete::Concrete_Object.activation has NOT been set" );
+        storer.store( activation );
+        VERIFY_RTE_MSG( enablement.has_value(), "Concrete::Concrete_Object.enablement has NOT been set" );
+        storer.store( enablement );
+        VERIFY_RTE_MSG( history.has_value(), "Concrete::Concrete_Object.history has NOT been set" );
+        storer.store( history );
     }
     void Concrete_Object::to_json( nlohmann::json& _part__ ) const
     {
@@ -5129,6 +5393,26 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "ownership_link", ownership_link.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "configuration", configuration.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "activation", activation.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "enablement", enablement.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "history", history.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -6179,6 +6463,323 @@ namespace Model
 namespace PerSourceModel
 {
 }
+namespace ConcreteTable
+{
+    // struct Symbols_ConcreteTypeID : public mega::io::Object
+    Symbols_ConcreteTypeID::Symbols_ConcreteTypeID( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID >( loader, this ) )    {
+    }
+    Symbols_ConcreteTypeID::Symbols_ConcreteTypeID( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::TypeID& id, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& context, const std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dim_user, const std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& dim_link)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID >( loader, this ) )          , id( id )
+          , context( context )
+          , dim_user( dim_user )
+          , dim_link( dim_link )
+    {
+    }
+    bool Symbols_ConcreteTypeID::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID >( loader, const_cast< Symbols_ConcreteTypeID* >( this ) ) };
+    }
+    void Symbols_ConcreteTypeID::set_inheritance_pointer()
+    {
+    }
+    void Symbols_ConcreteTypeID::load( mega::io::Loader& loader )
+    {
+        loader.load( id );
+        loader.load( context );
+        loader.load( dim_user );
+        loader.load( dim_link );
+    }
+    void Symbols_ConcreteTypeID::store( mega::io::Storer& storer ) const
+    {
+        storer.store( id );
+        storer.store( context );
+        storer.store( dim_user );
+        storer.store( dim_link );
+    }
+    void Symbols_ConcreteTypeID::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Symbols_ConcreteTypeID" },
+                { "filetype" , "ConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "context", context } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dim_user", dim_user } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dim_link", dim_link } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Symbols_SymbolTable : public mega::io::Object
+    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolTable( loader )
+    {
+    }
+    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolTable > p_SymbolTable_Symbols_SymbolTable, const std::map< mega::TypeIDSequence, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& concrete_type_id_sequences, const std::map< mega::TypeIDSequence, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& concrete_type_id_set_link, const std::map< mega::TypeID, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& concrete_type_ids)
+        :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolTable( p_SymbolTable_Symbols_SymbolTable )
+          , concrete_type_id_sequences( concrete_type_id_sequences )
+          , concrete_type_id_set_link( concrete_type_id_set_link )
+          , concrete_type_ids( concrete_type_ids )
+    {
+    }
+    bool Symbols_SymbolTable::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Symbols_SymbolTable::set_inheritance_pointer()
+    {
+        p_SymbolTable_Symbols_SymbolTable->p_ConcreteTable_Symbols_SymbolTable = data::Ptr< data::ConcreteTable::Symbols_SymbolTable >( p_SymbolTable_Symbols_SymbolTable, this );
+    }
+    void Symbols_SymbolTable::load( mega::io::Loader& loader )
+    {
+        loader.load( p_SymbolTable_Symbols_SymbolTable );
+        loader.load( concrete_type_id_sequences );
+        loader.load( concrete_type_id_set_link );
+        loader.load( concrete_type_ids );
+    }
+    void Symbols_SymbolTable::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_SymbolTable_Symbols_SymbolTable );
+        storer.store( concrete_type_id_sequences );
+        storer.store( concrete_type_id_set_link );
+        storer.store( concrete_type_ids );
+    }
+    void Symbols_SymbolTable::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Symbols_SymbolTable" },
+                { "filetype" , "ConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_type_id_sequences", concrete_type_id_sequences } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_type_id_set_link", concrete_type_id_set_link } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_type_ids", concrete_type_ids } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+}
+namespace PerSourceConcreteTable
+{
+    // struct Concrete_Dimensions_User : public mega::io::Object
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( loader )
+    {
+    }
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const mega::TypeID& concrete_id)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( p_Concrete_Concrete_Dimensions_User )
+          , concrete_id( concrete_id )
+    {
+    }
+    bool Concrete_Dimensions_User::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Dimensions_User::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_User->p_PerSourceConcreteTable_Concrete_Dimensions_User = data::Ptr< data::PerSourceConcreteTable::Concrete_Dimensions_User >( p_Concrete_Concrete_Dimensions_User, this );
+    }
+    void Concrete_Dimensions_User::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_User );
+        loader.load( concrete_id );
+    }
+    void Concrete_Dimensions_User::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_User );
+        storer.store( concrete_id );
+    }
+    void Concrete_Dimensions_User::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_User" },
+                { "filetype" , "PerSourceConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_id", concrete_id } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_Link : public mega::io::Object
+    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( loader )
+    {
+    }
+    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const mega::TypeID& concrete_id)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( p_Concrete_Concrete_Dimensions_Link )
+          , concrete_id( concrete_id )
+    {
+    }
+    bool Concrete_Dimensions_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Dimensions_Link::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_Link->p_PerSourceConcreteTable_Concrete_Dimensions_Link = data::Ptr< data::PerSourceConcreteTable::Concrete_Dimensions_Link >( p_Concrete_Concrete_Dimensions_Link, this );
+    }
+    void Concrete_Dimensions_Link::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_Link );
+        loader.load( concrete_id );
+    }
+    void Concrete_Dimensions_Link::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_Link );
+        storer.store( concrete_id );
+    }
+    void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Link" },
+                { "filetype" , "PerSourceConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_id", concrete_id } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_Bitset : public mega::io::Object
+    Concrete_Dimensions_Bitset::Concrete_Dimensions_Bitset( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Bitset( loader )
+    {
+    }
+    Concrete_Dimensions_Bitset::Concrete_Dimensions_Bitset( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Bitset > p_Concrete_Concrete_Dimensions_Bitset, const mega::TypeID& concrete_id)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Bitset( p_Concrete_Concrete_Dimensions_Bitset )
+          , concrete_id( concrete_id )
+    {
+    }
+    bool Concrete_Dimensions_Bitset::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Dimensions_Bitset::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_Bitset->p_PerSourceConcreteTable_Concrete_Dimensions_Bitset = data::Ptr< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( p_Concrete_Concrete_Dimensions_Bitset, this );
+    }
+    void Concrete_Dimensions_Bitset::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_Bitset );
+        loader.load( concrete_id );
+    }
+    void Concrete_Dimensions_Bitset::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_Bitset );
+        storer.store( concrete_id );
+    }
+    void Concrete_Dimensions_Bitset::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Bitset" },
+                { "filetype" , "PerSourceConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_id", concrete_id } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Context : public mega::io::Object
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( loader )
+    {
+    }
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const mega::TypeID& concrete_id)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
+          , concrete_id( concrete_id )
+    {
+    }
+    bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Context::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Context->p_PerSourceConcreteTable_Concrete_Context = data::Ptr< data::PerSourceConcreteTable::Concrete_Context >( p_Concrete_Concrete_Context, this );
+    }
+    void Concrete_Context::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Context );
+        loader.load( concrete_id );
+    }
+    void Concrete_Context::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Context );
+        storer.store( concrete_id );
+    }
+    void Concrete_Context::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Context" },
+                { "filetype" , "PerSourceConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_id", concrete_id } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+}
 namespace MemoryLayout
 {
     // struct Concrete_Dimensions_User : public mega::io::Object
@@ -6187,10 +6788,10 @@ namespace MemoryLayout
           , part( loader )
     {
     }
-    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const mega::U64& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part)
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part, const mega::U64& offset)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( p_Concrete_Concrete_Dimensions_User )
-          , offset( offset )
           , part( part )
+          , offset( offset )
     {
     }
     bool Concrete_Dimensions_User::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -6204,14 +6805,14 @@ namespace MemoryLayout
     void Concrete_Dimensions_User::load( mega::io::Loader& loader )
     {
         loader.load( p_Concrete_Concrete_Dimensions_User );
-        loader.load( offset );
         loader.load( part );
+        loader.load( offset );
     }
     void Concrete_Dimensions_User::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Dimensions_User );
-        storer.store( offset );
         storer.store( part );
+        storer.store( offset );
     }
     void Concrete_Dimensions_User::to_json( nlohmann::json& _part__ ) const
     {
@@ -6226,12 +6827,12 @@ namespace MemoryLayout
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "offset", offset } } );
+                { "part", part } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "part", part } } );
+                { "offset", offset } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -6240,14 +6841,12 @@ namespace MemoryLayout
     Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( loader )
           , part( loader )
-          , link_type( loader )
     {
     }
-    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const mega::U64& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part, const data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >& link_type)
+    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part, const mega::U64& offset)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( p_Concrete_Concrete_Dimensions_Link )
-          , offset( offset )
           , part( part )
-          , link_type( link_type )
+          , offset( offset )
     {
     }
     bool Concrete_Dimensions_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -6261,16 +6860,14 @@ namespace MemoryLayout
     void Concrete_Dimensions_Link::load( mega::io::Loader& loader )
     {
         loader.load( p_Concrete_Concrete_Dimensions_Link );
-        loader.load( offset );
         loader.load( part );
-        loader.load( link_type );
+        loader.load( offset );
     }
     void Concrete_Dimensions_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Dimensions_Link );
-        storer.store( offset );
         storer.store( part );
-        storer.store( link_type );
+        storer.store( offset );
     }
     void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
     {
@@ -6285,55 +6882,47 @@ namespace MemoryLayout
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "offset", offset } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
                 { "part", part } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "link_type", link_type } } );
+                { "offset", offset } } );
             _part__[ "properties" ].push_back( property );
         }
     }
         
     // struct Concrete_Dimensions_LinkType : public mega::io::Object
     Concrete_Dimensions_LinkType::Concrete_Dimensions_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >( loader, this ) )          , parent_context( loader )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_LinkType( loader )
           , part( loader )
-          , link( loader )
     {
     }
-    Concrete_Dimensions_LinkType::Concrete_Dimensions_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context, const mega::U64& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >( loader, this ) )          , parent_context( parent_context )
-          , offset( offset )
+    Concrete_Dimensions_LinkType::Concrete_Dimensions_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_LinkType > p_Concrete_Concrete_Dimensions_LinkType, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part, const mega::U64& offset)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_LinkType( p_Concrete_Concrete_Dimensions_LinkType )
           , part( part )
+          , offset( offset )
     {
     }
     bool Concrete_Dimensions_LinkType::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >( loader, const_cast< Concrete_Dimensions_LinkType* >( this ) ) };
+        return false;
     }
     void Concrete_Dimensions_LinkType::set_inheritance_pointer()
     {
+        p_Concrete_Concrete_Dimensions_LinkType->p_MemoryLayout_Concrete_Dimensions_LinkType = data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >( p_Concrete_Concrete_Dimensions_LinkType, this );
     }
     void Concrete_Dimensions_LinkType::load( mega::io::Loader& loader )
     {
-        loader.load( parent_context );
-        loader.load( offset );
+        loader.load( p_Concrete_Concrete_Dimensions_LinkType );
         loader.load( part );
-        loader.load( link );
+        loader.load( offset );
     }
     void Concrete_Dimensions_LinkType::store( mega::io::Storer& storer ) const
     {
-        storer.store( parent_context );
-        storer.store( offset );
+        storer.store( p_Concrete_Concrete_Dimensions_LinkType );
         storer.store( part );
-        VERIFY_RTE_MSG( link.has_value(), "MemoryLayout::Concrete_Dimensions_LinkType.link has NOT been set" );
-        storer.store( link );
+        storer.store( offset );
     }
     void Concrete_Dimensions_LinkType::to_json( nlohmann::json& _part__ ) const
     {
@@ -6348,12 +6937,65 @@ namespace MemoryLayout
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "parent_context", parent_context } } );
+                { "part", part } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "offset", offset } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_Bitset : public mega::io::Object
+    Concrete_Dimensions_Bitset::Concrete_Dimensions_Bitset( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Bitset( loader )
+          , part( loader )
+    {
+    }
+    Concrete_Dimensions_Bitset::Concrete_Dimensions_Bitset( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Bitset > p_Concrete_Concrete_Dimensions_Bitset, const mega::U64& size, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part, const mega::U64& offset)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Bitset( p_Concrete_Concrete_Dimensions_Bitset )
+          , size( size )
+          , part( part )
+          , offset( offset )
+    {
+    }
+    bool Concrete_Dimensions_Bitset::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Dimensions_Bitset::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_Bitset->p_MemoryLayout_Concrete_Dimensions_Bitset = data::Ptr< data::MemoryLayout::Concrete_Dimensions_Bitset >( p_Concrete_Concrete_Dimensions_Bitset, this );
+    }
+    void Concrete_Dimensions_Bitset::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_Bitset );
+        loader.load( size );
+        loader.load( part );
+        loader.load( offset );
+    }
+    void Concrete_Dimensions_Bitset::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_Bitset );
+        storer.store( size );
+        storer.store( part );
+        storer.store( offset );
+    }
+    void Concrete_Dimensions_Bitset::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Bitset" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "size", size } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -6363,115 +7005,7 @@ namespace MemoryLayout
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "link", link.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Concrete_Dimensions_Allocation : public mega::io::Object
-    Concrete_Dimensions_Allocation::Concrete_Dimensions_Allocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >( loader, this ) )          , p_PerSourceConcreteTable_Concrete_Dimensions_Allocation( loader )
-          , parent_context( loader )
-          , part( loader )
-    {
-    }
-    Concrete_Dimensions_Allocation::Concrete_Dimensions_Allocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >( loader, this ) )          , p_PerSourceConcreteTable_Concrete_Dimensions_Allocation( loader )
-          , parent_context( parent_context )
-    {
-    }
-    bool Concrete_Dimensions_Allocation::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >( loader, const_cast< Concrete_Dimensions_Allocation* >( this ) ) };
-    }
-    void Concrete_Dimensions_Allocation::set_inheritance_pointer()
-    {
-    }
-    void Concrete_Dimensions_Allocation::load( mega::io::Loader& loader )
-    {
-        loader.load( parent_context );
-        loader.load( part );
-        loader.load( offset );
-    }
-    void Concrete_Dimensions_Allocation::store( mega::io::Storer& storer ) const
-    {
-        storer.store( parent_context );
-        VERIFY_RTE_MSG( part.has_value(), "MemoryLayout::Concrete_Dimensions_Allocation.part has NOT been set" );
-        storer.store( part );
-        VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::Concrete_Dimensions_Allocation.offset has NOT been set" );
-        storer.store( offset );
-    }
-    void Concrete_Dimensions_Allocation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Allocation" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent_context", parent_context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "part", part.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "offset", offset.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Concrete_Dimensions_Allocator : public mega::io::Object
-    Concrete_Dimensions_Allocator::Concrete_Dimensions_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Allocation( loader )
-          , allocator( loader )
-    {
-    }
-    Concrete_Dimensions_Allocator::Concrete_Dimensions_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Allocation( loader )
-          , allocator( allocator )
-    {
-    }
-    bool Concrete_Dimensions_Allocator::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, const_cast< Concrete_Dimensions_Allocator* >( this ) ) };
-    }
-    void Concrete_Dimensions_Allocator::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Concrete_Dimensions_Allocation->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( p_MemoryLayout_Concrete_Dimensions_Allocation, this );
-    }
-    void Concrete_Dimensions_Allocator::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Concrete_Dimensions_Allocation );
-        loader.load( allocator );
-    }
-    void Concrete_Dimensions_Allocator::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Concrete_Dimensions_Allocation );
-        storer.store( allocator );
-    }
-    void Concrete_Dimensions_Allocator::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Allocator" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "allocator", allocator } } );
+                { "offset", offset } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -6479,13 +7013,12 @@ namespace MemoryLayout
     // struct Concrete_Context : public mega::io::Object
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( loader )
-          , allocator( loader )
     {
     }
-    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& allocation_dimensions)
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const mega::U64& local_size, const mega::U64& total_size)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
-          , allocator( allocator )
-          , allocation_dimensions( allocation_dimensions )
+          , local_size( local_size )
+          , total_size( total_size )
     {
     }
     bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -6499,128 +7032,20 @@ namespace MemoryLayout
     void Concrete_Context::load( mega::io::Loader& loader )
     {
         loader.load( p_Concrete_Concrete_Context );
-        loader.load( allocator );
-        loader.load( allocation_dimensions );
+        loader.load( local_size );
+        loader.load( total_size );
     }
     void Concrete_Context::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Context );
-        storer.store( allocator );
-        storer.store( allocation_dimensions );
+        storer.store( local_size );
+        storer.store( total_size );
     }
     void Concrete_Context::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Context" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "allocator", allocator } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "allocation_dimensions", allocation_dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Concrete_State : public mega::io::Object
-    Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_State( loader )
-    {
-    }
-    Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_State > p_Concrete_Concrete_State, const mega::U64& local_size, const mega::U64& total_size)
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_State( p_Concrete_Concrete_State )
-          , local_size( local_size )
-          , total_size( total_size )
-    {
-    }
-    bool Concrete_State::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Concrete_State::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_State->p_MemoryLayout_Concrete_State = data::Ptr< data::MemoryLayout::Concrete_State >( p_Concrete_Concrete_State, this );
-    }
-    void Concrete_State::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_State );
-        loader.load( local_size );
-        loader.load( total_size );
-    }
-    void Concrete_State::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_State );
-        storer.store( local_size );
-        storer.store( total_size );
-    }
-    void Concrete_State::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_State" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "local_size", local_size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "total_size", total_size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Concrete_Event : public mega::io::Object
-    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Event( loader )
-    {
-    }
-    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Event > p_Concrete_Concrete_Event, const mega::U64& local_size, const mega::U64& total_size)
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Event( p_Concrete_Concrete_Event )
-          , local_size( local_size )
-          , total_size( total_size )
-    {
-    }
-    bool Concrete_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Concrete_Event::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_Event->p_MemoryLayout_Concrete_Event = data::Ptr< data::MemoryLayout::Concrete_Event >( p_Concrete_Concrete_Event, this );
-    }
-    void Concrete_Event::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_Event );
-        loader.load( local_size );
-        loader.load( total_size );
-    }
-    void Concrete_Event::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_Event );
-        storer.store( local_size );
-        storer.store( total_size );
-    }
-    void Concrete_Event::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Event" },
                 { "filetype" , "MemoryLayout" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -6685,292 +7110,13 @@ namespace MemoryLayout
         }
     }
         
-    // struct Allocators_Allocator : public mega::io::Object
-    Allocators_Allocator::Allocators_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Allocator >( loader, this ) )          , allocated_context( loader )
-    {
-    }
-    Allocators_Allocator::Allocators_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& parent_context, const data::Ptr< data::Concrete::Concrete_Context >& allocated_context)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Allocator >( loader, this ) )          , parent_context( parent_context )
-          , allocated_context( allocated_context )
-    {
-    }
-    bool Allocators_Allocator::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Allocators_Allocator >( loader, const_cast< Allocators_Allocator* >( this ) ) };
-    }
-    void Allocators_Allocator::set_inheritance_pointer()
-    {
-    }
-    void Allocators_Allocator::load( mega::io::Loader& loader )
-    {
-        loader.load( parent_context );
-        loader.load( allocated_context );
-        loader.load( dimension );
-    }
-    void Allocators_Allocator::store( mega::io::Storer& storer ) const
-    {
-        storer.store( parent_context );
-        storer.store( allocated_context );
-        VERIFY_RTE_MSG( dimension.has_value(), "MemoryLayout::Allocators_Allocator.dimension has NOT been set" );
-        storer.store( dimension );
-    }
-    void Allocators_Allocator::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Allocators_Allocator" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent_context", parent_context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "allocated_context", allocated_context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimension", dimension.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Allocators_Nothing : public mega::io::Object
-    Allocators_Nothing::Allocators_Nothing( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Nothing >( loader, this ) )          , p_MemoryLayout_Allocators_Allocator( loader )
-    {
-    }
-    bool Allocators_Nothing::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Allocators_Nothing >( loader, const_cast< Allocators_Nothing* >( this ) ) };
-    }
-    void Allocators_Nothing::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Allocators_Allocator->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Nothing >( p_MemoryLayout_Allocators_Allocator, this );
-    }
-    void Allocators_Nothing::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Allocators_Allocator );
-    }
-    void Allocators_Nothing::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Allocators_Allocator );
-    }
-    void Allocators_Nothing::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Allocators_Nothing" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Allocators_Singleton : public mega::io::Object
-    Allocators_Singleton::Allocators_Singleton( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Singleton >( loader, this ) )          , p_MemoryLayout_Allocators_Allocator( loader )
-    {
-    }
-    bool Allocators_Singleton::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Allocators_Singleton >( loader, const_cast< Allocators_Singleton* >( this ) ) };
-    }
-    void Allocators_Singleton::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Allocators_Allocator->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Singleton >( p_MemoryLayout_Allocators_Allocator, this );
-    }
-    void Allocators_Singleton::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Allocators_Allocator );
-    }
-    void Allocators_Singleton::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Allocators_Allocator );
-    }
-    void Allocators_Singleton::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Allocators_Singleton" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Allocators_Range : public mega::io::Object
-    Allocators_Range::Allocators_Range( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Range >( loader, this ) )          , p_MemoryLayout_Allocators_Allocator( loader )
-    {
-    }
-    Allocators_Range::Allocators_Range( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::U64& local_size)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Range >( loader, this ) )          , p_MemoryLayout_Allocators_Allocator( loader )
-          , local_size( local_size )
-    {
-    }
-    bool Allocators_Range::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Allocators_Range >( loader, const_cast< Allocators_Range* >( this ) ) };
-    }
-    void Allocators_Range::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Allocators_Allocator->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Range >( p_MemoryLayout_Allocators_Allocator, this );
-    }
-    void Allocators_Range::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Allocators_Allocator );
-        loader.load( local_size );
-    }
-    void Allocators_Range::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Allocators_Allocator );
-        storer.store( local_size );
-    }
-    void Allocators_Range::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Allocators_Range" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "local_size", local_size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Allocators_Range32 : public mega::io::Object
-    Allocators_Range32::Allocators_Range32( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Range32 >( loader, this ) )          , p_MemoryLayout_Allocators_Range( loader )
-    {
-    }
-    bool Allocators_Range32::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Allocators_Range32 >( loader, const_cast< Allocators_Range32* >( this ) ) };
-    }
-    void Allocators_Range32::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Allocators_Range->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Range32 >( p_MemoryLayout_Allocators_Range, this );
-    }
-    void Allocators_Range32::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Allocators_Range );
-    }
-    void Allocators_Range32::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Allocators_Range );
-    }
-    void Allocators_Range32::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Allocators_Range32" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Allocators_Range64 : public mega::io::Object
-    Allocators_Range64::Allocators_Range64( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Range64 >( loader, this ) )          , p_MemoryLayout_Allocators_Range( loader )
-    {
-    }
-    bool Allocators_Range64::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Allocators_Range64 >( loader, const_cast< Allocators_Range64* >( this ) ) };
-    }
-    void Allocators_Range64::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Allocators_Range->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Range64 >( p_MemoryLayout_Allocators_Range, this );
-    }
-    void Allocators_Range64::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Allocators_Range );
-    }
-    void Allocators_Range64::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Allocators_Range );
-    }
-    void Allocators_Range64::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Allocators_Range64" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Allocators_RangeAny : public mega::io::Object
-    Allocators_RangeAny::Allocators_RangeAny( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_RangeAny >( loader, this ) )          , p_MemoryLayout_Allocators_Range( loader )
-    {
-    }
-    bool Allocators_RangeAny::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Allocators_RangeAny >( loader, const_cast< Allocators_RangeAny* >( this ) ) };
-    }
-    void Allocators_RangeAny::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Allocators_Range->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_RangeAny >( p_MemoryLayout_Allocators_Range, this );
-    }
-    void Allocators_RangeAny::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Allocators_Range );
-    }
-    void Allocators_RangeAny::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Allocators_Range );
-    }
-    void Allocators_RangeAny::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Allocators_RangeAny" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
     // struct MemoryLayout_Part : public mega::io::Object
     MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( loader )
-          , buffer( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , buffer( loader )
     {
     }
-    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::U64& total_domain_size, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& link_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& allocation_dimensions)
+    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::U64& total_domain_size)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , total_domain_size( total_domain_size )
-          , context( context )
-          , user_dimensions( user_dimensions )
-          , link_dimensions( link_dimensions )
-          , allocation_dimensions( allocation_dimensions )
     {
     }
     bool MemoryLayout_Part::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -6983,26 +7129,27 @@ namespace MemoryLayout
     void MemoryLayout_Part::load( mega::io::Loader& loader )
     {
         loader.load( total_domain_size );
-        loader.load( context );
-        loader.load( user_dimensions );
-        loader.load( link_dimensions );
-        loader.load( allocation_dimensions );
         loader.load( size );
         loader.load( alignment );
+        loader.load( user_dimensions );
+        loader.load( link_dimensions );
+        loader.load( bitset_dimensions );
         loader.load( offset );
         loader.load( buffer );
     }
     void MemoryLayout_Part::store( mega::io::Storer& storer ) const
     {
         storer.store( total_domain_size );
-        storer.store( context );
-        storer.store( user_dimensions );
-        storer.store( link_dimensions );
-        storer.store( allocation_dimensions );
         VERIFY_RTE_MSG( size.has_value(), "MemoryLayout::MemoryLayout_Part.size has NOT been set" );
         storer.store( size );
         VERIFY_RTE_MSG( alignment.has_value(), "MemoryLayout::MemoryLayout_Part.alignment has NOT been set" );
         storer.store( alignment );
+        VERIFY_RTE_MSG( user_dimensions.has_value(), "MemoryLayout::MemoryLayout_Part.user_dimensions has NOT been set" );
+        storer.store( user_dimensions );
+        VERIFY_RTE_MSG( link_dimensions.has_value(), "MemoryLayout::MemoryLayout_Part.link_dimensions has NOT been set" );
+        storer.store( link_dimensions );
+        VERIFY_RTE_MSG( bitset_dimensions.has_value(), "MemoryLayout::MemoryLayout_Part.bitset_dimensions has NOT been set" );
+        storer.store( bitset_dimensions );
         VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::MemoryLayout_Part.offset has NOT been set" );
         storer.store( offset );
         VERIFY_RTE_MSG( buffer.has_value(), "MemoryLayout::MemoryLayout_Part.buffer has NOT been set" );
@@ -7026,32 +7173,27 @@ namespace MemoryLayout
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "context", context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "user_dimensions", user_dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_dimensions", link_dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "allocation_dimensions", allocation_dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
                 { "size", size.value() } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "alignment", alignment.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "user_dimensions", user_dimensions.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link_dimensions", link_dimensions.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "bitset_dimensions", bitset_dimensions.value() } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -7123,40 +7265,6 @@ namespace MemoryLayout
         }
     }
         
-    // struct MemoryLayout_NonSimpleBuffer : public mega::io::Object
-    MemoryLayout_NonSimpleBuffer::MemoryLayout_NonSimpleBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >( loader, this ) )          , p_MemoryLayout_MemoryLayout_Buffer( loader )
-    {
-    }
-    bool MemoryLayout_NonSimpleBuffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >( loader, const_cast< MemoryLayout_NonSimpleBuffer* >( this ) ) };
-    }
-    void MemoryLayout_NonSimpleBuffer::set_inheritance_pointer()
-    {
-        p_MemoryLayout_MemoryLayout_Buffer->m_inheritance = data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >( p_MemoryLayout_MemoryLayout_Buffer, this );
-    }
-    void MemoryLayout_NonSimpleBuffer::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_MemoryLayout_Buffer );
-    }
-    void MemoryLayout_NonSimpleBuffer::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_MemoryLayout_Buffer );
-    }
-    void MemoryLayout_NonSimpleBuffer::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "MemoryLayout_NonSimpleBuffer" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
     // struct MemoryLayout_SimpleBuffer : public mega::io::Object
     MemoryLayout_SimpleBuffer::MemoryLayout_SimpleBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >( loader, this ) )          , p_MemoryLayout_MemoryLayout_Buffer( loader )
@@ -7183,40 +7291,6 @@ namespace MemoryLayout
         _part__ = nlohmann::json::object(
             { 
                 { "partname", "MemoryLayout_SimpleBuffer" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct MemoryLayout_GPUBuffer : public mega::io::Object
-    MemoryLayout_GPUBuffer::MemoryLayout_GPUBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >( loader, this ) )          , p_MemoryLayout_MemoryLayout_Buffer( loader )
-    {
-    }
-    bool MemoryLayout_GPUBuffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >( loader, const_cast< MemoryLayout_GPUBuffer* >( this ) ) };
-    }
-    void MemoryLayout_GPUBuffer::set_inheritance_pointer()
-    {
-        p_MemoryLayout_MemoryLayout_Buffer->m_inheritance = data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >( p_MemoryLayout_MemoryLayout_Buffer, this );
-    }
-    void MemoryLayout_GPUBuffer::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_MemoryLayout_Buffer );
-    }
-    void MemoryLayout_GPUBuffer::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_MemoryLayout_Buffer );
-    }
-    void MemoryLayout_GPUBuffer::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "MemoryLayout_GPUBuffer" },
                 { "filetype" , "MemoryLayout" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -7353,339 +7427,6 @@ namespace GlobalMemoryRollout
     }
         
 }
-namespace ConcreteTable
-{
-    // struct Symbols_ConcreteTypeID : public mega::io::Object
-    Symbols_ConcreteTypeID::Symbols_ConcreteTypeID( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID >( loader, this ) )    {
-    }
-    Symbols_ConcreteTypeID::Symbols_ConcreteTypeID( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::TypeID& id, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& context, const std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dim_user, const std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& dim_link, const std::optional< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& dim_allocation)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID >( loader, this ) )          , id( id )
-          , context( context )
-          , dim_user( dim_user )
-          , dim_link( dim_link )
-          , dim_allocation( dim_allocation )
-    {
-    }
-    bool Symbols_ConcreteTypeID::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID >( loader, const_cast< Symbols_ConcreteTypeID* >( this ) ) };
-    }
-    void Symbols_ConcreteTypeID::set_inheritance_pointer()
-    {
-    }
-    void Symbols_ConcreteTypeID::load( mega::io::Loader& loader )
-    {
-        loader.load( id );
-        loader.load( context );
-        loader.load( dim_user );
-        loader.load( dim_link );
-        loader.load( dim_allocation );
-    }
-    void Symbols_ConcreteTypeID::store( mega::io::Storer& storer ) const
-    {
-        storer.store( id );
-        storer.store( context );
-        storer.store( dim_user );
-        storer.store( dim_link );
-        storer.store( dim_allocation );
-    }
-    void Symbols_ConcreteTypeID::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Symbols_ConcreteTypeID" },
-                { "filetype" , "ConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "context", context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dim_user", dim_user } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dim_link", dim_link } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dim_allocation", dim_allocation } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Symbols_SymbolTable : public mega::io::Object
-    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolTable( loader )
-    {
-    }
-    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolTable > p_SymbolTable_Symbols_SymbolTable, const std::map< mega::TypeIDSequence, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& concrete_type_id_sequences, const std::map< mega::TypeIDSequence, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& concrete_type_id_seq_alloc, const std::map< mega::TypeIDSequence, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& concrete_type_id_set_link, const std::map< mega::TypeID, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& concrete_type_ids)
-        :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolTable( p_SymbolTable_Symbols_SymbolTable )
-          , concrete_type_id_sequences( concrete_type_id_sequences )
-          , concrete_type_id_seq_alloc( concrete_type_id_seq_alloc )
-          , concrete_type_id_set_link( concrete_type_id_set_link )
-          , concrete_type_ids( concrete_type_ids )
-    {
-    }
-    bool Symbols_SymbolTable::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Symbols_SymbolTable::set_inheritance_pointer()
-    {
-        p_SymbolTable_Symbols_SymbolTable->p_ConcreteTable_Symbols_SymbolTable = data::Ptr< data::ConcreteTable::Symbols_SymbolTable >( p_SymbolTable_Symbols_SymbolTable, this );
-    }
-    void Symbols_SymbolTable::load( mega::io::Loader& loader )
-    {
-        loader.load( p_SymbolTable_Symbols_SymbolTable );
-        loader.load( concrete_type_id_sequences );
-        loader.load( concrete_type_id_seq_alloc );
-        loader.load( concrete_type_id_set_link );
-        loader.load( concrete_type_ids );
-    }
-    void Symbols_SymbolTable::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_SymbolTable_Symbols_SymbolTable );
-        storer.store( concrete_type_id_sequences );
-        storer.store( concrete_type_id_seq_alloc );
-        storer.store( concrete_type_id_set_link );
-        storer.store( concrete_type_ids );
-    }
-    void Symbols_SymbolTable::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Symbols_SymbolTable" },
-                { "filetype" , "ConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_type_id_sequences", concrete_type_id_sequences } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_type_id_seq_alloc", concrete_type_id_seq_alloc } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_type_id_set_link", concrete_type_id_set_link } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_type_ids", concrete_type_ids } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-}
-namespace PerSourceConcreteTable
-{
-    // struct Concrete_Dimensions_User : public mega::io::Object
-    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( loader )
-    {
-    }
-    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const mega::TypeID& concrete_id)
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( p_Concrete_Concrete_Dimensions_User )
-          , concrete_id( concrete_id )
-    {
-    }
-    bool Concrete_Dimensions_User::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Concrete_Dimensions_User::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_Dimensions_User->p_PerSourceConcreteTable_Concrete_Dimensions_User = data::Ptr< data::PerSourceConcreteTable::Concrete_Dimensions_User >( p_Concrete_Concrete_Dimensions_User, this );
-    }
-    void Concrete_Dimensions_User::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_Dimensions_User );
-        loader.load( concrete_id );
-    }
-    void Concrete_Dimensions_User::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_Dimensions_User );
-        storer.store( concrete_id );
-    }
-    void Concrete_Dimensions_User::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_User" },
-                { "filetype" , "PerSourceConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_id", concrete_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Concrete_Dimensions_Link : public mega::io::Object
-    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( loader )
-    {
-    }
-    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const mega::TypeID& concrete_id)
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( p_Concrete_Concrete_Dimensions_Link )
-          , concrete_id( concrete_id )
-    {
-    }
-    bool Concrete_Dimensions_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Concrete_Dimensions_Link::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_Dimensions_Link->p_PerSourceConcreteTable_Concrete_Dimensions_Link = data::Ptr< data::PerSourceConcreteTable::Concrete_Dimensions_Link >( p_Concrete_Concrete_Dimensions_Link, this );
-    }
-    void Concrete_Dimensions_Link::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_Dimensions_Link );
-        loader.load( concrete_id );
-    }
-    void Concrete_Dimensions_Link::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_Dimensions_Link );
-        storer.store( concrete_id );
-    }
-    void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Link" },
-                { "filetype" , "PerSourceConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_id", concrete_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Concrete_Dimensions_Allocation : public mega::io::Object
-    Concrete_Dimensions_Allocation::Concrete_Dimensions_Allocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_MemoryLayout_Concrete_Dimensions_Allocation( loader )
-    {
-    }
-    Concrete_Dimensions_Allocation::Concrete_Dimensions_Allocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< MemoryLayout::Concrete_Dimensions_Allocation > p_MemoryLayout_Concrete_Dimensions_Allocation, const mega::TypeID& concrete_id)
-        :   mega::io::Object( objectInfo )          , p_MemoryLayout_Concrete_Dimensions_Allocation( p_MemoryLayout_Concrete_Dimensions_Allocation )
-          , concrete_id( concrete_id )
-    {
-    }
-    bool Concrete_Dimensions_Allocation::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Concrete_Dimensions_Allocation::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Concrete_Dimensions_Allocation->p_PerSourceConcreteTable_Concrete_Dimensions_Allocation = data::Ptr< data::PerSourceConcreteTable::Concrete_Dimensions_Allocation >( p_MemoryLayout_Concrete_Dimensions_Allocation, this );
-    }
-    void Concrete_Dimensions_Allocation::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Concrete_Dimensions_Allocation );
-        loader.load( concrete_id );
-    }
-    void Concrete_Dimensions_Allocation::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Concrete_Dimensions_Allocation );
-        storer.store( concrete_id );
-    }
-    void Concrete_Dimensions_Allocation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Allocation" },
-                { "filetype" , "PerSourceConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_id", concrete_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Concrete_Context : public mega::io::Object
-    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( loader )
-    {
-    }
-    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const mega::TypeID& concrete_id)
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
-          , concrete_id( concrete_id )
-    {
-    }
-    bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Concrete_Context::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_Context->p_PerSourceConcreteTable_Concrete_Context = data::Ptr< data::PerSourceConcreteTable::Concrete_Context >( p_Concrete_Concrete_Context, this );
-    }
-    void Concrete_Context::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_Context );
-        loader.load( concrete_id );
-    }
-    void Concrete_Context::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_Context );
-        storer.store( concrete_id );
-    }
-    void Concrete_Context::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Context" },
-                { "filetype" , "PerSourceConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_id", concrete_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-}
 namespace AutomataAnalysis
 {
 }
@@ -7785,7 +7526,7 @@ namespace Operations
           , link_type( loader )
     {
     }
-    Invocations_Variables_LinkType::Invocations_Variables_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >& link_type)
+    Invocations_Variables_LinkType::Invocations_Variables_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Dimensions_LinkType >& link_type)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_LinkType >( loader, this ) )          , p_Operations_Invocations_Variables_Variable( loader )
           , link_type( link_type )
     {
@@ -10358,38 +10099,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& Concrete_ContextGr
         }
     }
 }
-std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& Concrete_Context_push_back_allocation_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Requirement::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_State::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 std::vector< data::Ptr< data::Tree::Interface_IContext > >& Concrete_Context_push_back_inheritance(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -10532,6 +10241,30 @@ std::vector< data::Ptr< data::Concrete::Concrete_UserDimensionContext > >& Concr
     {
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Object >( m_data )->link_contexts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Bitset > >& Concrete_UserDimensionContext_push_back_bitsets(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -11268,11 +11001,7 @@ std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& MemoryLayout_
     {
         case data::MemoryLayout::MemoryLayout_Buffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
-        case data::MemoryLayout::MemoryLayout_NonSimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
         case data::MemoryLayout::MemoryLayout_SimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
-        case data::MemoryLayout::MemoryLayout_GPUBuffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
         default:
         {
@@ -11292,19 +11021,19 @@ std::vector< data::Ptr< data::Concrete::Concrete_Object > >& MemoryLayout_Memory
         }
     }
 }
-std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& MemoryLayout_Part_push_back_allocation_dimensions(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Bitset > > >& MemoryLayout_Part_push_back_bitset_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::MemoryLayout::MemoryLayout_Part::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Part >( m_data )->allocation_dimensions;
+            return data::convert< data::MemoryLayout::MemoryLayout_Part >( m_data )->bitset_dimensions;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& MemoryLayout_Part_push_back_link_dimensions(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > > >& MemoryLayout_Part_push_back_link_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -11316,7 +11045,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& MemoryLayo
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& MemoryLayout_Part_push_back_user_dimensions(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > > >& MemoryLayout_Part_push_back_user_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -11750,18 +11479,6 @@ std::vector< mega::Type >& Parser_TypeList_push_back_args(data::Variant& m_data)
         }
     }
 }
-std::map< mega::TypeIDSequence, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& Symbols_SymbolTable_insert_concrete_type_id_seq_alloc(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::SymbolTable::Symbols_SymbolTable::Object_Part_Type_ID:
-            return data::convert< data::ConcreteTable::Symbols_SymbolTable >( m_data )->concrete_type_id_seq_alloc;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 std::map< mega::TypeIDSequence, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& Symbols_SymbolTable_insert_concrete_type_id_sequences(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12018,96 +11735,6 @@ data::Ptr< data::Concrete::Concrete_Graph_Vertex >& get_Alias_Step_vertex(data::
         }
     }
 }
-data::Ptr< data::Concrete::Concrete_Context >& get_Allocators_Allocator_allocated_context(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::Allocators_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Nothing::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Singleton::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::optional< std::optional< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > > >& get_Allocators_Allocator_dimension(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::Allocators_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Nothing::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Singleton::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::optional< data::Ptr< data::Concrete::Concrete_Context > >& get_Allocators_Allocator_parent_context(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::Allocators_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Nothing::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Singleton::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& get_Allocators_Range_local_size(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
-        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
-        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
-        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 boost::filesystem::path& get_Components_Component_build_dir(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12338,74 +11965,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Concrete_Conte
         }
     }
 }
-std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& get_Concrete_Context_allocation_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Requirement::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_State::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-data::Ptr< data::MemoryLayout::Allocators_Allocator >& get_Concrete_Context_allocator(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Requirement::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_State::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 data::Ptr< data::Components::Components_Component >& get_Concrete_Context_component(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12542,6 +12101,40 @@ data::Ptr< data::Tree::Interface_IContext >& get_Concrete_Context_interface(data
         }
     }
 }
+mega::U64& get_Concrete_Context_local_size(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Requirement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 data::Ptr< data::Concrete::Concrete_ContextGroup >& get_Concrete_Context_parent(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12576,80 +12169,146 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& get_Concrete_Context_parent(
         }
     }
 }
-mega::TypeID& get_Concrete_Dimensions_Allocation_concrete_id(data::Variant& m_data)
+mega::U64& get_Concrete_Context_total_size(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocation::Object_Part_Type_ID:
-            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Allocation >( m_data )->concrete_id;
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Allocation >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Requirement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::optional< mega::U64 >& get_Concrete_Dimensions_Allocation_offset(data::Variant& m_data)
+mega::TypeID& get_Concrete_Dimensions_Bitset_concrete_id(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocation::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->offset;
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-data::Ptr< data::Concrete::Concrete_Context >& get_Concrete_Dimensions_Allocation_parent_context(data::Variant& m_data)
+mega::U64& get_Concrete_Dimensions_Bitset_offset(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocation::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->parent_context;
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->parent_context;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::optional< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& get_Concrete_Dimensions_Allocation_part(data::Variant& m_data)
+data::Ptr< data::Concrete::Concrete_Object >& get_Concrete_Dimensions_Bitset_parent_object(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocation::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->part;
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-data::Ptr< data::MemoryLayout::Allocators_Allocator >& get_Concrete_Dimensions_Allocator_allocator(data::Variant& m_data)
+data::Ptr< data::MemoryLayout::MemoryLayout_Part >& get_Concrete_Dimensions_Bitset_part(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocator >( m_data )->allocator;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Concrete_Dimensions_LinkType_link(data::Variant& m_data)
+mega::U64& get_Concrete_Dimensions_Bitset_size(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_LinkType >( m_data )->link;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Dimensions_Link >& get_Concrete_Dimensions_LinkType_link(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_LinkType >( m_data )->link;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12660,7 +12319,7 @@ mega::U64& get_Concrete_Dimensions_LinkType_offset(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_LinkType >( m_data )->offset;
         default:
         {
@@ -12672,8 +12331,8 @@ data::Ptr< data::Concrete::Concrete_Context >& get_Concrete_Dimensions_LinkType_
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_LinkType >( m_data )->parent_context;
+        case data::Concrete::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_LinkType >( m_data )->parent_context;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12684,7 +12343,7 @@ data::Ptr< data::MemoryLayout::MemoryLayout_Part >& get_Concrete_Dimensions_Link
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_LinkType >( m_data )->part;
         default:
         {
@@ -12692,16 +12351,16 @@ data::Ptr< data::MemoryLayout::MemoryLayout_Part >& get_Concrete_Dimensions_Link
         }
     }
 }
-data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >& get_Concrete_Dimensions_Link_link_type(data::Variant& m_data)
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_LinkType > >& get_Concrete_Dimensions_Link_link_type(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->link_type;
+            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->link_type;
         case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->link_type;
+            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->link_type;
         case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->link_type;
+            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->link_type;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13024,9 +12683,9 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         default:
         {
@@ -13120,6 +12779,20 @@ data::Ptr< data::Tree::Interface_Namespace >& get_Concrete_Namespace_interface_n
         }
     }
 }
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Activation > >& get_Concrete_Object_activation(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->activation;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->activation;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >& get_Concrete_Object_buffers(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -13128,6 +12801,48 @@ std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >& get_Concret
             return data::convert< data::MemoryLayout::Concrete_Object >( m_data )->buffers;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Object >( m_data )->buffers;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Configuration > >& get_Concrete_Object_configuration(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->configuration;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->configuration;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Enablement > >& get_Concrete_Object_enablement(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->enablement;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->enablement;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_History > >& get_Concrete_Object_history(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->history;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->history;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13204,36 +12919,26 @@ data::Ptr< data::Tree::Interface_State >& get_Concrete_State_interface_state(dat
         }
     }
 }
-mega::U64& get_Concrete_State_local_size(data::Variant& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Bitset > >& get_Concrete_UserDimensionContext_bitsets(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         case data::Concrete::Concrete_State::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->local_size;
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         case data::Concrete::Concrete_Component::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& get_Concrete_State_total_size(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_State::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->total_size;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
-        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14900,7 +14605,7 @@ data::Ptr< data::Operations::Invocations_Variables_Variable >& get_Invocations_O
         }
     }
 }
-data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >& get_Invocations_Variables_LinkType_link_type(data::Variant& m_data)
+data::Ptr< data::Concrete::Concrete_Dimensions_LinkType >& get_Invocations_Variables_LinkType_link_type(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -15016,11 +14721,7 @@ mega::U64& get_MemoryLayout_Buffer_alignment(data::Variant& m_data)
     {
         case data::MemoryLayout::MemoryLayout_Buffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->alignment;
-        case data::MemoryLayout::MemoryLayout_NonSimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->alignment;
         case data::MemoryLayout::MemoryLayout_SimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->alignment;
-        case data::MemoryLayout::MemoryLayout_GPUBuffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->alignment;
         default:
         {
@@ -15034,11 +14735,7 @@ std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& get_MemoryLay
     {
         case data::MemoryLayout::MemoryLayout_Buffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
-        case data::MemoryLayout::MemoryLayout_NonSimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
         case data::MemoryLayout::MemoryLayout_SimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
-        case data::MemoryLayout::MemoryLayout_GPUBuffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
         default:
         {
@@ -15052,11 +14749,7 @@ mega::U64& get_MemoryLayout_Buffer_size(data::Variant& m_data)
     {
         case data::MemoryLayout::MemoryLayout_Buffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->size;
-        case data::MemoryLayout::MemoryLayout_NonSimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->size;
         case data::MemoryLayout::MemoryLayout_SimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->size;
-        case data::MemoryLayout::MemoryLayout_GPUBuffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->size;
         default:
         {
@@ -15136,12 +14829,12 @@ std::optional< mega::U64 >& get_MemoryLayout_Part_alignment(data::Variant& m_dat
         }
     }
 }
-std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& get_MemoryLayout_Part_allocation_dimensions(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Bitset > > >& get_MemoryLayout_Part_bitset_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::MemoryLayout::MemoryLayout_Part::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Part >( m_data )->allocation_dimensions;
+            return data::convert< data::MemoryLayout::MemoryLayout_Part >( m_data )->bitset_dimensions;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -15160,19 +14853,7 @@ std::optional< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >& get_Memor
         }
     }
 }
-data::Ptr< data::Concrete::Concrete_Context >& get_MemoryLayout_Part_context(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::MemoryLayout_Part::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Part >( m_data )->context;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_MemoryLayout_Part_link_dimensions(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > > >& get_MemoryLayout_Part_link_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -15220,7 +14901,7 @@ mega::U64& get_MemoryLayout_Part_total_domain_size(data::Variant& m_data)
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_MemoryLayout_Part_user_dimensions(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > > >& get_MemoryLayout_Part_user_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -16570,18 +16251,6 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& get_Symbols_Conc
         }
     }
 }
-std::optional< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& get_Symbols_ConcreteTypeID_dim_allocation(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::ConcreteTable::Symbols_ConcreteTypeID::Object_Part_Type_ID:
-            return data::convert< data::ConcreteTable::Symbols_ConcreteTypeID >( m_data )->dim_allocation;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Symbols_ConcreteTypeID_dim_link(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -16672,18 +16341,6 @@ mega::TypeIDSequence& get_Symbols_InterfaceTypeID_symbol_ids(data::Variant& m_da
     {
         case data::SymbolTable::Symbols_InterfaceTypeID::Object_Part_Type_ID:
             return data::convert< data::SymbolTable::Symbols_InterfaceTypeID >( m_data )->symbol_ids;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::map< mega::TypeIDSequence, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& get_Symbols_SymbolTable_concrete_type_id_seq_alloc(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::SymbolTable::Symbols_SymbolTable::Object_Part_Type_ID:
-            return data::convert< data::ConcreteTable::Symbols_SymbolTable >( m_data )->concrete_type_id_seq_alloc;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17098,96 +16755,6 @@ data::Ptr< data::Concrete::Concrete_Graph_Vertex >& set_Alias_Step_vertex(data::
         }
     }
 }
-data::Ptr< data::Concrete::Concrete_Context >& set_Allocators_Allocator_allocated_context(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::Allocators_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Nothing::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Singleton::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->allocated_context;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::optional< std::optional< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > > >& set_Allocators_Allocator_dimension(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::Allocators_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Nothing::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Singleton::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->dimension;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::optional< data::Ptr< data::Concrete::Concrete_Context > >& set_Allocators_Allocator_parent_context(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::Allocators_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Nothing::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Singleton::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& set_Allocators_Range_local_size(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
-        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
-        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
-        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 boost::filesystem::path& set_Components_Component_build_dir(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -17416,70 +16983,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_Concrete_Conte
         }
     }
 }
-std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& set_Concrete_Context_allocation_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Requirement::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_State::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-data::Ptr< data::MemoryLayout::Allocators_Allocator >& set_Concrete_Context_allocator(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Requirement::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_State::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 data::Ptr< data::Components::Components_Component >& set_Concrete_Context_component(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -17608,6 +17111,38 @@ data::Ptr< data::Tree::Interface_IContext >& set_Concrete_Context_interface(data
         }
     }
 }
+mega::U64& set_Concrete_Context_local_size(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Requirement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->local_size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 data::Ptr< data::Concrete::Concrete_ContextGroup >& set_Concrete_Context_parent(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -17640,80 +17175,144 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& set_Concrete_Context_parent(
         }
     }
 }
-mega::TypeID& set_Concrete_Dimensions_Allocation_concrete_id(data::Variant& m_data)
+mega::U64& set_Concrete_Context_total_size(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocation::Object_Part_Type_ID:
-            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Allocation >( m_data )->concrete_id;
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Allocation >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Requirement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->total_size;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::optional< mega::U64 >& set_Concrete_Dimensions_Allocation_offset(data::Variant& m_data)
+mega::TypeID& set_Concrete_Dimensions_Bitset_concrete_id(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocation::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->offset;
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Bitset >( m_data )->concrete_id;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-data::Ptr< data::Concrete::Concrete_Context >& set_Concrete_Dimensions_Allocation_parent_context(data::Variant& m_data)
+mega::U64& set_Concrete_Dimensions_Bitset_offset(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocation::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->parent_context;
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->parent_context;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->offset;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::optional< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& set_Concrete_Dimensions_Allocation_part(data::Variant& m_data)
+data::Ptr< data::Concrete::Concrete_Object >& set_Concrete_Dimensions_Bitset_parent_object(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocation::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->part;
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Bitset >( m_data )->parent_object;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-data::Ptr< data::MemoryLayout::Allocators_Allocator >& set_Concrete_Dimensions_Allocator_allocator(data::Variant& m_data)
+data::Ptr< data::MemoryLayout::MemoryLayout_Part >& set_Concrete_Dimensions_Bitset_part(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_Allocator::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Allocator >( m_data )->allocator;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->part;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Concrete_Dimensions_LinkType_link(data::Variant& m_data)
+mega::U64& set_Concrete_Dimensions_Bitset_size(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_LinkType >( m_data )->link;
+        case data::Concrete::Concrete_Dimensions_Bitset::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        case data::Concrete::Concrete_Dimensions_Configuration::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        case data::Concrete::Concrete_Dimensions_Activation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        case data::Concrete::Concrete_Dimensions_Enablement::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        case data::Concrete::Concrete_Dimensions_History::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Bitset >( m_data )->size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Dimensions_Link >& set_Concrete_Dimensions_LinkType_link(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_LinkType >( m_data )->link;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17724,7 +17323,7 @@ mega::U64& set_Concrete_Dimensions_LinkType_offset(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_LinkType >( m_data )->offset;
         default:
         {
@@ -17736,8 +17335,8 @@ data::Ptr< data::Concrete::Concrete_Context >& set_Concrete_Dimensions_LinkType_
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_LinkType >( m_data )->parent_context;
+        case data::Concrete::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_LinkType >( m_data )->parent_context;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17748,7 +17347,7 @@ data::Ptr< data::MemoryLayout::MemoryLayout_Part >& set_Concrete_Dimensions_Link
 {
     switch( m_data.getType() )
     {
-        case data::MemoryLayout::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_LinkType::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_LinkType >( m_data )->part;
         default:
         {
@@ -17756,16 +17355,16 @@ data::Ptr< data::MemoryLayout::MemoryLayout_Part >& set_Concrete_Dimensions_Link
         }
     }
 }
-data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >& set_Concrete_Dimensions_Link_link_type(data::Variant& m_data)
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_LinkType > >& set_Concrete_Dimensions_Link_link_type(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->link_type;
+            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->link_type;
         case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->link_type;
+            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->link_type;
         case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->link_type;
+            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->link_type;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17897,8 +17496,6 @@ mega::TypeID& set_Concrete_Dimensions_User_concrete_id(data::Variant& m_data)
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         default:
         {
@@ -18162,12 +17759,60 @@ data::Ptr< data::Tree::Interface_Namespace >& set_Concrete_Namespace_interface_n
         }
     }
 }
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Activation > >& set_Concrete_Object_activation(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->activation;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >& set_Concrete_Object_buffers(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Object >( m_data )->buffers;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Configuration > >& set_Concrete_Object_configuration(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->configuration;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Enablement > >& set_Concrete_Object_enablement(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->enablement;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_History > >& set_Concrete_Object_history(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->history;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -18238,36 +17883,24 @@ data::Ptr< data::Tree::Interface_State >& set_Concrete_State_interface_state(dat
         }
     }
 }
-mega::U64& set_Concrete_State_local_size(data::Variant& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Bitset > >& set_Concrete_UserDimensionContext_bitsets(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         case data::Concrete::Concrete_State::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->local_size;
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         case data::Concrete::Concrete_Component::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& set_Concrete_State_total_size(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_State::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->total_size;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
-        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->bitsets;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19864,7 +19497,7 @@ data::Ptr< data::Operations::Invocations_Variables_Variable >& set_Invocations_O
         }
     }
 }
-data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkType >& set_Invocations_Variables_LinkType_link_type(data::Variant& m_data)
+data::Ptr< data::Concrete::Concrete_Dimensions_LinkType >& set_Invocations_Variables_LinkType_link_type(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -19980,11 +19613,7 @@ mega::U64& set_MemoryLayout_Buffer_alignment(data::Variant& m_data)
     {
         case data::MemoryLayout::MemoryLayout_Buffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->alignment;
-        case data::MemoryLayout::MemoryLayout_NonSimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->alignment;
         case data::MemoryLayout::MemoryLayout_SimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->alignment;
-        case data::MemoryLayout::MemoryLayout_GPUBuffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->alignment;
         default:
         {
@@ -19998,11 +19627,7 @@ std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& set_MemoryLay
     {
         case data::MemoryLayout::MemoryLayout_Buffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
-        case data::MemoryLayout::MemoryLayout_NonSimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
         case data::MemoryLayout::MemoryLayout_SimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
-        case data::MemoryLayout::MemoryLayout_GPUBuffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->parts;
         default:
         {
@@ -20016,11 +19641,7 @@ mega::U64& set_MemoryLayout_Buffer_size(data::Variant& m_data)
     {
         case data::MemoryLayout::MemoryLayout_Buffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->size;
-        case data::MemoryLayout::MemoryLayout_NonSimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->size;
         case data::MemoryLayout::MemoryLayout_SimpleBuffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->size;
-        case data::MemoryLayout::MemoryLayout_GPUBuffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::MemoryLayout_Buffer >( m_data )->size;
         default:
         {
@@ -20100,12 +19721,12 @@ std::optional< mega::U64 >& set_MemoryLayout_Part_alignment(data::Variant& m_dat
         }
     }
 }
-std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& set_MemoryLayout_Part_allocation_dimensions(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Bitset > > >& set_MemoryLayout_Part_bitset_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::MemoryLayout::MemoryLayout_Part::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Part >( m_data )->allocation_dimensions;
+            return data::convert< data::MemoryLayout::MemoryLayout_Part >( m_data )->bitset_dimensions;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -20124,19 +19745,7 @@ std::optional< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >& set_Memor
         }
     }
 }
-data::Ptr< data::Concrete::Concrete_Context >& set_MemoryLayout_Part_context(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::MemoryLayout::MemoryLayout_Part::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::MemoryLayout_Part >( m_data )->context;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_MemoryLayout_Part_link_dimensions(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > > >& set_MemoryLayout_Part_link_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -20184,7 +19793,7 @@ mega::U64& set_MemoryLayout_Part_total_domain_size(data::Variant& m_data)
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_MemoryLayout_Part_user_dimensions(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > > >& set_MemoryLayout_Part_user_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -21500,18 +21109,6 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& set_Symbols_Conc
         }
     }
 }
-std::optional< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& set_Symbols_ConcreteTypeID_dim_allocation(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::ConcreteTable::Symbols_ConcreteTypeID::Object_Part_Type_ID:
-            return data::convert< data::ConcreteTable::Symbols_ConcreteTypeID >( m_data )->dim_allocation;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Symbols_ConcreteTypeID_dim_link(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -21602,18 +21199,6 @@ mega::TypeIDSequence& set_Symbols_InterfaceTypeID_symbol_ids(data::Variant& m_da
     {
         case data::SymbolTable::Symbols_InterfaceTypeID::Object_Part_Type_ID:
             return data::convert< data::SymbolTable::Symbols_InterfaceTypeID >( m_data )->symbol_ids;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::map< mega::TypeIDSequence, data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& set_Symbols_SymbolTable_concrete_type_id_seq_alloc(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::SymbolTable::Symbols_SymbolTable::Object_Part_Type_ID:
-            return data::convert< data::ConcreteTable::Symbols_SymbolTable >( m_data )->concrete_type_id_seq_alloc;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -22012,16 +21597,16 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 75: return new Tree::Interface_Requirement( loader, objectInfo );
         case 76: return new Tree::Interface_Function( loader, objectInfo );
         case 77: return new Tree::Interface_Object( loader, objectInfo );
-        case 194: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
-        case 195: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
-        case 196: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
-        case 166: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 167: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 168: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 169: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 170: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 171: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 173: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 188: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
+        case 189: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
+        case 190: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
+        case 169: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 170: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 171: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 172: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 173: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 174: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 176: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 39: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 43: return new PerSourceSymbols::Interface_LinkTrait( loader, objectInfo );
         case 63: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
@@ -22040,67 +21625,61 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 100: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
         case 104: return new Concrete::Concrete_Dimensions_UserLink( loader, objectInfo );
         case 105: return new Concrete::Concrete_Dimensions_OwnershipLink( loader, objectInfo );
-        case 110: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 111: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 114: return new Concrete::Concrete_Interupt( loader, objectInfo );
-        case 115: return new Concrete::Concrete_Requirement( loader, objectInfo );
-        case 116: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 117: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
-        case 118: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 119: return new Concrete::Concrete_State( loader, objectInfo );
-        case 121: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 122: return new Concrete::Concrete_Component( loader, objectInfo );
-        case 123: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 125: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 129: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 175: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
-        case 176: return new Derivations::Inheritance_Mapping( loader, objectInfo );
+        case 106: return new Concrete::Concrete_Dimensions_LinkType( loader, objectInfo );
+        case 108: return new Concrete::Concrete_Dimensions_Bitset( loader, objectInfo );
+        case 111: return new Concrete::Concrete_Dimensions_Configuration( loader, objectInfo );
+        case 112: return new Concrete::Concrete_Dimensions_Activation( loader, objectInfo );
+        case 113: return new Concrete::Concrete_Dimensions_Enablement( loader, objectInfo );
+        case 114: return new Concrete::Concrete_Dimensions_History( loader, objectInfo );
+        case 115: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 116: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 119: return new Concrete::Concrete_Interupt( loader, objectInfo );
+        case 120: return new Concrete::Concrete_Requirement( loader, objectInfo );
+        case 121: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 122: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
+        case 123: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 124: return new Concrete::Concrete_State( loader, objectInfo );
+        case 125: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 126: return new Concrete::Concrete_Component( loader, objectInfo );
+        case 127: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 128: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 132: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 178: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
+        case 179: return new Derivations::Inheritance_Mapping( loader, objectInfo );
         case 40: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
         case 44: return new PerSourceDerivations::Interface_LinkTrait( loader, objectInfo );
         case 64: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
         case 96: return new Model::Concrete_Graph_Edge( loader, objectInfo );
-        case 177: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 178: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
-        case 179: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
-        case 180: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 180: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 181: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
+        case 182: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
+        case 183: return new Model::HyperGraph_Graph( loader, objectInfo );
         case 46: return new PerSourceModel::Interface_LinkTrait( loader, objectInfo );
         case 95: return new PerSourceModel::Concrete_Graph_Vertex( loader, objectInfo );
-        case 102: return new PerSourceModel::Concrete_Dimensions_Link( loader, objectInfo );
-        case 127: return new PerSourceModel::Concrete_Object( loader, objectInfo );
-        case 130: return new Model::Alias_Edge( loader, objectInfo );
-        case 131: return new Model::Alias_Step( loader, objectInfo );
-        case 132: return new Model::Alias_And( loader, objectInfo );
-        case 133: return new Model::Alias_Or( loader, objectInfo );
-        case 134: return new Model::Alias_AliasDerivation( loader, objectInfo );
-        case 99: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
-        case 103: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
-        case 106: return new MemoryLayout::Concrete_Dimensions_LinkType( loader, objectInfo );
-        case 107: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 109: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
-        case 113: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 120: return new MemoryLayout::Concrete_State( loader, objectInfo );
-        case 124: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 126: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 181: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 182: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 183: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 184: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 185: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 186: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 187: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 188: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 189: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 190: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 191: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 192: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 193: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
-        case 128: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
-        case 172: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 174: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
-        case 98: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
-        case 101: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
-        case 108: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 112: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 101: return new PerSourceModel::Concrete_Dimensions_Link( loader, objectInfo );
+        case 130: return new PerSourceModel::Concrete_Object( loader, objectInfo );
+        case 133: return new Model::Alias_Edge( loader, objectInfo );
+        case 134: return new Model::Alias_Step( loader, objectInfo );
+        case 135: return new Model::Alias_And( loader, objectInfo );
+        case 136: return new Model::Alias_Or( loader, objectInfo );
+        case 137: return new Model::Alias_AliasDerivation( loader, objectInfo );
+        case 175: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 177: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 99: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
+        case 103: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
+        case 110: return new PerSourceConcreteTable::Concrete_Dimensions_Bitset( loader, objectInfo );
+        case 118: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 98: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 102: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
+        case 107: return new MemoryLayout::Concrete_Dimensions_LinkType( loader, objectInfo );
+        case 109: return new MemoryLayout::Concrete_Dimensions_Bitset( loader, objectInfo );
+        case 117: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 129: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 184: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 185: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 186: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 187: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
+        case 131: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
         case 78: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
         case 79: return new Operations::Invocations_Variables_Stack( loader, objectInfo );
         case 80: return new Operations::Invocations_Variables_LinkType( loader, objectInfo );
@@ -22117,45 +21696,45 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 91: return new Operations::Invocations_Instructions_PolyBranch( loader, objectInfo );
         case 92: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
         case 93: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
-        case 135: return new Operations::Derivation_Edge( loader, objectInfo );
-        case 136: return new Operations::Derivation_Step( loader, objectInfo );
-        case 137: return new Operations::Derivation_And( loader, objectInfo );
-        case 138: return new Operations::Derivation_Or( loader, objectInfo );
-        case 139: return new Operations::Derivation_Root( loader, objectInfo );
-        case 140: return new Operations::Operations_ReturnTypes_ReturnType( loader, objectInfo );
-        case 141: return new Operations::Operations_ReturnTypes_Void( loader, objectInfo );
-        case 142: return new Operations::Operations_ReturnTypes_Dimension( loader, objectInfo );
-        case 143: return new Operations::Operations_ReturnTypes_Function( loader, objectInfo );
-        case 144: return new Operations::Operations_ReturnTypes_Context( loader, objectInfo );
-        case 145: return new Operations::Operations_ReturnTypes_Range( loader, objectInfo );
-        case 146: return new Operations::Operations_Operator( loader, objectInfo );
-        case 147: return new Operations::Operations_New( loader, objectInfo );
-        case 148: return new Operations::Operations_Delete( loader, objectInfo );
-        case 149: return new Operations::Operations_Cast( loader, objectInfo );
-        case 150: return new Operations::Operations_Active( loader, objectInfo );
-        case 151: return new Operations::Operations_Enabled( loader, objectInfo );
-        case 152: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 153: return new Operations::Operations_Start( loader, objectInfo );
-        case 154: return new Operations::Operations_Call( loader, objectInfo );
-        case 155: return new Operations::Operations_Signal( loader, objectInfo );
-        case 156: return new Operations::Operations_Move( loader, objectInfo );
-        case 157: return new Operations::Operations_GetContext( loader, objectInfo );
-        case 158: return new Operations::Operations_Read( loader, objectInfo );
-        case 159: return new Operations::Operations_Write( loader, objectInfo );
-        case 160: return new Operations::Operations_LinkRead( loader, objectInfo );
-        case 161: return new Operations::Operations_LinkAdd( loader, objectInfo );
-        case 162: return new Operations::Operations_LinkRemove( loader, objectInfo );
-        case 163: return new Operations::Operations_LinkClear( loader, objectInfo );
-        case 164: return new Operations::Operations_Range( loader, objectInfo );
-        case 165: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 138: return new Operations::Derivation_Edge( loader, objectInfo );
+        case 139: return new Operations::Derivation_Step( loader, objectInfo );
+        case 140: return new Operations::Derivation_And( loader, objectInfo );
+        case 141: return new Operations::Derivation_Or( loader, objectInfo );
+        case 142: return new Operations::Derivation_Root( loader, objectInfo );
+        case 143: return new Operations::Operations_ReturnTypes_ReturnType( loader, objectInfo );
+        case 144: return new Operations::Operations_ReturnTypes_Void( loader, objectInfo );
+        case 145: return new Operations::Operations_ReturnTypes_Dimension( loader, objectInfo );
+        case 146: return new Operations::Operations_ReturnTypes_Function( loader, objectInfo );
+        case 147: return new Operations::Operations_ReturnTypes_Context( loader, objectInfo );
+        case 148: return new Operations::Operations_ReturnTypes_Range( loader, objectInfo );
+        case 149: return new Operations::Operations_Operator( loader, objectInfo );
+        case 150: return new Operations::Operations_New( loader, objectInfo );
+        case 151: return new Operations::Operations_Delete( loader, objectInfo );
+        case 152: return new Operations::Operations_Cast( loader, objectInfo );
+        case 153: return new Operations::Operations_Active( loader, objectInfo );
+        case 154: return new Operations::Operations_Enabled( loader, objectInfo );
+        case 155: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 156: return new Operations::Operations_Start( loader, objectInfo );
+        case 157: return new Operations::Operations_Call( loader, objectInfo );
+        case 158: return new Operations::Operations_Signal( loader, objectInfo );
+        case 159: return new Operations::Operations_Move( loader, objectInfo );
+        case 160: return new Operations::Operations_GetContext( loader, objectInfo );
+        case 161: return new Operations::Operations_Read( loader, objectInfo );
+        case 162: return new Operations::Operations_Write( loader, objectInfo );
+        case 163: return new Operations::Operations_LinkRead( loader, objectInfo );
+        case 164: return new Operations::Operations_LinkAdd( loader, objectInfo );
+        case 165: return new Operations::Operations_LinkRemove( loader, objectInfo );
+        case 166: return new Operations::Operations_LinkClear( loader, objectInfo );
+        case 167: return new Operations::Operations_Range( loader, objectInfo );
+        case 168: return new Operations::Operations_Invocations( loader, objectInfo );
         case 65: return new Locations::Interface_InvocationInstance( loader, objectInfo );
         case 67: return new Locations::Interface_InvocationContext( loader, objectInfo );
-        case 197: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
-        case 198: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
-        case 199: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
-        case 200: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
-        case 201: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
-        case 202: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
+        case 191: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
+        case 192: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
+        case 193: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
+        case 194: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
+        case 195: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
+        case 196: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }
