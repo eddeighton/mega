@@ -190,34 +190,37 @@ private:
         std::vector< nlohmann::json > traits;
         for( LinkTrait* pLinkTrait : linkTraits )
         {
-            nlohmann::json     traitNames = typenames;
-            std::ostringstream os;
-            os << mega::EG_LINK_PREFIX_TRAIT_TYPE << pLinkTrait->get_id()->get_str();
-            traitNames.push_back( os.str() );
-
-            nlohmann::json trait_struct( { { "name", os.str() },
-                                           { "typeid", toHex( pLinkTrait->get_interface_id() ) },
-                                           { "types", traitNames },
-                                           { "traits", nlohmann::json::array() } } );
-
+            if( auto pUserLinkTrait = db_cast< UserLinkTrait >( pLinkTrait ) )
             {
-                std::ostringstream osTrait;
+                nlohmann::json     traitNames = typenames;
+                std::ostringstream os;
+                os << mega::EG_LINK_PREFIX_TRAIT_TYPE << pUserLinkTrait->get_parser_link()->get_id()->get_str();
+                traitNames.push_back( os.str() );
+
+                nlohmann::json trait_struct( { { "name", os.str() },
+                                            { "typeid", toHex( pLinkTrait->get_interface_id() ) },
+                                            { "types", traitNames },
+                                            { "traits", nlohmann::json::array() } } );
+
                 {
-                    osTrait << "using Type = __eg_type_path< ";
-                    bool bFirst = true;
-                    for( const auto& arg : pLinkTrait->get_type()->get_args() )
+                    std::ostringstream osTrait;
                     {
-                        if( bFirst )
-                            bFirst = false;
-                        else
-                            osTrait << ", ";
-                        osTrait << arg.get();
+                        osTrait << "using Type = __eg_type_path< ";
+                        bool bFirst = true;
+                        for( const auto& arg : pUserLinkTrait->get_parser_link()->get_type()->get_args() )
+                        {
+                            if( bFirst )
+                                bFirst = false;
+                            else
+                                osTrait << ", ";
+                            osTrait << arg.get();
+                        }
+                        osTrait << " >";
                     }
-                    osTrait << " >";
+                    trait_struct[ "traits" ].push_back( osTrait.str() );
                 }
-                trait_struct[ "traits" ].push_back( osTrait.str() );
+                traits.push_back( trait_struct );
             }
-            traits.push_back( trait_struct );
         }
 
         return traits;

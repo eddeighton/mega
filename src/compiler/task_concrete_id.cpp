@@ -19,6 +19,8 @@
 
 #include <utility>
 
+#include "mega/common_strings.hpp"
+
 #include "base_task.hpp"
 
 #include "database/model/ConcreteTypeAnalysis.hxx"
@@ -32,10 +34,12 @@
 
 namespace ConcreteTypeAnalysis
 {
+#include "compiler/interface_printer.hpp"
 #include "compiler/concrete_typeid_sequence.hpp"
 }
 namespace ConcreteTypeRollout
 {
+#include "compiler/interface_printer.hpp"
 #include "compiler/concrete_typeid_sequence.hpp"
 }
 

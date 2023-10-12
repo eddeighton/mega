@@ -106,7 +106,7 @@ namespace Inheritance
         value< mega::U64 > hash_code;
         multimap< ref< Interface::IContext >, ref< Concrete::Context > >                inheritance_contexts;
         multimap< ref< Interface::DimensionTrait >, ref< Concrete::Dimensions::User > > inheritance_dimensions;
-        multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::UserLink > >  inheritance_links;
+        multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::Link > >      inheritance_links;
     }
 
     object Mapping -> InheritanceAnalysis::Derivations
@@ -114,7 +114,7 @@ namespace Inheritance
         array< ref< ObjectMapping > > mappings;
         multimap< ref< Interface::IContext >, ref< Concrete::Context > >                inheritance_contexts;
         multimap< ref< Interface::DimensionTrait >, ref< Concrete::Dimensions::User > > inheritance_dimensions;
-        multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::UserLink > >  inheritance_links;
+        multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::Link > >      inheritance_links;
     }
 }
 
@@ -127,20 +127,20 @@ namespace HyperGraph
 
     object OwningObjectRelation : Relation -> HyperGraphAnalysis::Model
     {
-        multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::OwnershipLink > > owners;
-        multimap< ref< Concrete::Dimensions::OwnershipLink >, ref< Interface::LinkTrait > > owned;
+        multimap< ref< Interface::UserLinkTrait >, ref< Concrete::Dimensions::OwnershipLink > > owners;
+        multimap< ref< Concrete::Dimensions::OwnershipLink >, ref< Interface::UserLinkTrait > > owned;
     }
 
     object NonOwningObjectRelation : Relation -> HyperGraphAnalysis::Model
     {
-        ref< Interface::LinkTrait > source;
-        ref< Interface::LinkTrait > target;
+        ref< Interface::UserLinkTrait > source;
+        ref< Interface::UserLinkTrait > target;
     }
 
     object Graph -> HyperGraphAnalysis::Model
     {
-        ref< OwningObjectRelation >                                         owning_relation;
-        map< ref< Interface::LinkTrait >, ref< NonOwningObjectRelation > >  non_owning_relations;
+        ref< OwningObjectRelation >                                             owning_relation;
+        map< ref< Interface::UserLinkTrait >, ref< NonOwningObjectRelation > >  non_owning_relations;
     }
 }
 

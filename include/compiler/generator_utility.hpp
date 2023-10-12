@@ -18,9 +18,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_July_28_generator_utility
-#define GUARD_2023_July_28_generator_utility
-
 static inline std::string toHex( mega::TypeID typeID )
 {
     std::ostringstream os;
@@ -40,6 +37,3 @@ struct CleverUtility
     }
     ~CleverUtility() { theList.pop_back(); }
 };
-
-
-#endif //GUARD_2023_July_28_generator_utility

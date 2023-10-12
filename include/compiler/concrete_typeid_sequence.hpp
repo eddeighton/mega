@@ -51,14 +51,13 @@ struct TypeIDSequenceGen
     {
         if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pDimLink ) )
         {
-            mega::TypeIDSequence sequence{ getTypeID( pUserLink->get_interface_link() ) };
+            mega::TypeIDSequence sequence{ getTypeID( pUserLink->get_interface_user_link() ) };
             recurse( pUserLink->get_parent_context(), sequence );
             return sequence;
         }
         else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pDimLink ) )
         {
-            // just specify the parent context twice
-            mega::TypeIDSequence sequence{ getTypeID( pOwnershipLink->get_parent_context()->get_interface() ) };
+            mega::TypeIDSequence sequence{ getTypeID( pOwnershipLink->get_interface_owner_link() ) };
             recurse( pOwnershipLink->get_parent_context(), sequence );
             return sequence;
         }

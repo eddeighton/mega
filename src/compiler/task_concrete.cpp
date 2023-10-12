@@ -19,9 +19,18 @@
 
 #include "base_task.hpp"
 
+#include "mega/common_strings.hpp"
+
 #include "database/model/ConcreteStage.hxx"
+
 #include <common/stash.hpp>
+
 #include <optional>
+
+namespace ConcreteStage
+{
+#include "compiler/interface_printer.hpp"
+} // namespace AliasAnalysis
 
 namespace mega::compiler
 {
@@ -50,7 +59,7 @@ public:
 
         void addContext( ConcreteStage::Interface::IContext* pContext )
         {
-            const std::string& strIdentifier = pContext->get_identifier();
+            const std::string& strIdentifier = ConcreteStage::Interface::getIdentifier( pContext );
             if( !identifiers.count( strIdentifier ) )
             {
                 contexts.push_back( pContext );
@@ -59,7 +68,7 @@ public:
         }
         void addDimension( ConcreteStage::Interface::DimensionTrait* pDimension )
         {
-            const std::string& strIdentifier = pDimension->get_id()->get_str();
+            const std::string& strIdentifier = ConcreteStage::Interface::getIdentifier( pDimension );
             if( !identifiers.count( strIdentifier ) )
             {
                 dimensions.push_back( pDimension );
@@ -68,7 +77,7 @@ public:
         }
         void addLink( ConcreteStage::Interface::LinkTrait* pLink )
         {
-            const std::string& strIdentifier = pLink->get_id()->get_str();
+            const std::string& strIdentifier = ConcreteStage::Interface::getIdentifier( pLink );
             if( !identifiers.count( strIdentifier ) )
             {
                 links.push_back( pLink );
@@ -242,29 +251,39 @@ public:
         {
             for( Interface::LinkTrait* pInterfaceLink : inheritedContexts.links )
             {
-                auto pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
+                if( auto pUserLink = db_cast< Interface::UserLinkTrait >( pInterfaceLink ) )
+                {
+                    auto pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
 
-                Dimensions::UserLink* pConcreteLink
-                    = database.construct< Dimensions::UserLink >( Dimensions::UserLink::Args{
-                        Dimensions::Link::Args{ Graph::Vertex::Args{}, pParentConcreteContext }, pInterfaceLink } );
+                    Dimensions::UserLink* pConcreteLink
+                        = database.construct< Dimensions::UserLink >( Dimensions::UserLink::Args{
+                            Dimensions::Link::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceLink },
+                            pUserLink } );
 
-                auto pLinkType = database.construct< Dimensions::LinkType >(
-                    Dimensions::LinkType::Args{ pParentConcreteContext, pConcreteLink } );
-                pConcreteLink->set_link_type( pLinkType );
+                    auto pLinkType = database.construct< Dimensions::LinkType >(
+                        Dimensions::LinkType::Args{ pParentConcreteContext, pConcreteLink } );
+                    pConcreteLink->set_link_type( pLinkType );
 
-                elements.links.push_back( pConcreteLink );
-            }
+                    elements.links.push_back( pConcreteLink );
+                }
+                else if( auto pOwnerLink = db_cast< Interface::OwnershipLinkTrait >( pInterfaceLink ) )
+                {
+                    auto pObject = db_cast< Object >( parentConcreteContextGroup );
+                    VERIFY_RTE_MSG( pObject, "Owner link trait NOT in object" );
+                    elements.pOwnershipLink
+                        = database.construct< Dimensions::OwnershipLink >( Dimensions::OwnershipLink::Args{
+                            Dimensions::Link::Args{ Graph::Vertex::Args{}, pObject, pInterfaceLink }, pOwnerLink } );
 
-            if( auto pObject = db_cast< Object >( parentConcreteContextGroup ) )
-            {
-                elements.pOwnershipLink = database.construct< Dimensions::OwnershipLink >(
-                    Dimensions::OwnershipLink::Args{ Dimensions::Link::Args{ Graph::Vertex::Args{}, pObject } } );
+                    auto pLinkType = database.construct< Dimensions::LinkType >(
+                        Dimensions::LinkType::Args{ pObject, elements.pOwnershipLink } );
+                    elements.pOwnershipLink->set_link_type( pLinkType );
 
-                auto pLinkType = database.construct< Dimensions::LinkType >(
-                    Dimensions::LinkType::Args{ pObject, elements.pOwnershipLink } );
-                elements.pOwnershipLink->set_link_type( pLinkType );
-
-                elements.links.push_back( elements.pOwnershipLink );
+                    elements.links.push_back( elements.pOwnershipLink );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown link trait type" );
+                }
             }
         }
 

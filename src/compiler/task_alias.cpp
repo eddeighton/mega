@@ -20,6 +20,7 @@
 #include "base_task.hpp"
 
 #include "mega/relation_id.hpp"
+#include "mega/common_strings.hpp"
 
 #include "database/model/InheritanceAnalysis.hxx"
 #include "database/model/AliasAnalysis.hxx"
@@ -36,6 +37,7 @@
 namespace AliasAnalysis
 {
 #include "compiler/interface_printer.hpp"
+#include "compiler/interface_link_printer.hpp"
 #include "compiler/interface.hpp"
 #include "compiler/derivation.hpp"
 } // namespace AliasAnalysis

@@ -135,7 +135,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
         auto owners = pOwningRelation->get_owners();
 
         {
-            std::vector< Interface::LinkTrait* > linkTraits;
+            std::vector< Interface::UserLinkTrait* > linkTraits;
             {
                 for( auto i = owners.begin(), iEnd = owners.end(); i != iEnd; i = owners.upper_bound( i->first ) )
                 {
@@ -159,7 +159,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                           { "part_size", pPart->get_size() },
                           { "dimension_offset", pConcrete->get_offset() },
                           { "link_type_offset", pConcrete->get_link_type()->get_offset() },
-                          { "singular", pLinkTrait->get_cardinality().isSingular() }
+                          { "singular", pLinkTrait->get_parser_link()->get_cardinality().isSingular() }
 
                         } );
 
@@ -267,7 +267,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                       { "part_size", pPart->get_size() },
                       { "dimension_offset", pLink->get_offset() },
                       { "link_type_offset", pLink->get_link_type()->get_offset() },
-                      { "singular", pSource->get_cardinality().isSingular() }
+                      { "singular", pSource->get_parser_link()->get_cardinality().isSingular() }
 
                     } );
 
@@ -302,7 +302,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                       { "part_size", pPart->get_size() },
                       { "dimension_offset", pLink->get_offset() },
                       { "link_type_offset", pLink->get_link_type()->get_offset() },
-                      { "singular", pTarget->get_cardinality().isSingular() }
+                      { "singular", pTarget->get_parser_link()->get_cardinality().isSingular() }
 
                     } );
 

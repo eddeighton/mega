@@ -43,28 +43,28 @@ struct TypeIDSequenceGen
     {
         if( auto pContext = db_cast< Interface::IContext >( pContextGroup ) )
         {
-            sequence.push_back( getTypeID( pContext->get_identifier() ) );
+            sequence.push_back( getTypeID( Interface::getIdentifier( pContext ) ) );
             recurse( pContext->get_parent(), sequence );
         }
     }
 
     mega::TypeIDSequence operator()( Interface::IContext* pContext ) const
     {
-        mega::TypeIDSequence sequence{ getTypeID( pContext->get_identifier() ) };
+        mega::TypeIDSequence sequence{ getTypeID( Interface::getIdentifier( pContext ) ) };
         recurse( pContext->get_parent(), sequence );
         std::reverse( sequence.begin(), sequence.end() );
         return sequence;
     }
     mega::TypeIDSequence operator()( Interface::DimensionTrait* pDimension ) const
     {
-        mega::TypeIDSequence sequence{ getTypeID( pDimension->get_id()->get_str() ) };
+        mega::TypeIDSequence sequence{ getTypeID( Interface::getIdentifier( pDimension ) ) };
         recurse( pDimension->get_parent(), sequence );
         std::reverse( sequence.begin(), sequence.end() );
         return sequence;
     }
     mega::TypeIDSequence operator()( Interface::LinkTrait* pLink ) const
     {
-        mega::TypeIDSequence sequence{ getTypeID( pLink->get_id()->get_str() ) };
+        mega::TypeIDSequence sequence{ getTypeID( Interface::getIdentifier( pLink ) ) };
         recurse( pLink->get_parent(), sequence );
         std::reverse( sequence.begin(), sequence.end() );
         return sequence;

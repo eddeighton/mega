@@ -162,49 +162,56 @@ public:
     {
         for( Interface::LinkTrait* pLinkTrait : pContext->get_link_traits() )
         {
-            std::ostringstream osLinkTraitName;
-            osLinkTraitName << mega::EG_LINK_PREFIX_TRAIT_TYPE << pLinkTrait->get_id()->get_str();
-            DeclLocType traitDecl
-                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, osLinkTraitName.str() );
-            if( traitDecl.pDeclContext )
+            if( auto pUserLinkTrait = db_cast< UserLinkTrait >( pLinkTrait ) )
             {
-                DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
-                QualType     typeType = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
-                if( pTypeDeclContext )
+                std::ostringstream osLinkTraitName;
+                osLinkTraitName << mega::EG_LINK_PREFIX_TRAIT_TYPE
+                                << pUserLinkTrait->get_parser_link()->get_id()->get_str();
+                DeclLocType traitDecl
+                    = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, osLinkTraitName.str() );
+                if( traitDecl.pDeclContext )
                 {
-                    QualType typeTypeCanonical = typeType.getCanonicalType();
-
-                    std::vector< std::vector< std::vector< mega::TypeID > > > result;
-                    if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
+                    DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
+                    QualType     typeType = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
+                    if( pTypeDeclContext )
                     {
-                        REPORT_ERROR( "Failed to resolve link type for " << printLinkTraitFullType( pLinkTrait ) << "("
-                                                                         << pLinkTrait->get_interface_id() << ")" );
+                        QualType typeTypeCanonical = typeType.getCanonicalType();
+
+                        std::vector< std::vector< std::vector< mega::TypeID > > > result;
+                        if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
+                        {
+                            REPORT_ERROR( "Failed to resolve link type for " << printLinkTraitFullType( pLinkTrait )
+                                                                             << "(" << pLinkTrait->get_interface_id()
+                                                                             << ")" );
+                            return false;
+                        }
+
+                        std::vector< Interface::TypePathVariant* > linkType;
+                        if( !convert( result, linkType ) )
+                        {
+                            REPORT_ERROR( "Failed to convert link type for " << printLinkTraitFullType( pLinkTrait )
+                                                                             << "(" << pLinkTrait->get_interface_id()
+                                                                             << ")" );
+                            return false;
+                        }
+
+                        m_database.construct< Interface::UserLinkTrait >(
+                            Interface::UserLinkTrait::Args{ pUserLinkTrait, linkType } );
+                    }
+                    else
+                    {
+                        REPORT_ERROR( "Failed to resolve link target type for " << printLinkTraitFullType( pLinkTrait )
+                                                                                << "(" << pLinkTrait->get_interface_id()
+                                                                                << ")" );
                         return false;
                     }
-
-                    std::vector< Interface::TypePathVariant* > linkType;
-                    if( !convert( result, linkType ) )
-                    {
-                        REPORT_ERROR( "Failed to convert link type for " << printLinkTraitFullType( pLinkTrait ) << "("
-                                                                         << pLinkTrait->get_interface_id() << ")" );
-                        return false;
-                    }
-
-                    m_database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkTrait, linkType } );
                 }
                 else
                 {
-                    REPORT_ERROR( "Failed to resolve link target type for " << printLinkTraitFullType( pLinkTrait )
-                                                                            << "(" << pLinkTrait->get_interface_id()
-                                                                            << ")" );
+                    REPORT_ERROR( "Failed to resolve link for " << printLinkTraitFullType( pLinkTrait ) << "("
+                                                                << pLinkTrait->get_interface_id() << ")" );
                     return false;
                 }
-            }
-            else
-            {
-                REPORT_ERROR( "Failed to resolve link for " << printLinkTraitFullType( pLinkTrait ) << "("
-                                                            << pLinkTrait->get_interface_id() << ")" );
-                return false;
             }
         }
         return true;

@@ -19,6 +19,8 @@
 
 #include "base_task.hpp"
 
+#include "mega/common_strings.hpp"
+
 #include "database/model/SymbolAnalysis.hxx"
 #include "database/model/SymbolAnalysisView.hxx"
 #include "database/model/SymbolRollout.hxx"
@@ -29,12 +31,14 @@
 
 namespace SymbolAnalysis
 {
+#include "compiler/interface_printer.hpp"
 #include "compiler/interface_typeid_sequence.hpp"
-}
+} // namespace SymbolAnalysis
 namespace SymbolRollout
 {
+#include "compiler/interface_printer.hpp"
 #include "compiler/interface_typeid_sequence.hpp"
-}
+} // namespace SymbolRollout
 
 namespace mega::compiler
 {
@@ -110,7 +114,7 @@ public:
                 for( New::Interface::IContext* pContext :
                      newDatabase.many< New::Interface::IContext >( newSourceFile ) )
                 {
-                    const auto strSymbol = pContext->get_identifier();
+                    const auto strSymbol = New::Interface::getIdentifier( pContext );
                     auto       iFind     = oldSymbolTypeIDs.find( strSymbol );
                     if( iFind != oldSymbolTypeIDs.end() )
                     {
@@ -197,7 +201,7 @@ public:
 
                 for( New::Interface::LinkTrait* pLink : newDatabase.many< New::Interface::LinkTrait >( newSourceFile ) )
                 {
-                    const auto strSymbol = pLink->get_id()->get_str();
+                    const auto strSymbol = New::Interface::getIdentifier( pLink );
                     auto       iFind     = oldSymbolTypeIDs.find( strSymbol );
                     if( iFind != oldSymbolTypeIDs.end() )
                     {
@@ -326,7 +330,7 @@ public:
                                 using ::operator<<;
                                 VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                                 "Duplicate Interface Type ID Sequnce found: "
-                                                    << idSeq << " : " << pContext->get_identifier() );
+                                                    << idSeq << " : " << New::Interface::getIdentifier( pContext ) );
                             }
 
                             auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
@@ -347,7 +351,7 @@ public:
                                 using ::operator<<;
                                 VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                                 "Duplicate Interface Type ID Sequnce found: "
-                                                    << idSeq << " : " << pContext->get_identifier() );
+                                                    << idSeq << " : " << New::Interface::getIdentifier( pContext ) );
                             }
 
                             auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
@@ -371,7 +375,7 @@ public:
                         using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                         "Duplicate Interface Type ID Sequnce found: "
-                                            << idSeq << " : " << pDimension->get_id()->get_str() );
+                                            << idSeq << " : " << New::Interface::getIdentifier( pDimension ) );
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{
@@ -386,7 +390,7 @@ public:
                         using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                         "Duplicate Interface Type ID Sequnce found: "
-                                            << idSeq << " : " << pDimension->get_id()->get_str() );
+                                            << idSeq << " : " << New::Interface::getIdentifier( pDimension ) );
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{
@@ -406,8 +410,8 @@ public:
                         auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
                         using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                        "Duplicate Interface Type ID Sequnce found: " << idSeq << " : "
-                                                                                      << pLink->get_id()->get_str() );
+                                        "Duplicate Interface Type ID Sequnce found: "
+                                            << idSeq << " : " << New::Interface::getIdentifier( pLink ) );
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{
@@ -421,8 +425,8 @@ public:
                         auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
                         using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                        "Duplicate Interface Type ID Sequnce found: " << idSeq << " : "
-                                                                                      << pLink->get_id()->get_str() );
+                                        "Duplicate Interface Type ID Sequnce found: "
+                                            << idSeq << " : " << New::Interface::getIdentifier( pLink ) );
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{ idSeq, TypeID{}, std::nullopt, std::nullopt, pLink } );
@@ -697,7 +701,7 @@ public:
         {
             TypeID symbolID;
             {
-                auto iFind = symbolNames.find( pContext->get_identifier() );
+                auto iFind = symbolNames.find( Interface::getIdentifier( pContext ) );
                 VERIFY_RTE( iFind != symbolNames.end() );
                 symbolID = iFind->second->get_id();
             }
@@ -744,7 +748,7 @@ public:
         {
             TypeID symbolID;
             {
-                auto iFind = symbolNames.find( pLink->get_id()->get_str() );
+                auto iFind = symbolNames.find( Interface::getIdentifier( pLink ) );
                 VERIFY_RTE( iFind != symbolNames.end() );
                 symbolID = iFind->second->get_id();
             }

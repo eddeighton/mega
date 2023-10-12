@@ -18,50 +18,47 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_September_27_concrete_printer
-#define GUARD_2023_September_27_concrete_printer
-
 namespace Concrete
 {
 
-static const std::string& getIdentifier( Context* pContext )
+static const std::string& getIdentifier( const Context* pContext )
 {
     return pContext->get_interface()->get_identifier();
 }
-static const std::string& getIdentifier( Dimensions::User* pDim )
+static const std::string& getIdentifier( const Dimensions::User* pDim )
 {
     return pDim->get_interface_dimension()->get_id()->get_str();
 }
-static const std::string& getIdentifier( Dimensions::Link* pDim )
+static const std::string& getIdentifier( const Dimensions::Link* pDim )
 {
-    if( auto pUserLink = db_cast< Dimensions::UserLink >( pDim ) )
+    if( auto pUserLink = db_cast< const Dimensions::UserLink >( pDim ) )
     {
-        return pUserLink->get_interface_link()->get_id()->get_str();
+        return pUserLink->get_interface_user_link()->get_parser_link()->get_id()->get_str();
     }
     else
     {
-        static const std::string str = ::mega::EG_OWNERSHIP;
+        static const std::string str = ::mega::EG_OWNER;
         return str;
     }
 }
-static const std::string& getIdentifier( Dimensions::Bitset* pBitset )
+static const std::string& getIdentifier( const Dimensions::Bitset* pBitset )
 {
-    if( db_cast< Dimensions::Configuration >( pBitset ) )
+    if( db_cast< const Dimensions::Configuration >( pBitset ) )
     {
         static const std::string str = ::mega::EG_CONFIGURATION;
         return str;
     }
-    else if( db_cast< Dimensions::Activation >( pBitset ) )
+    else if( db_cast< const Dimensions::Activation >( pBitset ) )
     {
         static const std::string str = ::mega::EG_ACTIVATION;
         return str;
     }
-    else if( db_cast< Dimensions::Enablement >( pBitset ) )
+    else if( db_cast< const Dimensions::Enablement >( pBitset ) )
     {
         static const std::string str = ::mega::EG_ENABLEMENT;
         return str;
     }
-    else if( db_cast< Dimensions::History >( pBitset ) )
+    else if( db_cast< const Dimensions::History >( pBitset ) )
     {
         static const std::string str = ::mega::EG_HISTORY;
         return str;
@@ -110,20 +107,8 @@ static void printContextFullType( const Dimensions::Link* pLink, std::ostream& o
 {
     auto pParent = db_cast< const Context >( pLink->get_parent_context() );
     VERIFY_RTE( pParent );
-    if( auto pUserLink = db_cast< const Dimensions::UserLink >( pLink ) )
-    {
-        printContextFullType( pParent, os, strDelimiter );
-        os << strDelimiter << pUserLink->get_interface_link()->get_id()->get_str();
-    }
-    else if( auto pOwningLink = db_cast< const Dimensions::OwnershipLink >( pLink ) )
-    {
-        printContextFullType( pParent, os, strDelimiter );
-        os << strDelimiter << ::mega::EG_OWNERSHIP;
-    }
-    else
-    {
-        THROW_RTE( "Unknown link type" );
-    }
+    printContextFullType( pParent, os, strDelimiter );
+    os << strDelimiter << getIdentifier( pLink );
 }
 
 static std::string printContextFullType( const Context* pContext, const std::string& strDelimiter = "::" )
@@ -179,5 +164,3 @@ static std::string printContextFullType( const Graph::Vertex* pVertex, const std
 }
 
 } // namespace Concrete
-
-#endif // GUARD_2023_September_27_concrete_printer

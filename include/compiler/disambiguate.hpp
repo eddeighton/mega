@@ -18,9 +18,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_September_26_disambiguate
-#define GUARD_2023_September_26_disambiguate
-
 enum Disambiguation
 {
     eSuccess,
@@ -346,5 +343,3 @@ static void precedence( Root* pStep )
         precedence( pEdge );
     }
 }
-
-#endif // GUARD_2023_September_26_disambiguate

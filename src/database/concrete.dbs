@@ -53,6 +53,7 @@ namespace Concrete
         object Link : Graph::Vertex -> ConcreteStage::Concrete
         {
             ref< Concrete::Context >    parent_context;
+            ref< Interface::LinkTrait > interface_link;
             late< ref< LinkType > >     link_type;
 
             ref< HyperGraph::Relation > relation    -> HyperGraphAnalysisRollout::PerSourceModel;
@@ -69,11 +70,12 @@ namespace Concrete
 
         object UserLink : Link -> ConcreteStage::Concrete
         {
-            ref< Interface::LinkTrait > interface_link;
+            ref< Interface::UserLinkTrait > interface_user_link;
         }
 
         object OwnershipLink : Link -> ConcreteStage::Concrete
         {
+            ref< Interface::OwnershipLinkTrait > interface_owner_link;
         }
 
         object LinkType -> ConcreteStage::Concrete

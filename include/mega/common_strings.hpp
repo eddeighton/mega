@@ -58,11 +58,12 @@ namespace mega
     static const char* EG_TRAITS_SIZE = "Size";
     static const char* EG_TRAITS_ALIGNMENT = "Alignment";
     static const char* EG_TRAITS_SIMPLE = "Simple";
-    static const char* EG_OWNERSHIP = "_ownership_";
     static const char* EG_CONFIGURATION = "_configuration_";
     static const char* EG_ACTIVATION = "_activation_";
     static const char* EG_ENABLEMENT = "_enablement_";
     static const char* EG_HISTORY = "_history_";
+    static const char* EG_OWNER = "Owner";
+    static const char* EG_STATE = "State";
 }
 
 #endif //EG_COMMON_STRINGS_18_01_2020

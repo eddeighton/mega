@@ -18,35 +18,46 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_September_21_printer
-#define GUARD_2023_September_21_printer
-
 // ensure database stage namespace defined i.e. namespace GlobalMemoryStage
 namespace Interface
 {
 
-static const std::string& getIdentifier( IContext* pContext )
+static const std::string& getIdentifier( const IContext* pContext )
 {
     return pContext->get_identifier();
 }
-static const std::string& getIdentifier( DimensionTrait* pDim )
+
+static const std::string& getIdentifier( const DimensionTrait* pDim )
 {
     return pDim->get_id()->get_str();
 }
-static const std::string& getIdentifier( LinkTrait* pLinkTrait )
+
+static const std::string& getIdentifier( const LinkTrait* pLinkTrait )
 {
-    return pLinkTrait->get_id()->get_str();
+    if( auto pUserLink = db_cast< const UserLinkTrait >( pLinkTrait ) )
+    {
+        return pUserLink->get_parser_link()->get_id()->get_str();
+    }
+    else if( auto pOwnerLink = db_cast< const OwnershipLinkTrait >( pLinkTrait ) )
+    {
+        static const std::string strOwner = mega::EG_OWNER;
+        return strOwner;
+    }
+    else
+    {
+        THROW_RTE( "Unknown link type" );
+    }
 }
 
-static std::string printIContextFullType( IContext* pContext, const std::string& strDelimiter = "::" )
+static std::string printIContextFullType( const IContext* pContext, const std::string& strDelimiter = "::" )
 {
     std::ostringstream os;
-    using IContextVector = std::vector< IContext* >;
+    using IContextVector = std::vector< const IContext* >;
     IContextVector path;
     while( pContext )
     {
         path.push_back( pContext );
-        pContext = db_cast< IContext >( pContext->get_parent() );
+        pContext = db_cast< const IContext >( pContext->get_parent() );
     }
     std::reverse( path.begin(), path.end() );
     for( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
@@ -64,34 +75,34 @@ static std::string printIContextFullType( IContext* pContext, const std::string&
     return os.str();
 }
 
-static void printDimensionTraitFullType( DimensionTrait* pDim, std::ostream& os,
+static void printDimensionTraitFullType( const DimensionTrait* pDim, std::ostream& os,
                                          const std::string& strDelimiter = "::" )
 {
-    auto pParent = db_cast< IContext >( pDim->get_parent() );
+    auto pParent = db_cast< const IContext >( pDim->get_parent() );
     VERIFY_RTE( pParent );
-    os << printIContextFullType( pParent, strDelimiter ) << strDelimiter << pDim->get_id()->get_str();
+    os << printIContextFullType( pParent, strDelimiter ) << strDelimiter << getIdentifier( pDim );
 }
-static std::string printDimensionTraitFullType( DimensionTrait* pDim, const std::string& strDelimiter = "::" )
+static std::string printDimensionTraitFullType( const DimensionTrait* pDim, const std::string& strDelimiter = "::" )
 {
     std::ostringstream os;
     printDimensionTraitFullType( pDim, os, strDelimiter );
     return os.str();
 }
 
-static void printLinkTraitFullType( LinkTrait* pLink, std::ostream& os, const std::string& strDelimiter = "::" )
+static void printLinkTraitFullType( const LinkTrait* pLink, std::ostream& os, const std::string& strDelimiter = "::" )
 {
-    auto pParent = db_cast< IContext >( pLink->get_parent() );
+    auto pParent = db_cast< const IContext >( pLink->get_parent() );
     VERIFY_RTE( pParent );
-    os << printIContextFullType( pParent, strDelimiter ) << strDelimiter << pLink->get_id()->get_str();
+    os << printIContextFullType( pParent, strDelimiter ) << strDelimiter << getIdentifier( pLink );
 }
-static std::string printLinkTraitFullType( LinkTrait* pLink, const std::string& strDelimiter = "::" )
+static std::string printLinkTraitFullType( const LinkTrait* pLink, const std::string& strDelimiter = "::" )
 {
     std::ostringstream os;
     printLinkTraitFullType( pLink, os, strDelimiter );
     return os.str();
 }
 
-static void printContextType( std::vector< IContext* >& contexts, std::ostream& os )
+static void printContextType( std::vector< const IContext* >& contexts, std::ostream& os )
 {
     VERIFY_RTE( !contexts.empty() );
     if( contexts.size() == 1 )
@@ -105,7 +116,7 @@ static void printContextType( std::vector< IContext* >& contexts, std::ostream& 
         static const char* EG_VARIANT_TYPE = "__eg_variant";
         os << EG_VARIANT_TYPE << "< ";
         bool bFirst = true;
-        for( IContext* pContext : contexts )
+        for( auto pContext : contexts )
         {
             if( bFirst )
                 bFirst = false;
@@ -117,39 +128,4 @@ static void printContextType( std::vector< IContext* >& contexts, std::ostream& 
     }
 }
 
-static std::string printLinkTraitTypePath( const LinkTrait* pLinkTrait )
-{
-    std::ostringstream os;
-
-    os << pLinkTrait->get_interface_id() << " ";
-
-    for( auto pTypePathVariant : pLinkTrait->get_tuple() )
-    {
-        os << "(";
-        bool bFirstTypePath = true;
-        for( auto pTypePath : pTypePathVariant->get_sequence() )
-        {
-            if( bFirstTypePath )
-                bFirstTypePath = false;
-            else
-                os << ",";
-
-            bool bFirstSymbol = true;
-            for( auto pSymbol : pTypePath->get_types() )
-            {
-                if( bFirstSymbol )
-                    bFirstSymbol = false;
-                else
-                    os << ".";
-                os << pSymbol->get_symbol();
-            }
-        }
-        os << ")";
-    }
-
-    return os.str();
-}
-
 } // namespace Interface
-
-#endif // GUARD_2023_September_21_printer

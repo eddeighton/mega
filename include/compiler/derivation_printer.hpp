@@ -18,9 +18,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_September_27_derivation_printer
-#define GUARD_2023_September_27_derivation_printer
-
 static void push_indent( std::string& str )
 {
     str += "  ";
@@ -99,5 +96,3 @@ static void printDerivationStep( Root* pRoot, bool bShowEliminated, std::ostream
 
     pop_indent( strIndent );
 }
-
-#endif // GUARD_2023_September_27_derivation_printer

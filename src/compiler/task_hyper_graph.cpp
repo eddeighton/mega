@@ -39,6 +39,7 @@
 namespace HyperGraphAnalysis
 {
 #include "compiler/interface.hpp"
+#include "compiler/interface_link_printer.hpp"
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 } // namespace HyperGraphAnalysis
@@ -57,10 +58,8 @@ public:
     {
     }
 
-    using GraphType = std::map< HyperGraphAnalysis::Interface::LinkTrait*, HyperGraphAnalysis::HyperGraph::Relation* >;
-
     HyperGraphAnalysis::Interface::IContext*
-    findObjectLinkTarget( HyperGraphAnalysis::Interface::LinkTrait* pLinkTrait )
+    findObjectLinkTarget( HyperGraphAnalysis::Interface::UserLinkTrait* pLinkTrait )
     {
         using namespace HyperGraphAnalysis;
         using namespace HyperGraphAnalysis::HyperGraph;
@@ -122,22 +121,22 @@ public:
         return variantResults.front();
     }
 
-    struct ObjectLinkPair
+    struct UserLinkTraitTarget
     {
-        HyperGraphAnalysis::Interface::LinkTrait* pLink          = nullptr;
-        HyperGraphAnalysis::Interface::IContext*  pTargetContext = nullptr;
+        HyperGraphAnalysis::Interface::UserLinkTrait* pLink          = nullptr;
+        HyperGraphAnalysis::Interface::IContext*      pTargetContext = nullptr;
     };
-    using ObjectLinkTargets = std::vector< ObjectLinkPair >;
+    using UserLinkTraitTargets = std::vector< UserLinkTraitTarget >;
     HyperGraphAnalysis::HyperGraph::Graph* constructGraph( HyperGraphAnalysis::Database& database,
-                                                           const ObjectLinkTargets&      links ) const
+                                                           const UserLinkTraitTargets&   userLinkTraitTargets ) const
     {
         using namespace HyperGraphAnalysis;
         using namespace HyperGraphAnalysis::HyperGraph;
 
-        using LinkParentMap = std::unordered_map< Interface::IContext*, Interface::LinkTrait* >;
+        using LinkParentMap = std::unordered_map< Interface::IContext*, Interface::UserLinkTrait* >;
         LinkParentMap linkParentMap;
         {
-            for( const ObjectLinkPair& link : links )
+            for( const UserLinkTraitTarget& link : userLinkTraitTargets )
             {
                 linkParentMap.insert( { link.pLink->get_parent(), link.pLink } );
             }
@@ -146,76 +145,72 @@ public:
         // build a graph of all object link relationships in BOTH directions
         std::multimap< Interface::IContext*, Interface::IContext* > linkMap;
         {
-            for( const ObjectLinkPair& link : links )
+            for( const UserLinkTraitTarget& link : userLinkTraitTargets )
             {
-                if( !link.pLink->get_owning() )
+                // if NOT owning then must exist with bidirectional counterpart
+                if( !link.pLink->get_parser_link()->get_owning() )
                 {
                     auto iFind = linkParentMap.find( link.pTargetContext );
                     VERIFY_RTE_MSG( iFind != linkParentMap.end(),
                                     "Failed to locate object link counterpart for non-owning link: "
                                         << printLinkTraitTypePath( link.pLink ) );
-
-                    linkMap.insert( { link.pLink->get_parent(), link.pTargetContext } );
-                    linkMap.insert( { link.pTargetContext, link.pLink->get_parent() } );
                 }
-                else
-                {
-                    linkMap.insert( { link.pLink->get_parent(), link.pTargetContext } );
-                    linkMap.insert( { link.pTargetContext, link.pLink->get_parent() } );
-                }
+                linkMap.insert( { link.pLink->get_parent(), link.pTargetContext } );
+                linkMap.insert( { link.pTargetContext, link.pLink->get_parent() } );
             }
         }
 
         // now test for disjoint link target concrete sets at each parent context
         // TODO - work this out properly!!
-        /*for( auto i = linkMap.begin(), iEnd = linkMap.end(); i != iEnd; )
-        {
-            std::vector< Concrete::Context* > concrete;
-            for( auto iNext = linkMap.upper_bound( i->first ); i != iNext; ++i )
-            {
-                auto pTargetContext = i->second;
-                auto targetConcrete = pTargetContext->get_concrete();
-                std::copy( targetConcrete.begin(), targetConcrete.end(), std::back_inserter( concrete ) );
-                std::sort( concrete.begin(), concrete.end() );
-                const bool bUnique = std::unique( concrete.begin(), concrete.end() ) == concrete.end();
-                if( !bUnique )
-                {
-                    Interface::IContext* pContext = i->first;
-                    THROW_RTE( "Non unique target concrete sets in objects links from: " << Interface::printIContextFullType(
-                                   pContext ) << " to " << Interface::printIContextFullType( pTargetContext ) );
-                }
-            }
-        }*/
+        // for( auto i = linkMap.begin(), iEnd = linkMap.end(); i != iEnd; )
+        //{
+        //    std::vector< Concrete::Context* > concrete;
+        //    for( auto iNext = linkMap.upper_bound( i->first ); i != iNext; ++i )
+        //    {
+        //        auto pTargetContext = i->second;
+        //        auto targetConcrete = pTargetContext->get_concrete();
+        //        std::copy( targetConcrete.begin(), targetConcrete.end(), std::back_inserter( concrete ) );
+        //        std::sort( concrete.begin(), concrete.end() );
+        //        const bool bUnique = std::unique( concrete.begin(), concrete.end() ) == concrete.end();
+        //        if( !bUnique )
+        //        {
+        //            Interface::IContext* pContext = i->first;
+        //            THROW_RTE( "Non unique target concrete sets in objects links from: " <<
+        // Interface::printIContextFullType( pContext ) << " to " << Interface::printIContextFullType( pTargetContext )
+        // );
+        //        }
+        //    }
+        //}
 
-        std::multimap< Interface::LinkTrait*, Concrete::Dimensions::OwnershipLink* > owners;
-        std::multimap< Concrete::Dimensions::OwnershipLink*, Interface::LinkTrait* > owned;
-        std::map< Interface::LinkTrait*, Interface::LinkTrait* >                     nonOwningLinks;
-        std::set< Interface::LinkTrait* >                                            visitedNonOwningLinks;
+        std::multimap< Interface::UserLinkTrait*, Concrete::Dimensions::OwnershipLink* > owners;
+        std::multimap< Concrete::Dimensions::OwnershipLink*, Interface::UserLinkTrait* > owned;
+        std::map< Interface::UserLinkTrait*, Interface::UserLinkTrait* >                 nonOwningLinks;
+        std::set< Interface::UserLinkTrait* >                                            visitedNonOwningLinks;
 
-        for( const ObjectLinkPair& link : links )
+        for( const UserLinkTraitTarget& userLinkTraitTarget : userLinkTraitTargets )
         {
-            if( link.pLink->get_owning() )
+            if( userLinkTraitTarget.pLink->get_parser_link()->get_owning() )
             {
-                for( auto pConcreteTarget : link.pTargetContext->get_concrete() )
+                for( auto pConcreteTarget : userLinkTraitTarget.pTargetContext->get_concrete() )
                 {
                     VERIFY_RTE( pConcreteTarget->get_concrete_object().has_value() );
                     auto pOwnershipLink = pConcreteTarget->get_concrete_object().value()->get_ownership_link();
-                    owners.insert( { link.pLink, pOwnershipLink } );
-                    owned.insert( { pOwnershipLink, link.pLink } );
+                    owners.insert( { userLinkTraitTarget.pLink, pOwnershipLink } );
+                    owned.insert( { pOwnershipLink, userLinkTraitTarget.pLink } );
                 }
             }
             else
             {
-                if( !visitedNonOwningLinks.contains( link.pLink ) )
+                if( !visitedNonOwningLinks.contains( userLinkTraitTarget.pLink ) )
                 {
-                    auto iFindOther = linkParentMap.find( link.pTargetContext );
+                    auto iFindOther = linkParentMap.find( userLinkTraitTarget.pTargetContext );
                     VERIFY_RTE( iFindOther != linkParentMap.end() );
                     auto pOtherLink = iFindOther->second;
-                    VERIFY_RTE( pOtherLink != link.pLink );
+                    VERIFY_RTE( pOtherLink != userLinkTraitTarget.pLink );
 
-                    VERIFY_RTE( nonOwningLinks.insert( { link.pLink, pOtherLink } ).second );
+                    VERIFY_RTE( nonOwningLinks.insert( { userLinkTraitTarget.pLink, pOtherLink } ).second );
 
-                    visitedNonOwningLinks.insert( link.pLink );
+                    visitedNonOwningLinks.insert( userLinkTraitTarget.pLink );
                     visitedNonOwningLinks.insert( pOtherLink );
                 }
             }
@@ -226,7 +221,7 @@ public:
         OwningObjectRelation*  pOwningRelation = database.construct< OwningObjectRelation >(
             OwningObjectRelation::Args{ Relation::Args{ relationID }, owners, owned } );
 
-        std::map< Interface::LinkTrait*, NonOwningObjectRelation* > nonOwningRelations;
+        std::map< Interface::UserLinkTrait*, NonOwningObjectRelation* > nonOwningRelations;
         for( const auto& [ pLink1, pLink2 ] : nonOwningLinks )
         {
             auto bCmp        = pLink1->get_interface_id() < pLink2->get_interface_id();
@@ -322,7 +317,7 @@ public:
             }
             else if( auto* pUserLink = db_cast< Concrete::Dimensions::UserLink >( pVertex ) )
             {
-                auto* pObjectLinkTrait = db_cast< Interface::LinkTrait >( pUserLink->get_interface_link() );
+                auto* pObjectLinkTrait = db_cast< Interface::UserLinkTrait >( pUserLink->get_interface_user_link() );
                 VERIFY_RTE( pObjectLinkTrait );
 
                 {
@@ -334,12 +329,12 @@ public:
                         Concrete::Graph::Edge::Args{ EdgeType::eParent, pVertex, pUserLink->get_parent_context() } );
                 }
 
-                if( pObjectLinkTrait->get_owning() )
+                if( pObjectLinkTrait->get_parser_link()->get_owning() )
                 {
                     auto i = owners.lower_bound( pObjectLinkTrait ), iEnd = owners.upper_bound( pObjectLinkTrait );
 
-                    const EdgeType edgeType
-                        = mega::fromCardinality( std::distance( i, iEnd ) == 1, pObjectLinkTrait->get_cardinality() );
+                    const EdgeType edgeType = mega::fromCardinality(
+                        std::distance( i, iEnd ) == 1, pObjectLinkTrait->get_parser_link()->get_cardinality() );
 
                     for( ; i != iEnd; ++i )
                     {
@@ -359,8 +354,8 @@ public:
 
                         auto concreteTargets = pTargetObjectLink->get_concrete();
 
-                        const EdgeType edgeType
-                            = mega::fromCardinality( concreteTargets.size() == 1, pObjectLinkTrait->get_cardinality() );
+                        const EdgeType edgeType = mega::fromCardinality(
+                            concreteTargets.size() == 1, pObjectLinkTrait->get_parser_link()->get_cardinality() );
 
                         for( auto pConcreteTarget : concreteTargets )
                         {
@@ -374,8 +369,8 @@ public:
 
                         auto concreteTargets = pSourceObjectLink->get_concrete();
 
-                        const EdgeType edgeType
-                            = mega::fromCardinality( concreteTargets.size() == 1, pObjectLinkTrait->get_cardinality() );
+                        const EdgeType edgeType = mega::fromCardinality(
+                            concreteTargets.size() == 1, pObjectLinkTrait->get_parser_link()->get_cardinality() );
 
                         for( auto pConcreteTarget : concreteTargets )
                         {
@@ -463,28 +458,31 @@ public:
         Database database( m_environment, manifestFilePath );
         {
             // collect ALL links in program
-            ObjectLinkTargets linkTargets;
+            UserLinkTraitTargets userLinkTraitTargets;
             {
                 for( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
                 {
                     for( auto pLink : database.many< Interface::LinkTrait >( sourceFilePath ) )
                     {
-                        Interface::IContext* pTarget = findObjectLinkTarget( pLink );
-                        if( pLink->get_owning() )
+                        if( auto pUserLink = db_cast< Interface::UserLinkTrait >( pLink ) )
                         {
-                            for( auto pConcrete : pTarget->get_concrete() )
+                            Interface::IContext* pTarget = findObjectLinkTarget( pUserLink );
+                            if( pUserLink->get_parser_link()->get_owning() )
                             {
-                                if( !db_cast< Concrete::Object >( pConcrete ) )
+                                for( auto pConcrete : pTarget->get_concrete() )
                                 {
-                                    THROW_RTE( "Owning link NOT to object: " << printLinkTraitTypePath( pLink ) );
+                                    if( !db_cast< Concrete::Object >( pConcrete ) )
+                                    {
+                                        THROW_RTE( "Owning link NOT to object: " << printLinkTraitTypePath( pLink ) );
+                                    }
                                 }
                             }
+                            userLinkTraitTargets.push_back( { pUserLink, pTarget } );
                         }
-                        linkTargets.push_back( { pLink, pTarget } );
                     }
                 }
             }
-            calculateEdges( database, constructGraph( database, linkTargets ) );
+            calculateEdges( database, constructGraph( database, userLinkTraitTargets ) );
         }
 
         const task::FileHash fileHashCode = database.save_Model_to_temp();
@@ -564,16 +562,29 @@ public:
 
             for( Interface::LinkTrait* pLink : database.many< Interface::LinkTrait >( m_sourceFilePath ) )
             {
-                if( pLink->get_owning() )
+                if( auto pUserLink = db_cast< Interface::UserLinkTrait >( pLink ) )
+                {
+                    if( pUserLink->get_parser_link()->get_owning() )
+                    {
+                        database.construct< Interface::LinkTrait >(
+                            Interface::LinkTrait::Args{ pLink, pOwnershipRelation } );
+                    }
+                    else
+                    {
+                        auto iFind = nonOwningRelations.find( pUserLink );
+                        VERIFY_RTE( iFind != nonOwningRelations.end() );
+                        database.construct< Interface::LinkTrait >(
+                            Interface::LinkTrait::Args{ pLink, iFind->second } );
+                    }
+                }
+                else if( auto pOwningLink = db_cast< Interface::OwnershipLinkTrait >( pLink ) )
                 {
                     database.construct< Interface::LinkTrait >(
                         Interface::LinkTrait::Args{ pLink, pOwnershipRelation } );
                 }
                 else
                 {
-                    auto iFind = nonOwningRelations.find( pLink );
-                    VERIFY_RTE( iFind != nonOwningRelations.end() );
-                    database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLink, iFind->second } );
+                    THROW_RTE( "Unknown link type" );
                 }
             }
 
@@ -611,27 +622,30 @@ public:
                     {
                         if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
                         {
-                            const bool bSingular = pUserLink->get_interface_link()->get_cardinality().isSingular();
+                            const bool bSingular = pUserLink->get_interface_user_link()
+                                                       ->get_parser_link()
+                                                       ->get_cardinality()
+                                                       .isSingular();
 
-                            if( pUserLink->get_interface_link()->get_owning() )
+                            if( pUserLink->get_interface_user_link()->get_parser_link()->get_owning() )
                             {
-                                database.construct< Concrete::Dimensions::Link >(
-                                    Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation, true, false, true, bSingular } );
+                                database.construct< Concrete::Dimensions::Link >( Concrete::Dimensions::Link::Args{
+                                    pLink, pOwnershipRelation, true, false, true, bSingular } );
                             }
                             else
                             {
-                                auto iFind = nonOwningRelations.find( pUserLink->get_interface_link() );
+                                auto iFind = nonOwningRelations.find( pUserLink->get_interface_user_link() );
                                 VERIFY_RTE( iFind != nonOwningRelations.end() );
                                 auto       pRelation = iFind->second;
-                                const bool bSource   = pRelation->get_source() == pUserLink->get_interface_link();
-                                database.construct< Concrete::Dimensions::Link >(
-                                    Concrete::Dimensions::Link::Args{ pLink, pRelation, false, false, bSource, bSingular } );
+                                const bool bSource   = pRelation->get_source() == pUserLink->get_interface_user_link();
+                                database.construct< Concrete::Dimensions::Link >( Concrete::Dimensions::Link::Args{
+                                    pLink, pRelation, false, false, bSource, bSingular } );
                             }
                         }
                         else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pLink ) )
                         {
-                            database.construct< Concrete::Dimensions::Link >(
-                                Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation, false, true, false, true } );
+                            database.construct< Concrete::Dimensions::Link >( Concrete::Dimensions::Link::Args{
+                                pLink, pOwnershipRelation, false, true, false, true } );
                         }
                         else
                         {

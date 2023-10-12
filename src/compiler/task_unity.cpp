@@ -21,6 +21,7 @@
 #include "base_task.hpp"
 
 #include "mega/relation_io.hpp"
+#include "mega/common_strings.hpp"
 
 #include "database/model/UnityStage.hxx"
 #include "database/model/UnityStageView.hxx"

@@ -18,9 +18,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_September_21_derivation
-#define GUARD_2023_September_21_derivation
-
 namespace DerivationSolver
 {
 /*
@@ -246,5 +243,3 @@ static void backtrackToLinkDimensions( typename TPolicy::RootPtr pRoot, const TP
 }*/
 
 } // namespace DerivationSolver
-
-#endif // GUARD_2023_September_21_derivation

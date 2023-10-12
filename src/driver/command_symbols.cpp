@@ -125,20 +125,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     else if( pConcreteTypeID->get_dim_link().has_value() )
                     {
                         auto pLink = pConcreteTypeID->get_dim_link().value();
-                        if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
-                        {
-                            std::cout << concreteTypeID << " " << printContextFullType( pLink->get_parent_context() )
-                                      << "::" << Concrete::getIdentifier( pUserLink ) << "\n";
-                        }
-                        else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pLink ) )
-                        {
-                            std::cout << concreteTypeID << " " << printContextFullType( pLink->get_parent_context() )
-                                      << "::" << ::mega::EG_OWNERSHIP << "\n";
-                        }
-                        else
-                        {
-                            THROW_RTE( "Unknown link type" );
-                        }
+                        std::cout << concreteTypeID << " " << printContextFullType( pLink->get_parent_context() )
+                                  << "::" << Concrete::getIdentifier( pLink ) << "\n";
                     }
                     else
                     {
@@ -153,22 +141,22 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     if( pInterfaceTypeID->get_context().has_value() )
                     {
                         std::cout << interfaceTypeID << " "
-                                  << Interface::printIContextFullType( pInterfaceTypeID->get_context().value() ) << "\n";
+                                  << Interface::printIContextFullType( pInterfaceTypeID->get_context().value() )
+                                  << "\n";
                     }
                     else if( pInterfaceTypeID->get_dimension().has_value() )
                     {
                         Interface::DimensionTrait* pDimension = pInterfaceTypeID->get_dimension().value();
 
-                        std::cout << interfaceTypeID << " " << Interface::printIContextFullType( pDimension->get_parent() )
-                                  << "::" << pDimension->get_id()->get_str()
+                        std::cout << interfaceTypeID << " "
+                                  << Interface::printDimensionTraitFullType( pDimension )
                                   << " type:" << pDimension->get_canonical_type() << "\n";
                     }
                     else if( pInterfaceTypeID->get_link().has_value() )
                     {
                         Interface::LinkTrait* pLink = pInterfaceTypeID->get_link().value();
 
-                        std::cout << interfaceTypeID << " " << Interface::printIContextFullType( pLink->get_parent() )
-                                  << "::" << pLink->get_id()->get_str() << " owning:" << pLink->get_owning() << "\n";
+                        std::cout << interfaceTypeID << " " << Interface::printLinkTraitFullType( pLink ) << "\n";
                     }
                     else
                     {

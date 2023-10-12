@@ -191,7 +191,7 @@ stage InheritanceAnalysis
 
     persource accessor array< ref< Concrete::Context > >;
     persource accessor array< ref< Concrete::Dimensions::User > >;
-    persource accessor array< ref< Concrete::Dimensions::UserLink > >;
+    persource accessor array< ref< Concrete::Dimensions::Link > >;
 }
 
 stage InheritanceAnalysisView

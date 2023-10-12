@@ -18,9 +18,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_September_21_interface
-#define GUARD_2023_September_21_interface
-
 template < typename TContext >
 static inline mega::U64 getSizeTraitSize( const TContext* pInterfaceContext )
 {
@@ -65,5 +62,3 @@ static mega::U64 getLocalDomainSize( Concrete::Context* pContext )
         THROW_RTE( "Unknown context type" );
     }
 }
-
-#endif // GUARD_2023_September_21_interface

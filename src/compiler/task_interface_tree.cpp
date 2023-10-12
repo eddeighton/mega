@@ -355,8 +355,8 @@ public:
         using namespace InterfaceStage;
         for( auto pParserLink : pDef->get_links() )
         {
-            links.push_back(
-                database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args( pParserLink, pContext ) ) );
+            links.push_back( database.construct< Interface::UserLinkTrait >(
+                Interface::UserLinkTrait::Args{ Interface::LinkTrait::Args{ pContext }, pParserLink } ) );
         }
     }
     /*
@@ -634,10 +634,17 @@ public:
             collectLinkTraits( database, pObject, pDef, links );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
-            VERIFY_PARSER(
-                pDef->get_body().empty(), "Object has body: " << pObject->get_identifier(), pDef->get_id() );
+            VERIFY_PARSER( pDef->get_body().empty(), "Object has body: " << pObject->get_identifier(), pDef->get_id() );
         }
-        
+
+        // add compiler generated elements
+        // Owner link trait
+        {
+            auto pOwnershipLinkTrait = database.construct< Interface::OwnershipLinkTrait >(
+                Interface::OwnershipLinkTrait::Args{ Interface::LinkTrait::Args{ pObject } } );
+            links.push_back( pOwnershipLinkTrait );
+        }
+
         pObject->set_dimension_traits( dimensions );
         pObject->set_link_traits( links );
         pObject->set_inheritance_trait( inheritance );

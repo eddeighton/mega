@@ -40,7 +40,7 @@ class Task_Inheritance : public BaseTask
     using DimensionMap = std::multimap< InheritanceAnalysis::Interface::DimensionTrait*,
                                         InheritanceAnalysis::Concrete::Dimensions::User* >;
     using LinkMap      = std::multimap< InheritanceAnalysis::Interface::LinkTrait*,
-                                   InheritanceAnalysis::Concrete::Dimensions::UserLink* >;
+                                   InheritanceAnalysis::Concrete::Dimensions::Link* >;
 
 public:
     Task_Inheritance( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
@@ -133,8 +133,8 @@ public:
             }
             LinkMap linkInheritance;
             {
-                for( Concrete::Dimensions::UserLink* pLink :
-                     database.many< Concrete::Dimensions::UserLink >( sourceFilePath ) )
+                for( Concrete::Dimensions::Link* pLink :
+                     database.many< Concrete::Dimensions::Link >( sourceFilePath ) )
                 {
                     linkInheritance.insert( { pLink->get_interface_link(), pLink } );
                 }
@@ -437,7 +437,7 @@ class Task_InheritanceRollout : public BaseTask
     using DimensionMap = std::multimap< InheritanceAnalysisRollout::Interface::DimensionTrait*,
                                         InheritanceAnalysisRollout::Concrete::Dimensions::User* >;
     using LinkMap      = std::multimap< InheritanceAnalysisRollout::Interface::LinkTrait*,
-                                   InheritanceAnalysisRollout::Concrete::Dimensions::UserLink* >;
+                                   InheritanceAnalysisRollout::Concrete::Dimensions::Link* >;
 
 public:
     Task_InheritanceRollout( const TaskArguments& taskArguments, const mega::io::megaFilePath& megaSourceFilePath )
@@ -500,7 +500,7 @@ public:
             const LinkMap links = pMapping->get_inheritance_links();
             for( Interface::LinkTrait* pLink : database.many< Interface::LinkTrait >( m_sourceFilePath ) )
             {
-                std::vector< Concrete::Dimensions::UserLink* > linkInheritors;
+                std::vector< Concrete::Dimensions::Link* > linkInheritors;
                 for( auto i = links.lower_bound( pLink ), iEnd = links.upper_bound( pLink ); i != iEnd; ++i )
                 {
                     linkInheritors.push_back( i->second );

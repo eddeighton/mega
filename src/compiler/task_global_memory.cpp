@@ -20,6 +20,7 @@
 #include "base_task.hpp"
 
 #include "mega/relation_id.hpp"
+#include "mega/common_strings.hpp"
 
 #include "database/model/MemoryStage.hxx"
 #include "database/model/GlobalMemoryStage.hxx"

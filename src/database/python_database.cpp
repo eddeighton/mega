@@ -19,6 +19,8 @@
 
 #include "database/python_database.hpp"
 
+#include "mega/common_strings.hpp"
+
 namespace mega::runtime
 {
 
@@ -43,12 +45,14 @@ void recurseTree( PythonDatabase::SymbolTable&   symbols,
         {
             if( auto pUserLink = db_cast< Dimensions::UserLink >( pLinkDim ) )
             {
-                links.insert( { pUserLink->get_interface_link()->get_id()->get_str(),
-                                pUserLink->get_interface_link()->get_symbol_id() } );
+                links.insert( { pUserLink->get_interface_user_link()->get_parser_link()->get_id()->get_str(),
+                                pUserLink->get_interface_user_link()->get_symbol_id() } );
             }
             else if( auto pOwnershipLink = db_cast< Dimensions::OwnershipLink >( pLinkDim ) )
             {
                 // Ownership symbol
+                links.insert( { mega::EG_OWNER,
+                                pOwnershipLink->get_interface_owner_link()->get_symbol_id() } );
             }
             else
             {
@@ -148,10 +152,33 @@ void PythonDatabase::getLinkObjectTypes( TypeID::SubValueType concreteObjectID, 
         auto pRelation = pDimLink->get_relation();
         if( auto pOwning = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
         {
-            if( pDimLink->get_owning() )
+            if( auto pOwnershipLinktrait = db_cast< Interface::OwnershipLinkTrait >( pDimLink ) )
             {
+                auto owned = pOwning->get_owned();
+                for( auto pConcrete : pDimLink->get_concrete() )
+                {
+                    auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pConcrete );
+                    VERIFY_RTE( pOwnershipLink );
+                    for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink );
+                        i != iEnd; ++i )
+                    {
+                        auto pLinkTrait = i->second;
+                        for( auto pOwnershipLinkTrait : pLinkTrait->get_concrete() )
+                        {
+                            auto objectOpt = pOwnershipLinkTrait->get_parent_context()->get_concrete_object();
+                            VERIFY_RTE( objectOpt.has_value() );
+                            objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+                        }
+                    }
+                }
+            }
+            else if( auto pUserLinkTrait = db_cast< Interface::UserLinkTrait >( pDimLink ) )
+            {
+                VERIFY_RTE( pUserLinkTrait );
+                VERIFY_RTE( pUserLinkTrait->get_parser_link()->get_owning() );
+
                 auto owners = pOwning->get_owners();
-                for( auto i = owners.lower_bound( pDimLink ), iEnd = owners.upper_bound( pDimLink ); i != iEnd; ++i )
+                for( auto i = owners.lower_bound( pUserLinkTrait ), iEnd = owners.upper_bound( pUserLinkTrait ); i != iEnd; ++i )
                 {
                     auto pOwnershipLink = i->second;
                     auto pObject        = pOwnershipLink->get_parent_context()->get_concrete_object().value();
@@ -160,22 +187,7 @@ void PythonDatabase::getLinkObjectTypes( TypeID::SubValueType concreteObjectID, 
             }
             else
             {
-                auto owned = pOwning->get_owned();
-                for( auto pConcrete : pDimLink->get_concrete() )
-                {
-                    auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pConcrete );
-                    for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink );
-                         i != iEnd; ++i )
-                    {
-                        auto pLinkTrait = i->second;
-                        for( auto pOwnerLinkTrait : pLinkTrait->get_concrete() )
-                        {
-                            auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
-                            VERIFY_RTE( objectOpt.has_value() );
-                            objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
-                        }
-                    }
-                }
+                THROW_RTE( "Unknown link trait type" );
             }
         }
         else if( auto pNonOwning = db_cast< HyperGraph::NonOwningObjectRelation >( pRelation ) )

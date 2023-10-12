@@ -47,17 +47,26 @@ namespace Interface
         array< ref< Symbols::SymbolTypeID > >   symbols         -> InterfaceAnalysisStage::Clang;
     }
 
-    object LinkTrait : Parser::Link -> InterfaceStage::Tree
+    object LinkTrait -> InterfaceStage::Tree
     {
         ref< IContext > parent;
 
         value< mega::TypeID > symbol_id -> SymbolRollout::PerSourceSymbols;
         value< mega::TypeID > interface_id -> SymbolRollout::PerSourceSymbols;
 
-        array< ref< Concrete::Dimensions::UserLink > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
+        array< ref< Concrete::Dimensions::Link > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
 
-        array< ref< TypePathVariant > > tuple -> InterfaceAnalysisStage::Clang;
         ref< HyperGraph::Relation > relation -> HyperGraphAnalysisRollout::PerSourceModel;
+    }
+
+    object UserLinkTrait : LinkTrait  -> InterfaceStage::Tree
+    {
+        ref< Parser::Link > parser_link;
+        array< ref< TypePathVariant > > tuple -> InterfaceAnalysisStage::Clang;
+    }
+
+    object OwnershipLinkTrait : LinkTrait  -> InterfaceStage::Tree
+    {
     }
 
     object InheritanceTrait : Parser::Inheritance -> InterfaceStage::Tree
