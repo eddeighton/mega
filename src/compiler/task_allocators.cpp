@@ -226,63 +226,8 @@ public:
                 void operator()( Concrete::Dimensions::Bitset* pBitset )
                 {
                     // determine size of bitset
-                    U64 szAlign;
-                    U64 szSize;
-                    switch( totalStates )
-                    {
-                        case 64:
-                        {
-                            szAlign = alignof( Bitset064 );
-                            szSize  = sizeof( Bitset064 );
-                        }
-                        break;
-                        case 128:
-                        {
-                            szAlign = alignof( Bitset128 );
-                            szSize  = sizeof( Bitset128 );
-                        }
-                        break;
-                        case 192:
-                        {
-                            szAlign = alignof( Bitset192 );
-                            szSize  = sizeof( Bitset192 );
-                        }
-                        break;
-                        case 256:
-                        {
-                            szAlign = alignof( Bitset256 );
-                            szSize  = sizeof( Bitset256 );
-                        }
-                        break;
-                        case 320:
-                        {
-                            szAlign = alignof( Bitset320 );
-                            szSize  = sizeof( Bitset320 );
-                        }
-                        break;
-                        case 384:
-                        {
-                            szAlign = alignof( Bitset384 );
-                            szSize  = sizeof( Bitset384 );
-                        }
-                        break;
-                        case 448:
-                        {
-                            szAlign = alignof( Bitset448 );
-                            szSize  = sizeof( Bitset448 );
-                        }
-                        break;
-                        case 512:
-                        {
-                            szAlign = alignof( Bitset512 );
-                            szSize  = sizeof( Bitset512 );
-                        }
-                        break;
-                        default:
-                        {
-                            THROW_RTE( "Unsupported bitset size of: " << totalStates );
-                        }
-                    }
+                    const U64 szAlign = alignof( BitSet );
+                    const U64 szSize  = sizeof( BitSet );
 
                     sizeAlignment.alignment = std::max( sizeAlignment.alignment, szAlign );
                     sizeAlignment.size      = padToAlignment( szAlign, sizeAlignment.size );

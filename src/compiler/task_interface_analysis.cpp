@@ -24,6 +24,7 @@
 #include "database/types/clang_compilation.hpp"
 
 #include "mega/common_strings.hpp"
+#include "mega/types/traits.hpp"
 
 #include "utilities/clang_format.hpp"
 
@@ -37,6 +38,7 @@
 
 namespace InterfaceAnalysisStage
 {
+#include "compiler/interface_printer.hpp"
 using namespace InterfaceAnalysisStage::Interface;
 #include "compiler/generator_interface.hpp"
 } // namespace InterfaceAnalysisStage

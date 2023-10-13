@@ -91,6 +91,7 @@ namespace Concrete
         object Bitset -> ConcreteStage::Concrete
         {
             ref< Concrete::Object > parent_object;
+            ref< Interface::CompilerDimensionTrait > interface_compiler_dimension;
 
             value< mega::U64 >          size    -> MemoryStage::MemoryLayout;
             ref< MemoryLayout::Part >   part    -> MemoryStage::MemoryLayout;

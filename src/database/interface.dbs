@@ -29,7 +29,7 @@ namespace Interface
     }
 
     // context traits
-    object DimensionTrait : Parser::Dimension -> InterfaceStage::Tree
+    object DimensionTrait -> InterfaceStage::Tree
     {
         ref< IContext > parent;
         
@@ -45,6 +45,16 @@ namespace Interface
         value< mega::U64 >                      alignment       -> InterfaceAnalysisStage::Clang;
         value< bool >                           simple          -> InterfaceAnalysisStage::Clang;
         array< ref< Symbols::SymbolTypeID > >   symbols         -> InterfaceAnalysisStage::Clang;
+    }
+
+    object UserDimensionTrait : DimensionTrait -> InterfaceStage::Tree
+    {
+        ref< Parser::Dimension > parser_dimension;
+    }
+
+    object CompilerDimensionTrait : DimensionTrait -> InterfaceStage::Tree
+    {
+        value< std::string > identifier;
     }
 
     object LinkTrait -> InterfaceStage::Tree

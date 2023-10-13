@@ -158,7 +158,7 @@ public:
                 for( New::Interface::DimensionTrait* pDimension :
                      newDatabase.many< New::Interface::DimensionTrait >( newSourceFile ) )
                 {
-                    const auto strSymbol = pDimension->get_id()->get_str();
+                    const auto strSymbol = New::Interface::getIdentifier( pDimension );
                     auto       iFind     = oldSymbolTypeIDs.find( strSymbol );
                     if( iFind != oldSymbolTypeIDs.end() )
                     {
@@ -726,7 +726,7 @@ public:
         {
             TypeID symbolID;
             {
-                auto iFind = symbolNames.find( pDimension->get_id()->get_str() );
+                auto iFind = symbolNames.find( Interface::getIdentifier( pDimension ) );
                 VERIFY_RTE( iFind != symbolNames.end() );
                 symbolID = iFind->second->get_id();
             }

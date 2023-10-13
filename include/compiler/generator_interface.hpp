@@ -125,11 +125,23 @@ private:
         std::vector< nlohmann::json > traits;
         for( DimensionTrait* pDimensionTrait : dimensionTraits )
         {
-            const std::string& strType = pDimensionTrait->get_type();
+            std::string strType;
+            if( auto pUserDimensionTrait = db_cast< UserDimensionTrait >( pDimensionTrait ) )
+            {
+                strType = pUserDimensionTrait->get_parser_dimension()->get_type();
+            }
+            else if( auto pCompileDimensionTrait = db_cast< CompilerDimensionTrait >( pDimensionTrait ) )
+            {
+                strType = mega::psz_bitset;
+            }
+            else
+            {
+                THROW_RTE( "Unknown dimension trait type" );
+            }
 
             nlohmann::json     traitNames = typenames;
             std::ostringstream os;
-            os << pDimensionTrait->get_id()->get_str();
+            os << Interface::getIdentifier( pDimensionTrait );
             traitNames.push_back( os.str() );
 
             nlohmann::json trait_struct( { { "name", os.str() },
@@ -194,13 +206,13 @@ private:
             {
                 nlohmann::json     traitNames = typenames;
                 std::ostringstream os;
-                os << mega::EG_LINK_PREFIX_TRAIT_TYPE << pUserLinkTrait->get_parser_link()->get_id()->get_str();
+                os << mega::EG_LINK_PREFIX_TRAIT_TYPE << getIdentifier( pUserLinkTrait );
                 traitNames.push_back( os.str() );
 
                 nlohmann::json trait_struct( { { "name", os.str() },
-                                            { "typeid", toHex( pLinkTrait->get_interface_id() ) },
-                                            { "types", traitNames },
-                                            { "traits", nlohmann::json::array() } } );
+                                               { "typeid", toHex( pLinkTrait->get_interface_id() ) },
+                                               { "types", traitNames },
+                                               { "traits", nlohmann::json::array() } } );
 
                 {
                     std::ostringstream osTrait;
@@ -226,47 +238,47 @@ private:
         return traits;
     }
 
-/*
-    template < typename TContextType >
-    static std::vector< nlohmann::json >
-    getRequirementTraits( const nlohmann::json& typenames, TContextType* pContext,
-                          const std::vector< RequirementTrait* >& requirementTraits )
-    {
-        std::vector< nlohmann::json > traits;
-        for( RequirementTrait* pRequirementTrait : requirementTraits )
+    /*
+        template < typename TContextType >
+        static std::vector< nlohmann::json >
+        getRequirementTraits( const nlohmann::json& typenames, TContextType* pContext,
+                              const std::vector< RequirementTrait* >& requirementTraits )
         {
-            nlohmann::json     traitNames = typenames;
-            std::ostringstream os;
-            os << pRequirementTrait->get_id()->get_str();
-            traitNames.push_back( os.str() );
-
-            nlohmann::json trait_struct( { { "name", os.str() },
-                                           // { "typeid", toHex( pContext->get_interface_id() ) },
-                                           { "types", traitNames },
-                                           { "traits", nlohmann::json::array() } } );
-
+            std::vector< nlohmann::json > traits;
+            for( RequirementTrait* pRequirementTrait : requirementTraits )
             {
-                std::ostringstream osTrait;
-                {
-                    osTrait << "using Type = __eg_type_path< ";
-                    bool bFirst = true;
-                    for( const auto& arg : pRequirementTrait->get_argumentList()->get_args() )
-                    {
-                        if( bFirst )
-                            bFirst = false;
-                        else
-                            osTrait << ", ";
-                        osTrait << arg.get();
-                    }
-                    osTrait << " >";
-                }
-                trait_struct[ "traits" ].push_back( osTrait.str() );
-            }
-            traits.push_back( trait_struct );
-        }
+                nlohmann::json     traitNames = typenames;
+                std::ostringstream os;
+                os << pRequirementTrait->get_id()->get_str();
+                traitNames.push_back( os.str() );
 
-        return traits;
-    }*/
+                nlohmann::json trait_struct( { { "name", os.str() },
+                                               // { "typeid", toHex( pContext->get_interface_id() ) },
+                                               { "types", traitNames },
+                                               { "traits", nlohmann::json::array() } } );
+
+                {
+                    std::ostringstream osTrait;
+                    {
+                        osTrait << "using Type = __eg_type_path< ";
+                        bool bFirst = true;
+                        for( const auto& arg : pRequirementTrait->get_argumentList()->get_args() )
+                        {
+                            if( bFirst )
+                                bFirst = false;
+                            else
+                                osTrait << ", ";
+                            osTrait << arg.get();
+                        }
+                        osTrait << " >";
+                    }
+                    trait_struct[ "traits" ].push_back( osTrait.str() );
+                }
+                traits.push_back( trait_struct );
+            }
+
+            return traits;
+        }*/
 
     template < typename TContextType >
     static nlohmann::json getSizeTrait( const nlohmann::json& typenames, TContextType* pContext, SizeTrait* pSizeTrait )

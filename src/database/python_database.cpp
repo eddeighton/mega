@@ -21,6 +21,11 @@
 
 #include "mega/common_strings.hpp"
 
+namespace FinalStage
+{
+#include "compiler/concrete_printer.hpp"
+}
+
 namespace mega::runtime
 {
 
@@ -38,21 +43,19 @@ void recurseTree( PythonDatabase::SymbolTable&   symbols,
     {
         for( auto pUserDim : pDimensionContext->get_dimensions() )
         {
-            symbols.insert( { pUserDim->get_interface_dimension()->get_id()->get_str(),
-                              pUserDim->get_interface_dimension()->get_symbol_id() } );
+            symbols.insert( { getIdentifier( pUserDim ), pUserDim->get_interface_dimension()->get_symbol_id() } );
         }
         for( auto pLinkDim : pDimensionContext->get_links() )
         {
             if( auto pUserLink = db_cast< Dimensions::UserLink >( pLinkDim ) )
             {
-                links.insert( { pUserLink->get_interface_user_link()->get_parser_link()->get_id()->get_str(),
-                                pUserLink->get_interface_user_link()->get_symbol_id() } );
+                links.insert( { getIdentifier( pUserLink ), pUserLink->get_interface_user_link()->get_symbol_id() } );
             }
             else if( auto pOwnershipLink = db_cast< Dimensions::OwnershipLink >( pLinkDim ) )
             {
                 // Ownership symbol
-                links.insert( { mega::EG_OWNER,
-                                pOwnershipLink->get_interface_owner_link()->get_symbol_id() } );
+                links.insert(
+                    { getIdentifier( pOwnershipLink ), pOwnershipLink->get_interface_owner_link()->get_symbol_id() } );
             }
             else
             {
@@ -80,7 +83,6 @@ PythonDatabase::PythonDatabase( const boost::filesystem::path& projectDatabasePa
     , m_interfaceTypeIDs( m_pSymbolTable->get_interface_type_ids() )
     , m_concreteTypeIDs( m_pSymbolTable->get_concrete_type_ids() )
 {
-    
 }
 
 PythonDatabase::ObjectTypesMap PythonDatabase::getObjectTypes()
@@ -160,7 +162,7 @@ void PythonDatabase::getLinkObjectTypes( TypeID::SubValueType concreteObjectID, 
                     auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pConcrete );
                     VERIFY_RTE( pOwnershipLink );
                     for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink );
-                        i != iEnd; ++i )
+                         i != iEnd; ++i )
                     {
                         auto pLinkTrait = i->second;
                         for( auto pOwnershipLinkTrait : pLinkTrait->get_concrete() )
@@ -178,7 +180,8 @@ void PythonDatabase::getLinkObjectTypes( TypeID::SubValueType concreteObjectID, 
                 VERIFY_RTE( pUserLinkTrait->get_parser_link()->get_owning() );
 
                 auto owners = pOwning->get_owners();
-                for( auto i = owners.lower_bound( pUserLinkTrait ), iEnd = owners.upper_bound( pUserLinkTrait ); i != iEnd; ++i )
+                for( auto i = owners.lower_bound( pUserLinkTrait ), iEnd = owners.upper_bound( pUserLinkTrait );
+                     i != iEnd; ++i )
                 {
                     auto pOwnershipLink = i->second;
                     auto pObject        = pOwnershipLink->get_parent_context()->get_concrete_object().value();

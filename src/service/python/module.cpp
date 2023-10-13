@@ -34,6 +34,8 @@
 #include "mega/invocation_io.hpp"
 #include "mega/maths_types.hpp"
 
+#include <boost/dynamic_bitset.hpp>
+
 #include <spdlog/async.h>
 
 #include <pybind11/numpy.h>

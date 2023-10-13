@@ -27,7 +27,19 @@ static const std::string& getIdentifier( const Context* pContext )
 }
 static const std::string& getIdentifier( const Dimensions::User* pDim )
 {
-    return pDim->get_interface_dimension()->get_id()->get_str();
+    if( auto pUserDimensionTrait = db_cast< Interface::UserDimensionTrait >( pDim->get_interface_dimension() ) )
+    {
+        return pUserDimensionTrait->get_parser_dimension()->get_id()->get_str();
+    }
+    else if( auto pCompilerDimensionTrait
+             = db_cast< Interface::CompilerDimensionTrait >( pDim->get_interface_dimension() ) )
+    {
+        return pCompilerDimensionTrait->get_identifier();
+    }
+    else
+    {
+        THROW_RTE( "Unknown dimension trait type" );
+    }
 }
 static const std::string& getIdentifier( const Dimensions::Link* pDim )
 {
@@ -43,7 +55,17 @@ static const std::string& getIdentifier( const Dimensions::Link* pDim )
 }
 static const std::string& getIdentifier( const Dimensions::Bitset* pBitset )
 {
-    if( db_cast< const Dimensions::Configuration >( pBitset ) )
+    if( auto pCompilerDimensionTrait
+             = db_cast< Interface::CompilerDimensionTrait >( pBitset->get_interface_compiler_dimension() ) )
+    {
+        return pCompilerDimensionTrait->get_identifier();
+    }
+    else
+    {
+        THROW_RTE( "Unknown bitset trait type" );
+    }
+
+    /*if( db_cast< const Dimensions::Configuration >( pBitset ) )
     {
         static const std::string str = ::mega::EG_CONFIGURATION;
         return str;
@@ -66,7 +88,7 @@ static const std::string& getIdentifier( const Dimensions::Bitset* pBitset )
     else
     {
         THROW_RTE( "Unknown bitset type" );
-    }
+    }*/
 }
 
 static void printContextFullType( const Context* pContext, std::ostream& os, const std::string& strDelimiter = "::" )
@@ -99,7 +121,7 @@ static void printContextFullType( const Dimensions::User* pDim, std::ostream& os
     auto pParent = db_cast< const Context >( pDim->get_parent_context() );
     VERIFY_RTE( pParent );
     printContextFullType( pParent, os, strDelimiter );
-    os << strDelimiter << pDim->get_interface_dimension()->get_id()->get_str();
+    os << strDelimiter << getIdentifier( pDim );
 }
 
 static void printContextFullType( const Dimensions::Link* pLink, std::ostream& os,

@@ -24,12 +24,13 @@
 #include "mega/reference.hpp"
 #include "mega/maths_types.hpp"
 
+#include <boost/dynamic_bitset.hpp>
+
 #include <cstddef>
 #include <type_traits>
 #include <utility>
 
 #include <vector>
-#include <bitset>
 
 // #include <stdbool.h>
 
@@ -52,6 +53,22 @@ concept IsReferenceType = std::is_base_of< mega::reference, T >::value;
 
 template < typename T >
 struct DimensionTraits;
+
+using ReferenceVector = ::std::vector< mega::reference >;
+
+static constexpr char psz_mega_reference[]        = "class mega::reference";
+static constexpr char psz_mega_reference_vector[] = "class std::vector<class mega::reference>";
+
+using LinkTypeVector = ::std::vector< mega::TypeID >;
+
+static constexpr char psz_link_type[]        = "class mega::TypeID";
+static constexpr char psz_link_type_vector[] = "class std::vector<class mega::TypeID>";
+
+// template <typename Block = unsigned long,
+//           typename Allocator = std::allocator<Block> >
+// class dynamic_bitset;
+using BitSet = ::boost::dynamic_bitset< mega::U64, std::allocator< mega::U64 > >;
+static constexpr char psz_bitset[] = "class boost::dynamic_bitset<unsigned long long,class std::allocator<unsigned long long>>";
 
 // reference types
 template < IsReferenceType T >
@@ -79,6 +96,18 @@ struct DimensionTraits< std::vector< T > >
     static const mega::U64 Simple    = std::is_trivially_copyable< T >::value;
 };
 
+template <>
+struct DimensionTraits< BitSet >
+{
+    using Type                       = BitSet;
+    using Read                       = const Type&;
+    using Write                      = Type;
+    using Erased                     = Type;
+    static const mega::U64 Size      = sizeof( Type );
+    static const mega::U64 Alignment = alignof( Type );
+    static const mega::U64 Simple    = false;
+};
+
 // default dimension traits
 template < typename T >
 struct DimensionTraits
@@ -91,25 +120,6 @@ struct DimensionTraits
     static const mega::U64 Alignment = alignof( Type );
     static const mega::U64 Simple    = std::is_trivially_copyable< Type >::value;
 };
-
-using ReferenceVector = std::vector< mega::reference >;
-
-static constexpr char psz_mega_reference[]        = "class mega::reference";
-static constexpr char psz_mega_reference_vector[] = "class std::vector<class mega::reference>";
-
-using LinkTypeVector = std::vector< mega::TypeID >;
-
-static constexpr char psz_link_type[]        = "class mega::TypeID";
-static constexpr char psz_link_type_vector[] = "class std::vector<class mega::TypeID>";
-
-using Bitset064 = std::bitset< 064 >;
-using Bitset128 = std::bitset< 128 >;
-using Bitset192 = std::bitset< 192 >;
-using Bitset256 = std::bitset< 256 >;
-using Bitset320 = std::bitset< 320 >;
-using Bitset384 = std::bitset< 384 >;
-using Bitset448 = std::bitset< 448 >;
-using Bitset512 = std::bitset< 512 >;
 
 } // namespace mega
 

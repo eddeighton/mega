@@ -122,15 +122,20 @@ public:
                 // Interface::Root*      pRoot = database.one< Interface::Root >( m_sourceFilePath );
                 for( Interface::DimensionTrait* pDim : database.many< Interface::DimensionTrait >( m_sourceFilePath ) )
                 {
-                    if( auto pInitOpt = pDim->get_initialiser(); pInitOpt.has_value() )
+                    if( auto pUserDimensionTrait = db_cast< Interface::UserDimensionTrait >( pDim ) )
                     {
-                        auto pInit = pInitOpt.value();
+                        if( auto pInitOpt = pUserDimensionTrait->get_parser_dimension()->get_initialiser();
+                            pInitOpt.has_value() )
+                        {
+                            auto pInit = pInitOpt.value();
 
-                        nlohmann::json initialiser( { { "expression", pInit->get_initialiser() },
-                                                      { "type", pDim->get_canonical_type() },
-                                                      { "objectID", pDim->get_interface_id().getObjectID() },
-                                                      { "subObjectID", pDim->get_interface_id().getSubObjectID() } } );
-                        data[ "initialisers" ].push_back( initialiser );
+                            nlohmann::json initialiser(
+                                { { "expression", pInit->get_initialiser() },
+                                  { "type", pDim->get_canonical_type() },
+                                  { "objectID", pDim->get_interface_id().getObjectID() },
+                                  { "subObjectID", pDim->get_interface_id().getSubObjectID() } } );
+                            data[ "initialisers" ].push_back( initialiser );
+                        }
                     }
                 }
 

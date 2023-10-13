@@ -18,43 +18,23 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_September_02_rtti
-#define GUARD_2023_September_02_rtti
+#ifndef GUARD_2023_October_12_bitset
+#define GUARD_2023_October_12_bitset
 
 #include "mega/native_types.hpp"
-#include "mega/reference.hpp"
-#include "mega/maths_types.hpp"
+#include "mega/types/traits.hpp"
 
-#include <boost/dynamic_bitset.hpp>
-
-#include <cstddef>
-#include <type_traits>
-#include <utility>
-#include <bitset>
-#include <vector>
-
-// #include <stdbool.h>
+#include <boost/dynamic_bitset/serialization.hpp>
 
 namespace mega
 {
-
-template< typename T >
-struct rtti;
-
-{% for type in types %}
-template<>
-struct rtti< {{ type.canon }} >
+/*
+template < class Archive >
+inline void serialize( Archive& ar, Bitset& bitset, const unsigned int version )
 {
-    using Type = {{ type.canon }};
-    // using Impl = {{ type.impl }}Dimension< {{ type.canon }} >;
-    static constexpr char Mangle[] = "{{ type.mangle }}";
-    static constexpr char Canon[] = "{{ type.canon }}";
-    static constexpr U64 ID = {{ loop.index + 1 }};
-};
+}*/
 
-{% endfor %}
 
 }
 
-#endif //GUARD_2023_September_02_rtti
-
+#endif //GUARD_2023_October_12_bitset

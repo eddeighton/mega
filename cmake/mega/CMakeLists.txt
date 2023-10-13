@@ -109,6 +109,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/any.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
     ${MEGA_API_DIR}/mega/bin_archive.hpp
+    ${MEGA_API_DIR}/mega/bitset_io.hpp
     ${MEGA_API_DIR}/mega/boost_serialization_workaround.hpp
     ${MEGA_API_DIR}/mega/boost_serialization_xml_workaround.hpp
     ${MEGA_API_DIR}/mega/clock.hpp

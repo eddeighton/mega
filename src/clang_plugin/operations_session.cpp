@@ -56,6 +56,11 @@
 
 #pragma warning( pop )
 
+namespace OperationsStage
+{
+    #include "compiler/interface_printer.hpp"
+}
+
 namespace clang
 {
 
@@ -178,7 +183,7 @@ public:
         DeclLocType declLocType = locateInterfaceContext( pTargetDimension->get_parent() );
 
         DeclLocType dimensionResult = getNestedDeclContext(
-            pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, pTargetDimension->get_id()->get_str() );
+            pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, Interface::getIdentifier( pTargetDimension ) );
         if( dimensionResult.pDeclContext )
         {
             clang::QualType type

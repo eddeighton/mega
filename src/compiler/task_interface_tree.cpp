@@ -17,6 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "mega/common_strings.hpp"
+
 #include "base_task.hpp"
 
 #include "database/model/InterfaceStage.hxx"
@@ -338,13 +340,17 @@ public:
 
         for( auto pParserDim : pDef->get_dimensions() )
         {
-            for( Parser::Dimension* pExistingDimension : dimensions )
+            for( Interface::DimensionTrait* pExistingDimension : dimensions )
             {
-                VERIFY_PARSER( pParserDim->get_id()->get_str() != pExistingDimension->get_id()->get_str(),
-                               "IContext has duplicate dimensions", pDef->get_id() );
+                if( auto pUserDimensionTrait = db_cast< Interface::UserDimensionTrait >( pExistingDimension ) )
+                {
+                    VERIFY_PARSER( pParserDim->get_id()->get_str()
+                                       != pUserDimensionTrait->get_parser_dimension()->get_id()->get_str(),
+                                   "IContext has duplicate dimensions", pDef->get_id() );
+                }
             }
-            dimensions.push_back( database.construct< Interface::DimensionTrait >(
-                Interface::DimensionTrait::Args( pParserDim, pContext ) ) );
+            dimensions.push_back( database.construct< Interface::UserDimensionTrait >(
+                Interface::UserDimensionTrait::Args{ Interface::DimensionTrait::Args{ pContext }, pParserDim } ) );
         }
     }
 
@@ -638,6 +644,34 @@ public:
         }
 
         // add compiler generated elements
+        // Configuration Bitset
+        {
+            auto pBitSet
+                = database.construct< Interface::CompilerDimensionTrait >( Interface::CompilerDimensionTrait::Args{
+                    Interface::DimensionTrait::Args{ pObject }, mega::EG_CONFIGURATION } );
+            dimensions.push_back( pBitSet );
+        }
+        // Activation Bitset
+        {
+            auto pBitSet = database.construct< Interface::CompilerDimensionTrait >(
+                Interface::CompilerDimensionTrait::Args{ Interface::DimensionTrait::Args{ pObject }, mega::EG_STATE } );
+            dimensions.push_back( pBitSet );
+        }
+        // Enablement Bitset
+        {
+            auto pBitSet
+                = database.construct< Interface::CompilerDimensionTrait >( Interface::CompilerDimensionTrait::Args{
+                    Interface::DimensionTrait::Args{ pObject }, mega::EG_ENABLEMENT } );
+            dimensions.push_back( pBitSet );
+        }
+        // History Bitset
+        {
+            auto pBitSet
+                = database.construct< Interface::CompilerDimensionTrait >( Interface::CompilerDimensionTrait::Args{
+                    Interface::DimensionTrait::Args{ pObject }, mega::EG_HISTORY } );
+            dimensions.push_back( pBitSet );
+        }
+
         // Owner link trait
         {
             auto pOwnershipLinkTrait = database.construct< Interface::OwnershipLinkTrait >(

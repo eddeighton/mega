@@ -49,6 +49,7 @@
 
 namespace InheritanceAnalysisView
 {
+#include "compiler/interface_printer.hpp"
 using namespace InheritanceAnalysisView::Interface;
 #include "compiler/generator_interface.hpp"
 } // namespace InheritanceAnalysisView

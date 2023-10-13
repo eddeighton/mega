@@ -31,6 +31,7 @@
 #include "utilities/cmake.hpp"
 
 #include "mega/common_strings.hpp"
+#include "mega/types/traits.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
@@ -128,11 +129,26 @@ void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interfa
     using namespace FinalStage::Interface;
     for( DimensionTrait* pDimension : dimensions )
     {
-        nlohmann::json property;
-        PROP( property, pDimension->get_id()->get_str(),
-              "(sym:" << pDimension->get_symbol_id() << ",type:" << pDimension->get_interface_id() << ") "
-                      << pDimension->get_type() );
-        node[ "properties" ].push_back( property );
+        if( auto pUser = db_cast< UserDimensionTrait >( pDimension ) )
+        {
+            nlohmann::json property;
+            PROP( property, getIdentifier( pDimension ),
+                  "(sym:" << pDimension->get_symbol_id() << ",type:" << pDimension->get_interface_id() << ") "
+                          << pUser->get_canonical_type() );
+            node[ "properties" ].push_back( property );
+        }
+        else if( auto pCompiler = db_cast< CompilerDimensionTrait >( pDimension ) )
+        {
+            nlohmann::json property;
+            PROP( property, getIdentifier( pDimension ),
+                  "(sym:" << pDimension->get_symbol_id() << ",type:" << pDimension->get_interface_id() << ") "
+                          << mega::psz_bitset );
+            node[ "properties" ].push_back( property );
+        }
+        else
+        {
+            THROW_RTE( "Unknown dimension trait type" );
+        }
     }
 }
 
@@ -340,9 +356,10 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     {
         recurse( data, pChildContext );
 
-        nlohmann::json edge = nlohmann::json::object( { { "from", Interface::printIContextFullType( pContext, "_" ) },
-                                                        { "to", Interface::printIContextFullType( pChildContext, "_" ) },
-                                                        { "colour", "000000" } } );
+        nlohmann::json edge
+            = nlohmann::json::object( { { "from", Interface::printIContextFullType( pContext, "_" ) },
+                                        { "to", Interface::printIContextFullType( pChildContext, "_" ) },
+                                        { "colour", "000000" } } );
         data[ "edges" ].push_back( edge );
     }
 }
@@ -378,8 +395,8 @@ void addProperties( nlohmann::json& node, const std::vector< FinalStage::Concret
     for( User* pDimension : dimensions )
     {
         nlohmann::json property;
-        PROP( property, pDimension->get_interface_dimension()->get_id()->get_str(),
-              getNodeInfo( pDimension ) << " " << pDimension->get_interface_dimension()->get_type() );
+        PROP( property, getIdentifier( pDimension ),
+              getNodeInfo( pDimension ) << " " << pDimension->get_interface_dimension()->get_canonical_type() );
         node[ "properties" ].push_back( property );
     }
 }
@@ -628,10 +645,10 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
 
                 if( !strColour.empty() )
                 {
-                    nlohmann::json edge
-                        = nlohmann::json::object( { { "from", Concrete::printContextFullType( pEdge->get_source(), "_" ) },
-                                                    { "to", Concrete::printContextFullType( pEdge->get_target(), "_" ) },
-                                                    { "colour", strColour } } );
+                    nlohmann::json edge = nlohmann::json::object(
+                        { { "from", Concrete::printContextFullType( pEdge->get_source(), "_" ) },
+                          { "to", Concrete::printContextFullType( pEdge->get_target(), "_" ) },
+                          { "colour", strColour } } );
                     data[ "edges" ].push_back( edge );
                 }
             }

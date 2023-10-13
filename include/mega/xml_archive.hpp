@@ -31,6 +31,8 @@
 #include "common/file.hpp"
 #include "common/string.hpp"
 
+#include <boost/dynamic_bitset.hpp>
+
 #include <list>
 #include <string>
 #include <sstream>

@@ -165,8 +165,7 @@ public:
             if( auto pUserLinkTrait = db_cast< UserLinkTrait >( pLinkTrait ) )
             {
                 std::ostringstream osLinkTraitName;
-                osLinkTraitName << mega::EG_LINK_PREFIX_TRAIT_TYPE
-                                << pUserLinkTrait->get_parser_link()->get_id()->get_str();
+                osLinkTraitName << mega::EG_LINK_PREFIX_TRAIT_TYPE << getIdentifier( pUserLinkTrait );
                 DeclLocType traitDecl
                     = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, osLinkTraitName.str() );
                 if( traitDecl.pDeclContext )
@@ -223,7 +222,7 @@ public:
         for( Interface::RequirementTrait* pRequirementTrait : pContext->get_requirement_traits() )
         {
             DeclLocType traitDecl
-                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pRequirementTrait->get_id()->get_str() );
+                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, getIdentifier( pRequirementTrait ) );
             if( traitDecl.pDeclContext )
             {
                 DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
@@ -274,7 +273,7 @@ public:
         for( Interface::DimensionTrait* pDimensionTrait : pContext->get_dimension_traits() )
         {
             DeclLocType dimensionResult
-                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pDimensionTrait->get_id()->get_str() );
+                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, getIdentifier( pDimensionTrait ) );
             if( dimensionResult.pDeclContext )
             {
                 // determine the type
@@ -348,7 +347,7 @@ public:
                                 {
                                     // diag
                                     std::ostringstream os;
-                                    os << "Invalid dimension type: " << pDimensionTrait->get_id()->get_str();
+                                    os << "Invalid dimension type: " << getIdentifier( pDimensionTrait );
                                     pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error )
                                         << os.str();
                                     return false;

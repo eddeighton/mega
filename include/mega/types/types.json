@@ -117,51 +117,9 @@
             "blit": ""
         },
         {
-            "canon": "class std::bitset<64>",
-            "mangle": "classstd00bitset3644",
-            "impl": "Simple",
-            "blit": ""
-        },
-        {
-            "canon": "class std::bitset<128>",
-            "mangle": "classstd00bitset31284",
-            "impl": "Simple",
-            "blit": ""
-        },
-        {
-            "canon": "class std::bitset<192>",
-            "mangle": "classstd00bitset31924",
-            "impl": "Simple",
-            "blit": ""
-        },
-        {
-            "canon": "class std::bitset<256>",
-            "mangle": "classstd00bitset32564",
-            "impl": "Simple",
-            "blit": ""
-        },
-        {
-            "canon": "class std::bitset<320>",
-            "mangle": "classstd00bitset33204",
-            "impl": "Simple",
-            "blit": ""
-        },
-        {
-            "canon": "class std::bitset<384>",
-            "mangle": "classstd00bitset33844",
-            "impl": "Simple",
-            "blit": ""
-        },
-        {
-            "canon": "class std::bitset<448>",
-            "mangle": "classstd00bitset34484",
-            "impl": "Simple",
-            "blit": ""
-        },
-        {
-            "canon": "class std::bitset<512>",
-            "mangle": "classstd00bitset35124",
-            "impl": "Simple",
+            "canon": "class boost::dynamic_bitset<unsigned long long>",
+            "mangle": "classboost00dynamic_bitset3unsignedlonglong4",
+            "impl": "NonSimple",
             "blit": ""
         },
         {

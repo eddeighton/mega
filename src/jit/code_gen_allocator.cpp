@@ -306,7 +306,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                     nlohmann::json    member( { { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
                                                 { "type_id", printTypeID( pUserDim->get_concrete_id() ) },
                                                 { "mangle", strMangle },
-                                                { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
+                                                { "name", Concrete::getIdentifier( pUserDim ) },
                                                 { "offset", pUserDim->get_offset() } } );
                     part[ "members" ].push_back( member );
                     mangledDataTypes.insert( strMangle );

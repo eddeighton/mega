@@ -39,4 +39,6 @@
 #include "resumption.hpp" // has stl dependencies
 #include "maths_types.hpp" // has boost math stuff
 
+#include <boost/dynamic_bitset.hpp>
+
 #endif //EG_STANDARD_STUFF

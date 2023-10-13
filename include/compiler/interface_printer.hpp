@@ -29,7 +29,18 @@ static const std::string& getIdentifier( const IContext* pContext )
 
 static const std::string& getIdentifier( const DimensionTrait* pDim )
 {
-    return pDim->get_id()->get_str();
+    if( auto pUserDimensionTrait = db_cast< Interface::UserDimensionTrait >( pDim ) )
+    {
+        return pUserDimensionTrait->get_parser_dimension()->get_id()->get_str();
+    }
+    else if( auto pCompilerDimensionTrait = db_cast< Interface::CompilerDimensionTrait >( pDim ) )
+    {
+        return pCompilerDimensionTrait->get_identifier();
+    }
+    else
+    {
+        THROW_RTE( "Unknown dimension trait type" );
+    }
 }
 
 static const std::string& getIdentifier( const LinkTrait* pLinkTrait )

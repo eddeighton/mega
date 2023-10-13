@@ -31,6 +31,7 @@
 #include "mega/native_types_io.hpp"
 #include "mega/type_id_io.hpp"
 #include "mega/reference_io.hpp"
+#include "mega/bitset_io.hpp"
 
 #include "mega/bin_archive.hpp"
 #include "mega/xml_archive.hpp"

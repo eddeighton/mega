@@ -30,7 +30,7 @@
 namespace ConcreteStage
 {
 #include "compiler/interface_printer.hpp"
-} // namespace AliasAnalysis
+} // namespace ConcreteStage
 
 namespace mega::compiler
 {
@@ -240,10 +240,68 @@ public:
         {
             for( Interface::DimensionTrait* pInterfaceDimension : inheritedContexts.dimensions )
             {
-                auto              pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
-                Dimensions::User* pConcreteDimension     = database.construct< Dimensions::User >(
-                    Dimensions::User::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceDimension } );
-                elements.dimensions.push_back( pConcreteDimension );
+                if( auto pUserDimensionTrait = db_cast< Interface::UserDimensionTrait >( pInterfaceDimension ) )
+                {
+                    auto pParentConcreteContext          = db_cast< Concrete::Context >( parentConcreteContextGroup );
+                    Dimensions::User* pConcreteDimension = database.construct< Dimensions::User >(
+                        Dimensions::User::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceDimension } );
+                    elements.dimensions.push_back( pConcreteDimension );
+                }
+                else if( auto pCompilerDimensionTrait
+                         = db_cast< Interface::CompilerDimensionTrait >( pInterfaceDimension ) )
+                {
+                    // bitsets
+                    {
+                        if( auto pObject = db_cast< Object >( parentConcreteContextGroup ) )
+                        {
+                            if( pCompilerDimensionTrait->get_identifier() == mega::EG_CONFIGURATION )
+                            {
+                                elements.pConfiguration
+                                    = database.construct< Dimensions::Configuration >( Dimensions::Configuration ::Args{
+                                        Dimensions::Bitset::Args{ pObject, pCompilerDimensionTrait } } );
+                                elements.bitsets.push_back( elements.pConfiguration );
+                            }
+                            else if( pCompilerDimensionTrait->get_identifier() == mega::EG_STATE )
+                            {
+                                elements.pActivation
+                                    = database.construct< Dimensions::Activation >( Dimensions::Activation ::Args{
+                                        Dimensions::Bitset::Args{ pObject, pCompilerDimensionTrait } } );
+                                elements.bitsets.push_back( elements.pActivation );
+                            }
+                            else if( pCompilerDimensionTrait->get_identifier() == mega::EG_ENABLEMENT )
+                            {
+                                elements.pEnablement
+                                    = database.construct< Dimensions::Enablement >( Dimensions::Enablement ::Args{
+                                        Dimensions::Bitset::Args{ pObject, pCompilerDimensionTrait } } );
+                                elements.bitsets.push_back( elements.pEnablement );
+                            }
+                            else if( pCompilerDimensionTrait->get_identifier() == mega::EG_HISTORY )
+                            {
+                                elements.pHistory
+                                    = database.construct< Dimensions::History >( Dimensions::History ::Args{
+                                        Dimensions::Bitset::Args{ pObject, pCompilerDimensionTrait } } );
+                                elements.bitsets.push_back( elements.pHistory );
+                            }
+                            else
+                            {
+                                THROW_RTE( "Unknown compiler object dimension trait" );
+                            }
+                        }
+                        else
+                        {
+                            THROW_RTE( "Unknown compiler dimension trait" );
+                        }
+                    }
+
+                    auto pParentConcreteContext          = db_cast< Concrete::Context >( parentConcreteContextGroup );
+                    Dimensions::User* pConcreteDimension = database.construct< Dimensions::User >(
+                        Dimensions::User::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceDimension } );
+                    elements.dimensions.push_back( pConcreteDimension );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown dimension trait type" );
+                }
             }
         }
 
@@ -284,26 +342,6 @@ public:
                 {
                     THROW_RTE( "Unknown link trait type" );
                 }
-            }
-        }
-
-        // bitsets
-        {
-            if( auto pObject = db_cast< Object >( parentConcreteContextGroup ) )
-            {
-                elements.pConfiguration = database.construct< Dimensions::Configuration >(
-                    Dimensions::Configuration ::Args{ Dimensions::Bitset::Args{ pObject } } );
-                elements.pActivation = database.construct< Dimensions::Activation >(
-                    Dimensions::Activation ::Args{ Dimensions::Bitset::Args{ pObject } } );
-                elements.pEnablement = database.construct< Dimensions::Enablement >(
-                    Dimensions::Enablement ::Args{ Dimensions::Bitset::Args{ pObject } } );
-                elements.pHistory = database.construct< Dimensions::History >(
-                    Dimensions::History ::Args{ Dimensions::Bitset::Args{ pObject } } );
-
-                elements.bitsets.push_back( elements.pConfiguration );
-                elements.bitsets.push_back( elements.pActivation );
-                elements.bitsets.push_back( elements.pEnablement );
-                elements.bitsets.push_back( elements.pHistory );
             }
         }
 
