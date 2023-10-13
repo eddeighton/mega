@@ -135,6 +135,9 @@ PYBIND11_MODULE( megastructure, pythonModule )
         "cycle", [] { return getModule()->cycle(); },
         "Complete current cycle ( will commit all transactions to remote MPOs )" );
 
+    // boost dynamic_bitset
+    
+
     // maths
     using namespace boost::qvm;
     // clang-format off
@@ -155,7 +158,6 @@ PYBIND11_MODULE( megastructure, pythonModule )
         .def( "dot",    []( T& v1, T& v2 )  { return boost::qvm::dot( v1, v2 ); },      "Dot Product" )
 
     // clang-format on
-
     pybind11::class_< F2 >( pythonModule, "F2" )
         .def( pybind11::init<>() )
         .def( pybind11::init< float, float >() )
