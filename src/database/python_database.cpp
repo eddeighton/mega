@@ -103,7 +103,7 @@ PythonDatabase::ObjectTypesMap PythonDatabase::getObjectTypes()
     return result;
 }
 
-void PythonDatabase::getConcreteObjectSymbols( TypeID::SubValueType objectConcreteID, SymbolTable& symbols,
+void PythonDatabase::getConcreteObjectSymbols( SubType objectConcreteID, SymbolTable& symbols,
                                                SymbolTable& links )
 {
     auto iFind = m_concreteTypeIDs.find( TypeID::make_object_from_objectID( objectConcreteID ) );
@@ -120,8 +120,8 @@ void PythonDatabase::getConcreteObjectSymbols( TypeID::SubValueType objectConcre
     recurseTree( symbols, links, pObject );
 }
 
-void PythonDatabase::getLinkObjectTypes( TypeID::SubValueType concreteObjectID, TypeID linkTypeID,
-                                         std::set< TypeID::SubValueType >& objectTypes )
+void PythonDatabase::getLinkObjectTypes( SubType concreteObjectID, TypeID linkTypeID,
+                                         std::set< SubType >& objectTypes )
 {
     using namespace FinalStage;
 

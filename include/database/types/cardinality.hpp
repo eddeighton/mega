@@ -119,16 +119,4 @@ private:
 
 EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardinalityRange );
 
-namespace mega
-{
-inline void to_json( nlohmann::json& j, const mega::Cardinality& cardinality )
-{
-    j = nlohmann::json{ { "number", cardinality.getNumber() } };
-}
-inline void to_json( nlohmann::json& j, const mega::CardinalityRange& cardinalityRange )
-{
-    j = nlohmann::json{ { "minimum", cardinalityRange.minimum() }, { "maximum", cardinalityRange.maximum() } };
-}
-} // namespace mega
-
 #endif // CARDINALITY_13_MAY_2022

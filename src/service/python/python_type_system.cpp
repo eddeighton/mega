@@ -44,7 +44,7 @@ void TypeSystem::reload( const Project& project )
     m_pDatabase = std::make_unique< runtime::PythonDatabase >( project.getProjectDatabase() );
 }
 
-Type::Ptr TypeSystem::getLinkType( TypeID::SubValueType concreteObjectID, TypeID typeID )
+Type::Ptr TypeSystem::getLinkType( SubType concreteObjectID, TypeID typeID )
 {
     const ConcreteObjectLinkSymbol cols{ concreteObjectID, typeID };
 

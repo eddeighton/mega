@@ -70,12 +70,4 @@ private:
 
 EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::DerivationDirection derivation );
 
-namespace mega
-{
-inline void to_json( nlohmann::json& j, mega::DerivationDirection derivation )
-{
-    j = nlohmann::json{ { "derivation", derivation.str() } };
-}
-} // namespace mega
-
 #endif // DERIVATION_29_AUG_2022

@@ -20,6 +20,7 @@
 #ifndef REFERENCE_IO_24_SEPT_2022
 #define REFERENCE_IO_24_SEPT_2022
 
+#include "sub_type_instance.hpp"
 #include "reference.hpp"
 
 #include "type_id_io.hpp"
@@ -72,17 +73,42 @@ inline std::ostream& operator<<( std::ostream& os, const mega::MPO& mpo )
               << std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getOwnerID() );
 }
 
+inline std::ostream& operator<<( std::ostream& os, const mega::SubTypeInstance& subTypeInstance )
+{
+    using ::operator<<;
+
+    return os << '<' << std::hex <<
+
+           std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U32 >( subTypeInstance.getSubType() )
+
+              << '.' <<
+
+           std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U32 >( subTypeInstance.getInstance() )
+
+              << std::dec << '>';
+}
+inline std::istream& operator>>( std::istream& is, mega::SubTypeInstance& subTypeInstance )
+{
+    using ::  operator>>;
+    mega::U32 subType, instance;
+    char      c;
+    is >> c >> std::hex >> subType >> c >> instance >> c;
+    subTypeInstance = mega::SubTypeInstance( subType, instance );
+    return is;
+}
+
 inline std::ostream& operator<<( std::ostream& os, const mega::TypeInstance& typeInstance )
 {
     using ::operator<<;
-    return os << std::dec << '[' << typeInstance.type << "." << std::setw( 4 ) << std::setfill( '0' )
-              << typeInstance.instance << ']';
+    return os << std::dec << '[' << typeInstance.type << "." << std::setw( 4 ) << std::setfill( '0' ) << std::hex
+              << typeInstance.instance << std::dec << ']';
 }
 inline std::istream& operator>>( std::istream& is, mega::TypeInstance& typeInstance )
 {
     using ::operator>>;
     char    c;
-    return is >> std::dec >> c >> typeInstance.type >> c >> std::setw( 4 ) >> typeInstance.instance >> c;
+    return is >> std::dec >> c >> typeInstance.type >> c >> std::setw( 4 ) >> std::hex >> typeInstance.instance
+           >> std::dec >> c;
 }
 
 inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
@@ -156,6 +182,21 @@ inline void serialize( boost::archive::xml_oarchive& ar, ::mega::TypeInstance& v
 {
     ar& boost::serialization::make_nvp( "instance", value.instance );
     ar& boost::serialization::make_nvp( "type", value.type );
+}
+
+inline void serialize( boost::archive::xml_iarchive& ar, ::mega::SubTypeInstance& subTypeInstance,
+                       const unsigned int version )
+{
+    ::mega::U32 value;
+    ar&         boost::serialization::make_nvp( "value", value );
+    subTypeInstance = ::mega::SubTypeInstance( value );
+}
+
+inline void serialize( boost::archive::xml_oarchive& ar, ::mega::SubTypeInstance& subTypeInstance,
+                       const unsigned int version )
+{
+    ::mega::U32 value = subTypeInstance.getValue();
+    ar&         boost::serialization::make_nvp( "value", value );
 }
 
 inline void serialize( boost::archive::xml_iarchive& ar, ::mega::MP& value, const unsigned int version )
@@ -261,6 +302,21 @@ inline void serialize( boost::archive::binary_oarchive& ar, ::mega::TypeInstance
 {
     ar& value.type;
     ar& value.instance;
+}
+
+inline void serialize( boost::archive::binary_iarchive& ar, ::mega::SubTypeInstance& subTypeInstance,
+                       const unsigned int version )
+{
+    ::mega::U32 value;
+    ar&         value;
+    subTypeInstance = ::mega::SubTypeInstance( value );
+}
+
+inline void serialize( boost::archive::binary_oarchive& ar, ::mega::SubTypeInstance& subTypeInstance,
+                       const unsigned int version )
+{
+    ::mega::U32 value  = subTypeInstance.getValue();
+    ar&         value;
 }
 
 inline void serialize( boost::archive::binary_iarchive& ar, ::mega::MP& value, const unsigned int version )

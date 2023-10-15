@@ -22,7 +22,10 @@
 #define GUARD_2023_February_04_scheduler
 
 #include "jit/functions.hpp"
+#include "jit/object_functions.hxx"
+#include "jit/program_functions.hxx"
 
+#include "service/protocol/common/context.hpp"
 #include "service/protocol/common/jit_base.hpp"
 
 #include "log/file_log.hpp"
@@ -34,52 +37,39 @@
 namespace mega::service
 {
 
-class Scheduler
+class ActionFunctionCache
 {
-    struct ActionFunction
-    {
-        using FunctionType = mega::ActionCoroutine ( * )( mega::reference* );
-        FunctionType                 functionPtr;
-        runtime::JITBase::ActionInfo info;
-    };
-    using ActionFunctionMap = std::unordered_map< TypeID, ActionFunction, TypeID::Hash >;
-
-    struct Activation
-    {
-        inline Activation( const mega::reference& ref, const ActionFunction& function )
-            : m_ref( ref )
-            , m_function( function )
-            , m_routine( m_function.functionPtr( &m_ref ) )
-        {
-        }
-        inline void run()
-        {
-            if( m_routine.done() )
-            {
-                m_routine = m_function.functionPtr( &m_ref );
-            }
-            m_routine.resume();
-        }
-        mega::reference       m_ref;
-        const ActionFunction& m_function;
-        mega::ActionCoroutine m_routine;
-    };
-    using ActivationMap = std::unordered_map< mega::reference, Activation, mega::reference::Hash >;
+    using ActionFunctionPtr = mega::ActionCoroutine ( * )( mega::reference* );
+    using ActionFunctionMap = std::unordered_map< TypeID, ActionFunctionPtr, TypeID::Hash >;
 
 public:
-    Scheduler( log::FileStorage& log );
+    const ActionFunctionPtr& getActionFunction( TypeID typeID )
+    {
+        auto iter = m_actionFunctions.find( typeID );
+        if( iter != m_actionFunctions.end() )
+        {
+            if( iter->second != nullptr )
+            {
+                return iter->second;
+            }
+        }
+        else
+        {
+            iter = m_actionFunctions.insert( { typeID, nullptr } ).first;
+        }
 
-    void cycle();
+        {
+            mega::runtime::JITFunctor functor( [ typeID, &iter ]( mega::runtime::JITBase& jit, void* )
+                                               { jit.getActionFunction( typeID, ( void** )&iter->second ); } );
+            // NOTE: call to jit MAY return with THIS coroutine resumed in DIFFERENT thread!
+            mega::Context::get()->jit( functor );
+        }
+
+        return iter->second;
+    }
 
 private:
-    const ActionFunction& getActionFunction( TypeID concreteTypeID );
-
-private:
-    log::FileStorage&                          m_log;
-    log::FileIterator< log::Scheduling::Read > m_schedulingIter;
-
     ActionFunctionMap m_actionFunctions;
-    ActivationMap     m_activations;
 };
 
 } // namespace mega::service

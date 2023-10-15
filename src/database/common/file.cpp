@@ -127,23 +127,4 @@ task::FileHash File::save_temp( const Manifest& manifest ) const
     return task::FileHash( tempFile );
 }
 
-void File::to_json( const Manifest& manifest, nlohmann::json& data ) const
-{
-    nlohmann::json file = nlohmann::json::object( { { "filepath", getFilePath().path().string() },
-                                                    { "filetype", getType() },
-                                                    { "fileID", getFileID() },
-                                                    { "source", getObjectSourceFilePath().path().string() },
-                                                    { "objects", nlohmann::json::array() } } );
-
-    for ( Object* pObject : m_objects )
-    {
-        nlohmann::json object;
-        pObject->to_json( object );
-        file[ "objects" ].push_back( object );
-    }
-    if ( !data.contains( "files" ) )
-        data[ "files" ] = nlohmann::json::array();
-    data[ "files" ].push_back( file );
-}
-
 } // namespace mega::io

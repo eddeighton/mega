@@ -42,11 +42,11 @@ public:
     PythonDatabase( const boost::filesystem::path& projectDatabasePath );
 
     using SymbolTable = std::unordered_map< std::string, TypeID >;
-    void getConcreteObjectSymbols( TypeID::SubValueType objectConcreteID, SymbolTable& symbols, SymbolTable& links );
-    void getLinkObjectTypes( TypeID::SubValueType concreteObjectID, TypeID linkInterfaceTypeID,
-                             std::set< TypeID::SubValueType >& objectTypes );
+    void getConcreteObjectSymbols( SubType objectConcreteID, SymbolTable& symbols, SymbolTable& links );
+    void getLinkObjectTypes( SubType concreteObjectID, TypeID linkInterfaceTypeID,
+                             std::set< SubType >& objectTypes );
 
-    using ObjectTypesMap = std::map< std::string, TypeID::SubValueType >;
+    using ObjectTypesMap = std::map< std::string, SubType >;
     ObjectTypesMap getObjectTypes();
 
 private:

@@ -55,6 +55,12 @@ static_assert( sizeof( F32 ) == 4U, "Invalid F32 Size" );
 static_assert( sizeof( F64 ) == 8U, "Invalid F64 Size" );
 #endif
 
+using Instance  = U16;
+using SubType   = U16;
+using MachineID = U32;
+using ProcessID = U16;
+using OwnerID   = U8;
+
 } // namespace mega
 
 // make everything visible globally

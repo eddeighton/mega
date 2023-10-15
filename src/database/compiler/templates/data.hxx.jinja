@@ -32,11 +32,12 @@
 
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
+
 #include "mega/invocation_io.hpp"
 #include "mega/relation_io.hpp"
 #include "mega/operator_io.hpp"
 #include "mega/type_id_io.hpp"
-#include "mega/json_io.hpp"
+#include "mega/reference_io.hpp"
 
 #include "database/types/arguments.hpp"
 #include "database/types/cardinality.hpp"
@@ -98,7 +99,6 @@ namespace {{ file.name }}
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
-        virtual void to_json( nlohmann::json& data ) const;
     };
 {% endfor %}{#file.parts#}
 }

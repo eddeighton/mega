@@ -40,12 +40,14 @@ Program::Program( JITDatabase& database, JITCompiler::Module::Ptr pModule )
         = m_pModule->get< program::ObjectLoadBin::FunctionPtr >( Symbol( "object_load_bin", Symbol::ID_VStar_VStar ) );
     m_recordLoadBin
         = m_pModule->get< program::RecordLoadBin::FunctionPtr >( Symbol( "record_load_bin", Symbol::Ref_VStar_U64 ) );
-    m_recordMake  = m_pModule->get< program::RecordMake::FunctionPtr >( Symbol( "record_make", Symbol::Ref_Ref_U64 ) );
-    m_recordBreak = m_pModule->get< program::RecordBreak::FunctionPtr >( Symbol( "record_break", Symbol::Ref_Ref_U64 ) );
-    m_traverse    = m_pModule->get< program::Traverse::FunctionPtr >( Symbol( "traverse", Symbol::VStar ) );
-    m_pLinkSize   = pModule->get< program::LinkSize::FunctionPtr >( Symbol( "link_size", Symbol::Ref ) );
-    m_pLinkGet    = pModule->get< program::LinkGet::FunctionPtr >( Symbol( "link_get", Symbol::Ref_U64 ) );
-    m_pReadAny    = pModule->get< program::ReadAny::FunctionPtr >( Symbol( "read_any", Symbol::Ref ) );
-    m_pWriteAny   = pModule->get< program::WriteAny::FunctionPtr >( Symbol( "write_any", Symbol::Ref_Any ) );
+    m_recordMake = m_pModule->get< program::RecordMake::FunctionPtr >( Symbol( "record_make", Symbol::Ref_Ref_U64 ) );
+    m_recordBreak
+        = m_pModule->get< program::RecordBreak::FunctionPtr >( Symbol( "record_break", Symbol::Ref_Ref_U64 ) );
+    m_traverse   = m_pModule->get< program::Traverse::FunctionPtr >( Symbol( "traverse", Symbol::VStar ) );
+    m_pLinkSize  = pModule->get< program::LinkSize::FunctionPtr >( Symbol( "link_size", Symbol::Ref ) );
+    m_pLinkGet   = pModule->get< program::LinkGet::FunctionPtr >( Symbol( "link_get", Symbol::Ref_U64 ) );
+    m_pReadAny   = pModule->get< program::ReadAny::FunctionPtr >( Symbol( "read_any", Symbol::Ref ) );
+    m_pWriteAny  = pModule->get< program::WriteAny::FunctionPtr >( Symbol( "write_any", Symbol::Ref_Any ) );
+    m_pEnumerate = pModule->get< program::Enumerate::FunctionPtr >( Symbol( "enumerate", Symbol::RefR_U32R ) );
 }
 } // namespace mega::runtime

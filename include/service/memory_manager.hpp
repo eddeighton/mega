@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_January_07_memory_manager
 #define GUARD_2023_January_07_memory_manager
 
-//#include "fixed_allocator.hpp"
+// #include "fixed_allocator.hpp"
 
 #include "jit/allocator.hpp"
 #include "jit/object_header.hpp"
@@ -43,24 +43,23 @@ namespace mega::runtime
 
 class MemoryManager
 {
-    using PtrVariant = std::variant< 
-        HeapBufferPtr
-        //, FixedAllocator::FixedPtr
-     >;
+    using PtrVariant = std::variant< HeapBufferPtr
+                                     //, FixedAllocator::FixedPtr
+                                     >;
     inline void* get( const PtrVariant& ptr )
     {
         struct GetPtrVisitor
         {
             void* operator()( const HeapBufferPtr& heapPtr ) const { return heapPtr.get(); }
-            //void* operator()( const FixedAllocator::FixedPtr& fixedPtr ) const { return fixedPtr.get(); }
+            // void* operator()( const FixedAllocator::FixedPtr& fixedPtr ) const { return fixedPtr.get(); }
         };
         return std::visit( GetPtrVisitor{}, ptr );
     }
 
-    using HeapMap       = std::unordered_map< reference, PtrVariant, reference::Hash >;
-    using NetMap        = std::unordered_map< reference, reference, reference::Hash >;
-    //using Allocators    = std::map< TypeID, FixedAllocator::Ptr >;
-    //using AllocatorMap  = std::unordered_map< TypeID, FixedAllocator*, TypeID::Hash >;
+    using HeapMap = std::unordered_map< reference, PtrVariant, reference::Hash >;
+    using NetMap  = std::unordered_map< reference, reference, reference::Hash >;
+    // using Allocators    = std::map< TypeID, FixedAllocator::Ptr >;
+    // using AllocatorMap  = std::unordered_map< TypeID, FixedAllocator*, TypeID::Hash >;
     using OldHeapVector = std::vector< PtrVariant >;
 
 public:
@@ -103,30 +102,30 @@ public:
             m_allocators.insert( { typeID, std::move( pAllocator ) } );
         }*/
     }
-/*
-    inline network::SenderRef::AllocatorBaseArray getAllocators() const
-    {
-        network::SenderRef::AllocatorBaseArray result;
-        auto                                   i = result.begin();
-
-        for( const auto& [ typeID, pAllocator ] : m_allocators )
+    /*
+        inline network::SenderRef::AllocatorBaseArray getAllocators() const
         {
-            VERIFY_RTE_MSG( i != result.end(), "Too many allocators for SenderRef::AllocatorBaseArray" );
-            i->type  = typeID;
-            i->pBase = pAllocator->getDoubleBuffer();
-            ++i;
+            network::SenderRef::AllocatorBaseArray result;
+            auto                                   i = result.begin();
+
+            for( const auto& [ typeID, pAllocator ] : m_allocators )
+            {
+                VERIFY_RTE_MSG( i != result.end(), "Too many allocators for SenderRef::AllocatorBaseArray" );
+                i->type  = typeID;
+                i->pBase = pAllocator->getDoubleBuffer();
+                ++i;
+            }
+
+            return result;
         }
 
-        return result;
-    }
-
-    inline void doubleBuffer()
-    {
-        for( const auto& [ _, pAllocator ] : m_allocators )
+        inline void doubleBuffer()
         {
-            pAllocator->copyToDoubleBuffer();
-        }
-    }*/
+            for( const auto& [ _, pAllocator ] : m_allocators )
+            {
+                pAllocator->copyToDoubleBuffer();
+            }
+        }*/
 
     inline AllocationID getAllocationID() const { return m_allocationIDCounter; }
     inline U64          getAllocationCount() const { return m_heapMap.size(); }
@@ -240,6 +239,9 @@ public:
         return m_heapMap.extract( ref.getObjectAddress() );
     }
 
+    HeapMap::const_iterator begin() const { return m_heapMap.begin(); }
+    HeapMap::const_iterator end() const { return m_heapMap.end(); }
+
 private:
     AllocationID     m_allocationIDCounter = ROOT_OBJECT_ID;
     U64              m_usedHeapMemory      = 0U;
@@ -248,9 +250,9 @@ private:
     GetAllocatorFPtr m_getAllocatorFPtr;
     HeapMap          m_heapMap;
     NetMap           m_netMap;
-    //Allocators       m_allocators;
-    //AllocatorMap     m_allocatorsMap;
-    OldHeapVector    m_oldHeap;
+    // Allocators       m_allocators;
+    // AllocatorMap     m_allocatorsMap;
+    OldHeapVector m_oldHeap;
 };
 
 } // namespace mega::runtime

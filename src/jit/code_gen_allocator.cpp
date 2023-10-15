@@ -33,7 +33,8 @@ namespace FinalStage
 
 namespace mega::runtime
 {
-
+namespace
+{
 mega::U64 concreteLocalDomainSize( const FinalStage::Concrete::Context* pContext )
 {
     using namespace FinalStage;
@@ -247,6 +248,140 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
     }
 }
 
+std::string generate_enum( Inja& inja, FinalStage::Automata::Enum* pParentEnum, std::string& strIndent,
+                           std::optional< mega::U32 > parentCondition = std::nullopt )
+{
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{% if has_switch %}
+{{ indent }}    switch( iterator )
+{{ indent }}    {
+{% endif %}
+{% for enum in enums %}
+{% for case in enum.cases %}
+{{ indent }}        case {{ case }}:
+{% endfor %}
+{% if enum.has_test %}
+{{ indent }}            if( mega::mangle::test_bitset( pBitset, {{ enum.test_index }} ) )
+{% endif %}
+{{ indent }}            {
+{% if enum.has_result %}
+{{ indent }}                iterator = {{ enum.result_iterator_next }};
+{{ indent }}                return mega::SubTypeInstance( {{ enum.result_value }} );
+{% endif %}
+{% if enum.has_nested %}
+{{ indent }}                {{ enum.nested }}
+{% endif %}
+{{ indent }}            }
+{% endfor %}
+{% if has_switch %}
+{{ indent }}    }
+{% endif %}
+)TEMPLATE";
+
+    auto children = pParentEnum->get_children();
+
+    // clang-format on
+    nlohmann::json data( {
+
+        { "indent", strIndent }, { "enums", nlohmann::json::array() }, { "has_switch", !children.empty() }
+
+    } );
+
+    {
+        strIndent.push_back( ' ' );
+        strIndent.push_back( ' ' );
+
+        if( children.empty() )
+        {
+            nlohmann::json enum_( {
+
+                { "cases", nlohmann::json::array() },
+                { "has_test", false },
+                { "has_result", false },
+                { "has_nested", false },
+                { "cases", { pParentEnum->get_switch_index() } }
+
+            } );
+            {
+                if( parentCondition.has_value() )
+                {
+                    enum_[ "has_test" ]   = true;
+                    enum_[ "test_index" ] = parentCondition.value();
+                }
+
+                if( pParentEnum->get_has_action() )
+                {
+                    const SubTypeInstance subTypeInstance    = pParentEnum->get_sub_type_instance();
+                    const std::string     strSubTypeInstance = printSubTypeInstance( subTypeInstance );
+                    // {
+                    //     std::ostringstream os;
+                    //     using ::           operator<<;
+                    //     os << subTypeInstance;
+                    //     SPDLOG_TRACE( "Got sub type instance of: {} {}", strSubTypeInstance, os.str() );
+                    // }
+                    enum_[ "has_result" ]           = true;
+                    enum_[ "result_iterator_next" ] = pParentEnum->get_switch_index() + 1;
+                    enum_[ "result_value" ]         = strSubTypeInstance;
+                }
+            }
+
+            data[ "enums" ].push_back( enum_ );
+        }
+        else
+        {
+            for( auto pEnum : children )
+            {
+                nlohmann::json enum_( {
+
+                    { "cases", nlohmann::json::array() }, { "has_result", false }, { "has_test", false }
+
+                } );
+                {
+                    VERIFY_RTE( !pEnum->get_indices().empty() );
+                    for( auto i : pEnum->get_indices() )
+                    {
+                        enum_[ "cases" ].push_back( i );
+                    }
+
+                    if( parentCondition.has_value() )
+                    {
+                        enum_[ "has_test" ]   = true;
+                        enum_[ "test_index" ] = parentCondition.value();
+                    }
+
+                    std::optional< mega::U32 > nestedCondition;
+                    if( pParentEnum->get_is_or() )
+                    {
+                        nestedCondition = pEnum->get_bitset_index();
+                    }
+                    else
+                    {
+                        nestedCondition = std::nullopt;
+                    }
+
+                    enum_[ "has_nested" ] = true;
+                    enum_[ "nested" ]     = generate_enum( inja, pEnum, strIndent, nestedCondition );
+                }
+
+                data[ "enums" ].push_back( enum_ );
+            }
+        }
+
+        strIndent.pop_back();
+        strIndent.pop_back();
+    }
+
+    std::ostringstream os;
+
+    os << inja.render( szTemplate, data );
+
+    return os.str();
+}
+
+} // namespace
+
 void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JITDatabase& database,
                                          mega::TypeID objectTypeID, std::ostream& os )
 {
@@ -262,99 +397,114 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
                            { "objectName", strFullTypeName },
                            { "parts", nlohmann::json::array() },
-                           { "relations", nlohmann::json::array() },
                            { "mangled_data_types", nlohmann::json::array() },
-                           { "states", nlohmann::json::array() }
+                           { "states", nlohmann::json::array() },
+                           { "enumeration", nlohmann::json::array() }
 
     } );
 
-    recurseTraversalStates( database, data, pObject );
-    // special case for Object END where will pop stack
+    // generate traversal states
     {
-        nlohmann::json state( { { "value", makeEndState( pObject->get_concrete_id() ) },
-                                { "start", false },
-                                { "type", getContextTypeClass( pObject ) },
-                                { "successor", makeEndState( pObject->get_concrete_id() ) },
-                                { "name", printContextFullType( pObject ) }
-
-        } );
-        data[ "states" ].push_back( state );
-    }
-
-    std::set< std::string > mangledDataTypes;
-    {
-        using namespace FinalStage;
-        for( auto pBuffer : pObject->get_buffers() )
+        recurseTraversalStates( database, data, pObject );
+        // special case for Object END where will pop stack
         {
-            bool bBufferIsSimple = false;
-            if( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
-                bBufferIsSimple = true;
+            nlohmann::json state( { { "value", makeEndState( pObject->get_concrete_id() ) },
+                                    { "start", false },
+                                    { "type", getContextTypeClass( pObject ) },
+                                    { "successor", makeEndState( pObject->get_concrete_id() ) },
+                                    { "name", printContextFullType( pObject ) }
 
-            for( auto pPart : pBuffer->get_parts() )
-            {
-                nlohmann::json part( { { "size", pPart->get_size() },
-                                       { "offset", pPart->get_offset() },
-                                       { "total_domain", pPart->get_total_domain_size() },
-                                       { "members", nlohmann::json::array() },
-                                       { "links", nlohmann::json::array() }
-
-                } );
-
-                for( auto pUserDim : pPart->get_user_dimensions() )
-                {
-                    const std::string strMangle = megaMangle( pUserDim->get_interface_dimension()->get_erased_type() );
-                    nlohmann::json    member( { { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
-                                                { "type_id", printTypeID( pUserDim->get_concrete_id() ) },
-                                                { "mangle", strMangle },
-                                                { "name", Concrete::getIdentifier( pUserDim ) },
-                                                { "offset", pUserDim->get_offset() } } );
-                    part[ "members" ].push_back( member );
-                    mangledDataTypes.insert( strMangle );
-                }
-
-                for( auto pLinkDim : pPart->get_link_dimensions() )
-                {
-                    HyperGraph::Relation* pRelation = pLinkDim->get_relation();
-
-                    std::string strMangle, strLinkTypeMangle;
-                    if( pLinkDim->get_singular() )
-                    {
-                        strMangle         = megaMangle( mega::psz_mega_reference );
-                        strLinkTypeMangle = megaMangle( mega::psz_link_type );
-                    }
-                    else
-                    {
-                        strMangle         = megaMangle( mega::psz_mega_reference_vector );
-                        strLinkTypeMangle = megaMangle( mega::psz_link_type_vector );
-                    }
-                    mangledDataTypes.insert( strMangle );
-                    mangledDataTypes.insert( strLinkTypeMangle );
-
-                    RelationID     relationID = pRelation->get_id();
-                    nlohmann::json link( { { "link_type_id", printTypeID( pLinkDim->get_concrete_id() ) },
-                                           { "mangle", strMangle },
-                                           { "offset", pLinkDim->get_offset() },
-                                           { "link_type_offset", pLinkDim->get_link_type()->get_offset() },
-                                           { "link_type_mangle", strLinkTypeMangle },
-                                           { "singular", pLinkDim->get_singular() },
-                                           { "owning", pLinkDim->get_owning() },
-                                           { "owned", pLinkDim->get_owned() },
-                                           { "relation_id_lower", printTypeID( relationID.getLower() ) },
-                                           { "relation_id_upper", printTypeID( relationID.getUpper() ) }
-
-                    } );
-
-                    part[ "links" ].push_back( link );
-                }
-
-                data[ "parts" ].push_back( part );
-            }
+            } );
+            data[ "states" ].push_back( state );
         }
     }
 
-    for( const auto& str : mangledDataTypes )
+    // generate enumeration ranges
     {
-        data[ "mangled_data_types" ].push_back( str );
+        std::string strIdent;
+        data[ "enumeration" ] = generate_enum( *m_pInja, pObject->get_automata_enum(), strIdent );
+        data[ "bitset_offset" ]
+            = pObject->get_activation()->get_part()->get_offset() + pObject->get_activation()->get_offset();
+    }
+
+    // generate binary snapshot supporting buffer layout parts
+    {
+        std::set< std::string > mangledDataTypes;
+        {
+            using namespace FinalStage;
+            for( auto pBuffer : pObject->get_buffers() )
+            {
+                bool bBufferIsSimple = false;
+                if( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+                    bBufferIsSimple = true;
+
+                for( auto pPart : pBuffer->get_parts() )
+                {
+                    nlohmann::json part( { { "size", pPart->get_size() },
+                                           { "offset", pPart->get_offset() },
+                                           { "total_domain", pPart->get_total_domain_size() },
+                                           { "members", nlohmann::json::array() },
+                                           { "links", nlohmann::json::array() }
+
+                    } );
+
+                    for( auto pUserDim : pPart->get_user_dimensions() )
+                    {
+                        const std::string strMangle
+                            = megaMangle( pUserDim->get_interface_dimension()->get_erased_type() );
+                        nlohmann::json member( { { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
+                                                 { "type_id", printTypeID( pUserDim->get_concrete_id() ) },
+                                                 { "mangle", strMangle },
+                                                 { "name", Concrete::getIdentifier( pUserDim ) },
+                                                 { "offset", pUserDim->get_offset() } } );
+                        part[ "members" ].push_back( member );
+                        mangledDataTypes.insert( strMangle );
+                    }
+
+                    for( auto pLinkDim : pPart->get_link_dimensions() )
+                    {
+                        HyperGraph::Relation* pRelation = pLinkDim->get_relation();
+
+                        std::string strMangle, strLinkTypeMangle;
+                        if( pLinkDim->get_singular() )
+                        {
+                            strMangle         = megaMangle( mega::psz_mega_reference );
+                            strLinkTypeMangle = megaMangle( mega::psz_link_type );
+                        }
+                        else
+                        {
+                            strMangle         = megaMangle( mega::psz_mega_reference_vector );
+                            strLinkTypeMangle = megaMangle( mega::psz_link_type_vector );
+                        }
+                        mangledDataTypes.insert( strMangle );
+                        mangledDataTypes.insert( strLinkTypeMangle );
+
+                        RelationID     relationID = pRelation->get_id();
+                        nlohmann::json link( { { "link_type_id", printTypeID( pLinkDim->get_concrete_id() ) },
+                                               { "mangle", strMangle },
+                                               { "offset", pLinkDim->get_offset() },
+                                               { "link_type_offset", pLinkDim->get_link_type()->get_offset() },
+                                               { "link_type_mangle", strLinkTypeMangle },
+                                               { "singular", pLinkDim->get_singular() },
+                                               { "owning", pLinkDim->get_owning() },
+                                               { "owned", pLinkDim->get_owned() },
+                                               { "relation_id_lower", printTypeID( relationID.getLower() ) },
+                                               { "relation_id_upper", printTypeID( relationID.getUpper() ) }
+
+                        } );
+
+                        part[ "links" ].push_back( link );
+                    }
+
+                    data[ "parts" ].push_back( part );
+                }
+            }
+        }
+
+        for( const auto& str : mangledDataTypes )
+        {
+            data[ "mangled_data_types" ].push_back( str );
+        }
     }
 
     std::ostringstream osCPPCode;

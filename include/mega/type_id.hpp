@@ -36,8 +36,7 @@ namespace mega
 class TypeID
 {
 public:
-    using SubValueType = U16;
-    using ValueType    = I32;
+    using ValueType = I32;
 
 private:
     struct ContextID
@@ -51,7 +50,7 @@ private:
         eSymbol = 1 // must match sign bit - ALL symbolIDs are negative
     };
 
-    static constexpr inline ContextID make_context_impl( SubValueType objectID, SubValueType subObjectID, Flag flag )
+    static constexpr inline ContextID make_context_impl( SubType objectID, SubType subObjectID, Flag flag )
     {
         return ContextID{ subObjectID, objectID, flag };
     }
@@ -96,9 +95,9 @@ public:
     constexpr inline bool isContextID() const { return contextID.flag == eType; }
     constexpr inline bool isObject() const { return isContextID() && contextID.subObject == 0; }
 
-    constexpr inline ValueType    getSymbolID() const { return value; }
-    constexpr inline SubValueType getObjectID() const { return contextID.object; }
-    constexpr inline SubValueType getSubObjectID() const { return contextID.subObject; }
+    constexpr inline ValueType getSymbolID() const { return value; }
+    constexpr inline SubType   getObjectID() const { return contextID.object; }
+    constexpr inline SubType   getSubObjectID() const { return contextID.subObject; }
 
     constexpr inline      operator ValueType() const { return value; }
     constexpr inline bool valid() const { return value != 0U; }
@@ -107,7 +106,7 @@ public:
     constexpr inline bool operator!=( const TypeID& cmp ) const { return !( *this == cmp ); }
     constexpr inline bool operator<( const TypeID& cmp ) const { return value < cmp.value; }
 
-    constexpr static inline TypeID make_context( SubValueType objectID, SubValueType subObjectID = 0 )
+    constexpr static inline TypeID make_context( SubType objectID, SubType subObjectID = 0 )
     {
         return TypeID{ TypeID::make_context_impl( objectID, subObjectID, eType ) };
     }
@@ -115,7 +114,7 @@ public:
     {
         return TypeID{ TypeID::make_context_impl( typeID.getObjectID(), 0U, eType ) };
     }
-    constexpr static inline TypeID make_object_from_objectID( SubValueType objectID )
+    constexpr static inline TypeID make_object_from_objectID( SubType objectID )
     {
         return TypeID{ TypeID::make_context_impl( objectID, 0U, eType ) };
     }

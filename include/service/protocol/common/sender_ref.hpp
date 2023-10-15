@@ -22,6 +22,7 @@
 #define GUARD_2023_March_21_sender_ref
 
 #include "mega/mpo.hpp"
+#include "mega/type_id.hpp"
 
 #include "common/assert_verify.hpp"
 

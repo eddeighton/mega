@@ -69,13 +69,4 @@ private:
 
 EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::Ownership ownership );
 
-namespace mega
-{
-inline void to_json( nlohmann::json& j, mega::Ownership ownership )
-{
-    j = nlohmann::json{ { "ownership", ownership.str() } };
-}
-} // namespace mega
-
-
 #endif // MODES_10_MAY_2022

@@ -96,31 +96,36 @@ std::string toSymbolName( const std::string& strName, Symbol::Parameters params 
 const char* toStr( Symbol::Parameters params )
 {
     // clang-format off
-            switch( params )
-            {
-                case Symbol::None           : return "v";
-                case Symbol::VStar          : return "Pv";
-                case Symbol::VStar_VStar    : return "PvS_";
-                case Symbol::Ref            : return "N4mega9referenceE";
-                case Symbol::Ref_Ref        : return "N4mega9referenceES0_";
-                case Symbol::Ref_Ref_U64    : return "N4mega9referenceES0_m";
-                case Symbol::Ref_VStar      : return "N4mega9referenceEPv";
-                case Symbol::Ref_VStar_Bool : return "N4mega9referenceEPvb";
-                case Symbol::Ref_CVStar     : return "N4mega9referenceEPKv";
-                case Symbol::ID_VStar_VStar : return "N4mega6TypeIDEPvS1_";
-                case Symbol::Ref_VStar_U64  : return "N4mega9referenceEPvm";
-                case Symbol::Ref_U64        : return "N4mega9referenceEm";
-                case Symbol::Ref_Any        : return "N4mega9referenceENS_3AnyE";
-                
-                case Symbol::RefR           : return "RN4mega9referenceE";
-                case Symbol::RefR_RefR      : return "RN4mega9referenceES1_";
-                case Symbol::RefR_VStar     : return "RN4mega9referenceEPv";
-                case Symbol::RefR_CVStar    : return "RN4mega9referenceEPKv";
-                default:
-                    THROW_RTE( "Unsupported params type" );
-            }
+    switch( params )
+    {
+        case Symbol::None               : return "v";
+        case Symbol::VStar              : return "Pv";
+        case Symbol::VStar_VStar        : return "PvS_";
+        case Symbol::Ref                : return "N4mega9referenceE";
+        case Symbol::Ref_Ref            : return "N4mega9referenceES0_";
+        case Symbol::Ref_Ref_U64        : return "N4mega9referenceES0_m";
+        case Symbol::Ref_VStar          : return "N4mega9referenceEPv";
+        case Symbol::Ref_VStar_Bool     : return "N4mega9referenceEPvb";
+        case Symbol::Ref_CVStar         : return "N4mega9referenceEPKv";
+        case Symbol::ID_VStar_VStar     : return "N4mega6TypeIDEPvS1_";
+        case Symbol::Ref_VStar_U64      : return "N4mega9referenceEPvm";
+        case Symbol::Ref_U64            : return "N4mega9referenceEm";
+        case Symbol::Ref_Any            : return "N4mega9referenceENS_3AnyE";
+        case Symbol::RefR               : return "RN4mega9referenceE";
+        case Symbol::RefR_U32R          : return "RN4mega9referenceERj";
+        case Symbol::RefR_RefR          : return "RN4mega9referenceES1_";
+        case Symbol::RefR_VStar         : return "RN4mega9referenceEPv";
+        case Symbol::RefR_CVStar        : return "RN4mega9referenceEPKv";
+        default:
+            THROW_RTE( "Unsupported params type" );
+    }
     // clang-format on
 }
+
+// // _Z17enumerate_0x10000RN4mega9referenceERj
+//
+//
+//
 
 std::string toSymbolName( const std::string& strName, Symbol::Parameters params )
 {

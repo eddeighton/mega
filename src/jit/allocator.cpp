@@ -55,6 +55,8 @@ Allocator::Allocator( TypeID objectTypeID, JITDatabase& database, JITCompiler::M
         Symbol( "read_any_", objectTypeID, Symbol::Ref ) );
     m_pWriteAny = pModule->get< object::WriteAny::FunctionPtr >( 
         Symbol( "write_any_", objectTypeID, Symbol::Ref_Any ) );
+    m_pEnumerate = pModule->get< object::Enumerate::FunctionPtr >( 
+        Symbol( "enumerate_", objectTypeID, Symbol::RefR_U32R ) );
 }
 
 } // namespace mega::runtime

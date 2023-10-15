@@ -54,17 +54,7 @@ public:
                                       int functionType, void** ppFunction )
         = 0;
 
-    struct ActionInfo
-    {
-        enum Type
-        {
-            eCycle,
-            eAction,
-            TOTAL_TYPES
-        };
-        Type type;
-    };
-    virtual void getActionFunction( mega::TypeID concreteTypeID, void** ppFunction, ActionInfo& actionInfo ) = 0;
+    virtual void getActionFunction( mega::TypeID concreteTypeID, void** ppFunction ) = 0;
     virtual void getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction, void* pPythonCaster )   = 0;
 
     virtual void getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int functionType,

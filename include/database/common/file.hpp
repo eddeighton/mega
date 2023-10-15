@@ -36,8 +36,6 @@
 #include "common/hash.hpp"
 #include "common/stash.hpp"
 
-#include "nlohmann/json.hpp"
-
 #include <cstddef>
 #include <memory>
 #include <optional>
@@ -90,7 +88,6 @@ public:
     void           load( const Manifest& manifest );
     void           load_post( const Manifest& manifest );
     task::FileHash save_temp( const Manifest& manifest ) const;
-    void           to_json( const Manifest& manifest, nlohmann::json& data ) const;
 
     template < typename T, typename... Args >
     inline data::Ptr< T > construct( Args... args )

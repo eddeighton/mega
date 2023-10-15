@@ -56,6 +56,7 @@ public:
         Ref_Any,
 
         RefR,
+        RefR_U32R,
         RefR_RefR,
         RefR_VStar,
         RefR_CVStar

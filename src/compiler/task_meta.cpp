@@ -62,15 +62,15 @@ public:
         Database database( m_environment, m_sourceFilePath );
 
         using namespace std::string_literals;
-        static const std::vector< std::string > metaTypes = { "IStack"s, "IPlan"s };
+        static const std::vector< std::string > metaTypes = { "OR"s };
 
-        for( Interface::Action* pAction : database.many< Interface::Action >( m_sourceFilePath ) )
+        for( Interface::State* pState : database.many< Interface::State >( m_sourceFilePath ) )
         {
             auto iMetaTypeIter = metaTypes.end();
             {
-                if( pAction->get_inheritance_trait().has_value() )
+                if( pState->get_inheritance_trait().has_value() )
                 {
-                    auto inheritance = pAction->get_inheritance_trait().value();
+                    auto inheritance = pState->get_inheritance_trait().value();
 
                     for( const std::string& strIdentifier : inheritance->get_strings() )
                     {
@@ -78,7 +78,7 @@ public:
                         if( iFind != metaTypes.end() )
                         {
                             VERIFY_RTE_MSG( iMetaTypeIter == metaTypes.end(),
-                                            "Duplicate meta types detected for action: " << pAction->get_identifier() );
+                                            "Duplicate meta types detected for action: " << pState->get_identifier() );
                             iMetaTypeIter = iFind;
                         }
                     }
@@ -87,15 +87,12 @@ public:
 
             if( iMetaTypeIter == metaTypes.end() )
             {
-                database.construct< Meta::SequenceAction >( Meta::SequenceAction::Args{ pAction } );
+                // default to AND state
+                database.construct< Interface::State >( Interface::State::Args{ pState, false } );
             }
             else if( std::distance( metaTypes.begin(), iMetaTypeIter ) == 0 )
             {
-                database.construct< Meta::StackAction >( Meta::StackAction::Args{ pAction } );
-            }
-            else if( std::distance( metaTypes.begin(), iMetaTypeIter ) == 1 )
-            {
-                database.construct< Meta::PlanAction >( Meta::PlanAction::Args{ pAction } );
+                database.construct< Interface::State >( Interface::State::Args{ pState, true } );
             }
             else
             {

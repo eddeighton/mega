@@ -17,7 +17,34 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 namespace Automata
 {
+    object Vertex -> AutomataStage::AutomataAnalysis
+    {
+        value< mega::U32 >          index_base;
+        value< mega::U32 >          relative_domain;
+        ref< Concrete::Context >    context;
+        array< ref< Vertex > >      children;
+    }
+
+    object And : Vertex  -> AutomataStage::AutomataAnalysis
+    {
+
+    }
+
+    object Or : Vertex  -> AutomataStage::AutomataAnalysis
+    {
+
+    }
+
+    object Enum  -> AutomataStage::AutomataAnalysis
+    {
+        value< mega::U32 >              switch_index;
+        value< mega::U32 >              bitset_index;
+        array< value< mega::U32 > >     indices;
+        value< bool >                   is_or;
+        value< bool >                   has_action;
+        value< mega::SubTypeInstance >  sub_type_instance;
+        array< ref< Enum > >            children;
+    }
 }

@@ -73,7 +73,6 @@
         Database database( environment );                                                           \
         {                                                                                           \
             nlohmann::json data;                                                                    \
-            database.to_json( data );                                                               \
             std::ofstream os( outputFilePath.string(), std::ios_base::trunc | std::ios_base::out ); \
             os << data;                                                                             \
         }                                                                                           \

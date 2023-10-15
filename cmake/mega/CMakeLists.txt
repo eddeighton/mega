@@ -29,9 +29,6 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
-#get pybind11
-#include( ${WORKSPACE_ROOT_PATH}/thirdparty/pybind11/pybind11_include.cmake )
-
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -117,13 +114,13 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/coroutine.hpp
     ${MEGA_API_DIR}/mega/defaults.hpp
     ${MEGA_API_DIR}/mega/eg_common_strings.hpp
+    ${MEGA_API_DIR}/mega/enumeration.hpp
     ${MEGA_API_DIR}/mega/event.hpp
     ${MEGA_API_DIR}/mega/include.hpp
     ${MEGA_API_DIR}/mega/invocation_id.hpp
     ${MEGA_API_DIR}/mega/invocation_io.hpp
     ${MEGA_API_DIR}/mega/iterator.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
-    ${MEGA_API_DIR}/mega/json_io.hpp
     ${MEGA_API_DIR}/mega/logical_reference.hpp
     ${MEGA_API_DIR}/mega/logical_tree.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
@@ -152,6 +149,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/ring_allocator.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
+    ${MEGA_API_DIR}/mega/sub_type_instance.hpp
     ${MEGA_API_DIR}/mega/tag_parser.hpp
     ${MEGA_API_DIR}/mega/tree_traversal.hpp
     ${MEGA_API_DIR}/mega/tree_visitor.hpp
@@ -170,8 +168,6 @@ add_dependencies( mega_interface generate_any_impl )
 add_dependencies( mega_interface generate_mangle_rtti )
 add_dependencies( mega_interface generate_mangle_types )
 add_dependencies( mega_interface generate_python_mangle_types )
-# add_dependencies( mega_interface generate_mangle_allocators )
-# add_dependencies( mega_interface generate_python_mangle_allocators )
 
 set( MEGA_TYPES
     ${MEGA_API_DIR}/mega/types/traits.hpp
@@ -179,11 +175,6 @@ set( MEGA_TYPES
     ${MEGA_API_DIR}/mega/types/any.cpp
     ${MEGA_API_DIR}/mega/types/any.cxx
     ${MEGA_API_DIR}/mega/types/mangle_types.cxx
-    #${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
-
-    #${MEGA_API_DIR}/mega/types/python_mangle.hpp
-    #${MEGA_API_DIR}/mega/types/python_mangle_types.cxx
-    #${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
     
     ${MEGA_SRC_DIR}/jit/tag_parser.cpp
 )
@@ -213,9 +204,7 @@ target_link_libraries( mega_mangle log )
 link_boost( mega_mangle system )
 link_boost( mega_mangle filesystem )
 link_boost( mega_mangle serialization )
-link_json( mega_mangle )
 link_common( mega_mangle )
-#link_pybind11( mega_mangle )
 
 install( TARGETS mega_interface EXPORT mega_interface DESTINATION bin)
 install( EXPORT mega_interface NAMESPACE MEGA:: FILE mega_interface-config.cmake DESTINATION share )

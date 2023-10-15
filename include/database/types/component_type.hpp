@@ -68,13 +68,4 @@ private:
 
 EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::ComponentType componentType );
 
-namespace mega
-{
-inline void to_json( nlohmann::json& j, const mega::ComponentType& componentType )
-{
-    j = nlohmann::json{ { "component_type", componentType.str() } };
-}
-} // namespace mega
-
-
 #endif //COMPONENT_TYPE_22_JUNE_2022

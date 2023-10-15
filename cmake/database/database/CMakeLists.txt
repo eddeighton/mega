@@ -25,9 +25,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get json
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
-
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -267,7 +264,6 @@ link_boost( database iostreams )
 link_boost( database serialization )
 link_boost( database system )
 link_boost( database atomic )
-link_json( database )
 link_common( database )
 
 install( FILES ${MEGA_DATABASE_COMMON} DESTINATION include/database/common )

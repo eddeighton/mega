@@ -264,3 +264,23 @@ void write_any( mega::reference ref, mega::Any value )
         break;
     }
 }
+
+mega::Generator< mega::TypeInstance > enumerate( mega::reference ref )
+{
+    switch( mega::TypeID::make_object_from_typeID( ref.getType() ) )
+    {
+{% for type in object_types %}
+        case {{ type }}:
+        {
+            static thread_local mega::runtime::object::Enumerate objectEnumerate( "simulation", mega::TypeID{ {{ type }} } );
+            return objectEnumerate( ref );
+        }
+        break;
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "program Unknown type in object_load_bin" };
+        }
+        break;
+    }
+}

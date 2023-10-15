@@ -28,10 +28,10 @@
 namespace mega
 {
 
-static constexpr auto max_object_id     = static_cast< TypeID::SubValueType >( std::numeric_limits< TypeID::SubValueType >::max() >> 1 );
-static constexpr auto max_sub_object_id = std::numeric_limits< TypeID::SubValueType >::max();
-static constexpr auto min_object_id     = std::numeric_limits< TypeID::SubValueType >::min();
-static constexpr auto min_sub_object_id = std::numeric_limits< TypeID::SubValueType >::min();
+static constexpr auto max_object_id     = static_cast< SubType >( std::numeric_limits< SubType >::max() >> 1 );
+static constexpr auto max_sub_object_id = std::numeric_limits< SubType >::max();
+static constexpr auto min_object_id     = std::numeric_limits< SubType >::min();
+static constexpr auto min_sub_object_id = std::numeric_limits< SubType >::min();
 
 static_assert( max_object_id == 32767, "Maths is wrong" );
 static_assert( max_sub_object_id == 65535, "Maths is wrong" );

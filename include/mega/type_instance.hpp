@@ -23,35 +23,42 @@
 
 #include "mega/native_types.hpp"
 #include "mega/type_id.hpp"
+#include "mega/sub_type_instance.hpp"
 
 #ifndef MEGAJIT
 #include <limits>
-namespace boost::serialization{};
+namespace boost::serialization
+{
+};
 #endif
 
 namespace mega
 {
 
-using Instance = U16;
-
 static constexpr const char* ROOT_TYPE_NAME = "Root";
 
-#pragma pack(1)
+#pragma pack( 1 )
 struct TypeInstance
 {
     TypeID   type     = {};
     Instance instance = 0U;
 
     TypeInstance() = default;
-    
+
     constexpr TypeInstance( TypeID _type, Instance _instance )
         : type( _type )
         , instance( _instance )
     {
     }
-    constexpr TypeInstance( TypeID::ValueType _type , Instance _instance )
+    constexpr TypeInstance( TypeID::ValueType _type, Instance _instance )
         : type( _type )
         , instance( _instance )
+    {
+    }
+
+    constexpr TypeInstance( SubType objectID, SubTypeInstance subTypeInstance )
+        : type( TypeID::make_context( objectID, subTypeInstance.getSubType() ) )
+        , instance( subTypeInstance.getInstance() )
     {
     }
 
@@ -65,9 +72,9 @@ struct TypeInstance
     constexpr inline bool operator!=( const TypeInstance& cmp ) const { return !( *this == cmp ); }
     constexpr inline bool operator<( const TypeInstance& cmp ) const
     {
-        return ( type != cmp.type )       ? ( type < cmp.type )
+        return ( type != cmp.type )           ? ( type < cmp.type )
                : ( instance != cmp.instance ) ? ( instance < cmp.instance )
-                                            : false;
+                                              : false;
     }
 
     constexpr inline bool valid() const { return type.valid(); }
@@ -80,7 +87,6 @@ struct TypeInstance
         serialize( archive, *this, version );
     }
 #endif
-
 };
 #pragma pack()
 

@@ -25,6 +25,7 @@
 #include "service/mpo_visitor.hpp"
 
 #include "service/executor/executor.hpp"
+#include "service/executor/action_function_cache.hpp"
 
 #include "service/network/logical_thread.hpp"
 
@@ -39,8 +40,10 @@
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 #include "mega/printer.hpp"
+#include "mega/enumeration.hpp"
 
 #include <boost/filesystem/operations.hpp>
+
 #include <memory>
 
 namespace mega::service
@@ -116,10 +119,11 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         VERIFY_RTE( m_mpo.has_value() );
         // SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
+        static mega::runtime::program::Enumerate funcEnumerate;
+
         m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
 
-        // create the scheduler on the stack!
-        Scheduler scheduler( getLog() );
+        ActionFunctionCache actionFunctionCache;
 
         TimeStamp cycle     = getLog().getTimeStamp();
         TimeStamp lastCycle = cycle;
@@ -167,7 +171,29 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 {
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
-                        scheduler.cycle();
+
+                        for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
+                        {
+                            const auto& ref = i->first;
+
+                            mega::U32 iterator = 1;
+                            while( true )
+                            {
+                                SubTypeInstance subTypeInstance = funcEnumerate( ref, iterator );
+                                if( iterator == 0 )
+                                {
+                                    break;
+                                }
+
+                                // auto actionContext = mega::reference::make( ref, subTypeInstance );
+                                // auto pAction = actionFunctionCache.getActionFunction( action.type );
+                                // mega::ActionCoroutine actionCoroutine = pAction( &actionContext );
+                                // while( !actionCoroutine.done() )
+                                // {
+                                //     actionCoroutine.resume();
+                                // }
+                            }
+                        }
                     }
 
                     cycleComplete();
@@ -251,7 +277,9 @@ bool Simulation::queue( const network::ReceivedMessage& msg )
                 return true;
             }
             default:
+            {
                 return ExecutorRequestLogicalThread::queue( msg );
+            }
         }
     }
     else
@@ -361,7 +389,8 @@ reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yiel
     SPDLOG_TRACE( "SIM::SimAllocate: {} {}", getThisMPO(), objectTypeID );
     QueueStackDepth queueMsgs( m_queueStack );
     reference       allocated = m_pMemoryManager->New( objectTypeID );
-    getLog().record( mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+    getLog().record(
+        mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
     return allocated.getHeaderAddress();
 }
 

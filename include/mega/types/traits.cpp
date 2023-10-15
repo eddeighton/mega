@@ -361,4 +361,11 @@ void iterator_dimension( void* pIterator, const char* pszType, mega::TypeID succ
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.dimension( pszType, successor );
 }
+
+bool test_bitset( void* pBitset, mega::U32 index )
+{
+    auto& bitset = reify< mega::BitSet >( pBitset );
+    return bitset.test( index );
+}
+
 } // namespace mega::mangle

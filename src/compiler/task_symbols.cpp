@@ -439,7 +439,7 @@ public:
 
             std::map< New::Interface::Object*, New::Symbols::InterfaceTypeID* > objectInterfaceTypeIDs;
             {
-                std::set< TypeID::SubValueType > usedObjectIDs = { ROOT_TYPE_ID.getObjectID() };
+                std::set< SubType > usedObjectIDs = { ROOT_TYPE_ID.getObjectID() };
                 for( const auto& [ typeID, _ ] : newInterfaceTypeIDs )
                 {
                     if( typeID.getObjectID() != 0 )
@@ -449,7 +449,7 @@ public:
                 }
 
                 auto                 usedIter        = usedObjectIDs.begin();
-                TypeID::SubValueType objectIDCounter = ROOT_TYPE_ID.getObjectID();
+                SubType objectIDCounter = ROOT_TYPE_ID.getObjectID();
                 ASSERT( objectIDCounter == 1U );
 
                 // set all object interface type IDs
@@ -480,7 +480,7 @@ public:
             }
 
             // establish the used subObjectIDs per objectID
-            std::map< TypeID::SubValueType, std::set< TypeID::SubValueType > > usedSubObjectIDs;
+            std::map< SubType, std::set< SubType > > usedSubObjectIDs;
             for( const auto& [ typeID, _ ] : newInterfaceTypeIDs )
             {
                 // only add non-zero sub object IDs
@@ -496,7 +496,7 @@ public:
                 if( pInterfaceTypeID->get_id() == TypeID{} )
                 {
                     // locate the object
-                    TypeID::SubValueType objectID = 0;
+                    SubType objectID = 0;
                     {
                         New::Interface::Object* pObject = nullptr;
                         {
@@ -538,8 +538,8 @@ public:
                     // find the begining of the object TypeID range in usedTypeIDS
                     TypeID newTypeID;
                     {
-                        std::set< TypeID::SubValueType >& subobjectIDs = usedSubObjectIDs[ objectID ];
-                        TypeID::SubValueType              subObjectID  = 1U;
+                        std::set< SubType >& subobjectIDs = usedSubObjectIDs[ objectID ];
+                        SubType              subObjectID  = 1U;
                         for( auto used : subobjectIDs )
                         {
                             if( subObjectID != used )

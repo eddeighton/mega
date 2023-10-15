@@ -131,6 +131,16 @@ inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::TypeID& val
 {
     ar.save( value );
 }
+
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::SubTypeInstance& value, const unsigned int version )
+{
+    ar.load( value );
+}
+
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::SubTypeInstance& value, const unsigned int version )
+{
+    ar.save( value );
+}
 } // namespace boost::serialization
 
 namespace mega

@@ -55,21 +55,23 @@ public:
     object::LinkGet::FunctionPtr        getLinkGet() const { return m_pLinkGet; }
     object::ReadAny::FunctionPtr        getReadAny() const { return m_pReadAny; }
     object::WriteAny::FunctionPtr       getWriteAny() const { return m_pWriteAny; }
+    object::Enumerate::FunctionPtr      getEnumerate() const { return m_pEnumerate; }
 
 private:
     JITCompiler::Module::Ptr            m_pModule;
     TypeID                              m_objectTypeID;
     mega::SizeAlignment                 m_sizeAlignment;
-    object::ObjectCtor::FunctionPtr     m_pCtor     = nullptr;
-    object::ObjectDtor::FunctionPtr     m_pDtor     = nullptr;
-    object::ObjectSaveBin::FunctionPtr  m_pSaveBin  = nullptr;
-    object::ObjectLoadBin::FunctionPtr  m_pLoadBin  = nullptr;
-    object::ObjectUnparent::FunctionPtr m_pUnparent = nullptr;
-    object::ObjectTraverse::FunctionPtr m_pTraverse = nullptr;
-    object::LinkSize::FunctionPtr       m_pLinkSize = nullptr;
-    object::LinkGet::FunctionPtr        m_pLinkGet  = nullptr;
-    object::ReadAny::FunctionPtr        m_pReadAny  = nullptr;
-    object::WriteAny::FunctionPtr       m_pWriteAny = nullptr;
+    object::ObjectCtor::FunctionPtr     m_pCtor      = nullptr;
+    object::ObjectDtor::FunctionPtr     m_pDtor      = nullptr;
+    object::ObjectSaveBin::FunctionPtr  m_pSaveBin   = nullptr;
+    object::ObjectLoadBin::FunctionPtr  m_pLoadBin   = nullptr;
+    object::ObjectUnparent::FunctionPtr m_pUnparent  = nullptr;
+    object::ObjectTraverse::FunctionPtr m_pTraverse  = nullptr;
+    object::LinkSize::FunctionPtr       m_pLinkSize  = nullptr;
+    object::LinkGet::FunctionPtr        m_pLinkGet   = nullptr;
+    object::ReadAny::FunctionPtr        m_pReadAny   = nullptr;
+    object::WriteAny::FunctionPtr       m_pWriteAny  = nullptr;
+    object::Enumerate::FunctionPtr      m_pEnumerate = nullptr;
 };
 
 } // namespace mega::runtime

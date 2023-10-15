@@ -42,8 +42,6 @@
 #include "common/hash.hpp"
 #include "common/stash.hpp"
 
-#include "nlohmann/json.hpp"
-
 #include <string>
 #include <optional>
 #include <memory>
@@ -156,8 +154,6 @@ namespace {{ stage.name }}
 {% for file in stage.readwrite_files %}
         task::FileHash save_{{ file.name }}_to_temp() const;
 {% endfor %}{# stage.readwrite_files #}
-
-        void to_json( nlohmann::json& data ) const;
 
     private:
 {% for many_accessor in stage.many_accessors %}

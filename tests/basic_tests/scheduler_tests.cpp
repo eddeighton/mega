@@ -77,7 +77,7 @@ public:
     TestScheduler      scheduler;
     ExecutionStateImpl m_state;
 
-    ExecutionState make_test( mega::TypeID::SubValueType objectTypeID, std::size_t szHeapAddress = 0U )
+    ExecutionState make_test( mega::SubType objectTypeID, std::size_t szHeapAddress = 0U )
     {
         mega::reference ref
             = { mega::TypeInstance::make_object( mega::TypeID::make_object_from_objectID( objectTypeID ) ),

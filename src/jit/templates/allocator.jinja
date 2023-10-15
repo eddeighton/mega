@@ -59,6 +59,7 @@ namespace mega::mangle
     void iterator_namespace_start( void*, const char* pszType, mega::TypeID );
     void iterator_namespace_end( void*, const char* pszType, mega::TypeID );
     void iterator_dimension( void*, const char* pszType, mega::TypeID );
+    bool test_bitset( void*, mega::U32 index );
 }
 
 void ctor_{{ objectTypeID }}( void* pBuffer )
@@ -341,4 +342,23 @@ void write_any_{{ objectTypeID }}( mega::reference ref, mega::Any value )
             throw mega::runtime::JITException{ "read_{{ objectTypeID }} Unknown concrete type id" };
         break;
     }
+}
+
+mega::SubTypeInstance enumerate_{{ objectTypeID }}( mega::reference& ref, mega::U32& iterator )
+{
+    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::readLock( ref );
+    }
+    else if( ref.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( ref );
+    }
+
+    void* pBitset = reinterpret_cast< char* >( ref.getHeap() ) + {{ bitset_offset }};
+
+{{ enumeration }}
+
+    iterator = 0;
+    return mega::SubTypeInstance{};
 }

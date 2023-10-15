@@ -100,22 +100,6 @@ public:
         VERIFY_RTE( m_readwriteFiles.insert( { fileID, pFile } ).second );
     }
 
-    void to_json( nlohmann::json& data ) const
-    {
-        {
-            for( auto i = m_readOnlyFiles.begin(), iEnd = m_readOnlyFiles.end(); i != iEnd; ++i )
-            {
-                i->second->to_json( m_manifest, data );
-            }
-        }
-        {
-            for( auto i = m_readwriteFiles.begin(), iEnd = m_readwriteFiles.end(); i != iEnd; ++i )
-            {
-                i->second->to_json( m_manifest, data );
-            }
-        }
-    }
-
 private:
     const Environment& m_environment;
     const Manifest&    m_manifest;

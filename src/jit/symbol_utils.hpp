@@ -21,6 +21,7 @@
 #define SYMBOL_UTILS_SEPT_19_2022
 
 #include "mega/type_id.hpp"
+#include "mega/sub_type_instance.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -34,7 +35,14 @@ namespace mega::runtime
 static inline std::string printTypeID( const TypeID& typeID )
 {
     std::ostringstream os;
-    os << "0x" << std::hex << std::setfill( '0' ) << std::setw( 4 ) << typeID.getSymbolID();
+    os << "0x" << std::hex << std::setfill( '0' ) << std::setw( 8 ) << typeID.getSymbolID();
+    return os.str();
+}
+
+static inline std::string printSubTypeInstance( const SubTypeInstance& subTypeInstance )
+{
+    std::ostringstream os;
+    os << "0x" << std::hex << std::setfill( '0' ) << std::setw( 8 ) << subTypeInstance.getValue();
     return os.str();
 }
 

@@ -70,7 +70,7 @@ public:
                                     void** ppFunction ) override;
     virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, const RelationID& relationID,
                                       int functionType, void** ppFunction ) override;
-    virtual void getActionFunction( TypeID concreteTypeID, void** ppFunction, ActionInfo& actionInfo ) override;
+    virtual void getActionFunction( TypeID concreteTypeID, void** ppFunction ) override;
     virtual void getPythonFunction( TypeID interfaceTypeID, void** ppFunction, void* pPythonCaster ) override;
     virtual void getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int functionType,
                                       void** ppFunction ) override;

@@ -26,7 +26,6 @@
 #include "service/executor/sim_move_machine.hpp"
 #include "service/executor/transaction_machine.hpp"
 #include "service/executor/clock.hpp"
-#include "service/executor/scheduler.hpp"
 #include "service/executor/request.hpp"
 
 #include "service/mpo_context.hpp"

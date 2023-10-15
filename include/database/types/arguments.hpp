@@ -93,23 +93,4 @@ EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::TypeName::Ve
 
 } // namespace mega
 
-namespace mega
-{
-inline void to_json( nlohmann::json& j, const mega::Type& type )
-{
-    j = nlohmann::json{ { "type", type.get() } };
-}
-inline void to_json( nlohmann::json& j, const mega::TypeName& argument )
-{
-    if( argument.getName().has_value() )
-    {
-        j = nlohmann::json{ { "type", argument.getType() }, { "name", argument.getName().value() } };
-    }
-    else
-    {
-        j = nlohmann::json{ { "type", argument.getType() } };
-    }
-}
-} // namespace mega
-
 #endif // GUARD_2023_August_20_arguments

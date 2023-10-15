@@ -71,12 +71,4 @@ private:
 
 EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::CompilationMode compilationMode );
 
-namespace mega
-{
-inline void to_json( nlohmann::json& j, const mega::CompilationMode& compilationMode )
-{
-    j = nlohmann::json{ { "compilation_mode", compilationMode.str() } };
-}
-} // namespace mega
-
 #endif // MODES_10_MAY_2022

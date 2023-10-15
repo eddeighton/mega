@@ -611,7 +611,7 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
     }
 }
 
-void JIT::getActionFunction( mega::TypeID concreteTypeID, void** ppFunction, ActionInfo& actionInfo )
+void JIT::getActionFunction( mega::TypeID concreteTypeID, void** ppFunction )
 {
     SPDLOG_TRACE( "JIT::getActionFunction : {}", concreteTypeID );
 
@@ -620,10 +620,6 @@ void JIT::getActionFunction( mega::TypeID concreteTypeID, void** ppFunction, Act
     const mega::TypeID interfaceTypeID = m_database.getInterfaceTypeID( concreteTypeID );
 
     *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( interfaceTypeID );
-
-    // TODO
-    // const FinalStage::Concrete::Action* pAction = m_database.getAction( interfaceTypeID );
-    actionInfo.type = ActionInfo::eAction;
 }
 
 void JIT::getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction, void* pPythonCaster )

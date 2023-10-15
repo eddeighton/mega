@@ -71,28 +71,10 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Interupt > >;
 }
 
-stage MetaStage
-{
-    source .mega;
-    dependency InterfaceStage;
-
-    file MetaAnalysis;
-
-    persource accessor array< ref< Interface::State > >;
-    persource accessor array< ref< Interface::Action > >;
-    persource accessor array< ref< Interface::Component > >;
-    persource accessor array< ref< Interface::Function > >;
-    persource accessor array< ref< Interface::Object > >;
-    persource accessor array< ref< Interface::Event > >;
-    persource accessor array< ref< Interface::Interupt > >;
-    persource accessor array< ref< Interface::DimensionTrait > >;
-    persource accessor array< ref< Interface::LinkTrait > >;
-}
-
 stage DependencyAnalysis
 {
     source .manifest;
-    dependency MetaStage;
+    dependency InterfaceStage;
 
     file DPGraph;
 
@@ -150,10 +132,28 @@ stage SymbolRollout
     persource accessor ref< Interface::IContext >;
 }
 
-stage InterfaceAnalysisStage
+stage MetaStage
 {
     source .mega;
     dependency SymbolRollout;
+
+    file MetaAnalysis;
+
+    persource accessor array< ref< Interface::State > >;
+    persource accessor array< ref< Interface::Action > >;
+    persource accessor array< ref< Interface::Component > >;
+    persource accessor array< ref< Interface::Function > >;
+    persource accessor array< ref< Interface::Object > >;
+    persource accessor array< ref< Interface::Event > >;
+    persource accessor array< ref< Interface::Interupt > >;
+    persource accessor array< ref< Interface::DimensionTrait > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
+}
+
+stage InterfaceAnalysisStage
+{
+    source .mega;
+    dependency MetaStage;
 
     file Clang;
 
@@ -372,6 +372,8 @@ stage AutomataStage
     dependency GlobalMemoryStageRollout;
 
     file AutomataAnalysis;
+
+    persource accessor array< ref< Concrete::Object > >;
 }
 
 stage OperationsStage

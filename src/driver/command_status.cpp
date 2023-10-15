@@ -57,7 +57,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
             ( "conv",    po::bool_switch( &m_config.m_bLogicalThreads ), "Response logicalthreads status" )
             ( "mem",     po::bool_switch( &m_config.m_bMemory        ), "Response memory status" )
-            ( "locks",   po::value< bool >( &m_config.m_bLocks )->default_value( true ), "Response locks status" )
+            ( "locks",   po::value< bool >( &m_config.m_bLocks )->default_value( true ), "Response locks status ( true by default )" )
             ( "logs",    po::bool_switch( &m_config.m_bLog           ), "Response log status" )
             ;
         // clang-format on

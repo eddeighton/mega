@@ -36,6 +36,7 @@
 #include "iterators.hpp" // has array and vector and defines __mega_vector std::vector type alias
 
 #include "coroutine.hpp" // has stl dependencies
+#include "enumeration.hpp" // has stl dependencies
 #include "resumption.hpp" // has stl dependencies
 #include "maths_types.hpp" // has boost math stuff
 

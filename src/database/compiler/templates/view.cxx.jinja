@@ -646,11 +646,6 @@ struct Database::Pimpl : public SuperFactory
     }
 {% endfor %}{# stage.readwrite_files #}
 
-    void to_json( nlohmann::json& data ) const
-    {
-        m_pFileStore->to_json( data );
-    }
-
     const mega::io::Environment& m_environment;
     mega::io::SourceFilePath     m_sourceFile;
     const mega::io::Manifest     m_manifest;
@@ -682,11 +677,6 @@ task::FileHash Database::save_{{ file.name }}_to_temp() const
     return m_pimpl->save_{{ file.name }}_to_temp();
 }
 {% endfor %}{# stage.readwrite_files #}
-
-void Database::to_json( nlohmann::json& data ) const
-{
-    m_pimpl->to_json( data );
-}
 
 {% for many_accessor in stage.many_accessors %}
 std::vector< {{ many_accessor.type }}* > Database::many_{{ many_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const

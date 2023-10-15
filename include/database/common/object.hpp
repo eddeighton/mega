@@ -32,8 +32,6 @@
 
 #include "object_info.hpp"
 
-#include "nlohmann/json.hpp"
-
 namespace data
 {
 class ObjectPartLoader;
@@ -54,7 +52,6 @@ public:
     virtual void set_inheritance_pointer()                                          = 0;
     virtual void load( Loader& loader )                                             = 0;
     virtual void store( Storer& storer ) const                                      = 0;
-    virtual void to_json( nlohmann::json& data ) const                              = 0;
 
     Object( const ObjectInfo& objectInfo )
         : m_objectInfo( objectInfo )

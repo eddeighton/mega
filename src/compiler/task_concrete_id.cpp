@@ -217,13 +217,13 @@ public:
         // set object ID first
         std::map< New::Concrete::Object*, New::Symbols::ConcreteTypeID* > objectConcreteTypeIDs;
         {
-            std::set< TypeID::SubValueType > usedObjectIDs;
+            std::set< SubType > usedObjectIDs;
             for( auto typeID : usedTypeIDs )
             {
                 usedObjectIDs.insert( typeID.getObjectID() );
             }
             auto                 usedIter        = usedObjectIDs.begin();
-            TypeID::SubValueType objectIDCounter = ROOT_TYPE_ID.getObjectID();
+            SubType objectIDCounter = ROOT_TYPE_ID.getObjectID();
 
             for( auto [ _, pSymbolTypeID ] : new_concrete_type_id_sequences )
             {
@@ -250,7 +250,7 @@ public:
         }
 
         // establish the used subObjectIDs per objectID
-        std::map< TypeID::SubValueType, std::set< TypeID::SubValueType > > usedSubObjectIDs;
+        std::map< SubType, std::set< SubType > > usedSubObjectIDs;
         for( const auto typeID : usedTypeIDs )
         {
             usedSubObjectIDs[ typeID.getObjectID() ].insert( typeID.getSubObjectID() );
@@ -261,7 +261,7 @@ public:
                   New::Symbols::ConcreteTypeID* pConcreteTypeID, New::Concrete::ContextGroup* pContextGroup )
         {
             // locate the object
-            TypeID::SubValueType objectID = 0;
+            SubType objectID = 0;
             {
                 New::Concrete::Object* pObject = nullptr;
                 {
@@ -289,8 +289,8 @@ public:
             // find the begining of the object TypeID range in usedTypeIDS
             TypeID newTypeID;
             {
-                std::set< TypeID::SubValueType >& subobjectIDs = usedSubObjectIDs[ objectID ];
-                TypeID::SubValueType              subObjectID  = 0U;
+                std::set< SubType >& subobjectIDs = usedSubObjectIDs[ objectID ];
+                SubType              subObjectID  = 0U;
                 for( auto used : subobjectIDs )
                 {
                     if( subObjectID != used )

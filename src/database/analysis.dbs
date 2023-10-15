@@ -185,20 +185,6 @@ namespace MemoryLayout
     }
 }
 
-namespace Meta
-{
-    object SequenceAction : Interface::Action -> MetaStage::MetaAnalysis
-    {
-    }
-    object StackAction : Interface::Action -> MetaStage::MetaAnalysis
-    {
-    }
-    object PlanAction : Interface::Action -> MetaStage::MetaAnalysis
-    {
-    }
-}
-
-
 namespace UnityAnalysis
 {
     object DataBinding -> UnityStage::UnityAnalysis

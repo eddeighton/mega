@@ -176,6 +176,8 @@ namespace Interface
         late< opt< ref< SizeTrait > > >             size_trait;
         late< opt< ref< TransitionTypeTrait > > >   transition_trait;
         late< array< ref< PartTrait > > >           part_traits;
+
+        value< bool > is_or_state -> MetaStage::MetaAnalysis;
     }
 
     object Action : State -> InterfaceStage::Tree

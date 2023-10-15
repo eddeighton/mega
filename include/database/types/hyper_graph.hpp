@@ -87,11 +87,6 @@ EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::EdgeType edgeType 
 
 namespace mega
 {
-inline void to_json( nlohmann::json& j, mega::EdgeType edgeType )
-{
-    j = nlohmann::json{ { "edge_type", edgeType.str() } };
-}
-
 inline EdgeType fromCardinality( bool bMonoMorphic, const CardinalityRange& cardinality )
 {
     if( cardinality.isOptional() )

@@ -130,8 +130,8 @@ namespace Concrete
         ref< Interface::IContext >          interface;
         array< ref< Interface::IContext > > inheritance;
 
-        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
-        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
+        value< mega::Instance > local_size -> MemoryStage::MemoryLayout;
+        value< mega::Instance > total_size -> MemoryStage::MemoryLayout;
         
         value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
     }
@@ -165,6 +165,8 @@ namespace Concrete
     object State : UserDimensionContext -> ConcreteStage::Concrete
     {
         ref< Interface::State > interface_state;
+
+        ref< Automata::Vertex > automata_vertex -> AutomataStage::AutomataAnalysis;
     }
 
     object Action : State -> ConcreteStage::Concrete
@@ -195,6 +197,10 @@ namespace Concrete
         array< ref< MemoryLayout::Buffer > > buffers -> MemoryStage::MemoryLayout;
 
         array< ref< UserDimensionContext > > link_contexts -> HyperGraphAnalysisRollout::PerSourceModel;
+
+        ref< Automata::Vertex >     automata_root -> AutomataStage::AutomataAnalysis;
+        ref< Automata::Enum >       automata_enum -> AutomataStage::AutomataAnalysis;
+        value< mega::U64 >          total_index   -> AutomataStage::AutomataAnalysis;
     }
 
     object MemoryMappedObject : Object -> GlobalMemoryStageRollout::GlobalMemoryRollout

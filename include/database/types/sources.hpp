@@ -394,46 +394,7 @@ public:
     }
     static const boost::filesystem::path extension() { return ".map"; }
 };
-/*
-class EGDB_EXPORT JSONFilePath : public BuildFilePath
-{
-    friend class BuildEnvironment;
 
-    JSONFilePath( const boost::filesystem::path& filePath )
-        : BuildFilePath( filePath )
-    {
-    }
-
-public:
-    JSONFilePath() = default;
-
-    bool operator==( const JSONFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
-    bool operator<( const JSONFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& boost::serialization::make_nvp( "json_file", m_filePath );
-    }
-    static const boost::filesystem::path extension() { return ".json"; }
-};*/
-
-inline void to_json( nlohmann::json& j, const megaFilePath& p )
-{
-    j = nlohmann::json{ { "megaFilePath", p.path().string() } };
-}
-inline void to_json( nlohmann::json& j, const cppFilePath& p )
-{
-    j = nlohmann::json{ { "cppFilePath", p.path().string() } };
-}
-inline void to_json( nlohmann::json& j, const schFilePath& p )
-{
-    j = nlohmann::json{ { "schFilePath", p.path().string() } };
-}
-inline void to_json( nlohmann::json& j, const ComponentFilePath& p )
-{
-    j = nlohmann::json{ { "componentFilePath", p.path().string() } };
-}
 } // namespace mega::io
 
 #endif // SOURCES_15_APRIL_2022

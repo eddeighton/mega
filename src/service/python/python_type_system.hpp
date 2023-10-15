@@ -40,10 +40,10 @@ class PythonModule;
 
 class TypeSystem
 {
-    using ConcreteObjectTypes = std::unordered_map< TypeID::SubValueType, Type::Ptr >;
+    using ConcreteObjectTypes = std::unordered_map< SubType, Type::Ptr >;
     struct ConcreteObjectLinkSymbol
     {
-        TypeID::SubValueType concreteObjectID;
+        SubType concreteObjectID;
         TypeID               linkSymbol;
 
         inline bool operator==( const ConcreteObjectLinkSymbol& value ) const
@@ -61,7 +61,7 @@ class TypeSystem
     };
     using LinkTypeMap    = std::unordered_map< ConcreteObjectLinkSymbol, Type::Ptr, ConcreteObjectLinkSymbol::Hash >;
     using SymbolTablePtr = std::unique_ptr< Type::SymbolTable >;
-    using SymbolTableMap = std::unordered_map< TypeID::SubValueType, SymbolTablePtr >;
+    using SymbolTableMap = std::unordered_map< SubType, SymbolTablePtr >;
     using DatabasePtr    = std::unique_ptr< runtime::PythonDatabase >;
 
 public:
@@ -69,12 +69,12 @@ public:
 
     TypeSystem( PythonModule& module, const Project& project );
 
-    using ObjectTypesMap = std::map< std::string, TypeID::SubValueType >;
+    using ObjectTypesMap = std::map< std::string, SubType >;
     ObjectTypesMap getObjectTypes() const;
 
     void reload( const Project& project );
 
-    Type::Ptr getLinkType( TypeID::SubValueType concreteObjectID, TypeID typeID );
+    Type::Ptr getLinkType( SubType concreteObjectID, TypeID typeID );
     PyObject* cast( const mega::reference& ref );
 
 private:

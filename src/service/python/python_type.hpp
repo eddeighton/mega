@@ -41,7 +41,7 @@ public:
     using Ptr                   = std::shared_ptr< Type >;
     using SymbolTable           = std::unordered_map< std::string, TypeID >;
     using SymbolTablePtr        = std::shared_ptr< SymbolTable >;
-    using ConcreteObjectTypeSet = std::set< mega::TypeID::SubValueType >;
+    using ConcreteObjectTypeSet = std::set< mega::SubType >;
     using TypeIDVector          = std::vector< mega::TypeID >;
 
     Type( PythonModule& module, TypeSystem& typeSystem, SymbolTablePtr pSymbolTable, SymbolTablePtr pLinkTable,

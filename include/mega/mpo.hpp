@@ -22,14 +22,9 @@
 #define GUARD_2023_January_07_mpo
 
 #include "mega/native_types.hpp"
-#include "mega/type_instance.hpp"
 
 namespace mega
 {
-
-using MachineID = U32;
-using ProcessID = U16;
-using OwnerID   = U8;
 
 class MPO;
 class MP

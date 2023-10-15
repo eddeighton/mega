@@ -24,39 +24,7 @@
 // #define VERIFY_RTE_MSG
 // #endif
 
-
 #include "database/model/data.hxx"
-
-#include "nlohmann/json.hpp"
-
-namespace nlohmann {
-    template <typename T>
-    struct adl_serializer< std::optional<T> > 
-    {
-        static void to_json(json& j, const std::optional<T>& opt) 
-        {
-            if (!opt.has_value()) 
-            {
-                j = nullptr;
-            } 
-            else 
-            {
-                j = opt.value();
-            }
-        }
-        static void from_json(const json& j, std::optional<T>& opt) 
-        {
-            if (j.is_null()) 
-            {
-                opt = std::optional<T>();
-            } 
-            else 
-            {
-                opt = j.get<T>();
-            }
-        }
-    };
-}
 
 namespace data
 {
@@ -131,33 +99,6 @@ namespace {{ file.name }}
         {{ property.validation }}
 {% endif %}
         storer.store( {{ property.name }} );
-{% endfor %}{#part.property#}
-    }
-    void {{ part.name }}::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "{{ part.name }}" },
-                { "filetype" , "{{ file.name }}" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-{% for property in part.properties %}
-{% if property.has_validation %}
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "{{ property.name }}", {{ property.name }}.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-{% else %}
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "{{ property.name }}", {{ property.name }} } } );
-            _part__[ "properties" ].push_back( property );
-        }
-{% endif %}
 {% endfor %}{#part.property#}
     }
         

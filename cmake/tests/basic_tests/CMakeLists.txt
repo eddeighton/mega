@@ -39,11 +39,12 @@ include_directories( ${MEGA_SRC_DIR} )
 set( BASIC_UNIT_TESTS_DIR ${MEGA_TEST_DIR}/basic_tests )
 
 set( BASIC_UNIT_TESTS
-	${BASIC_UNIT_TESTS_DIR}/type_id_tests.cpp
 	${BASIC_UNIT_TESTS_DIR}/reference_tests.cpp
 	${BASIC_UNIT_TESTS_DIR}/relation_id_tests.cpp
-	${BASIC_UNIT_TESTS_DIR}/scheduler_tests.cpp
 	${BASIC_UNIT_TESTS_DIR}/ring_allocator_tests.cpp
+	${BASIC_UNIT_TESTS_DIR}/scheduler_tests.cpp
+	${BASIC_UNIT_TESTS_DIR}/sub_type_instance_tests.cpp
+	${BASIC_UNIT_TESTS_DIR}/type_id_tests.cpp
 	)
 
 enable_testing()

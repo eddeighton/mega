@@ -24,39 +24,7 @@
 // #define VERIFY_RTE_MSG
 // #endif
 
-
 #include "database/model/data.hxx"
-
-#include "nlohmann/json.hpp"
-
-namespace nlohmann {
-    template <typename T>
-    struct adl_serializer< std::optional<T> > 
-    {
-        static void to_json(json& j, const std::optional<T>& opt) 
-        {
-            if (!opt.has_value()) 
-            {
-                j = nullptr;
-            } 
-            else 
-            {
-                j = opt.value();
-            }
-        }
-        static void from_json(const json& j, std::optional<T>& opt) 
-        {
-            if (j.is_null()) 
-            {
-                opt = std::optional<T>();
-            } 
-            else 
-            {
-                opt = j.get<T>();
-            }
-        }
-    };
-}
 
 namespace data
 {
@@ -125,88 +93,6 @@ namespace Components
         storer.store( cpp_source_files );
         storer.store( sch_source_files );
     }
-    void Components_Component::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Components_Component" },
-                { "filetype" , "Components" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "type", type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "name", name } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "file_path", file_path } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "python_file_path", python_file_path } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "init_file_path", init_file_path } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "src_dir", src_dir } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "build_dir", build_dir } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "cpp_flags", cpp_flags } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "cpp_defines", cpp_defines } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "include_directories", include_directories } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dependencies", dependencies } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "mega_source_files", mega_source_files } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "cpp_source_files", cpp_source_files } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "sch_source_files", sch_source_files } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct MegaMangle_Mangle : public mega::io::Object
     MegaMangle_Mangle::MegaMangle_Mangle( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -240,38 +126,6 @@ namespace Components
         storer.store( impl );
         storer.store( blit );
     }
-    void MegaMangle_Mangle::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "MegaMangle_Mangle" },
-                { "filetype" , "Components" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "canon", canon } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "mangle", mangle } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "impl", impl } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "blit", blit } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
 }
 namespace AST
@@ -298,23 +152,6 @@ namespace AST
     void Parser_Identifier::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
-    }
-    void Parser_Identifier::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Identifier" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "str", str } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Parser_ScopedIdentifier : public mega::io::Object
@@ -346,33 +183,6 @@ namespace AST
         storer.store( source_file );
         storer.store( line_number );
     }
-    void Parser_ScopedIdentifier::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ScopedIdentifier" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "ids", ids } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_file", source_file } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "line_number", line_number } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_TypeList : public mega::io::Object
     Parser_TypeList::Parser_TypeList( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -396,23 +206,6 @@ namespace AST
     void Parser_TypeList::store( mega::io::Storer& storer ) const
     {
         storer.store( args );
-    }
-    void Parser_TypeList::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_TypeList" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "args", args } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Parser_ArgumentList : public mega::io::Object
@@ -438,23 +231,6 @@ namespace AST
     {
         storer.store( args );
     }
-    void Parser_ArgumentList::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ArgumentList" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "args", args } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_ReturnType : public mega::io::Object
     Parser_ReturnType::Parser_ReturnType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -478,23 +254,6 @@ namespace AST
     void Parser_ReturnType::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
-    }
-    void Parser_ReturnType::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ReturnType" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "str", str } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Parser_Transition : public mega::io::Object
@@ -526,33 +285,6 @@ namespace AST
         storer.store( is_predecessor );
         storer.store( str );
     }
-    void Parser_Transition::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Transition" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "is_successor", is_successor } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "is_predecessor", is_predecessor } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "str", str } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_Inheritance : public mega::io::Object
     Parser_Inheritance::Parser_Inheritance( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -577,23 +309,6 @@ namespace AST
     {
         storer.store( strings );
     }
-    void Parser_Inheritance::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Inheritance" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "strings", strings } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_Size : public mega::io::Object
     Parser_Size::Parser_Size( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -617,23 +332,6 @@ namespace AST
     void Parser_Size::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
-    }
-    void Parser_Size::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Size" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "str", str } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Parser_Initialiser : public mega::io::Object
@@ -664,33 +362,6 @@ namespace AST
         storer.store( initialiser );
         storer.store( source_loc_start );
         storer.store( source_loc_end );
-    }
-    void Parser_Initialiser::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Initialiser" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "initialiser", initialiser } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_loc_start", source_loc_start } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_loc_end", source_loc_end } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Parser_Link : public mega::io::Object
@@ -727,38 +398,6 @@ namespace AST
         storer.store( owning );
         storer.store( cardinality );
     }
-    void Parser_Link::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Link" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "type", type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "owning", owning } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "cardinality", cardinality } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_Dimension : public mega::io::Object
     Parser_Dimension::Parser_Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -793,38 +432,6 @@ namespace AST
         storer.store( type );
         storer.store( initialiser );
     }
-    void Parser_Dimension::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Dimension" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "isConst", isConst } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "type", type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "initialiser", initialiser } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_Part : public mega::io::Object
     Parser_Part::Parser_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -849,23 +456,6 @@ namespace AST
     {
         storer.store( identifiers );
     }
-    void Parser_Part::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Part" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "identifiers", identifiers } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_Include : public mega::io::Object
     Parser_Include::Parser_Include( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -883,18 +473,6 @@ namespace AST
     }
     void Parser_Include::store( mega::io::Storer& storer ) const
     {
-    }
-    void Parser_Include::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Include" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Parser_SystemInclude : public mega::io::Object
@@ -924,23 +502,6 @@ namespace AST
     {
         storer.store( p_AST_Parser_Include );
         storer.store( str );
-    }
-    void Parser_SystemInclude::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_SystemInclude" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "str", str } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Parser_MegaInclude : public mega::io::Object
@@ -975,28 +536,6 @@ namespace AST
         VERIFY_RTE_MSG( root.has_value(), "AST::Parser_MegaInclude.root has NOT been set" );
         storer.store( root );
     }
-    void Parser_MegaInclude::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_MegaInclude" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "megaSourceFilePath", megaSourceFilePath } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "root", root.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_MegaIncludeInline : public mega::io::Object
     Parser_MegaIncludeInline::Parser_MegaIncludeInline( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1018,18 +557,6 @@ namespace AST
     void Parser_MegaIncludeInline::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_MegaInclude );
-    }
-    void Parser_MegaIncludeInline::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_MegaIncludeInline" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Parser_MegaIncludeNested : public mega::io::Object
@@ -1061,23 +588,6 @@ namespace AST
         storer.store( p_AST_Parser_MegaInclude );
         storer.store( id );
     }
-    void Parser_MegaIncludeNested::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_MegaIncludeNested" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_CPPInclude : public mega::io::Object
     Parser_CPPInclude::Parser_CPPInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1107,23 +617,6 @@ namespace AST
         storer.store( p_AST_Parser_Include );
         storer.store( cppSourceFilePath );
     }
-    void Parser_CPPInclude::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_CPPInclude" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "cppSourceFilePath", cppSourceFilePath } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_Dependency : public mega::io::Object
     Parser_Dependency::Parser_Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1147,23 +640,6 @@ namespace AST
     void Parser_Dependency::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
-    }
-    void Parser_Dependency::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_Dependency" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "str", str } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Parser_ContextDef : public mega::io::Object
@@ -1212,53 +688,6 @@ namespace AST
         storer.store( dependencies );
         storer.store( parts );
     }
-    void Parser_ContextDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ContextDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "children", children } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "links", links } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "includes", includes } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dependencies", dependencies } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parts", parts } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_NamespaceDef : public mega::io::Object
     Parser_NamespaceDef::Parser_NamespaceDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1280,18 +709,6 @@ namespace AST
     void Parser_NamespaceDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_ContextDef );
-    }
-    void Parser_NamespaceDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_NamespaceDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Parser_AbstractDef : public mega::io::Object
@@ -1326,28 +743,6 @@ namespace AST
         storer.store( p_AST_Parser_ContextDef );
         storer.store( size );
         storer.store( inheritance );
-    }
-    void Parser_AbstractDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_AbstractDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Parser_StateDef : public mega::io::Object
@@ -1387,33 +782,6 @@ namespace AST
         storer.store( inheritance );
         storer.store( transition );
     }
-    void Parser_StateDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_StateDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "transition", transition } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_ActionDef : public mega::io::Object
     Parser_ActionDef::Parser_ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1436,18 +804,6 @@ namespace AST
     {
         storer.store( p_AST_Parser_StateDef );
     }
-    void Parser_ActionDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ActionDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Parser_ComponentDef : public mega::io::Object
     Parser_ComponentDef::Parser_ComponentDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1469,18 +825,6 @@ namespace AST
     void Parser_ComponentDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_StateDef );
-    }
-    void Parser_ComponentDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ComponentDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Parser_EventDef : public mega::io::Object
@@ -1516,28 +860,6 @@ namespace AST
         storer.store( size );
         storer.store( inheritance );
     }
-    void Parser_EventDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_EventDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_InteruptDef : public mega::io::Object
     Parser_InteruptDef::Parser_InteruptDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1572,28 +894,6 @@ namespace AST
         storer.store( argumentList );
         storer.store( transition );
     }
-    void Parser_InteruptDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_InteruptDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "argumentList", argumentList } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "transition", transition } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_RequirementDef : public mega::io::Object
     Parser_RequirementDef::Parser_RequirementDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1615,18 +915,6 @@ namespace AST
     void Parser_RequirementDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_InteruptDef );
-    }
-    void Parser_RequirementDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_RequirementDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Parser_FunctionDef : public mega::io::Object
@@ -1662,28 +950,6 @@ namespace AST
         storer.store( argumentList );
         storer.store( returnType );
     }
-    void Parser_FunctionDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_FunctionDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "argumentList", argumentList } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "returnType", returnType } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_ObjectDef : public mega::io::Object
     Parser_ObjectDef::Parser_ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1718,28 +984,6 @@ namespace AST
         storer.store( size );
         storer.store( inheritance );
     }
-    void Parser_ObjectDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ObjectDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_SourceRoot : public mega::io::Object
     Parser_SourceRoot::Parser_SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1772,33 +1016,6 @@ namespace AST
         storer.store( component );
         storer.store( ast );
     }
-    void Parser_SourceRoot::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_SourceRoot" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "sourceFile", sourceFile } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "component", component } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "ast", ast } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Parser_IncludeRoot : public mega::io::Object
     Parser_IncludeRoot::Parser_IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1821,18 +1038,6 @@ namespace AST
     {
         storer.store( p_AST_Parser_SourceRoot );
     }
-    void Parser_IncludeRoot::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_IncludeRoot" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Parser_ObjectSourceRoot : public mega::io::Object
     Parser_ObjectSourceRoot::Parser_ObjectSourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1854,18 +1059,6 @@ namespace AST
     void Parser_ObjectSourceRoot::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_SourceRoot );
-    }
-    void Parser_ObjectSourceRoot::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ObjectSourceRoot" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
 }
@@ -1893,23 +1086,6 @@ namespace Body
     void Parser_ContextDef::store( mega::io::Storer& storer ) const
     {
         storer.store( body );
-    }
-    void Parser_ContextDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ContextDef" },
-                { "filetype" , "Body" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "body", body } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -1945,23 +1121,6 @@ namespace Tree
     {
         storer.store( parent );
     }
-    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_DimensionTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent", parent } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_UserDimensionTrait : public mega::io::Object
     Interface_UserDimensionTrait::Interface_UserDimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1992,23 +1151,6 @@ namespace Tree
         storer.store( p_Tree_Interface_DimensionTrait );
         storer.store( parser_dimension );
     }
-    void Interface_UserDimensionTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_UserDimensionTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parser_dimension", parser_dimension } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_CompilerDimensionTrait : public mega::io::Object
     Interface_CompilerDimensionTrait::Interface_CompilerDimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -2037,23 +1179,6 @@ namespace Tree
     {
         storer.store( p_Tree_Interface_DimensionTrait );
         storer.store( identifier );
-    }
-    void Interface_CompilerDimensionTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_CompilerDimensionTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "identifier", identifier } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_LinkTrait : public mega::io::Object
@@ -2085,23 +1210,6 @@ namespace Tree
     void Interface_LinkTrait::store( mega::io::Storer& storer ) const
     {
         storer.store( parent );
-    }
-    void Interface_LinkTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_LinkTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent", parent } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_UserLinkTrait : public mega::io::Object
@@ -2135,23 +1243,6 @@ namespace Tree
         storer.store( p_Tree_Interface_LinkTrait );
         storer.store( parser_link );
     }
-    void Interface_UserLinkTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_UserLinkTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parser_link", parser_link } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_OwnershipLinkTrait : public mega::io::Object
     Interface_OwnershipLinkTrait::Interface_OwnershipLinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -2173,18 +1264,6 @@ namespace Tree
     void Interface_OwnershipLinkTrait::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Tree_Interface_LinkTrait );
-    }
-    void Interface_OwnershipLinkTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_OwnershipLinkTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Interface_InheritanceTrait : public mega::io::Object
@@ -2209,18 +1288,6 @@ namespace Tree
     {
         storer.store( p_AST_Parser_Inheritance );
     }
-    void Interface_InheritanceTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_InheritanceTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Interface_ReturnTypeTrait : public mega::io::Object
     Interface_ReturnTypeTrait::Interface_ReturnTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -2244,18 +1311,6 @@ namespace Tree
     {
         storer.store( p_AST_Parser_ReturnType );
     }
-    void Interface_ReturnTypeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_ReturnTypeTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Interface_ArgumentListTrait : public mega::io::Object
     Interface_ArgumentListTrait::Interface_ArgumentListTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -2278,18 +1333,6 @@ namespace Tree
     void Interface_ArgumentListTrait::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_ArgumentList );
-    }
-    void Interface_ArgumentListTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_ArgumentListTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Interface_PartTrait : public mega::io::Object
@@ -2321,23 +1364,6 @@ namespace Tree
         storer.store( p_AST_Parser_Part );
         storer.store( parent );
     }
-    void Interface_PartTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_PartTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent", parent } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_TransitionTypeTrait : public mega::io::Object
     Interface_TransitionTypeTrait::Interface_TransitionTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -2360,18 +1386,6 @@ namespace Tree
     void Interface_TransitionTypeTrait::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_Transition );
-    }
-    void Interface_TransitionTypeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_TransitionTypeTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Interface_EventTypeTrait : public mega::io::Object
@@ -2396,18 +1410,6 @@ namespace Tree
     {
         storer.store( p_AST_Parser_ArgumentList );
     }
-    void Interface_EventTypeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_EventTypeTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Interface_SizeTrait : public mega::io::Object
     Interface_SizeTrait::Interface_SizeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -2430,18 +1432,6 @@ namespace Tree
     void Interface_SizeTrait::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_Size );
-    }
-    void Interface_SizeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_SizeTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Interface_ContextGroup : public mega::io::Object
@@ -2466,23 +1456,6 @@ namespace Tree
     void Interface_ContextGroup::store( mega::io::Storer& storer ) const
     {
         storer.store( children );
-    }
-    void Interface_ContextGroup::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_ContextGroup" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "children", children } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_Root : public mega::io::Object
@@ -2513,23 +1486,6 @@ namespace Tree
     {
         storer.store( p_Tree_Interface_ContextGroup );
         storer.store( root );
-    }
-    void Interface_Root::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Root" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "root", root } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_IContext : public mega::io::Object
@@ -2572,33 +1528,6 @@ namespace Tree
         storer.store( parent );
         storer.store( component );
     }
-    void Interface_IContext::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_IContext" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "identifier", identifier } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent", parent } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "component", component } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_InvocationContext : public mega::io::Object
     Interface_InvocationContext::Interface_InvocationContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -2621,18 +1550,6 @@ namespace Tree
     void Interface_InvocationContext::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Tree_Interface_IContext );
-    }
-    void Interface_InvocationContext::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_InvocationContext" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Interface_Namespace : public mega::io::Object
@@ -2668,33 +1585,6 @@ namespace Tree
         storer.store( namespace_defs );
         VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Namespace.dimension_traits has NOT been set" );
         storer.store( dimension_traits );
-    }
-    void Interface_Namespace::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Namespace" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "is_global", is_global } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "namespace_defs", namespace_defs } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimension_traits", dimension_traits.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_Abstract : public mega::io::Object
@@ -2737,51 +1627,16 @@ namespace Tree
         VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Abstract.size_trait has NOT been set" );
         storer.store( size_trait );
     }
-    void Interface_Abstract::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Abstract" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "abstract_defs", abstract_defs } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimension_traits", dimension_traits.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_traits", link_traits.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_trait", inheritance_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size_trait", size_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_State : public mega::io::Object
     Interface_State::Interface_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_State >( loader, this ) )          , p_Tree_Interface_InvocationContext( loader )
+          , p_MetaAnalysis_Interface_State( loader )
     {
     }
     Interface_State::Interface_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_StateDef > >& state_defs)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_State >( loader, this ) )          , p_Tree_Interface_InvocationContext( loader )
+          , p_MetaAnalysis_Interface_State( loader )
           , state_defs( state_defs )
     {
     }
@@ -2821,53 +1676,6 @@ namespace Tree
         VERIFY_RTE_MSG( part_traits.has_value(), "Tree::Interface_State.part_traits has NOT been set" );
         storer.store( part_traits );
     }
-    void Interface_State::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_State" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "state_defs", state_defs } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimension_traits", dimension_traits.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_traits", link_traits.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_trait", inheritance_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size_trait", size_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "transition_trait", transition_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "part_traits", part_traits.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_Action : public mega::io::Object
     Interface_Action::Interface_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -2890,18 +1698,6 @@ namespace Tree
     {
         storer.store( p_Tree_Interface_State );
     }
-    void Interface_Action::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Action" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Interface_Component : public mega::io::Object
     Interface_Component::Interface_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -2923,18 +1719,6 @@ namespace Tree
     void Interface_Component::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Tree_Interface_State );
-    }
-    void Interface_Component::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Component" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Interface_Event : public mega::io::Object
@@ -2974,38 +1758,6 @@ namespace Tree
         VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Event.size_trait has NOT been set" );
         storer.store( size_trait );
     }
-    void Interface_Event::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Event" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "event_defs", event_defs } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimension_traits", dimension_traits.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_trait", inheritance_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size_trait", size_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_Interupt : public mega::io::Object
     Interface_Interupt::Interface_Interupt( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -3042,33 +1794,6 @@ namespace Tree
         VERIFY_RTE_MSG( transition_trait.has_value(), "Tree::Interface_Interupt.transition_trait has NOT been set" );
         storer.store( transition_trait );
     }
-    void Interface_Interupt::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Interupt" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interupt_defs", interupt_defs } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "events_trait", events_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "transition_trait", transition_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_Requirement : public mega::io::Object
     Interface_Requirement::Interface_Requirement( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -3090,18 +1815,6 @@ namespace Tree
     void Interface_Requirement::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Tree_Interface_Interupt );
-    }
-    void Interface_Requirement::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Requirement" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Interface_Function : public mega::io::Object
@@ -3139,33 +1852,6 @@ namespace Tree
         storer.store( return_type_trait );
         VERIFY_RTE_MSG( arguments_trait.has_value(), "Tree::Interface_Function.arguments_trait has NOT been set" );
         storer.store( arguments_trait );
-    }
-    void Interface_Function::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Function" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "function_defs", function_defs } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "return_type_trait", return_type_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "arguments_trait", arguments_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_Object : public mega::io::Object
@@ -3208,148 +1894,6 @@ namespace Tree
         VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Object.size_trait has NOT been set" );
         storer.store( size_trait );
     }
-    void Interface_Object::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_Object" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "object_defs", object_defs } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimension_traits", dimension_traits.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_traits", link_traits.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_trait", inheritance_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size_trait", size_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-}
-namespace MetaAnalysis
-{
-    // struct Meta_SequenceAction : public mega::io::Object
-    Meta_SequenceAction::Meta_SequenceAction( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MetaAnalysis::Meta_SequenceAction >( loader, this ) )          , p_Tree_Interface_Action( loader )
-    {
-    }
-    bool Meta_SequenceAction::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MetaAnalysis::Meta_SequenceAction >( loader, const_cast< Meta_SequenceAction* >( this ) ) };
-    }
-    void Meta_SequenceAction::set_inheritance_pointer()
-    {
-        p_Tree_Interface_Action->m_inheritance = data::Ptr< data::MetaAnalysis::Meta_SequenceAction >( p_Tree_Interface_Action, this );
-    }
-    void Meta_SequenceAction::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Tree_Interface_Action );
-    }
-    void Meta_SequenceAction::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Tree_Interface_Action );
-    }
-    void Meta_SequenceAction::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Meta_SequenceAction" },
-                { "filetype" , "MetaAnalysis" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Meta_StackAction : public mega::io::Object
-    Meta_StackAction::Meta_StackAction( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MetaAnalysis::Meta_StackAction >( loader, this ) )          , p_Tree_Interface_Action( loader )
-    {
-    }
-    bool Meta_StackAction::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MetaAnalysis::Meta_StackAction >( loader, const_cast< Meta_StackAction* >( this ) ) };
-    }
-    void Meta_StackAction::set_inheritance_pointer()
-    {
-        p_Tree_Interface_Action->m_inheritance = data::Ptr< data::MetaAnalysis::Meta_StackAction >( p_Tree_Interface_Action, this );
-    }
-    void Meta_StackAction::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Tree_Interface_Action );
-    }
-    void Meta_StackAction::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Tree_Interface_Action );
-    }
-    void Meta_StackAction::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Meta_StackAction" },
-                { "filetype" , "MetaAnalysis" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Meta_PlanAction : public mega::io::Object
-    Meta_PlanAction::Meta_PlanAction( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MetaAnalysis::Meta_PlanAction >( loader, this ) )          , p_Tree_Interface_Action( loader )
-    {
-    }
-    bool Meta_PlanAction::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MetaAnalysis::Meta_PlanAction >( loader, const_cast< Meta_PlanAction* >( this ) ) };
-    }
-    void Meta_PlanAction::set_inheritance_pointer()
-    {
-        p_Tree_Interface_Action->m_inheritance = data::Ptr< data::MetaAnalysis::Meta_PlanAction >( p_Tree_Interface_Action, this );
-    }
-    void Meta_PlanAction::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Tree_Interface_Action );
-    }
-    void Meta_PlanAction::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Tree_Interface_Action );
-    }
-    void Meta_PlanAction::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Meta_PlanAction" },
-                { "filetype" , "MetaAnalysis" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
 }
 namespace DPGraph
@@ -3379,28 +1923,6 @@ namespace DPGraph
     {
         storer.store( location );
         storer.store( glob );
-    }
-    void Dependencies_Glob::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Dependencies_Glob" },
-                { "filetype" , "DPGraph" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "location", location } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "glob", glob } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Dependencies_SourceFileDependencies : public mega::io::Object
@@ -3435,38 +1957,6 @@ namespace DPGraph
         storer.store( globs );
         storer.store( resolution );
     }
-    void Dependencies_SourceFileDependencies::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Dependencies_SourceFileDependencies" },
-                { "filetype" , "DPGraph" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_file", source_file } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "hash_code", hash_code } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "globs", globs } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "resolution", resolution } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Dependencies_TransitiveDependencies : public mega::io::Object
     Dependencies_TransitiveDependencies::Dependencies_TransitiveDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -3490,23 +1980,6 @@ namespace DPGraph
     void Dependencies_TransitiveDependencies::store( mega::io::Storer& storer ) const
     {
         storer.store( mega_source_files );
-    }
-    void Dependencies_TransitiveDependencies::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Dependencies_TransitiveDependencies" },
-                { "filetype" , "DPGraph" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "mega_source_files", mega_source_files } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Dependencies_Analysis : public mega::io::Object
@@ -3540,38 +2013,6 @@ namespace DPGraph
         storer.store( mega_dependencies );
         storer.store( cpp_dependencies );
         storer.store( topological_mega_files );
-    }
-    void Dependencies_Analysis::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Dependencies_Analysis" },
-                { "filetype" , "DPGraph" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "objects", objects } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "mega_dependencies", mega_dependencies } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "cpp_dependencies", cpp_dependencies } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "topological_mega_files", topological_mega_files } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -3612,43 +2053,6 @@ namespace SymbolTable
         storer.store( dimensions );
         storer.store( links );
     }
-    void Symbols_SymbolTypeID::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Symbols_SymbolTypeID" },
-                { "filetype" , "SymbolTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "symbol", symbol } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "contexts", contexts } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "links", links } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Symbols_InterfaceTypeID : public mega::io::Object
     Symbols_InterfaceTypeID::Symbols_InterfaceTypeID( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -3685,43 +2089,6 @@ namespace SymbolTable
         storer.store( dimension );
         storer.store( link );
     }
-    void Symbols_InterfaceTypeID::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Symbols_InterfaceTypeID" },
-                { "filetype" , "SymbolTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "symbol_ids", symbol_ids } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "context", context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimension", dimension } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link", link } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Symbols_SymbolTable : public mega::io::Object
     Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -3756,38 +2123,6 @@ namespace SymbolTable
         storer.store( symbol_type_ids );
         storer.store( interface_type_id_sequences );
         storer.store( interface_type_ids );
-    }
-    void Symbols_SymbolTable::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Symbols_SymbolTable" },
-                { "filetype" , "SymbolTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "symbol_names", symbol_names } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "symbol_type_ids", symbol_type_ids } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_type_id_sequences", interface_type_id_sequences } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_type_ids", interface_type_ids } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -3824,28 +2159,6 @@ namespace PerSourceSymbols
         storer.store( symbol_id );
         storer.store( interface_id );
     }
-    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_DimensionTrait" },
-                { "filetype" , "PerSourceSymbols" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "symbol_id", symbol_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_id", interface_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_LinkTrait : public mega::io::Object
     Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -3877,28 +2190,6 @@ namespace PerSourceSymbols
         storer.store( p_Tree_Interface_LinkTrait );
         storer.store( symbol_id );
         storer.store( interface_id );
-    }
-    void Interface_LinkTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_LinkTrait" },
-                { "filetype" , "PerSourceSymbols" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "symbol_id", symbol_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_id", interface_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_IContext : public mega::io::Object
@@ -3932,27 +2223,37 @@ namespace PerSourceSymbols
         storer.store( symbol_id );
         storer.store( interface_id );
     }
-    void Interface_IContext::to_json( nlohmann::json& _part__ ) const
+        
+}
+namespace MetaAnalysis
+{
+    // struct Interface_State : public mega::io::Object
+    Interface_State::Interface_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_State( loader )
     {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_IContext" },
-                { "filetype" , "PerSourceSymbols" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "symbol_id", symbol_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_id", interface_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
+    }
+    Interface_State::Interface_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_State > p_Tree_Interface_State, const bool& is_or_state)
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_State( p_Tree_Interface_State )
+          , is_or_state( is_or_state )
+    {
+    }
+    bool Interface_State::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Interface_State::set_inheritance_pointer()
+    {
+        p_Tree_Interface_State->p_MetaAnalysis_Interface_State = data::Ptr< data::MetaAnalysis::Interface_State >( p_Tree_Interface_State, this );
+    }
+    void Interface_State::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_State );
+        loader.load( is_or_state );
+    }
+    void Interface_State::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_State );
+        storer.store( is_or_state );
     }
         
 }
@@ -3981,23 +2282,6 @@ namespace Clang
     {
         storer.store( types );
     }
-    void Interface_TypePath::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_TypePath" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "types", types } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_TypePathVariant : public mega::io::Object
     Interface_TypePathVariant::Interface_TypePathVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4021,23 +2305,6 @@ namespace Clang
     void Interface_TypePathVariant::store( mega::io::Storer& storer ) const
     {
         storer.store( sequence );
-    }
-    void Interface_TypePathVariant::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_TypePathVariant" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "sequence", sequence } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_DimensionTrait : public mega::io::Object
@@ -4087,53 +2354,6 @@ namespace Clang
         storer.store( simple );
         storer.store( symbols );
     }
-    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_DimensionTrait" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "canonical_type", canonical_type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "mangle", mangle } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "erased_type", erased_type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "alignment", alignment } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "simple", simple } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "symbols", symbols } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_UserLinkTrait : public mega::io::Object
     Interface_UserLinkTrait::Interface_UserLinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4162,23 +2382,6 @@ namespace Clang
     {
         storer.store( p_Tree_Interface_UserLinkTrait );
         storer.store( tuple );
-    }
-    void Interface_UserLinkTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_UserLinkTrait" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "tuple", tuple } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_InheritanceTrait : public mega::io::Object
@@ -4209,23 +2412,6 @@ namespace Clang
         storer.store( p_Tree_Interface_InheritanceTrait );
         storer.store( contexts );
     }
-    void Interface_InheritanceTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_InheritanceTrait" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "contexts", contexts } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_ReturnTypeTrait : public mega::io::Object
     Interface_ReturnTypeTrait::Interface_ReturnTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4254,23 +2440,6 @@ namespace Clang
     {
         storer.store( p_Tree_Interface_ReturnTypeTrait );
         storer.store( canonical_type );
-    }
-    void Interface_ReturnTypeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_ReturnTypeTrait" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "canonical_type", canonical_type } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_ArgumentListTrait : public mega::io::Object
@@ -4301,23 +2470,6 @@ namespace Clang
         storer.store( p_Tree_Interface_ArgumentListTrait );
         storer.store( canonical_types );
     }
-    void Interface_ArgumentListTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_ArgumentListTrait" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "canonical_types", canonical_types } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_TransitionTypeTrait : public mega::io::Object
     Interface_TransitionTypeTrait::Interface_TransitionTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4346,23 +2498,6 @@ namespace Clang
     {
         storer.store( p_Tree_Interface_TransitionTypeTrait );
         storer.store( tuple );
-    }
-    void Interface_TransitionTypeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_TransitionTypeTrait" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "tuple", tuple } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Interface_EventTypeTrait : public mega::io::Object
@@ -4393,23 +2528,6 @@ namespace Clang
         storer.store( p_Tree_Interface_EventTypeTrait );
         storer.store( tuple );
     }
-    void Interface_EventTypeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_EventTypeTrait" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "tuple", tuple } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_SizeTrait : public mega::io::Object
     Interface_SizeTrait::Interface_SizeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4439,23 +2557,6 @@ namespace Clang
         storer.store( p_Tree_Interface_SizeTrait );
         storer.store( size );
     }
-    void Interface_SizeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_SizeTrait" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
 }
 namespace Concrete
@@ -4477,18 +2578,6 @@ namespace Concrete
     }
     void Concrete_Graph_Vertex::store( mega::io::Storer& storer ) const
     {
-    }
-    void Concrete_Graph_Vertex::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Graph_Vertex" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Concrete_Dimensions_User : public mega::io::Object
@@ -4527,28 +2616,6 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_Graph_Vertex );
         storer.store( parent_context );
         storer.store( interface_dimension );
-    }
-    void Concrete_Dimensions_User::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_User" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent_context", parent_context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_dimension", interface_dimension } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Dimensions_Link : public mega::io::Object
@@ -4594,33 +2661,6 @@ namespace Concrete
         VERIFY_RTE_MSG( link_type.has_value(), "Concrete::Concrete_Dimensions_Link.link_type has NOT been set" );
         storer.store( link_type );
     }
-    void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Link" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent_context", parent_context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_link", interface_link } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_type", link_type.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Dimensions_UserLink : public mega::io::Object
     Concrete_Dimensions_UserLink::Concrete_Dimensions_UserLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4650,23 +2690,6 @@ namespace Concrete
     {
         storer.store( p_Concrete_Concrete_Dimensions_Link );
         storer.store( interface_user_link );
-    }
-    void Concrete_Dimensions_UserLink::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_UserLink" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_user_link", interface_user_link } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Dimensions_OwnershipLink : public mega::io::Object
@@ -4698,23 +2721,6 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_Dimensions_Link );
         storer.store( interface_owner_link );
     }
-    void Concrete_Dimensions_OwnershipLink::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_OwnershipLink" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_owner_link", interface_owner_link } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Dimensions_LinkType : public mega::io::Object
     Concrete_Dimensions_LinkType::Concrete_Dimensions_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4745,28 +2751,6 @@ namespace Concrete
     {
         storer.store( parent_context );
         storer.store( link );
-    }
-    void Concrete_Dimensions_LinkType::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_LinkType" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent_context", parent_context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link", link } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Dimensions_Bitset : public mega::io::Object
@@ -4801,28 +2785,6 @@ namespace Concrete
         storer.store( parent_object );
         storer.store( interface_compiler_dimension );
     }
-    void Concrete_Dimensions_Bitset::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Bitset" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent_object", parent_object } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_compiler_dimension", interface_compiler_dimension } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Dimensions_Configuration : public mega::io::Object
     Concrete_Dimensions_Configuration::Concrete_Dimensions_Configuration( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4844,18 +2806,6 @@ namespace Concrete
     void Concrete_Dimensions_Configuration::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Dimensions_Bitset );
-    }
-    void Concrete_Dimensions_Configuration::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Configuration" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Concrete_Dimensions_Activation : public mega::io::Object
@@ -4879,18 +2829,6 @@ namespace Concrete
     {
         storer.store( p_Concrete_Concrete_Dimensions_Bitset );
     }
-    void Concrete_Dimensions_Activation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Activation" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Concrete_Dimensions_Enablement : public mega::io::Object
     Concrete_Dimensions_Enablement::Concrete_Dimensions_Enablement( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4913,18 +2851,6 @@ namespace Concrete
     {
         storer.store( p_Concrete_Concrete_Dimensions_Bitset );
     }
-    void Concrete_Dimensions_Enablement::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Enablement" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Concrete_Dimensions_History : public mega::io::Object
     Concrete_Dimensions_History::Concrete_Dimensions_History( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -4946,18 +2872,6 @@ namespace Concrete
     void Concrete_Dimensions_History::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Dimensions_Bitset );
-    }
-    void Concrete_Dimensions_History::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_History" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Concrete_ContextGroup : public mega::io::Object
@@ -4987,23 +2901,6 @@ namespace Concrete
     {
         storer.store( p_Concrete_Concrete_Graph_Vertex );
         storer.store( children );
-    }
-    void Concrete_ContextGroup::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_ContextGroup" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "children", children } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Context : public mega::io::Object
@@ -5053,43 +2950,6 @@ namespace Concrete
         storer.store( interface );
         storer.store( inheritance );
     }
-    void Concrete_Context::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Context" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "component", component } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_object", concrete_object.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent", parent } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface", interface } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Interupt : public mega::io::Object
     Concrete_Interupt::Concrete_Interupt( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -5120,23 +2980,6 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_Context );
         storer.store( interface_interupt );
     }
-    void Concrete_Interupt::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Interupt" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_interupt", interface_interupt } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Requirement : public mega::io::Object
     Concrete_Requirement::Concrete_Requirement( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -5158,18 +3001,6 @@ namespace Concrete
     void Concrete_Requirement::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Interupt );
-    }
-    void Concrete_Requirement::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Requirement" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Concrete_Function : public mega::io::Object
@@ -5200,23 +3031,6 @@ namespace Concrete
     {
         storer.store( p_Concrete_Concrete_Context );
         storer.store( interface_function );
-    }
-    void Concrete_Function::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Function" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_function", interface_function } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_UserDimensionContext : public mega::io::Object
@@ -5253,33 +3067,6 @@ namespace Concrete
         storer.store( links );
         storer.store( bitsets );
     }
-    void Concrete_UserDimensionContext::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_UserDimensionContext" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "links", links } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "bitsets", bitsets } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Namespace : public mega::io::Object
     Concrete_Namespace::Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -5310,32 +3097,17 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_UserDimensionContext );
         storer.store( interface_namespace );
     }
-    void Concrete_Namespace::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Namespace" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_namespace", interface_namespace } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_State : public mega::io::Object
     Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_State >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , p_AutomataAnalysis_Concrete_State( loader )
           , interface_state( loader )
     {
     }
     Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_State >& interface_state)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_State >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , p_AutomataAnalysis_Concrete_State( loader )
           , interface_state( interface_state )
     {
     }
@@ -5356,23 +3128,6 @@ namespace Concrete
     {
         storer.store( p_Concrete_Concrete_UserDimensionContext );
         storer.store( interface_state );
-    }
-    void Concrete_State::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_State" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_state", interface_state } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Action : public mega::io::Object
@@ -5404,23 +3159,6 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_State );
         storer.store( interface_action );
     }
-    void Concrete_Action::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Action" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_action", interface_action } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Component : public mega::io::Object
     Concrete_Component::Concrete_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -5450,23 +3188,6 @@ namespace Concrete
     {
         storer.store( p_Concrete_Concrete_State );
         storer.store( interface_component );
-    }
-    void Concrete_Component::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Component" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_component", interface_component } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Event : public mega::io::Object
@@ -5498,29 +3219,13 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_UserDimensionContext );
         storer.store( interface_event );
     }
-    void Concrete_Event::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Event" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_event", interface_event } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Object : public mega::io::Object
     Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
           , p_MemoryLayout_Concrete_Object( loader )
           , p_PerSourceModel_Concrete_Object( loader )
+          , p_AutomataAnalysis_Concrete_Object( loader )
           , interface_object( loader )
           , ownership_link( loader )
           , configuration( loader )
@@ -5533,6 +3238,7 @@ namespace Concrete
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
           , p_MemoryLayout_Concrete_Object( loader )
           , p_PerSourceModel_Concrete_Object( loader )
+          , p_AutomataAnalysis_Concrete_Object( loader )
           , interface_object( interface_object )
     {
     }
@@ -5569,48 +3275,6 @@ namespace Concrete
         VERIFY_RTE_MSG( history.has_value(), "Concrete::Concrete_Object.history has NOT been set" );
         storer.store( history );
     }
-    void Concrete_Object::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Object" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_object", interface_object } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "ownership_link", ownership_link.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "configuration", configuration.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "activation", activation.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "enablement", enablement.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "history", history.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Root : public mega::io::Object
     Concrete_Root::Concrete_Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -5640,23 +3304,6 @@ namespace Concrete
     {
         storer.store( p_Concrete_Concrete_ContextGroup );
         storer.store( interface_root );
-    }
-    void Concrete_Root::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Root" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_root", interface_root } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -5697,43 +3344,6 @@ namespace Derivations
         storer.store( inheritance_dimensions );
         storer.store( inheritance_links );
     }
-    void Inheritance_ObjectMapping::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Inheritance_ObjectMapping" },
-                { "filetype" , "Derivations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_file", source_file } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "hash_code", hash_code } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_contexts", inheritance_contexts } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_dimensions", inheritance_dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_links", inheritance_links } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Inheritance_Mapping : public mega::io::Object
     Inheritance_Mapping::Inheritance_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -5767,38 +3377,6 @@ namespace Derivations
         storer.store( inheritance_dimensions );
         storer.store( inheritance_links );
     }
-    void Inheritance_Mapping::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Inheritance_Mapping" },
-                { "filetype" , "Derivations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "mappings", mappings } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_contexts", inheritance_contexts } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_dimensions", inheritance_dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance_links", inheritance_links } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
 }
 namespace PerSourceDerivations
@@ -5831,23 +3409,6 @@ namespace PerSourceDerivations
         storer.store( p_Tree_Interface_DimensionTrait );
         storer.store( concrete );
     }
-    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_DimensionTrait" },
-                { "filetype" , "PerSourceDerivations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete", concrete } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_LinkTrait : public mega::io::Object
     Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -5877,23 +3438,6 @@ namespace PerSourceDerivations
         storer.store( p_Tree_Interface_LinkTrait );
         storer.store( concrete );
     }
-    void Interface_LinkTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_LinkTrait" },
-                { "filetype" , "PerSourceDerivations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete", concrete } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_IContext : public mega::io::Object
     Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -5922,23 +3466,6 @@ namespace PerSourceDerivations
     {
         storer.store( p_Tree_Interface_IContext );
         storer.store( concrete );
-    }
-    void Interface_IContext::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_IContext" },
-                { "filetype" , "PerSourceDerivations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete", concrete } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -5975,33 +3502,6 @@ namespace Model
         storer.store( source );
         storer.store( target );
     }
-    void Concrete_Graph_Edge::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Graph_Edge" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "type", type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source", source } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "target", target } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct HyperGraph_Relation : public mega::io::Object
     HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6025,23 +3525,6 @@ namespace Model
     void HyperGraph_Relation::store( mega::io::Storer& storer ) const
     {
         storer.store( id );
-    }
-    void HyperGraph_Relation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "HyperGraph_Relation" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct HyperGraph_OwningObjectRelation : public mega::io::Object
@@ -6074,28 +3557,6 @@ namespace Model
         storer.store( p_Model_HyperGraph_Relation );
         storer.store( owners );
         storer.store( owned );
-    }
-    void HyperGraph_OwningObjectRelation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "HyperGraph_OwningObjectRelation" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "owners", owners } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "owned", owned } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct HyperGraph_NonOwningObjectRelation : public mega::io::Object
@@ -6131,28 +3592,6 @@ namespace Model
         storer.store( source );
         storer.store( target );
     }
-    void HyperGraph_NonOwningObjectRelation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "HyperGraph_NonOwningObjectRelation" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source", source } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "target", target } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct HyperGraph_Graph : public mega::io::Object
     HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6180,28 +3619,6 @@ namespace Model
     {
         storer.store( owning_relation );
         storer.store( non_owning_relations );
-    }
-    void HyperGraph_Graph::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "HyperGraph_Graph" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "owning_relation", owning_relation } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "non_owning_relations", non_owning_relations } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -6236,23 +3653,6 @@ namespace PerSourceModel
         storer.store( p_Tree_Interface_LinkTrait );
         storer.store( relation );
     }
-    void Interface_LinkTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_LinkTrait" },
-                { "filetype" , "PerSourceModel" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "relation", relation } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Graph_Vertex : public mega::io::Object
     Concrete_Graph_Vertex::Concrete_Graph_Vertex( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6284,28 +3684,6 @@ namespace PerSourceModel
         storer.store( p_Concrete_Concrete_Graph_Vertex );
         storer.store( out_edges );
         storer.store( in_edges );
-    }
-    void Concrete_Graph_Vertex::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Graph_Vertex" },
-                { "filetype" , "PerSourceModel" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "out_edges", out_edges } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "in_edges", in_edges } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Dimensions_Link : public mega::io::Object
@@ -6349,43 +3727,6 @@ namespace PerSourceModel
         storer.store( source );
         storer.store( singular );
     }
-    void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Link" },
-                { "filetype" , "PerSourceModel" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "relation", relation } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "owning", owning } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "owned", owned } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source", source } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "singular", singular } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Object : public mega::io::Object
     Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6414,23 +3755,6 @@ namespace PerSourceModel
     {
         storer.store( p_Concrete_Concrete_Object );
         storer.store( link_contexts );
-    }
-    void Concrete_Object::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Object" },
-                { "filetype" , "PerSourceModel" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_contexts", link_contexts } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -6463,28 +3787,6 @@ namespace Model
         storer.store( next );
         storer.store( edges );
     }
-    void Alias_Edge::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Alias_Edge" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "next", next } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "edges", edges } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Alias_Step : public mega::io::Object
     Alias_Step::Alias_Step( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6513,28 +3815,6 @@ namespace Model
         storer.store( vertex );
         storer.store( edges );
     }
-    void Alias_Step::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Alias_Step" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "vertex", vertex } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "edges", edges } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Alias_And : public mega::io::Object
     Alias_And::Alias_And( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6557,18 +3837,6 @@ namespace Model
     {
         storer.store( p_Model_Alias_Step );
     }
-    void Alias_And::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Alias_And" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Alias_Or : public mega::io::Object
     Alias_Or::Alias_Or( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6590,18 +3858,6 @@ namespace Model
     void Alias_Or::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Model_Alias_Step );
-    }
-    void Alias_Or::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Alias_Or" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Alias_AliasDerivation : public mega::io::Object
@@ -6630,28 +3886,6 @@ namespace Model
     {
         storer.store( context );
         storer.store( edges );
-    }
-    void Alias_AliasDerivation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Alias_AliasDerivation" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "context", context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "edges", edges } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -6692,38 +3926,6 @@ namespace ConcreteTable
         storer.store( dim_user );
         storer.store( dim_link );
     }
-    void Symbols_ConcreteTypeID::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Symbols_ConcreteTypeID" },
-                { "filetype" , "ConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "context", context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dim_user", dim_user } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dim_link", dim_link } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Symbols_SymbolTable : public mega::io::Object
     Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6759,33 +3961,6 @@ namespace ConcreteTable
         storer.store( concrete_type_id_set_link );
         storer.store( concrete_type_ids );
     }
-    void Symbols_SymbolTable::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Symbols_SymbolTable" },
-                { "filetype" , "ConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_type_id_sequences", concrete_type_id_sequences } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_type_id_set_link", concrete_type_id_set_link } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_type_ids", concrete_type_ids } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
 }
 namespace PerSourceConcreteTable
@@ -6818,23 +3993,6 @@ namespace PerSourceConcreteTable
         storer.store( p_Concrete_Concrete_Dimensions_User );
         storer.store( concrete_id );
     }
-    void Concrete_Dimensions_User::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_User" },
-                { "filetype" , "PerSourceConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_id", concrete_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Dimensions_Link : public mega::io::Object
     Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6863,23 +4021,6 @@ namespace PerSourceConcreteTable
     {
         storer.store( p_Concrete_Concrete_Dimensions_Link );
         storer.store( concrete_id );
-    }
-    void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Link" },
-                { "filetype" , "PerSourceConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_id", concrete_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Dimensions_Bitset : public mega::io::Object
@@ -6910,23 +4051,6 @@ namespace PerSourceConcreteTable
         storer.store( p_Concrete_Concrete_Dimensions_Bitset );
         storer.store( concrete_id );
     }
-    void Concrete_Dimensions_Bitset::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Bitset" },
-                { "filetype" , "PerSourceConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_id", concrete_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Context : public mega::io::Object
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -6955,23 +4079,6 @@ namespace PerSourceConcreteTable
     {
         storer.store( p_Concrete_Concrete_Context );
         storer.store( concrete_id );
-    }
-    void Concrete_Context::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Context" },
-                { "filetype" , "PerSourceConcreteTable" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete_id", concrete_id } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -7009,28 +4116,6 @@ namespace MemoryLayout
         storer.store( part );
         storer.store( offset );
     }
-    void Concrete_Dimensions_User::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_User" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "part", part } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "offset", offset } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Dimensions_Link : public mega::io::Object
     Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -7064,28 +4149,6 @@ namespace MemoryLayout
         storer.store( part );
         storer.store( offset );
     }
-    void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Link" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "part", part } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "offset", offset } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Dimensions_LinkType : public mega::io::Object
     Concrete_Dimensions_LinkType::Concrete_Dimensions_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -7118,28 +4181,6 @@ namespace MemoryLayout
         storer.store( p_Concrete_Concrete_Dimensions_LinkType );
         storer.store( part );
         storer.store( offset );
-    }
-    void Concrete_Dimensions_LinkType::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_LinkType" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "part", part } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "offset", offset } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Dimensions_Bitset : public mega::io::Object
@@ -7177,40 +4218,13 @@ namespace MemoryLayout
         storer.store( part );
         storer.store( offset );
     }
-    void Concrete_Dimensions_Bitset::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Bitset" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "part", part } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "offset", offset } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Concrete_Context : public mega::io::Object
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( loader )
     {
     }
-    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const mega::U64& local_size, const mega::U64& total_size)
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const mega::Instance& local_size, const mega::Instance& total_size)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
           , local_size( local_size )
           , total_size( total_size )
@@ -7235,28 +4249,6 @@ namespace MemoryLayout
         storer.store( p_Concrete_Concrete_Context );
         storer.store( local_size );
         storer.store( total_size );
-    }
-    void Concrete_Context::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Context" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "local_size", local_size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "total_size", total_size } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Concrete_Object : public mega::io::Object
@@ -7286,23 +4278,6 @@ namespace MemoryLayout
     {
         storer.store( p_Concrete_Concrete_Object );
         storer.store( buffers );
-    }
-    void Concrete_Object::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Object" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "buffers", buffers } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct MemoryLayout_Part : public mega::io::Object
@@ -7350,58 +4325,6 @@ namespace MemoryLayout
         VERIFY_RTE_MSG( buffer.has_value(), "MemoryLayout::MemoryLayout_Part.buffer has NOT been set" );
         storer.store( buffer );
     }
-    void MemoryLayout_Part::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "MemoryLayout_Part" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "total_domain_size", total_domain_size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "alignment", alignment.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "user_dimensions", user_dimensions.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_dimensions", link_dimensions.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "bitset_dimensions", bitset_dimensions.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "offset", offset.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "buffer", buffer.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct MemoryLayout_Buffer : public mega::io::Object
     MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -7432,33 +4355,6 @@ namespace MemoryLayout
         storer.store( size );
         storer.store( alignment );
     }
-    void MemoryLayout_Buffer::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "MemoryLayout_Buffer" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parts", parts } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "alignment", alignment } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct MemoryLayout_SimpleBuffer : public mega::io::Object
     MemoryLayout_SimpleBuffer::MemoryLayout_SimpleBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -7480,18 +4376,6 @@ namespace MemoryLayout
     void MemoryLayout_SimpleBuffer::store( mega::io::Storer& storer ) const
     {
         storer.store( p_MemoryLayout_MemoryLayout_Buffer );
-    }
-    void MemoryLayout_SimpleBuffer::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "MemoryLayout_SimpleBuffer" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
 }
@@ -7533,43 +4417,6 @@ namespace GlobalMemoryLayout
         storer.store( fixed_allocation );
         storer.store( concrete );
     }
-    void MemoryLayout_MemoryMap::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "MemoryLayout_MemoryMap" },
-                { "filetype" , "GlobalMemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface", interface } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "block_size", block_size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "block_alignment", block_alignment } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "fixed_allocation", fixed_allocation } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete", concrete } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
 }
 namespace GlobalMemoryRollout
@@ -7603,27 +4450,197 @@ namespace GlobalMemoryRollout
         storer.store( p_Concrete_Concrete_Object );
         storer.store( memory_map );
     }
-    void Concrete_MemoryMappedObject::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_MemoryMappedObject" },
-                { "filetype" , "GlobalMemoryRollout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "memory_map", memory_map } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
 }
 namespace AutomataAnalysis
 {
+    // struct Concrete_State : public mega::io::Object
+    Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_State( loader )
+          , automata_vertex( loader )
+    {
+    }
+    Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_State > p_Concrete_Concrete_State, const data::Ptr< data::AutomataAnalysis::Automata_Vertex >& automata_vertex)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_State( p_Concrete_Concrete_State )
+          , automata_vertex( automata_vertex )
+    {
+    }
+    bool Concrete_State::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_State::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_State->p_AutomataAnalysis_Concrete_State = data::Ptr< data::AutomataAnalysis::Concrete_State >( p_Concrete_Concrete_State, this );
+    }
+    void Concrete_State::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_State );
+        loader.load( automata_vertex );
+    }
+    void Concrete_State::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_State );
+        storer.store( automata_vertex );
+    }
+        
+    // struct Concrete_Object : public mega::io::Object
+    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Object( loader )
+          , automata_root( loader )
+          , automata_enum( loader )
+    {
+    }
+    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Object > p_Concrete_Concrete_Object, const data::Ptr< data::AutomataAnalysis::Automata_Vertex >& automata_root, const data::Ptr< data::AutomataAnalysis::Automata_Enum >& automata_enum, const mega::U64& total_index)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Object( p_Concrete_Concrete_Object )
+          , automata_root( automata_root )
+          , automata_enum( automata_enum )
+          , total_index( total_index )
+    {
+    }
+    bool Concrete_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Object::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Object->p_AutomataAnalysis_Concrete_Object = data::Ptr< data::AutomataAnalysis::Concrete_Object >( p_Concrete_Concrete_Object, this );
+    }
+    void Concrete_Object::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Object );
+        loader.load( automata_root );
+        loader.load( automata_enum );
+        loader.load( total_index );
+    }
+    void Concrete_Object::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Object );
+        storer.store( automata_root );
+        storer.store( automata_enum );
+        storer.store( total_index );
+    }
+        
+    // struct Automata_Vertex : public mega::io::Object
+    Automata_Vertex::Automata_Vertex( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Vertex >( loader, this ) )          , context( loader )
+    {
+    }
+    Automata_Vertex::Automata_Vertex( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::U32& index_base, const mega::U32& relative_domain, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::vector< data::Ptr< data::AutomataAnalysis::Automata_Vertex > >& children)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Vertex >( loader, this ) )          , index_base( index_base )
+          , relative_domain( relative_domain )
+          , context( context )
+          , children( children )
+    {
+    }
+    bool Automata_Vertex::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Vertex >( loader, const_cast< Automata_Vertex* >( this ) ) };
+    }
+    void Automata_Vertex::set_inheritance_pointer()
+    {
+    }
+    void Automata_Vertex::load( mega::io::Loader& loader )
+    {
+        loader.load( index_base );
+        loader.load( relative_domain );
+        loader.load( context );
+        loader.load( children );
+    }
+    void Automata_Vertex::store( mega::io::Storer& storer ) const
+    {
+        storer.store( index_base );
+        storer.store( relative_domain );
+        storer.store( context );
+        storer.store( children );
+    }
+        
+    // struct Automata_And : public mega::io::Object
+    Automata_And::Automata_And( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_And >( loader, this ) )          , p_AutomataAnalysis_Automata_Vertex( loader )
+    {
+    }
+    bool Automata_And::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_And >( loader, const_cast< Automata_And* >( this ) ) };
+    }
+    void Automata_And::set_inheritance_pointer()
+    {
+        p_AutomataAnalysis_Automata_Vertex->m_inheritance = data::Ptr< data::AutomataAnalysis::Automata_And >( p_AutomataAnalysis_Automata_Vertex, this );
+    }
+    void Automata_And::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AutomataAnalysis_Automata_Vertex );
+    }
+    void Automata_And::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AutomataAnalysis_Automata_Vertex );
+    }
+        
+    // struct Automata_Or : public mega::io::Object
+    Automata_Or::Automata_Or( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Or >( loader, this ) )          , p_AutomataAnalysis_Automata_Vertex( loader )
+    {
+    }
+    bool Automata_Or::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Or >( loader, const_cast< Automata_Or* >( this ) ) };
+    }
+    void Automata_Or::set_inheritance_pointer()
+    {
+        p_AutomataAnalysis_Automata_Vertex->m_inheritance = data::Ptr< data::AutomataAnalysis::Automata_Or >( p_AutomataAnalysis_Automata_Vertex, this );
+    }
+    void Automata_Or::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AutomataAnalysis_Automata_Vertex );
+    }
+    void Automata_Or::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AutomataAnalysis_Automata_Vertex );
+    }
+        
+    // struct Automata_Enum : public mega::io::Object
+    Automata_Enum::Automata_Enum( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Enum >( loader, this ) )    {
+    }
+    Automata_Enum::Automata_Enum( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::U32& switch_index, const mega::U32& bitset_index, const std::vector< mega::U32 >& indices, const bool& is_or, const bool& has_action, const mega::SubTypeInstance& sub_type_instance, const std::vector< data::Ptr< data::AutomataAnalysis::Automata_Enum > >& children)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Enum >( loader, this ) )          , switch_index( switch_index )
+          , bitset_index( bitset_index )
+          , indices( indices )
+          , is_or( is_or )
+          , has_action( has_action )
+          , sub_type_instance( sub_type_instance )
+          , children( children )
+    {
+    }
+    bool Automata_Enum::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Enum >( loader, const_cast< Automata_Enum* >( this ) ) };
+    }
+    void Automata_Enum::set_inheritance_pointer()
+    {
+    }
+    void Automata_Enum::load( mega::io::Loader& loader )
+    {
+        loader.load( switch_index );
+        loader.load( bitset_index );
+        loader.load( indices );
+        loader.load( is_or );
+        loader.load( has_action );
+        loader.load( sub_type_instance );
+        loader.load( children );
+    }
+    void Automata_Enum::store( mega::io::Storer& storer ) const
+    {
+        storer.store( switch_index );
+        storer.store( bitset_index );
+        storer.store( indices );
+        storer.store( is_or );
+        storer.store( has_action );
+        storer.store( sub_type_instance );
+        storer.store( children );
+    }
+        
 }
 namespace Operations
 {
@@ -7649,23 +4666,6 @@ namespace Operations
     void Invocations_Variables_Variable::store( mega::io::Storer& storer ) const
     {
         storer.store( parent );
-    }
-    void Invocations_Variables_Variable::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Variables_Variable" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parent", parent } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Invocations_Variables_Stack : public mega::io::Object
@@ -7697,23 +4697,6 @@ namespace Operations
         storer.store( p_Operations_Invocations_Variables_Variable );
         storer.store( concrete );
     }
-    void Invocations_Variables_Stack::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Variables_Stack" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete", concrete } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Invocations_Variables_LinkType : public mega::io::Object
     Invocations_Variables_LinkType::Invocations_Variables_LinkType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -7744,23 +4727,6 @@ namespace Operations
         storer.store( p_Operations_Invocations_Variables_Variable );
         storer.store( link_type );
     }
-    void Invocations_Variables_LinkType::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Variables_LinkType" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_type", link_type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Invocations_Variables_Reference : public mega::io::Object
     Invocations_Variables_Reference::Invocations_Variables_Reference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -7790,23 +4756,6 @@ namespace Operations
         storer.store( p_Operations_Invocations_Variables_Variable );
         storer.store( types );
     }
-    void Invocations_Variables_Reference::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Variables_Reference" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "types", types } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Invocations_Variables_Memory : public mega::io::Object
     Invocations_Variables_Memory::Invocations_Variables_Memory( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -7828,18 +4777,6 @@ namespace Operations
     void Invocations_Variables_Memory::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Variables_Reference );
-    }
-    void Invocations_Variables_Memory::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Variables_Memory" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Invocations_Variables_Parameter : public mega::io::Object
@@ -7863,18 +4800,6 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Variables_Reference );
     }
-    void Invocations_Variables_Parameter::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Variables_Parameter" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Invocations_Instructions_Instruction : public mega::io::Object
     Invocations_Instructions_Instruction::Invocations_Instructions_Instruction( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -7892,18 +4817,6 @@ namespace Operations
     }
     void Invocations_Instructions_Instruction::store( mega::io::Storer& storer ) const
     {
-    }
-    void Invocations_Instructions_Instruction::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_Instruction" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Invocations_Instructions_InstructionGroup : public mega::io::Object
@@ -7934,23 +4847,6 @@ namespace Operations
         storer.store( p_Operations_Invocations_Instructions_Instruction );
         storer.store( children );
     }
-    void Invocations_Instructions_InstructionGroup::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_InstructionGroup" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "children", children } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Invocations_Instructions_Root : public mega::io::Object
     Invocations_Instructions_Root::Invocations_Instructions_Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -7980,23 +4876,6 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
         storer.store( parameter );
-    }
-    void Invocations_Instructions_Root::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_Root" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parameter", parameter } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Invocations_Instructions_ParentDerivation : public mega::io::Object
@@ -8032,28 +4911,6 @@ namespace Operations
         storer.store( from );
         storer.store( to );
     }
-    void Invocations_Instructions_ParentDerivation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_ParentDerivation" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "from", from } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "to", to } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Invocations_Instructions_ChildDerivation : public mega::io::Object
     Invocations_Instructions_ChildDerivation::Invocations_Instructions_ChildDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8087,28 +4944,6 @@ namespace Operations
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
         storer.store( from );
         storer.store( to );
-    }
-    void Invocations_Instructions_ChildDerivation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_ChildDerivation" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "from", from } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "to", to } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Invocations_Instructions_Dereference : public mega::io::Object
@@ -8152,38 +4987,6 @@ namespace Operations
         storer.store( link_type );
         storer.store( link_dimension );
     }
-    void Invocations_Instructions_Dereference::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_Dereference" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "instance", instance } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "ref", ref } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_type", link_type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_dimension", link_dimension } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Invocations_Instructions_LinkBranch : public mega::io::Object
     Invocations_Instructions_LinkBranch::Invocations_Instructions_LinkBranch( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8214,23 +5017,6 @@ namespace Operations
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
         storer.store( link_type );
     }
-    void Invocations_Instructions_LinkBranch::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_LinkBranch" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_type", link_type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Invocations_Instructions_PolyBranch : public mega::io::Object
     Invocations_Instructions_PolyBranch::Invocations_Instructions_PolyBranch( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8260,23 +5046,6 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
         storer.store( parameter );
-    }
-    void Invocations_Instructions_PolyBranch::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_PolyBranch" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parameter", parameter } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Invocations_Instructions_PolyCase : public mega::io::Object
@@ -8312,28 +5081,6 @@ namespace Operations
         storer.store( reference );
         storer.store( type );
     }
-    void Invocations_Instructions_PolyCase::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_PolyCase" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "reference", reference } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "type", type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Invocations_Operations_Operation : public mega::io::Object
     Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8367,28 +5114,6 @@ namespace Operations
         storer.store( p_Operations_Invocations_Instructions_Instruction );
         storer.store( variable );
         storer.store( context );
-    }
-    void Invocations_Operations_Operation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Operations_Operation" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "variable", variable } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "context", context } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Derivation_Edge : public mega::io::Object
@@ -8427,43 +5152,6 @@ namespace Operations
         storer.store( precedence );
         storer.store( edges );
     }
-    void Derivation_Edge::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Derivation_Edge" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "next", next } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "eliminated", eliminated } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "backtracked", backtracked } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "precedence", precedence } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "edges", edges } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Derivation_Step : public mega::io::Object
     Derivation_Step::Derivation_Step( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8492,28 +5180,6 @@ namespace Operations
         storer.store( vertex );
         storer.store( edges );
     }
-    void Derivation_Step::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Derivation_Step" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "vertex", vertex } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "edges", edges } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Derivation_And : public mega::io::Object
     Derivation_And::Derivation_And( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8536,18 +5202,6 @@ namespace Operations
     {
         storer.store( p_Operations_Derivation_Step );
     }
-    void Derivation_And::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Derivation_And" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Derivation_Or : public mega::io::Object
     Derivation_Or::Derivation_Or( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8569,18 +5223,6 @@ namespace Operations
     void Derivation_Or::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Derivation_Step );
-    }
-    void Derivation_Or::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Derivation_Or" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Derivation_Root : public mega::io::Object
@@ -8609,28 +5251,6 @@ namespace Operations
         storer.store( context );
         storer.store( edges );
     }
-    void Derivation_Root::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Derivation_Root" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "context", context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "edges", edges } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Operations_ReturnTypes_ReturnType : public mega::io::Object
     Operations_ReturnTypes_ReturnType::Operations_ReturnTypes_ReturnType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8651,23 +5271,6 @@ namespace Operations
     {
         VERIFY_RTE_MSG( canonical_type.has_value(), "Operations::Operations_ReturnTypes_ReturnType.canonical_type has NOT been set" );
         storer.store( canonical_type );
-    }
-    void Operations_ReturnTypes_ReturnType::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_ReturnTypes_ReturnType" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "canonical_type", canonical_type.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Operations_ReturnTypes_Void : public mega::io::Object
@@ -8690,18 +5293,6 @@ namespace Operations
     void Operations_ReturnTypes_Void::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_ReturnTypes_ReturnType );
-    }
-    void Operations_ReturnTypes_Void::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_ReturnTypes_Void" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_ReturnTypes_Dimension : public mega::io::Object
@@ -8735,28 +5326,6 @@ namespace Operations
         storer.store( dimensions );
         storer.store( homogeneous );
     }
-    void Operations_ReturnTypes_Dimension::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_ReturnTypes_Dimension" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "homogeneous", homogeneous } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Operations_ReturnTypes_Function : public mega::io::Object
     Operations_ReturnTypes_Function::Operations_ReturnTypes_Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8789,28 +5358,6 @@ namespace Operations
         storer.store( functions );
         storer.store( homogeneous );
     }
-    void Operations_ReturnTypes_Function::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_ReturnTypes_Function" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "functions", functions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "homogeneous", homogeneous } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Operations_ReturnTypes_Context : public mega::io::Object
     Operations_ReturnTypes_Context::Operations_ReturnTypes_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8840,23 +5387,6 @@ namespace Operations
         storer.store( p_Operations_Operations_ReturnTypes_ReturnType );
         storer.store( contexts );
     }
-    void Operations_ReturnTypes_Context::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_ReturnTypes_Context" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "contexts", contexts } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Operations_ReturnTypes_Range : public mega::io::Object
     Operations_ReturnTypes_Range::Operations_ReturnTypes_Range( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8878,18 +5408,6 @@ namespace Operations
     void Operations_ReturnTypes_Range::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_ReturnTypes_Context );
-    }
-    void Operations_ReturnTypes_Range::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_ReturnTypes_Range" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_Operator : public mega::io::Object
@@ -8915,23 +5433,6 @@ namespace Operations
     {
         storer.store( id );
     }
-    void Operations_Operator::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Operator" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Operations_New : public mega::io::Object
     Operations_New::Operations_New( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -8953,18 +5454,6 @@ namespace Operations
     void Operations_New::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Operator );
-    }
-    void Operations_New::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_New" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_Delete : public mega::io::Object
@@ -8988,18 +5477,6 @@ namespace Operations
     {
         storer.store( p_Operations_Operations_Operator );
     }
-    void Operations_Delete::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Delete" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Operations_Cast : public mega::io::Object
     Operations_Cast::Operations_Cast( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9021,18 +5498,6 @@ namespace Operations
     void Operations_Cast::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Operator );
-    }
-    void Operations_Cast::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Cast" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_Active : public mega::io::Object
@@ -9056,18 +5521,6 @@ namespace Operations
     {
         storer.store( p_Operations_Operations_Operator );
     }
-    void Operations_Active::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Active" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Operations_Enabled : public mega::io::Object
     Operations_Enabled::Operations_Enabled( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9089,18 +5542,6 @@ namespace Operations
     void Operations_Enabled::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Operator );
-    }
-    void Operations_Enabled::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Enabled" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_Invocation : public mega::io::Object
@@ -9159,73 +5600,6 @@ namespace Operations
         VERIFY_RTE_MSG( canonical_operation.has_value(), "Operations::Operations_Invocation.canonical_operation has NOT been set" );
         storer.store( canonical_operation );
     }
-    void Operations_Invocation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Invocation" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "id", id } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "derivation", derivation } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "root_instruction", root_instruction.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "variables", variables } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "operations", operations } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "explicit_operation", explicit_operation.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "return_type", return_type.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "file_offsets", file_offsets.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "canonical_context", canonical_context.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "canonical_type_path", canonical_type_path.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "canonical_operation", canonical_operation.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Operations_Start : public mega::io::Object
     Operations_Start::Operations_Start( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9247,18 +5621,6 @@ namespace Operations
     void Operations_Start::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Invocation );
-    }
-    void Operations_Start::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Start" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_Call : public mega::io::Object
@@ -9282,18 +5644,6 @@ namespace Operations
     {
         storer.store( p_Operations_Operations_Invocation );
     }
-    void Operations_Call::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Call" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Operations_Signal : public mega::io::Object
     Operations_Signal::Operations_Signal( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9315,18 +5665,6 @@ namespace Operations
     void Operations_Signal::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Invocation );
-    }
-    void Operations_Signal::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Signal" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_Move : public mega::io::Object
@@ -9350,18 +5688,6 @@ namespace Operations
     {
         storer.store( p_Operations_Operations_Invocation );
     }
-    void Operations_Move::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Move" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Operations_GetContext : public mega::io::Object
     Operations_GetContext::Operations_GetContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9384,18 +5710,6 @@ namespace Operations
     {
         storer.store( p_Operations_Operations_Invocation );
     }
-    void Operations_GetContext::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_GetContext" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Operations_Read : public mega::io::Object
     Operations_Read::Operations_Read( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9417,18 +5731,6 @@ namespace Operations
     void Operations_Read::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Invocation );
-    }
-    void Operations_Read::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Read" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_Write : public mega::io::Object
@@ -9460,23 +5762,6 @@ namespace Operations
         storer.store( p_Operations_Operations_Invocation );
         storer.store( parameter_type );
     }
-    void Operations_Write::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Write" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parameter_type", parameter_type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Operations_LinkRead : public mega::io::Object
     Operations_LinkRead::Operations_LinkRead( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9498,18 +5783,6 @@ namespace Operations
     void Operations_LinkRead::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Invocation );
-    }
-    void Operations_LinkRead::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_LinkRead" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_LinkAdd : public mega::io::Object
@@ -9533,18 +5806,6 @@ namespace Operations
     {
         storer.store( p_Operations_Operations_Invocation );
     }
-    void Operations_LinkAdd::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_LinkAdd" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Operations_LinkRemove : public mega::io::Object
     Operations_LinkRemove::Operations_LinkRemove( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9566,18 +5827,6 @@ namespace Operations
     void Operations_LinkRemove::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Invocation );
-    }
-    void Operations_LinkRemove::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_LinkRemove" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_LinkClear : public mega::io::Object
@@ -9601,18 +5850,6 @@ namespace Operations
     {
         storer.store( p_Operations_Operations_Invocation );
     }
-    void Operations_LinkClear::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_LinkClear" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
         
     // struct Operations_Range : public mega::io::Object
     Operations_Range::Operations_Range( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9634,18 +5871,6 @@ namespace Operations
     void Operations_Range::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Invocation );
-    }
-    void Operations_Range::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Range" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Operations_Invocations : public mega::io::Object
@@ -9673,28 +5898,6 @@ namespace Operations
     {
         storer.store( invocations );
         storer.store( operators );
-    }
-    void Operations_Invocations::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_Invocations" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "invocations", invocations } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "operators", operators } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -9727,28 +5930,6 @@ namespace Locations
         storer.store( invocation );
         storer.store( source_location );
     }
-    void Interface_InvocationInstance::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_InvocationInstance" },
-                { "filetype" , "Locations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "invocation", invocation } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_location", source_location } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct Interface_InvocationContext : public mega::io::Object
     Interface_InvocationContext::Interface_InvocationContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9780,28 +5961,6 @@ namespace Locations
         storer.store( p_Tree_Interface_InvocationContext );
         storer.store( invocation_instances );
         storer.store( source_location );
-    }
-    void Interface_InvocationContext::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_InvocationContext" },
-                { "filetype" , "Locations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "invocation_instances", invocation_instances } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_location", source_location } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -9836,28 +5995,6 @@ namespace UnityAnalysis
         storer.store( typeName );
         storer.store( interfaceTypeID );
     }
-    void UnityAnalysis_DataBinding::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "UnityAnalysis_DataBinding" },
-                { "filetype" , "UnityAnalysis" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "typeName", typeName } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interfaceTypeID", interfaceTypeID } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct UnityAnalysis_LinkBinding : public mega::io::Object
     UnityAnalysis_LinkBinding::UnityAnalysis_LinkBinding( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -9884,28 +6021,6 @@ namespace UnityAnalysis
     {
         storer.store( typeName );
         storer.store( interfaceTypeID );
-    }
-    void UnityAnalysis_LinkBinding::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "UnityAnalysis_LinkBinding" },
-                { "filetype" , "UnityAnalysis" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "typeName", typeName } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interfaceTypeID", interfaceTypeID } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct UnityAnalysis_ObjectBinding : public mega::io::Object
@@ -9940,38 +6055,6 @@ namespace UnityAnalysis
         storer.store( dataBindings );
         storer.store( linkBindings );
     }
-    void UnityAnalysis_ObjectBinding::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "UnityAnalysis_ObjectBinding" },
-                { "filetype" , "UnityAnalysis" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "typeName", typeName } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interfaceTypeID", interfaceTypeID } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dataBindings", dataBindings } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "linkBindings", linkBindings } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct UnityAnalysis_Prefab : public mega::io::Object
     UnityAnalysis_Prefab::UnityAnalysis_Prefab( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -10001,23 +6084,6 @@ namespace UnityAnalysis
         storer.store( p_UnityAnalysis_UnityAnalysis_ObjectBinding );
         storer.store( guid );
     }
-    void UnityAnalysis_Prefab::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "UnityAnalysis_Prefab" },
-                { "filetype" , "UnityAnalysis" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "guid", guid } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
         
     // struct UnityAnalysis_Manual : public mega::io::Object
     UnityAnalysis_Manual::UnityAnalysis_Manual( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -10046,23 +6112,6 @@ namespace UnityAnalysis
     {
         storer.store( p_UnityAnalysis_UnityAnalysis_ObjectBinding );
         storer.store( name );
-    }
-    void UnityAnalysis_Manual::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "UnityAnalysis_Manual" },
-                { "filetype" , "UnityAnalysis" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "name", name } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct UnityAnalysis_Binding : public mega::io::Object
@@ -10098,38 +6147,6 @@ namespace UnityAnalysis
         storer.store( object );
         storer.store( dataBindings );
         storer.store( linkBindings );
-    }
-    void UnityAnalysis_Binding::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "UnityAnalysis_Binding" },
-                { "filetype" , "UnityAnalysis" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "binding", binding } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "object", object } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dataBindings", dataBindings } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "linkBindings", linkBindings } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
 }
@@ -10168,6 +6185,46 @@ std::vector< data::Ptr< data::Model::Alias_Edge > >& Alias_Step_push_back_edges(
             return data::convert< data::Model::Alias_Step >( m_data )->edges;
         case data::Model::Alias_Or::Object_Part_Type_ID:
             return data::convert< data::Model::Alias_Step >( m_data )->edges;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Enum > >& Automata_Enum_push_back_children(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->children;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< mega::U32 >& Automata_Enum_push_back_indices(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->indices;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Vertex > >& Automata_Vertex_push_back_children(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Vertex::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->children;
+        case data::AutomataAnalysis::Automata_And::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->children;
+        case data::AutomataAnalysis::Automata_Or::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->children;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10948,12 +7005,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& Interface_IContext
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -11003,12 +7054,6 @@ std::vector< data::Ptr< data::Locations::Interface_InvocationInstance > >& Inter
         case data::Tree::Interface_Requirement::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         case data::Tree::Interface_Function::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         default:
         {
@@ -11942,6 +7987,154 @@ data::Ptr< data::Concrete::Concrete_Graph_Vertex >& get_Alias_Step_vertex(data::
         }
     }
 }
+mega::U32& get_Automata_Enum_bitset_index(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->bitset_index;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Enum > >& get_Automata_Enum_children(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->children;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& get_Automata_Enum_has_action(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->has_action;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< mega::U32 >& get_Automata_Enum_indices(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->indices;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& get_Automata_Enum_is_or(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->is_or;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::SubTypeInstance& get_Automata_Enum_sub_type_instance(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->sub_type_instance;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U32& get_Automata_Enum_switch_index(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->switch_index;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Vertex > >& get_Automata_Vertex_children(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Vertex::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->children;
+        case data::AutomataAnalysis::Automata_And::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->children;
+        case data::AutomataAnalysis::Automata_Or::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->children;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Context >& get_Automata_Vertex_context(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Vertex::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->context;
+        case data::AutomataAnalysis::Automata_And::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->context;
+        case data::AutomataAnalysis::Automata_Or::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->context;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U32& get_Automata_Vertex_index_base(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Vertex::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->index_base;
+        case data::AutomataAnalysis::Automata_And::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->index_base;
+        case data::AutomataAnalysis::Automata_Or::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->index_base;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U32& get_Automata_Vertex_relative_domain(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Vertex::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->relative_domain;
+        case data::AutomataAnalysis::Automata_And::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->relative_domain;
+        case data::AutomataAnalysis::Automata_Or::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->relative_domain;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 boost::filesystem::path& get_Components_Component_build_dir(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12308,7 +8501,7 @@ data::Ptr< data::Tree::Interface_IContext >& get_Concrete_Context_interface(data
         }
     }
 }
-mega::U64& get_Concrete_Context_local_size(data::Variant& m_data)
+mega::Instance& get_Concrete_Context_local_size(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -12376,7 +8569,7 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& get_Concrete_Context_parent(
         }
     }
 }
-mega::U64& get_Concrete_Context_total_size(data::Variant& m_data)
+mega::Instance& get_Concrete_Context_total_size(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -12938,9 +9131,9 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         default:
         {
@@ -12986,9 +9179,9 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
-        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         default:
         {
@@ -13042,6 +9235,34 @@ std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Activation > >& ge
             return data::convert< data::Concrete::Concrete_Object >( m_data )->activation;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Object >( m_data )->activation;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AutomataAnalysis::Automata_Enum >& get_Concrete_Object_automata_enum(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->automata_enum;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->automata_enum;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AutomataAnalysis::Automata_Vertex >& get_Concrete_Object_automata_root(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->automata_root;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->automata_root;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13146,12 +9367,42 @@ std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_OwnershipLink > >&
         }
     }
 }
+mega::U64& get_Concrete_Object_total_index(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->total_index;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->total_index;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 data::Ptr< data::Tree::Interface_Root >& get_Concrete_Root_interface_root(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Root >( m_data )->interface_root;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AutomataAnalysis::Automata_Vertex >& get_Concrete_State_automata_vertex(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_State >( m_data )->automata_vertex;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_State >( m_data )->automata_vertex;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_State >( m_data )->automata_vertex;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13724,12 +9975,6 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait 
             return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
         case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13749,12 +9994,6 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_LinkTrait > > >& ge
         case data::Tree::Interface_Action::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
         case data::Tree::Interface_Component::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
         default:
         {
@@ -13777,12 +10016,6 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& 
         case data::Tree::Interface_Action::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         case data::Tree::Interface_Component::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         default:
         {
@@ -13845,12 +10078,6 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_Interface_Contex
         case data::Tree::Interface_Function::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         default:
         {
@@ -14122,12 +10349,6 @@ data::Ptr< data::Components::Components_Component >& get_Interface_IContext_comp
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_IContext >( m_data )->component;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_IContext >( m_data )->component;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_IContext >( m_data )->component;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14161,12 +10382,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Interface_ICon
         case data::Tree::Interface_Function::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
-            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         default:
         {
@@ -14202,12 +10417,6 @@ std::string& get_Interface_IContext_identifier(data::Variant& m_data)
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14241,12 +10450,6 @@ mega::TypeID& get_Interface_IContext_interface_id(data::Variant& m_data)
         case data::Tree::Interface_Function::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         default:
         {
@@ -14282,12 +10485,6 @@ data::Ptr< data::Tree::Interface_ContextGroup >& get_Interface_IContext_parent(d
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14321,12 +10518,6 @@ mega::TypeID& get_Interface_IContext_symbol_id(data::Variant& m_data)
         case data::Tree::Interface_Function::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         default:
         {
@@ -14392,12 +10583,6 @@ std::vector< data::Ptr< data::Locations::Interface_InvocationInstance > >& get_I
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         case data::Tree::Interface_Function::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14421,12 +10606,6 @@ mega::SourceLocation& get_Interface_InvocationContext_source_location(data::Vari
         case data::Tree::Interface_Requirement::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
         case data::Tree::Interface_Function::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
         default:
         {
@@ -14556,12 +10735,6 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > 
             return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14652,6 +10825,88 @@ mega::U64& get_Interface_SizeTrait_size(data::Variant& m_data)
         }
     }
 }
+std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& get_Interface_State_dimension_traits(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
+        case data::Tree::Interface_Namespace::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Namespace >( m_data )->dimension_traits;
+        case data::Tree::Interface_Abstract::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Abstract >( m_data )->dimension_traits;
+        case data::Tree::Interface_Event::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Event >( m_data )->dimension_traits;
+        case data::Tree::Interface_Object::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Object >( m_data )->dimension_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > >& get_Interface_State_inheritance_trait(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
+        case data::Tree::Interface_Abstract::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Abstract >( m_data )->inheritance_trait;
+        case data::Tree::Interface_Event::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Event >( m_data )->inheritance_trait;
+        case data::Tree::Interface_Object::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Object >( m_data )->inheritance_trait;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& get_Interface_State_is_or_state(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::MetaAnalysis::Interface_State >( m_data )->is_or_state;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::MetaAnalysis::Interface_State >( m_data )->is_or_state;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::MetaAnalysis::Interface_State >( m_data )->is_or_state;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::vector< data::Ptr< data::Tree::Interface_LinkTrait > > >& get_Interface_State_link_traits(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
+        case data::Tree::Interface_Abstract::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Abstract >( m_data )->link_traits;
+        case data::Tree::Interface_Object::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Object >( m_data )->link_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::optional< std::vector< data::Ptr< data::Tree::Interface_PartTrait > > >& get_Interface_State_part_traits(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -14662,12 +10917,28 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_PartTrait > > >& ge
             return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
         case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& get_Interface_State_size_trait(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
+        case data::Tree::Interface_Abstract::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Abstract >( m_data )->size_trait;
+        case data::Tree::Interface_Event::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Event >( m_data )->size_trait;
+        case data::Tree::Interface_Object::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Object >( m_data )->size_trait;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14683,12 +10954,6 @@ std::vector< data::Ptr< data::AST::Parser_StateDef > >& get_Interface_State_stat
         case data::Tree::Interface_Action::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
         case data::Tree::Interface_Component::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
         default:
         {
@@ -14710,12 +10975,6 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_TransitionTypeTra
             return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
         case data::Tree::Interface_Requirement::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Interupt >( m_data )->transition_trait;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17094,6 +13353,154 @@ data::Ptr< data::Concrete::Concrete_Graph_Vertex >& set_Alias_Step_vertex(data::
         }
     }
 }
+mega::U32& set_Automata_Enum_bitset_index(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->bitset_index;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Enum > >& set_Automata_Enum_children(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->children;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& set_Automata_Enum_has_action(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->has_action;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< mega::U32 >& set_Automata_Enum_indices(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->indices;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& set_Automata_Enum_is_or(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->is_or;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::SubTypeInstance& set_Automata_Enum_sub_type_instance(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->sub_type_instance;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U32& set_Automata_Enum_switch_index(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Enum::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Enum >( m_data )->switch_index;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Vertex > >& set_Automata_Vertex_children(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Vertex::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->children;
+        case data::AutomataAnalysis::Automata_And::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->children;
+        case data::AutomataAnalysis::Automata_Or::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->children;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Context >& set_Automata_Vertex_context(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Vertex::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->context;
+        case data::AutomataAnalysis::Automata_And::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->context;
+        case data::AutomataAnalysis::Automata_Or::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->context;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U32& set_Automata_Vertex_index_base(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Vertex::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->index_base;
+        case data::AutomataAnalysis::Automata_And::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->index_base;
+        case data::AutomataAnalysis::Automata_Or::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->index_base;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U32& set_Automata_Vertex_relative_domain(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Vertex::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->relative_domain;
+        case data::AutomataAnalysis::Automata_And::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->relative_domain;
+        case data::AutomataAnalysis::Automata_Or::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Vertex >( m_data )->relative_domain;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 boost::filesystem::path& set_Components_Component_build_dir(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -17450,7 +13857,7 @@ data::Ptr< data::Tree::Interface_IContext >& set_Concrete_Context_interface(data
         }
     }
 }
-mega::U64& set_Concrete_Context_local_size(data::Variant& m_data)
+mega::Instance& set_Concrete_Context_local_size(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -17514,7 +13921,7 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& set_Concrete_Context_parent(
         }
     }
 }
-mega::U64& set_Concrete_Context_total_size(data::Variant& m_data)
+mega::Instance& set_Concrete_Context_total_size(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -18158,6 +14565,34 @@ std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_Activation > >& se
         }
     }
 }
+data::Ptr< data::AutomataAnalysis::Automata_Enum >& set_Concrete_Object_automata_enum(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->automata_enum;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->automata_enum;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AutomataAnalysis::Automata_Vertex >& set_Concrete_Object_automata_root(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->automata_root;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->automata_root;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >& set_Concrete_Object_buffers(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -18242,12 +14677,42 @@ std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_OwnershipLink > >&
         }
     }
 }
+mega::U64& set_Concrete_Object_total_index(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->total_index;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_Object >( m_data )->total_index;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 data::Ptr< data::Tree::Interface_Root >& set_Concrete_Root_interface_root(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Root >( m_data )->interface_root;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AutomataAnalysis::Automata_Vertex >& set_Concrete_State_automata_vertex(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_State >( m_data )->automata_vertex;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_State >( m_data )->automata_vertex;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Concrete_State >( m_data )->automata_vertex;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19222,12 +15687,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_Interface_ICon
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19295,12 +15754,6 @@ mega::TypeID& set_Interface_IContext_interface_id(data::Variant& m_data)
         case data::Tree::Interface_Function::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         default:
         {
@@ -19370,12 +15823,6 @@ mega::TypeID& set_Interface_IContext_symbol_id(data::Variant& m_data)
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19440,12 +15887,6 @@ std::vector< data::Ptr< data::Locations::Interface_InvocationInstance > >& set_I
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         case data::Tree::Interface_Function::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19469,12 +15910,6 @@ mega::SourceLocation& set_Interface_InvocationContext_source_location(data::Vari
         case data::Tree::Interface_Requirement::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
         case data::Tree::Interface_Function::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
         default:
         {
@@ -19688,6 +16123,22 @@ mega::U64& set_Interface_SizeTrait_size(data::Variant& m_data)
     {
         case data::Tree::Interface_SizeTrait::Object_Part_Type_ID:
             return data::convert< data::Clang::Interface_SizeTrait >( m_data )->size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& set_Interface_State_is_or_state(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::MetaAnalysis::Interface_State >( m_data )->is_or_state;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::MetaAnalysis::Interface_State >( m_data )->is_or_state;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::MetaAnalysis::Interface_State >( m_data )->is_or_state;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -22081,26 +18532,24 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 72: return new Tree::Interface_Namespace( loader, objectInfo );
         case 73: return new Tree::Interface_Abstract( loader, objectInfo );
         case 74: return new Tree::Interface_State( loader, objectInfo );
-        case 75: return new Tree::Interface_Action( loader, objectInfo );
-        case 76: return new Tree::Interface_Component( loader, objectInfo );
-        case 77: return new Tree::Interface_Event( loader, objectInfo );
-        case 78: return new Tree::Interface_Interupt( loader, objectInfo );
-        case 79: return new Tree::Interface_Requirement( loader, objectInfo );
-        case 80: return new Tree::Interface_Function( loader, objectInfo );
-        case 81: return new Tree::Interface_Object( loader, objectInfo );
-        case 192: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
-        case 193: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
-        case 194: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
-        case 173: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 174: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 175: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 176: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 177: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 178: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 180: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 76: return new Tree::Interface_Action( loader, objectInfo );
+        case 77: return new Tree::Interface_Component( loader, objectInfo );
+        case 78: return new Tree::Interface_Event( loader, objectInfo );
+        case 79: return new Tree::Interface_Interupt( loader, objectInfo );
+        case 80: return new Tree::Interface_Requirement( loader, objectInfo );
+        case 81: return new Tree::Interface_Function( loader, objectInfo );
+        case 82: return new Tree::Interface_Object( loader, objectInfo );
+        case 176: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 177: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 178: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 179: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 180: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 181: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 183: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 39: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 45: return new PerSourceSymbols::Interface_LinkTrait( loader, objectInfo );
         case 67: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
+        case 75: return new MetaAnalysis::Interface_State( loader, objectInfo );
         case 36: return new Clang::Interface_TypePath( loader, objectInfo );
         case 37: return new Clang::Interface_TypePathVariant( loader, objectInfo );
         case 41: return new Clang::Interface_DimensionTrait( loader, objectInfo );
@@ -22111,113 +18560,119 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 59: return new Clang::Interface_TransitionTypeTrait( loader, objectInfo );
         case 61: return new Clang::Interface_EventTypeTrait( loader, objectInfo );
         case 63: return new Clang::Interface_SizeTrait( loader, objectInfo );
-        case 98: return new Concrete::Concrete_Graph_Vertex( loader, objectInfo );
-        case 101: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
-        case 104: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
-        case 108: return new Concrete::Concrete_Dimensions_UserLink( loader, objectInfo );
-        case 109: return new Concrete::Concrete_Dimensions_OwnershipLink( loader, objectInfo );
-        case 110: return new Concrete::Concrete_Dimensions_LinkType( loader, objectInfo );
-        case 112: return new Concrete::Concrete_Dimensions_Bitset( loader, objectInfo );
-        case 115: return new Concrete::Concrete_Dimensions_Configuration( loader, objectInfo );
-        case 116: return new Concrete::Concrete_Dimensions_Activation( loader, objectInfo );
-        case 117: return new Concrete::Concrete_Dimensions_Enablement( loader, objectInfo );
-        case 118: return new Concrete::Concrete_Dimensions_History( loader, objectInfo );
-        case 119: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 120: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 123: return new Concrete::Concrete_Interupt( loader, objectInfo );
-        case 124: return new Concrete::Concrete_Requirement( loader, objectInfo );
-        case 125: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 126: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
-        case 127: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 128: return new Concrete::Concrete_State( loader, objectInfo );
-        case 129: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 130: return new Concrete::Concrete_Component( loader, objectInfo );
-        case 131: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 132: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 136: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 182: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
-        case 183: return new Derivations::Inheritance_Mapping( loader, objectInfo );
+        case 99: return new Concrete::Concrete_Graph_Vertex( loader, objectInfo );
+        case 102: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
+        case 105: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
+        case 109: return new Concrete::Concrete_Dimensions_UserLink( loader, objectInfo );
+        case 110: return new Concrete::Concrete_Dimensions_OwnershipLink( loader, objectInfo );
+        case 111: return new Concrete::Concrete_Dimensions_LinkType( loader, objectInfo );
+        case 113: return new Concrete::Concrete_Dimensions_Bitset( loader, objectInfo );
+        case 116: return new Concrete::Concrete_Dimensions_Configuration( loader, objectInfo );
+        case 117: return new Concrete::Concrete_Dimensions_Activation( loader, objectInfo );
+        case 118: return new Concrete::Concrete_Dimensions_Enablement( loader, objectInfo );
+        case 119: return new Concrete::Concrete_Dimensions_History( loader, objectInfo );
+        case 120: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 121: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 124: return new Concrete::Concrete_Interupt( loader, objectInfo );
+        case 125: return new Concrete::Concrete_Requirement( loader, objectInfo );
+        case 126: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 127: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
+        case 128: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 129: return new Concrete::Concrete_State( loader, objectInfo );
+        case 131: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 132: return new Concrete::Concrete_Component( loader, objectInfo );
+        case 133: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 134: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 139: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 185: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
+        case 186: return new Derivations::Inheritance_Mapping( loader, objectInfo );
         case 40: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
         case 46: return new PerSourceDerivations::Interface_LinkTrait( loader, objectInfo );
         case 68: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
-        case 100: return new Model::Concrete_Graph_Edge( loader, objectInfo );
-        case 184: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 185: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
-        case 186: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
-        case 187: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 101: return new Model::Concrete_Graph_Edge( loader, objectInfo );
+        case 187: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 188: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
+        case 189: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
+        case 190: return new Model::HyperGraph_Graph( loader, objectInfo );
         case 47: return new PerSourceModel::Interface_LinkTrait( loader, objectInfo );
-        case 99: return new PerSourceModel::Concrete_Graph_Vertex( loader, objectInfo );
-        case 105: return new PerSourceModel::Concrete_Dimensions_Link( loader, objectInfo );
-        case 134: return new PerSourceModel::Concrete_Object( loader, objectInfo );
-        case 137: return new Model::Alias_Edge( loader, objectInfo );
-        case 138: return new Model::Alias_Step( loader, objectInfo );
-        case 139: return new Model::Alias_And( loader, objectInfo );
-        case 140: return new Model::Alias_Or( loader, objectInfo );
-        case 141: return new Model::Alias_AliasDerivation( loader, objectInfo );
-        case 179: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 181: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
-        case 103: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
-        case 107: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
-        case 114: return new PerSourceConcreteTable::Concrete_Dimensions_Bitset( loader, objectInfo );
-        case 122: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
-        case 102: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
-        case 106: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
-        case 111: return new MemoryLayout::Concrete_Dimensions_LinkType( loader, objectInfo );
-        case 113: return new MemoryLayout::Concrete_Dimensions_Bitset( loader, objectInfo );
-        case 121: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 133: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 188: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 189: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 190: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 191: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
-        case 135: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
-        case 82: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
-        case 83: return new Operations::Invocations_Variables_Stack( loader, objectInfo );
-        case 84: return new Operations::Invocations_Variables_LinkType( loader, objectInfo );
-        case 85: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
-        case 86: return new Operations::Invocations_Variables_Memory( loader, objectInfo );
-        case 87: return new Operations::Invocations_Variables_Parameter( loader, objectInfo );
-        case 88: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
-        case 89: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
-        case 90: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
-        case 91: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
-        case 92: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
-        case 93: return new Operations::Invocations_Instructions_Dereference( loader, objectInfo );
-        case 94: return new Operations::Invocations_Instructions_LinkBranch( loader, objectInfo );
-        case 95: return new Operations::Invocations_Instructions_PolyBranch( loader, objectInfo );
-        case 96: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
-        case 97: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
-        case 142: return new Operations::Derivation_Edge( loader, objectInfo );
-        case 143: return new Operations::Derivation_Step( loader, objectInfo );
-        case 144: return new Operations::Derivation_And( loader, objectInfo );
-        case 145: return new Operations::Derivation_Or( loader, objectInfo );
-        case 146: return new Operations::Derivation_Root( loader, objectInfo );
-        case 147: return new Operations::Operations_ReturnTypes_ReturnType( loader, objectInfo );
-        case 148: return new Operations::Operations_ReturnTypes_Void( loader, objectInfo );
-        case 149: return new Operations::Operations_ReturnTypes_Dimension( loader, objectInfo );
-        case 150: return new Operations::Operations_ReturnTypes_Function( loader, objectInfo );
-        case 151: return new Operations::Operations_ReturnTypes_Context( loader, objectInfo );
-        case 152: return new Operations::Operations_ReturnTypes_Range( loader, objectInfo );
-        case 153: return new Operations::Operations_Operator( loader, objectInfo );
-        case 154: return new Operations::Operations_New( loader, objectInfo );
-        case 155: return new Operations::Operations_Delete( loader, objectInfo );
-        case 156: return new Operations::Operations_Cast( loader, objectInfo );
-        case 157: return new Operations::Operations_Active( loader, objectInfo );
-        case 158: return new Operations::Operations_Enabled( loader, objectInfo );
-        case 159: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 160: return new Operations::Operations_Start( loader, objectInfo );
-        case 161: return new Operations::Operations_Call( loader, objectInfo );
-        case 162: return new Operations::Operations_Signal( loader, objectInfo );
-        case 163: return new Operations::Operations_Move( loader, objectInfo );
-        case 164: return new Operations::Operations_GetContext( loader, objectInfo );
-        case 165: return new Operations::Operations_Read( loader, objectInfo );
-        case 166: return new Operations::Operations_Write( loader, objectInfo );
-        case 167: return new Operations::Operations_LinkRead( loader, objectInfo );
-        case 168: return new Operations::Operations_LinkAdd( loader, objectInfo );
-        case 169: return new Operations::Operations_LinkRemove( loader, objectInfo );
-        case 170: return new Operations::Operations_LinkClear( loader, objectInfo );
-        case 171: return new Operations::Operations_Range( loader, objectInfo );
-        case 172: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 100: return new PerSourceModel::Concrete_Graph_Vertex( loader, objectInfo );
+        case 106: return new PerSourceModel::Concrete_Dimensions_Link( loader, objectInfo );
+        case 136: return new PerSourceModel::Concrete_Object( loader, objectInfo );
+        case 140: return new Model::Alias_Edge( loader, objectInfo );
+        case 141: return new Model::Alias_Step( loader, objectInfo );
+        case 142: return new Model::Alias_And( loader, objectInfo );
+        case 143: return new Model::Alias_Or( loader, objectInfo );
+        case 144: return new Model::Alias_AliasDerivation( loader, objectInfo );
+        case 182: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 184: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 104: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
+        case 108: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
+        case 115: return new PerSourceConcreteTable::Concrete_Dimensions_Bitset( loader, objectInfo );
+        case 123: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 103: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 107: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
+        case 112: return new MemoryLayout::Concrete_Dimensions_LinkType( loader, objectInfo );
+        case 114: return new MemoryLayout::Concrete_Dimensions_Bitset( loader, objectInfo );
+        case 122: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 135: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 191: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 192: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 193: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 194: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
+        case 138: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
+        case 130: return new AutomataAnalysis::Concrete_State( loader, objectInfo );
+        case 137: return new AutomataAnalysis::Concrete_Object( loader, objectInfo );
+        case 201: return new AutomataAnalysis::Automata_Vertex( loader, objectInfo );
+        case 202: return new AutomataAnalysis::Automata_And( loader, objectInfo );
+        case 203: return new AutomataAnalysis::Automata_Or( loader, objectInfo );
+        case 204: return new AutomataAnalysis::Automata_Enum( loader, objectInfo );
+        case 83: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
+        case 84: return new Operations::Invocations_Variables_Stack( loader, objectInfo );
+        case 85: return new Operations::Invocations_Variables_LinkType( loader, objectInfo );
+        case 86: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
+        case 87: return new Operations::Invocations_Variables_Memory( loader, objectInfo );
+        case 88: return new Operations::Invocations_Variables_Parameter( loader, objectInfo );
+        case 89: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
+        case 90: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
+        case 91: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
+        case 92: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
+        case 93: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
+        case 94: return new Operations::Invocations_Instructions_Dereference( loader, objectInfo );
+        case 95: return new Operations::Invocations_Instructions_LinkBranch( loader, objectInfo );
+        case 96: return new Operations::Invocations_Instructions_PolyBranch( loader, objectInfo );
+        case 97: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
+        case 98: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
+        case 145: return new Operations::Derivation_Edge( loader, objectInfo );
+        case 146: return new Operations::Derivation_Step( loader, objectInfo );
+        case 147: return new Operations::Derivation_And( loader, objectInfo );
+        case 148: return new Operations::Derivation_Or( loader, objectInfo );
+        case 149: return new Operations::Derivation_Root( loader, objectInfo );
+        case 150: return new Operations::Operations_ReturnTypes_ReturnType( loader, objectInfo );
+        case 151: return new Operations::Operations_ReturnTypes_Void( loader, objectInfo );
+        case 152: return new Operations::Operations_ReturnTypes_Dimension( loader, objectInfo );
+        case 153: return new Operations::Operations_ReturnTypes_Function( loader, objectInfo );
+        case 154: return new Operations::Operations_ReturnTypes_Context( loader, objectInfo );
+        case 155: return new Operations::Operations_ReturnTypes_Range( loader, objectInfo );
+        case 156: return new Operations::Operations_Operator( loader, objectInfo );
+        case 157: return new Operations::Operations_New( loader, objectInfo );
+        case 158: return new Operations::Operations_Delete( loader, objectInfo );
+        case 159: return new Operations::Operations_Cast( loader, objectInfo );
+        case 160: return new Operations::Operations_Active( loader, objectInfo );
+        case 161: return new Operations::Operations_Enabled( loader, objectInfo );
+        case 162: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 163: return new Operations::Operations_Start( loader, objectInfo );
+        case 164: return new Operations::Operations_Call( loader, objectInfo );
+        case 165: return new Operations::Operations_Signal( loader, objectInfo );
+        case 166: return new Operations::Operations_Move( loader, objectInfo );
+        case 167: return new Operations::Operations_GetContext( loader, objectInfo );
+        case 168: return new Operations::Operations_Read( loader, objectInfo );
+        case 169: return new Operations::Operations_Write( loader, objectInfo );
+        case 170: return new Operations::Operations_LinkRead( loader, objectInfo );
+        case 171: return new Operations::Operations_LinkAdd( loader, objectInfo );
+        case 172: return new Operations::Operations_LinkRemove( loader, objectInfo );
+        case 173: return new Operations::Operations_LinkClear( loader, objectInfo );
+        case 174: return new Operations::Operations_Range( loader, objectInfo );
+        case 175: return new Operations::Operations_Invocations( loader, objectInfo );
         case 69: return new Locations::Interface_InvocationInstance( loader, objectInfo );
         case 71: return new Locations::Interface_InvocationContext( loader, objectInfo );
         case 195: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );

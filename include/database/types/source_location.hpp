@@ -71,12 +71,4 @@ private:
 };
 } // namespace mega
 
-namespace mega
-{
-inline void to_json( nlohmann::json& j, const mega::SourceLocation& sourceLocation )
-{
-    j = nlohmann::json{ { "source_begin", sourceLocation.getBegin() }, { "source_end", sourceLocation.getEnd() } };
-}
-} // namespace mega
-
 #endif // GUARD_2023_July_28_source_location
