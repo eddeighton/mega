@@ -222,6 +222,8 @@ public:
         using namespace ConcreteStage;
         using namespace ConcreteStage::Concrete;
 
+        VERIFY_RTE( pComponent );
+
         ContextElements elements;
 
         // contexts
@@ -242,61 +244,58 @@ public:
             {
                 if( auto pUserDimensionTrait = db_cast< Interface::UserDimensionTrait >( pInterfaceDimension ) )
                 {
+                    ASSERT( pUserDimensionTrait->get_parser_dimension()->get_id()->get_str()
+                            != mega::EG_CONFIGURATION );
+
                     auto pParentConcreteContext          = db_cast< Concrete::Context >( parentConcreteContextGroup );
                     Dimensions::User* pConcreteDimension = database.construct< Dimensions::User >(
-                        Dimensions::User::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceDimension } );
+                        Dimensions::User::Args{ Concrete::Graph::Vertex::Args{ pComponent }, pParentConcreteContext,
+                                                pInterfaceDimension } );
                     elements.dimensions.push_back( pConcreteDimension );
                 }
                 else if( auto pCompilerDimensionTrait
                          = db_cast< Interface::CompilerDimensionTrait >( pInterfaceDimension ) )
                 {
                     // bitsets
+                    if( auto pObject = db_cast< Object >( parentConcreteContextGroup ) )
                     {
-                        if( auto pObject = db_cast< Object >( parentConcreteContextGroup ) )
+                        if( pCompilerDimensionTrait->get_identifier() == mega::EG_CONFIGURATION )
                         {
-                            if( pCompilerDimensionTrait->get_identifier() == mega::EG_CONFIGURATION )
-                            {
-                                elements.pConfiguration
-                                    = database.construct< Dimensions::Configuration >( Dimensions::Configuration ::Args{
-                                        Dimensions::Bitset::Args{ pObject, pCompilerDimensionTrait } } );
-                                elements.bitsets.push_back( elements.pConfiguration );
-                            }
-                            else if( pCompilerDimensionTrait->get_identifier() == mega::EG_STATE )
-                            {
-                                elements.pActivation
-                                    = database.construct< Dimensions::Activation >( Dimensions::Activation ::Args{
-                                        Dimensions::Bitset::Args{ pObject, pCompilerDimensionTrait } } );
-                                elements.bitsets.push_back( elements.pActivation );
-                            }
-                            else if( pCompilerDimensionTrait->get_identifier() == mega::EG_ENABLEMENT )
-                            {
-                                elements.pEnablement
-                                    = database.construct< Dimensions::Enablement >( Dimensions::Enablement ::Args{
-                                        Dimensions::Bitset::Args{ pObject, pCompilerDimensionTrait } } );
-                                elements.bitsets.push_back( elements.pEnablement );
-                            }
-                            else if( pCompilerDimensionTrait->get_identifier() == mega::EG_HISTORY )
-                            {
-                                elements.pHistory
-                                    = database.construct< Dimensions::History >( Dimensions::History ::Args{
-                                        Dimensions::Bitset::Args{ pObject, pCompilerDimensionTrait } } );
-                                elements.bitsets.push_back( elements.pHistory );
-                            }
-                            else
-                            {
-                                THROW_RTE( "Unknown compiler object dimension trait" );
-                            }
+                            elements.pConfiguration = database.construct< Dimensions::Configuration >(
+                                Dimensions::Configuration ::Args{ Dimensions::Bitset::Args{
+                                    Concrete::Graph::Vertex::Args{ pComponent }, pObject, pCompilerDimensionTrait } } );
+                            elements.bitsets.push_back( elements.pConfiguration );
+                        }
+                        else if( pCompilerDimensionTrait->get_identifier() == mega::EG_STATE )
+                        {
+                            elements.pActivation = database.construct< Dimensions::Activation >(
+                                Dimensions::Activation ::Args{ Dimensions::Bitset::Args{
+                                    Concrete::Graph::Vertex::Args{ pComponent }, pObject, pCompilerDimensionTrait } } );
+                            elements.bitsets.push_back( elements.pActivation );
+                        }
+                        else if( pCompilerDimensionTrait->get_identifier() == mega::EG_ENABLEMENT )
+                        {
+                            elements.pEnablement = database.construct< Dimensions::Enablement >(
+                                Dimensions::Enablement ::Args{ Dimensions::Bitset::Args{
+                                    Concrete::Graph::Vertex::Args{ pComponent }, pObject, pCompilerDimensionTrait } } );
+                            elements.bitsets.push_back( elements.pEnablement );
+                        }
+                        else if( pCompilerDimensionTrait->get_identifier() == mega::EG_HISTORY )
+                        {
+                            elements.pHistory = database.construct< Dimensions::History >(
+                                Dimensions::History ::Args{ Dimensions::Bitset::Args{
+                                    Concrete::Graph::Vertex::Args{ pComponent }, pObject, pCompilerDimensionTrait } } );
+                            elements.bitsets.push_back( elements.pHistory );
                         }
                         else
                         {
-                            THROW_RTE( "Unknown compiler dimension trait" );
+                            THROW_RTE( "Unknown compiler object dimension trait" );
                         }
                     }
-
-                    auto pParentConcreteContext          = db_cast< Concrete::Context >( parentConcreteContextGroup );
-                    Dimensions::User* pConcreteDimension = database.construct< Dimensions::User >(
-                        Dimensions::User::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceDimension } );
-                    elements.dimensions.push_back( pConcreteDimension );
+                    else
+                    {
+                        THROW_RTE( "Unknown compiler dimension trait" );
+                    }
                 }
                 else
                 {
@@ -313,10 +312,10 @@ public:
                 {
                     auto pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
 
-                    Dimensions::UserLink* pConcreteLink
-                        = database.construct< Dimensions::UserLink >( Dimensions::UserLink::Args{
-                            Dimensions::Link::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceLink },
-                            pUserLink } );
+                    Dimensions::UserLink* pConcreteLink = database.construct< Dimensions::UserLink >(
+                        Dimensions::UserLink::Args{ Dimensions::Link::Args{ Concrete::Graph::Vertex::Args{ pComponent },
+                                                                            pParentConcreteContext, pInterfaceLink },
+                                                    pUserLink } );
 
                     auto pLinkType = database.construct< Dimensions::LinkType >(
                         Dimensions::LinkType::Args{ pParentConcreteContext, pConcreteLink } );
@@ -330,7 +329,9 @@ public:
                     VERIFY_RTE_MSG( pObject, "Owner link trait NOT in object" );
                     elements.pOwnershipLink
                         = database.construct< Dimensions::OwnershipLink >( Dimensions::OwnershipLink::Args{
-                            Dimensions::Link::Args{ Graph::Vertex::Args{}, pObject, pInterfaceLink }, pOwnerLink } );
+                            Dimensions::Link::Args{
+                                Concrete::Graph::Vertex::Args{ pComponent }, pObject, pInterfaceLink },
+                            pOwnerLink } );
 
                     auto pLinkType = database.construct< Dimensions::LinkType >(
                         Dimensions::LinkType::Args{ pObject, elements.pOwnershipLink } );
@@ -357,17 +358,19 @@ public:
         using namespace ConcreteStage;
         using namespace ConcreteStage::Concrete;
 
+        VERIFY_RTE( pComponent );
+
         if( auto pNamespace = db_cast< Interface::Namespace >( pContext ) )
         {
             Namespace* pConcrete = database.construct< Namespace >( Namespace::Args{
-                UserDimensionContext::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
-                                                           pComponent,
-                                                           pParentContextGroup,
-                                                           pNamespace,
-                                                           {} },
-                                            {},
-                                            {},
-                                            {} },
+                UserDimensionContext::Args{
+                    Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                   pParentContextGroup,
+                                   pNamespace,
+                                   {} },
+                    {},
+                    {},
+                    {} },
                 pNamespace } );
             pParentContextGroup->push_back_children( pConcrete );
             pConcrete->set_concrete_object( concreteObjectOpt );
@@ -412,8 +415,7 @@ public:
                                 {
                                     Context::Args
                                     { 
-                                        ContextGroup::Args{ Graph::Vertex::Args{}, {} },
-                                        pComponent, 
+                                        ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
                                         pParentContextGroup, 
                                         pAction, 
                                         {} 
@@ -442,8 +444,7 @@ public:
                                 {
                                     Context::Args
                                     {
-                                        ContextGroup::Args{ Graph::Vertex::Args{}, {} },
-                                        pComponent,
+                                        ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
                                         pParentContextGroup,
                                         pInterfaceComponent,
                                         {} 
@@ -462,14 +463,14 @@ public:
                 else
                 {
                     pConcrete = database.construct< State >( State::Args{
-                        UserDimensionContext::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
-                                                                   pComponent,
-                                                                   pParentContextGroup,
-                                                                   pAction,
-                                                                   {} },
-                                                    {},
-                                                    {},
-                                                    {} },
+                        UserDimensionContext::Args{
+                            Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                           pParentContextGroup,
+                                           pAction,
+                                           {} },
+                            {},
+                            {},
+                            {} },
                         pAction } );
                 }
 
@@ -501,14 +502,14 @@ public:
             if( concreteObjectOpt.has_value() )
             {
                 Event* pConcrete = database.construct< Event >( Event::Args{
-                    UserDimensionContext::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
-                                                               pComponent,
-                                                               pParentContextGroup,
-                                                               pEvent,
-                                                               {} },
-                                                {},
-                                                {},
-                                                {} },
+                    UserDimensionContext::Args{
+                        Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                       pParentContextGroup,
+                                       pEvent,
+                                       {} },
+                        {},
+                        {},
+                        {} },
                     pEvent } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
@@ -538,13 +539,12 @@ public:
         {
             if( concreteObjectOpt.has_value() )
             {
-                Interupt* pConcrete = database.construct< Interupt >(
-                    Interupt::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
-                                                   pComponent,
-                                                   pParentContextGroup,
-                                                   pInterupt,
-                                                   {} },
-                                    pInterupt } );
+                Interupt* pConcrete = database.construct< Interupt >( Interupt::Args{
+                    Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                   pParentContextGroup,
+                                   pInterupt,
+                                   {} },
+                    pInterupt } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
 
@@ -572,13 +572,12 @@ public:
         {
             if( concreteObjectOpt.has_value() )
             {
-                Function* pConcrete = database.construct< Function >(
-                    Function::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
-                                                   pComponent,
-                                                   pParentContextGroup,
-                                                   pFunction,
-                                                   {} },
-                                    pFunction } );
+                Function* pConcrete = database.construct< Function >( Function::Args{
+                    Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                   pParentContextGroup,
+                                   pFunction,
+                                   {} },
+                    pFunction } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
 
@@ -604,14 +603,16 @@ public:
         }
         else if( auto pObject = db_cast< Interface::Object >( pContext ) )
         {
-            Object* pConcrete = database.construct< Object >( Object::Args{
-                UserDimensionContext::Args{
-                    Context::Args{
-                        ContextGroup::Args{ Graph::Vertex::Args{}, {} }, pComponent, pParentContextGroup, pObject, {} },
-                    {},
-                    {},
-                    {} },
-                pObject } );
+            Object* pConcrete = database.construct< Object >(
+                Object::Args{ UserDimensionContext::Args{
+                                  Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                                 pParentContextGroup,
+                                                 pObject,
+                                                 {} },
+                                  {},
+                                  {},
+                                  {} },
+                              pObject } );
 
             pParentContextGroup->push_back_children( pConcrete );
 
@@ -676,7 +677,7 @@ public:
         VERIFY_RTE( pComponent );
 
         Concrete::Root* pConcreteRoot = database.construct< Root >(
-            Root::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} }, pInterfaceRoot } );
+            Root::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} }, pInterfaceRoot } );
         std::optional< Concrete::Object* > concreteObjectOpt;
 
         for( Interface::IContext* pChildContext : pInterfaceRoot->get_children() )

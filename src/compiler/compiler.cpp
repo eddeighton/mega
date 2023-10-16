@@ -340,7 +340,6 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc aliasRollout = encode( Task{ eTask_AliasRollout, sourceFilePath } );
-            const TskDesc allocators   = encode( Task{ eTask_Allocators, sourceFilePath } );
 
             dependencies.add( aliasRollout, TskDescVec{ alias } );
             aliasTasks.push_back( aliasRollout );

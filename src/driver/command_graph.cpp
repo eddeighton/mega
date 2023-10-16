@@ -383,7 +383,18 @@ std::string getNodeInfo( FinalStage::Concrete::Dimensions::User* pUserDimension 
 std::string getNodeInfo( FinalStage::Concrete::Dimensions::Link* pLinkDimension )
 {
     std::ostringstream os;
-    os << "(con:" << pLinkDimension->get_concrete_id() << ")";
+    os << "(sym:" << pLinkDimension->get_interface_link()->get_symbol_id()
+       << ",type:" << pLinkDimension->get_interface_link()->get_interface_id()
+       << ",con:" << pLinkDimension->get_concrete_id() << ")";
+    return os.str();
+}
+
+std::string getNodeInfo( FinalStage::Concrete::Dimensions::Bitset* pBitsetDimension )
+{
+    std::ostringstream os;
+    os << "(sym:" << pBitsetDimension->get_interface_compiler_dimension()->get_symbol_id()
+       << ",type:" << pBitsetDimension->get_interface_compiler_dimension()->get_interface_id()
+       << ",con:" << pBitsetDimension->get_concrete_id() << ")";
     return os.str();
 }
 
@@ -838,7 +849,7 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
     nlohmann::json node;
     NODE( node, osName.str(),
           os.str() << " size " << pPart->get_size() << " offset " << pPart->get_offset() << " align "
-                   << pPart->get_alignment() );
+                   << pPart->get_alignment() << " instances " << pPart->get_total_domain_size() );
 
     for( auto p : pPart->get_user_dimensions() )
     {
@@ -851,14 +862,18 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
 
     for( auto p : pPart->get_link_dimensions() )
     {
-        // pLink->
         nlohmann::json property;
         PROP( property, Concrete::getIdentifier( p ),
               getNodeInfo( p ) << " offset " << p->get_offset() << " singular " << p->get_singular() );
         node[ "properties" ].push_back( property );
     }
+
     for( auto p : pPart->get_bitset_dimensions() )
     {
+        nlohmann::json property;
+        PROP( property, Concrete::getIdentifier( p ),
+              getNodeInfo( p ) << " offset " << p->get_offset());
+        node[ "properties" ].push_back( property );
     }
     // THROW_TODO;
     /*for( auto p : pPart->get_link_dimensions() )

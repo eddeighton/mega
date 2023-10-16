@@ -76,7 +76,7 @@ void gen( Args args, const FinalStage::Invocations::Instructions::ParentDerivati
 
     const std::string  s           = args.get( pFrom );
     const mega::TypeID targetType  = pToContext->get_concrete_id();
-    const mega::U64    szLocalSize = args.database.getLocalDomainSize( targetType );
+    const mega::U64    szLocalSize = pToContext->get_local_size();
 
     os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
        << ", mega::TypeInstance{ " << printTypeID( targetType ) << ", "

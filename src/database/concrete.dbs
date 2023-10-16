@@ -24,8 +24,12 @@ namespace Concrete
     {
         object Vertex -> ConcreteStage::Concrete
         {
+            ref< Components::Component > component;
+
             array< ref< Edge > > out_edges   -> HyperGraphAnalysisRollout::PerSourceModel;
             array< ref< Edge > > in_edges    -> HyperGraphAnalysisRollout::PerSourceModel;
+
+            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
         }
 
         object Edge -> HyperGraphAnalysis::Model
@@ -45,8 +49,6 @@ namespace Concrete
 
             ref< MemoryLayout::Part >   part    -> MemoryStage::MemoryLayout;
             value< mega::U64 >          offset  -> MemoryStage::MemoryLayout;
-
-            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
         }
 
         // HyperGraph
@@ -64,8 +66,6 @@ namespace Concrete
 
             ref< MemoryLayout::Part >  part     -> MemoryStage::MemoryLayout;
             value< mega::U64 >         offset   -> MemoryStage::MemoryLayout;
-
-            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
         }
 
         object UserLink : Link -> ConcreteStage::Concrete
@@ -88,7 +88,7 @@ namespace Concrete
         }
 
         // State machine
-        object Bitset -> ConcreteStage::Concrete
+        object Bitset : Graph::Vertex -> ConcreteStage::Concrete
         {
             ref< Concrete::Object > parent_object;
             ref< Interface::CompilerDimensionTrait > interface_compiler_dimension;
@@ -96,8 +96,6 @@ namespace Concrete
             value< mega::U64 >          size    -> MemoryStage::MemoryLayout;
             ref< MemoryLayout::Part >   part    -> MemoryStage::MemoryLayout;
             value< mega::U64 >          offset  -> MemoryStage::MemoryLayout;
-
-            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
         }
 
         object Configuration : Bitset -> ConcreteStage::Concrete
@@ -124,7 +122,6 @@ namespace Concrete
 
     object Context : ContextGroup -> ConcreteStage::Concrete
     {
-        ref< Components::Component >        component;
         late< opt< ref< Object > > >        concrete_object;
         ref< ContextGroup >                 parent;
         ref< Interface::IContext >          interface;
@@ -132,8 +129,6 @@ namespace Concrete
 
         value< mega::Instance > local_size -> MemoryStage::MemoryLayout;
         value< mega::Instance > total_size -> MemoryStage::MemoryLayout;
-        
-        value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
     }
 
     object Interupt : Context -> ConcreteStage::Concrete

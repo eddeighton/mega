@@ -280,6 +280,17 @@ public:
                         Concrete::Graph::Edge::Args{ EdgeType::eParent, pVertex, pUserDim->get_parent_context() } );
                 }
             }
+            else if( auto* pBitset = db_cast< Concrete::Dimensions::Bitset >( pVertex ) )
+            {
+                {
+                    database.construct< Concrete::Graph::Edge >(
+                        Concrete::Graph::Edge::Args{ mega::EdgeType::eDim, pBitset->get_parent_object(), pVertex } );
+                }
+                {
+                    database.construct< Concrete::Graph::Edge >(
+                        Concrete::Graph::Edge::Args{ EdgeType::eParent, pVertex, pBitset->get_parent_object() } );
+                }
+            }
             else if( auto* pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pVertex ) )
             {
                 auto pObject = db_cast< Concrete::Object >( pOwnershipLink->get_parent_context() );

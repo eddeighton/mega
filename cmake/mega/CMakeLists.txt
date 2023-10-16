@@ -114,7 +114,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/coroutine.hpp
     ${MEGA_API_DIR}/mega/defaults.hpp
     ${MEGA_API_DIR}/mega/eg_common_strings.hpp
-    ${MEGA_API_DIR}/mega/enumeration.hpp
     ${MEGA_API_DIR}/mega/event.hpp
     ${MEGA_API_DIR}/mega/include.hpp
     ${MEGA_API_DIR}/mega/invocation_id.hpp

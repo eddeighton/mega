@@ -64,31 +64,6 @@ static const std::string& getIdentifier( const Dimensions::Bitset* pBitset )
     {
         THROW_RTE( "Unknown bitset trait type" );
     }
-
-    /*if( db_cast< const Dimensions::Configuration >( pBitset ) )
-    {
-        static const std::string str = ::mega::EG_CONFIGURATION;
-        return str;
-    }
-    else if( db_cast< const Dimensions::Activation >( pBitset ) )
-    {
-        static const std::string str = ::mega::EG_ACTIVATION;
-        return str;
-    }
-    else if( db_cast< const Dimensions::Enablement >( pBitset ) )
-    {
-        static const std::string str = ::mega::EG_ENABLEMENT;
-        return str;
-    }
-    else if( db_cast< const Dimensions::History >( pBitset ) )
-    {
-        static const std::string str = ::mega::EG_HISTORY;
-        return str;
-    }
-    else
-    {
-        THROW_RTE( "Unknown bitset type" );
-    }*/
 }
 
 static void printContextFullType( const Context* pContext, std::ostream& os, const std::string& strDelimiter = "::" )
@@ -133,6 +108,15 @@ static void printContextFullType( const Dimensions::Link* pLink, std::ostream& o
     os << strDelimiter << getIdentifier( pLink );
 }
 
+static void printContextFullType( const Dimensions::Bitset* pBitset, std::ostream& os,
+                                  const std::string& strDelimiter = "::" )
+{
+    auto pParent = db_cast< const Context >( pBitset->get_parent_object() );
+    VERIFY_RTE( pParent );
+    printContextFullType( pParent, os, strDelimiter );
+    os << strDelimiter << getIdentifier( pBitset );
+}
+
 static std::string printContextFullType( const Context* pContext, const std::string& strDelimiter = "::" )
 {
     std::ostringstream os;
@@ -154,6 +138,13 @@ static std::string printContextFullType( const Dimensions::Link* pLink, const st
     return os.str();
 }
 
+static std::string printContextFullType( const Dimensions::Bitset* pBitset, const std::string& strDelimiter = "::" )
+{
+    std::ostringstream os;
+    printContextFullType( pBitset, os, strDelimiter );
+    return os.str();
+}
+
 static void printContextFullType( const Graph::Vertex* pVertex, std::ostream& os,
                                   const std::string& strDelimiter = "::" )
 {
@@ -172,6 +163,10 @@ static void printContextFullType( const Graph::Vertex* pVertex, std::ostream& os
     else if( auto pDim = db_cast< const Dimensions::User >( pVertex ) )
     {
         printContextFullType( pDim, os, strDelimiter );
+    }
+    else if( auto pBitset = db_cast< const Dimensions::Bitset >( pVertex ) )
+    {
+        printContextFullType( pBitset, os, strDelimiter );
     }
     else
     {

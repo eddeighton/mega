@@ -19,6 +19,8 @@
 
 #include "database/jit_database.hpp"
 
+#include "common/unreachable.hpp"
+
 namespace mega::runtime
 {
 
@@ -66,28 +68,52 @@ JITDatabase::JITDatabase( const boost::filesystem::path& projectDatabasePath )
     }
 }
 
+const mega::TypeID& getInterfaceTypeID( const FinalStage::Concrete::Graph::Vertex* pVertex )
+{
+    using namespace FinalStage;
+    if( auto pContext = db_cast< const Concrete::Context >( pVertex ) )
+    {
+        return pContext->get_interface()->get_interface_id();
+    }
+    else if( auto pDimension = db_cast< const Concrete::Dimensions::User >( pVertex ) )
+    {
+        return pDimension->get_interface_dimension()->get_interface_id();
+    }
+    else if( auto pLink = db_cast< const Concrete::Dimensions::Link >( pVertex ) )
+    {
+        return pLink->get_interface_link()->get_interface_id();
+    }
+    else if( auto pBitset = db_cast< const Concrete::Dimensions::Bitset >( pVertex ) )
+    {
+        return pBitset->get_interface_compiler_dimension()->get_interface_id();
+    }
+    else if( auto pContext = db_cast< const Concrete::Root >( pVertex ) )
+    {
+        // ignore
+    }
+    else
+    {
+        THROW_RTE( "Unknown concrete type" );
+    }
+    UNREACHABLE;
+}
+
+mega::TypeID JITDatabase::getInterfaceTypeID( mega::TypeID concreteTypeID ) const
+{
+    using ::operator<<;
+    VERIFY_RTE_MSG( concreteTypeID != mega::TypeID{}, "Null TypeID in getInterfaceTypeID" );
+    auto iFind = m_concreteTypeIDs.find( concreteTypeID );
+    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteTypeID );
+    auto pConcreteTypeID = iFind->second;
+    return mega::runtime::getInterfaceTypeID( pConcreteTypeID->get_vertex() );
+}
+
 void JITDatabase::getConcreteToInterface( ConcreteToInterface& objectTypes ) const
 {
+    using namespace FinalStage;
     for( const auto& [ id, pConcreteTypeID ] : m_concreteTypeIDs )
     {
-        if( pConcreteTypeID->get_context().has_value() )
-        {
-            objectTypes.push_back(
-                { id, pConcreteTypeID->get_context().value()->get_interface()->get_interface_id() } );
-        }
-        else if( pConcreteTypeID->get_dim_user().has_value() )
-        {
-            objectTypes.push_back(
-                { id, pConcreteTypeID->get_dim_user().value()->get_interface_dimension()->get_interface_id() } );
-        }
-        else if( pConcreteTypeID->get_dim_link().has_value() )
-        {
-            // do nothing
-        }
-        else
-        {
-            THROW_RTE( "Unreachable" );
-        }
+        objectTypes.push_back( { id, mega::runtime::getInterfaceTypeID( pConcreteTypeID->get_vertex() ) } );
     }
 }
 
@@ -184,32 +210,6 @@ void JITDatabase::addDynamicInvocation( const InvocationID&                     
     m_dynamicInvocations.insert( { invocationID, pInvocation } );
 }
 
-mega::TypeID JITDatabase::getInterfaceTypeID( mega::TypeID concreteTypeID ) const
-{
-    using ::operator<<;
-    VERIFY_RTE_MSG( concreteTypeID != mega::TypeID{}, "Null TypeID in getInterfaceTypeID" );
-    auto iFind = m_concreteTypeIDs.find( concreteTypeID );
-    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteTypeID );
-    auto pConcreteTypeID = iFind->second;
-
-    if( pConcreteTypeID->get_context().has_value() )
-    {
-        return pConcreteTypeID->get_context().value()->get_interface()->get_interface_id();
-    }
-    else if( pConcreteTypeID->get_dim_user().has_value() )
-    {
-        return pConcreteTypeID->get_dim_user().value()->get_interface_dimension()->get_interface_id();
-    }
-    else if( pConcreteTypeID->get_dim_link().has_value() )
-    {
-        THROW_RTE( "JITDatabase::getInterfaceTypeID: " << concreteTypeID << " asked for link dimension" );
-    }
-    else
-    {
-        THROW_RTE( "Unreachable" );
-    }
-}
-
 TypeID JITDatabase::getSingularConcreteTypeID( TypeID interfaceTypeID ) const
 {
     auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
@@ -266,11 +266,7 @@ FinalStage::Concrete::Object* JITDatabase::getObject( mega::TypeID objectType ) 
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
     auto pConcreteTypeID = iFind->second;
 
-    FinalStage::Concrete::Object* pObject = nullptr;
-    if( pConcreteTypeID->get_context().has_value() )
-    {
-        pObject = FinalStage::db_cast< FinalStage::Concrete::Object >( pConcreteTypeID->get_context().value() );
-    }
+    FinalStage::Concrete::Object* pObject = db_cast< FinalStage::Concrete::Object >( pConcreteTypeID->get_vertex() );
     VERIFY_RTE_MSG( pObject, "Failed to locate concrete object id: " << objectType );
     return pObject;
 }
@@ -298,12 +294,7 @@ const FinalStage::Components::Component* JITDatabase::getComponent( mega::TypeID
     auto iFind = m_concreteTypeIDs.find( objectType );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
     auto pConcreteTypeID = iFind->second;
-
-    if( pConcreteTypeID->get_context().has_value() )
-    {
-        return pConcreteTypeID->get_context().value()->get_component();
-    }
-    THROW_RTE( "JITDatabase::getComponent Unreachable" );
+    return pConcreteTypeID->get_vertex()->get_component();
 }
 
 const FinalStage::Components::Component* JITDatabase::getOperationComponent( mega::TypeID interfaceTypeID ) const
@@ -312,49 +303,13 @@ const FinalStage::Components::Component* JITDatabase::getOperationComponent( meg
     VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getOperationComponent" );
     auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
     VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate concrete type id: " << interfaceTypeID );
-    auto pConcreteTypeID = iFind->second;
+    auto pInterfaceTypeID = iFind->second;
 
-    if( pConcreteTypeID->get_context().has_value() )
+    if( pInterfaceTypeID->get_context().has_value() )
     {
-        return pConcreteTypeID->get_context().value()->get_component();
+        return pInterfaceTypeID->get_context().value()->get_component();
     }
     THROW_RTE( "JITDatabase::getOperationComponent Unreachable" );
-}
-
-mega::U64 JITDatabase::getLocalDomainSize( mega::TypeID concreteID ) const
-{
-    using ::operator<<;
-    VERIFY_RTE_MSG( concreteID != mega::TypeID{}, "Null TypeID in getLocalDomainSize" );
-    using namespace FinalStage;
-
-    auto iFind = m_concreteTypeIDs.find( concreteID );
-    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteID );
-    auto pConcreteTypeID = iFind->second;
-
-    if( pConcreteTypeID->get_context().has_value() )
-    {
-        auto pContext = pConcreteTypeID->get_context().value();
-        if( auto pObject = db_cast< Concrete::Object >( pContext ) )
-        {
-            return 1;
-        }
-        else if( auto pEvent = db_cast< Concrete::Event >( pContext ) )
-        {
-            return pEvent->get_local_size();
-        }
-        else if( auto pState = db_cast< Concrete::State >( pContext ) )
-        {
-            return pState->get_local_size();
-        }
-        else
-        {
-            return 1;
-        }
-    }
-    else
-    {
-        THROW_RTE( "Unreachable" );
-    }
 }
 
 template < typename T >

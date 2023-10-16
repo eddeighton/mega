@@ -303,9 +303,7 @@ stage ConcreteTypeAnalysis
 
     file ConcreteTable;
 
-    persource accessor ref< Concrete::Context >;
-    persource accessor ref< Concrete::Dimensions::User >;
-    persource accessor ref< Concrete::Dimensions::Link >;
+    persource accessor ref< Concrete::Graph::Vertex >;
     global accessor ref< Symbols::SymbolTable >;
 
 }
@@ -315,7 +313,7 @@ stage ConcreteTypeAnalysisView
     source .manifest;
     dependency ConcreteTypeAnalysis;
 
-    persource accessor ref< Concrete::Context >;
+    persource accessor ref< Concrete::Graph::Vertex >;
     global accessor ref< Symbols::SymbolTable >;
 }
 
@@ -326,9 +324,7 @@ stage ConcreteTypeRollout
 
     file PerSourceConcreteTable;
 
-    persource accessor ref< Concrete::Context >;
-    persource accessor ref< Concrete::Dimensions::User >;
-    persource accessor ref< Concrete::Dimensions::Link >;
+    persource accessor ref< Concrete::Graph::Vertex >;
     global accessor ref< Symbols::SymbolTable >;
 }
 

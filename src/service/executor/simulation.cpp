@@ -40,7 +40,6 @@
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 #include "mega/printer.hpp"
-#include "mega/enumeration.hpp"
 
 #include <boost/filesystem/operations.hpp>
 

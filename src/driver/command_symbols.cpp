@@ -110,27 +110,27 @@ void command( bool bHelp, const std::vector< std::string >& args )
             {
                 for( const auto& [ concreteTypeID, pConcreteTypeID ] : pSymbolTable->get_concrete_type_ids() )
                 {
-                    if( pConcreteTypeID->get_context().has_value() )
+                    auto pVertex = pConcreteTypeID->get_vertex();
+                    std::cout << concreteTypeID << " " <<  Concrete::printContextFullType( pVertex );
+                    if( auto pContext = db_cast< Concrete::Context >( pVertex ) )
                     {
-                        std::cout << concreteTypeID << " "
-                                  << Concrete::printContextFullType( pConcreteTypeID->get_context().value() ) << "\n";
+                        std::cout << "\n";
                     }
-                    else if( pConcreteTypeID->get_dim_user().has_value() )
+                    else if( auto pUser = db_cast< Concrete::Dimensions::User >( pVertex ) )
                     {
-                        auto pDimension = pConcreteTypeID->get_dim_user().value();
-                        std::cout << concreteTypeID << " " << printContextFullType( pDimension->get_parent_context() )
-                                  << "::" << Concrete::getIdentifier( pDimension )
-                                  << " type:" << pDimension->get_interface_dimension()->get_canonical_type() << "\n";
+                        std::cout << " type:" << pUser->get_interface_dimension()->get_canonical_type() << "\n";
                     }
-                    else if( pConcreteTypeID->get_dim_link().has_value() )
+                    else if( auto pLink = db_cast< Concrete::Dimensions::Link >( pVertex ) )
                     {
-                        auto pLink = pConcreteTypeID->get_dim_link().value();
-                        std::cout << concreteTypeID << " " << printContextFullType( pLink->get_parent_context() )
-                                  << "::" << Concrete::getIdentifier( pLink ) << "\n";
+                        std::cout << "\n";
+                    }
+                    else if( auto pBitset = db_cast< Concrete::Dimensions::Bitset >( pVertex ) )
+                    {
+                        std::cout << "\n";
                     }
                     else
                     {
-                        THROW_RTE( "Concrete TypeID: " << concreteTypeID << " has no context or dimension" );
+                        THROW_RTE( "Unknown vertex type" );
                     }
                 }
             }
@@ -147,15 +147,12 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     else if( pInterfaceTypeID->get_dimension().has_value() )
                     {
                         Interface::DimensionTrait* pDimension = pInterfaceTypeID->get_dimension().value();
-
-                        std::cout << interfaceTypeID << " "
-                                  << Interface::printDimensionTraitFullType( pDimension )
+                        std::cout << interfaceTypeID << " " << Interface::printDimensionTraitFullType( pDimension )
                                   << " type:" << pDimension->get_canonical_type() << "\n";
                     }
                     else if( pInterfaceTypeID->get_link().has_value() )
                     {
                         Interface::LinkTrait* pLink = pInterfaceTypeID->get_link().value();
-
                         std::cout << interfaceTypeID << " " << Interface::printLinkTraitFullType( pLink ) << "\n";
                     }
                     else

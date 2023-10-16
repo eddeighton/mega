@@ -103,25 +103,18 @@ PythonDatabase::ObjectTypesMap PythonDatabase::getObjectTypes()
     return result;
 }
 
-void PythonDatabase::getConcreteObjectSymbols( SubType objectConcreteID, SymbolTable& symbols,
-                                               SymbolTable& links )
+void PythonDatabase::getConcreteObjectSymbols( SubType objectConcreteID, SymbolTable& symbols, SymbolTable& links )
 {
     auto iFind = m_concreteTypeIDs.find( TypeID::make_object_from_objectID( objectConcreteID ) );
     VERIFY_RTE_MSG(
         iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id for object: " << objectConcreteID );
 
-    auto pSymbol     = iFind->second;
-    auto pContextOpt = pSymbol->get_context();
-    VERIFY_RTE( pContextOpt.has_value() );
-    auto pObjectContext = pContextOpt.value();
-    auto pObject        = FinalStage::db_cast< FinalStage::Concrete::Object >( pObjectContext );
+    auto pObject = FinalStage::db_cast< FinalStage::Concrete::Object >( iFind->second->get_vertex() );
     VERIFY_RTE( pObject );
-
     recurseTree( symbols, links, pObject );
 }
 
-void PythonDatabase::getLinkObjectTypes( SubType concreteObjectID, TypeID linkTypeID,
-                                         std::set< SubType >& objectTypes )
+void PythonDatabase::getLinkObjectTypes( SubType concreteObjectID, TypeID linkTypeID, std::set< SubType >& objectTypes )
 {
     using namespace FinalStage;
 
