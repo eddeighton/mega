@@ -113,6 +113,7 @@ const char* toStr( Symbol::Parameters params )
         case Symbol::Ref_Any            : return "N4mega9referenceENS_3AnyE";
         case Symbol::RefR               : return "RN4mega9referenceE";
         case Symbol::RefR_U32R          : return "RN4mega9referenceERj";
+        case Symbol::RefCR_U32R         : return "KRN4mega9referenceERj";
         case Symbol::RefR_RefR          : return "RN4mega9referenceES1_";
         case Symbol::RefR_VStar         : return "RN4mega9referenceEPv";
         case Symbol::RefR_CVStar        : return "RN4mega9referenceEPKv";
@@ -122,7 +123,7 @@ const char* toStr( Symbol::Parameters params )
     // clang-format on
 }
 
-// // _Z17enumerate_0x10000RN4mega9referenceERj
+// // _Z17enumerate_0x10000KRN4mega9referenceERj
 //
 //
 //

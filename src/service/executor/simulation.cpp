@@ -173,7 +173,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                         for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
                         {
-                            const auto& ref = i->first;
+                            mega::reference ref = i->first;
 
                             mega::U32 iterator = 1;
                             while( true )

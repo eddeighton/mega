@@ -20,6 +20,11 @@
 
 #include "mpo_logical_thread.hpp"
 
+#include "mega/iterator.hpp"
+#include "mega/logical_tree.hpp"
+#include "mega/printer.hpp"
+
+#include "service/mpo_visitor.hpp"
 #include "service/protocol/model/jit.hxx"
 
 #include "service/protocol/common/type_erase.hpp"
@@ -253,10 +258,7 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
     }
     SPDLOG_TRACE( "REPORT RootSimRun: Releasing mpo context: {}", mpo );
 
-    {
-        // mega::_MPOContextStack _mpoStack;
-        m_tcpStream.socket().shutdown( boost::asio::ip::tcp::socket::shutdown_send, ec );
-    }
+    m_tcpStream.socket().shutdown( boost::asio::ip::tcp::socket::shutdown_send, ec );
 
     m_pYieldContext = nullptr;
     resetMPOContext();
@@ -293,8 +295,7 @@ void MPOLogicalThread::startTCPStream()
                     SPDLOG_TRACE( "MPOLogicalThread::startTCPStream End of stream" );
                     break;
                 }
-
-                if( ec )
+                else if( ec )
                 {
                     SPDLOG_ERROR( "MPOLogicalThread::startTCPStream Error: {}", ec.message() );
                     break;
@@ -391,8 +392,19 @@ boost::beast::http::message_generator MPOLogicalThread::handleHTTPRequest( const
     {
         using ::           operator<<;
         std::ostringstream os;
+
         os << "<html><body><H1>";
-        os << "Hello from MPOLogicalThread: " << getThisMPO() << "</h1></body></html>";
+        os << "Hello from MPOLogicalThread: " << getThisMPO() << "</h1><P>";
+
+        {
+            MPORealToLogicalVisitor mpoRealInstantiation( getThisRoot() );
+            LogicalTreePrinter      printer( os );
+            LogicalTreeTraversal    objectTraversal( mpoRealInstantiation, printer );
+            traverse( objectTraversal );
+        }
+
+        os << "</P></body></html>";
+
         body = os.str();
     }
 

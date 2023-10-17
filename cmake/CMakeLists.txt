@@ -109,6 +109,7 @@ add_subdirectory(clang_plugin)
 
 add_subdirectory(parser)
 add_subdirectory(compiler)
+add_subdirectory(reports)
 add_subdirectory(log)
 add_subdirectory(orc)
 add_subdirectory(jit)

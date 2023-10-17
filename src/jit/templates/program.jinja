@@ -265,7 +265,7 @@ void write_any( mega::reference ref, mega::Any value )
     }
 }
 
-mega::Generator< mega::TypeInstance > enumerate( mega::reference ref )
+mega::SubTypeInstance enumerate( mega::reference& ref, mega::U32& iterator )
 {
     switch( mega::TypeID::make_object_from_typeID( ref.getType() ) )
     {
@@ -273,7 +273,7 @@ mega::Generator< mega::TypeInstance > enumerate( mega::reference ref )
         case {{ type }}:
         {
             static thread_local mega::runtime::object::Enumerate objectEnumerate( "simulation", mega::TypeID{ {{ type }} } );
-            return objectEnumerate( ref );
+            return objectEnumerate( ref, iterator );
         }
         break;
 {% endfor %}

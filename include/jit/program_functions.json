@@ -175,7 +175,7 @@
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
+                    "type" : "mega::reference&"
                 },
                 {
                     "name" : "iterator",
