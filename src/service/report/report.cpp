@@ -44,11 +44,12 @@
 namespace mega::service::report
 {
 
-Report::Report( boost::asio::io_context& io_context, short daemonPortNumber )
+Report::Report( boost::asio::io_context& io_context, short daemonPortNumber, int iTimeoutSeconds )
     : network::LogicalThreadManager( network::makeProcessName( network::Node::Report ), io_context )
     , m_io_context( io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf( m_receiverChannel.getSender(), network::Node::Report, daemonPortNumber )
+    , m_iTimeoutSeconds( iTimeoutSeconds )
 {
     m_receiverChannel.run( m_leaf.getLeafSender() );
     m_project = m_leaf.startup();
@@ -85,9 +86,9 @@ bool Report::isProjectActive() const
 {
     if( m_project.has_value() )
     {
-        
         return boost::filesystem::exists( m_project.value().getProjectInstallPath() );
     }
+    return false;
 }
 
 } // namespace mega::service::report

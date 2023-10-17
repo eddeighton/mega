@@ -23,6 +23,7 @@
 #include "service/protocol/model/jit.hxx"
 
 #include "service/protocol/common/type_erase.hpp"
+#include "service/protocol/common/sender_ref.hpp"
 
 #include <boost/beast/version.hpp>
 
@@ -170,6 +171,8 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
     setMPOContext( this );
     m_pYieldContext = &yield_ctx;
 
+    boost::beast::error_code ec;
+
     SPDLOG_TRACE( "REPORT RootSimRun: Acquired mpo context: {}", mpo );
     {
         createRoot( project, mpo );
@@ -182,22 +185,160 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
         }
 
         m_bRunning = true;
-        runHTMLSession( yield_ctx );
+
+        startTCPStream();
+
+        while( m_bRunning )
+        {
+            unqueue();
+            const network::ReceivedMessage msg = receiveDeferred( yield_ctx );
+
+            switch( msg.msg.getID() )
+            {
+                case HTTPRequest::ID:
+                {
+                    const auto& httpRequest = HTTPRequest::get( msg.msg ).httpRequestData;
+                    switch( httpRequest.verb )
+                    {
+                        case eClose:
+                        case eError:
+                        {
+                            m_bRunning = false;
+                            SPDLOG_TRACE( "MPOLogicalThread::RootSimRun shutting down" );
+                        }
+                        break;
+                        case eGet:
+                        case eHead:
+                        case ePost:
+                        {
+                            // generate response
+                            if( httpRequest.version != 0 )
+                            {
+                                SPDLOG_TRACE( "MPOLogicalThread::RootSimRun got html request" );
+                                // Handle the request
+                                boost::beast::http::message_generator httpMsg
+                                    = handleHTTPRequest( httpRequest, yield_ctx );
+
+                                // Determine if we should close the connection
+                                m_bRunning = httpMsg.keep_alive();
+
+                                // Send the response
+                                {
+                                    mega::_MPOContextStack _mpoStack;
+                                    boost::beast::async_write( m_tcpStream, std::move( httpMsg ), yield_ctx[ ec ] );
+                                }
+
+                                if( ec )
+                                {
+                                    THROW_RTE( "Error writing html response: " << ec );
+                                }
+                            }
+                        }
+                        break;
+                        case TOTAL_HTTP_VERBS:
+                        default:
+                        {
+                            THROW_RTE( "Unknown verb type" );
+                        }
+                    }
+                }
+                break;
+                default:
+                {
+                    acknowledgeInboundRequest( msg, yield_ctx );
+                }
+                break;
+            }
+        }
     }
     SPDLOG_TRACE( "REPORT RootSimRun: Releasing mpo context: {}", mpo );
+
+    {
+        // mega::_MPOContextStack _mpoStack;
+        m_tcpStream.socket().shutdown( boost::asio::ip::tcp::socket::shutdown_send, ec );
+    }
 
     m_pYieldContext = nullptr;
     resetMPOContext();
 }
 
-// Return a response for the given request.
-//
-// The concrete type of the response message (which depends on the
-// request), is type-erased in message_generator.
+void MPOLogicalThread::startTCPStream()
+{
+    // start tcp session reader coroutine
+    boost::asio::spawn(
 
-boost::beast::http::message_generator
-MPOLogicalThread::handleRequest( boost::beast::http::request< boost::beast::http::string_body >& req,
-                                 boost::asio::yield_context&                                     yield_ctx )
+        m_report.getIOContext(),
+
+        [ this, timeout = m_report.getTimeoutSeconds() ]( boost::asio::yield_context yield_ctx )
+        {
+            boost::beast::error_code ec;
+
+            // This buffer is required to persist across reads
+            boost::beast::flat_buffer buffer;
+
+            // This lambda is used to send messages
+            for( ; m_bRunning; )
+            {
+                // Set the timeout.
+                m_tcpStream.expires_after( std::chrono::seconds( timeout ) );
+
+                // Read a request
+                boost::beast::http::request< boost::beast::http::string_body > req;
+                {
+                    boost::beast::http::async_read( m_tcpStream, buffer, req, yield_ctx[ ec ] );
+                }
+
+                if( ec == boost::beast::http::error::end_of_stream )
+                {
+                    SPDLOG_TRACE( "MPOLogicalThread::startTCPStream End of stream" );
+                    break;
+                }
+
+                if( ec )
+                {
+                    SPDLOG_ERROR( "MPOLogicalThread::startTCPStream Error: {}", ec.message() );
+                    break;
+                }
+
+                HTTPVerbType verbType = TOTAL_HTTP_VERBS;
+                {
+                    switch( req.method() )
+                    {
+                        case boost::beast::http::verb::get:
+                            verbType = eGet;
+                            break;
+                        case boost::beast::http::verb::head:
+                            verbType = eHead;
+                            break;
+                        case boost::beast::http::verb::post:
+                            verbType = ePost;
+                            break;
+                        default:
+                        {
+                            THROW_RTE( "Unknown http verb" );
+                        }
+                    }
+                }
+
+                send( HTTPRequest::make( getID(),
+                                         HTTPRequest{ mega::network::HTTPRequestData{
+                                             verbType, req.version(), req.target(), req.keep_alive() } } ) );
+            }
+
+            // Send a TCP shutdown
+            SPDLOG_TRACE( "MPOLogicalThread::startTCPStream shutdown" );
+            send( HTTPRequest::make( getID(), HTTPRequest{ mega::network::HTTPRequestData{ eClose } } ) );
+        }
+    // segmented stacks do NOT work on windows
+#ifndef BOOST_USE_SEGMENTED_STACKS
+        ,
+        boost::coroutines::attributes( network::NON_SEGMENTED_STACK_SIZE )
+#endif
+    );
+}
+
+boost::beast::http::message_generator MPOLogicalThread::handleHTTPRequest( const network::HTTPRequestData& httpRequest,
+                                                                           boost::asio::yield_context&     yield_ctx )
 {
     namespace beast = boost::beast;         // from <boost/beast.hpp>
     namespace http  = beast::http;          // from <boost/beast/http.hpp>
@@ -205,43 +346,43 @@ MPOLogicalThread::handleRequest( boost::beast::http::request< boost::beast::http
     using tcp       = boost::asio::ip::tcp; // from <boost/asio/ip/tcp.hpp>
 
     // Returns a bad request response
-    auto const bad_request = [ &req ]( beast::string_view why )
+    auto const bad_request = [ &httpRequest ]( beast::string_view why )
     {
-        http::response< http::string_body > res{ http::status::bad_request, req.version() };
+        http::response< http::string_body > res{ http::status::bad_request, httpRequest.version };
         res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
         res.set( http::field::content_type, "text/html" );
-        res.keep_alive( req.keep_alive() );
+        res.keep_alive( httpRequest.keep_alive );
         res.body() = std::string( why );
         res.prepare_payload();
         return res;
     };
 
     // Returns a not found response
-    auto const not_found = [ &req ]( beast::string_view target )
+    auto const not_found = [ &httpRequest ]( beast::string_view target )
     {
-        http::response< http::string_body > res{ http::status::not_found, req.version() };
+        http::response< http::string_body > res{ http::status::not_found, httpRequest.version };
         res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
         res.set( http::field::content_type, "text/html" );
-        res.keep_alive( req.keep_alive() );
+        res.keep_alive( httpRequest.keep_alive );
         res.body() = "The resource '" + std::string( target ) + "' was not found.";
         res.prepare_payload();
         return res;
     };
 
     // Returns a server error response
-    auto const server_error = [ &req ]( beast::string_view what )
+    auto const server_error = [ &httpRequest ]( beast::string_view what )
     {
-        http::response< http::string_body > res{ http::status::internal_server_error, req.version() };
+        http::response< http::string_body > res{ http::status::internal_server_error, httpRequest.version };
         res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
         res.set( http::field::content_type, "text/html" );
-        res.keep_alive( req.keep_alive() );
+        res.keep_alive( httpRequest.keep_alive );
         res.body() = "An error occurred: '" + std::string( what ) + "'";
         res.prepare_payload();
         return res;
     };
 
     // Make sure we can handle the method
-    if( req.method() != http::verb::get && req.method() != http::verb::head )
+    if( httpRequest.verb != eGet && httpRequest.verb != eHead )
     {
         return bad_request( "Unknown HTTP-method" );
     }
@@ -259,97 +400,33 @@ MPOLogicalThread::handleRequest( boost::beast::http::request< boost::beast::http
     auto const size = body.size();
 
     // Respond to HEAD request
-    if( req.method() == http::verb::head )
+    if( httpRequest.verb == eHead )
     {
-        http::response< http::empty_body > res{ http::status::ok, req.version() };
+        http::response< http::empty_body > res{ http::status::ok, httpRequest.version };
         res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
         res.set( http::field::content_type, "text/html" );
         res.content_length( size );
-        res.keep_alive( req.keep_alive() );
+        res.keep_alive( httpRequest.keep_alive );
         return res;
     }
     else
     {
         // Respond to GET request
         http::response< http::string_body > res{ std::piecewise_construct, std::make_tuple( std::move( body ) ),
-                                                    std::make_tuple( http::status::ok, req.version() ) };
+                                                 std::make_tuple( http::status::ok, httpRequest.version ) };
         res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
         res.set( http::field::content_type, "text/html" );
         res.content_length( size );
-        res.keep_alive( req.keep_alive() );
+        res.keep_alive( httpRequest.keep_alive );
         return res;
     }
 }
 
-void MPOLogicalThread::runHTMLSession( boost::asio::yield_context& yield_ctx )
-{
-    namespace beast = boost::beast;         // from <boost/beast.hpp>
-    namespace http  = beast::http;          // from <boost/beast/http.hpp>
-    namespace net   = boost::asio;          // from <boost/asio.hpp>
-    using tcp       = boost::asio::ip::tcp; // from <boost/asio/ip/tcp.hpp>
-
-    beast::error_code ec;
-
-    // This buffer is required to persist across reads
-    beast::flat_buffer buffer;
-
-    // This lambda is used to send messages
-    for( ;; )
-    {
-        // Set the timeout.
-        m_tcpStream.expires_after( std::chrono::seconds( 1 ) );
-
-        // Read a request
-        http::request< http::string_body > req;
-        {
-            mega::_MPOContextStack _mpoStack;
-            http::async_read( m_tcpStream, buffer, req, yield_ctx[ ec ] );
-        }
-        if( ec == http::error::end_of_stream )
-        {
-            break;
-        }
-        if( ec )
-        {
-            //THROW_RTE( "Error reading html request: " << ec );
-            break;
-        }
-
-        // Handle the request
-        http::message_generator msg = handleRequest( req, yield_ctx );
-
-        // Determine if we should close the connection
-        m_bRunning = m_bRunning && msg.keep_alive();
-
-        // Send the response
-        {
-            mega::_MPOContextStack _mpoStack;
-            beast::async_write( m_tcpStream, std::move( msg ), yield_ctx[ ec ] );
-        }
-
-        if( ec )
-        {
-            THROW_RTE( "Error writing html response: " << ec );
-        }
-
-        if( !m_bRunning )
-        {
-            // This means we should close the connection, usually because
-            // the response indicated the "Connection: close" semantic.
-            break;
-        }
-
-        //run_one( yield_ctx );
-    }
-
-    // Send a TCP shutdown
-    m_tcpStream.socket().shutdown( tcp::socket::shutdown_send, ec );
-}
-
-std::string MPOLogicalThread::GetReport( const std::string& request, boost::asio::yield_context& yield_ctx )
+mega::network::HTTPRequestData MPOLogicalThread::GetReport( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "MPOLogicalThread::GetReport" );
-    return {};
+    THROW_RTE( "MPOLogicalThread::GetReport" );
+    return mega::network::HTTPRequestData{};
 }
 
 } // namespace mega::service::report

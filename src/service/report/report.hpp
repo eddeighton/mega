@@ -46,7 +46,7 @@ class Report : public network::LogicalThreadManager
     friend class PythonRequestLogicalThread;
 
 public:
-    Report( boost::asio::io_context& io_context, short daemonPortNumber );
+    Report( boost::asio::io_context& io_context, short daemonPortNumber, int iTimeoutSeconds );
     ~Report();
 
     void shutdown();
@@ -57,16 +57,20 @@ public:
     network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
     MP                   getMP() const { return m_leaf.getMP(); }
 
+    int                                   getTimeoutSeconds() const { return m_iTimeoutSeconds; }
     bool                                  isProjectActive() const;
     const std::optional< mega::Project >& getProject() const;
     void                                  setProject( const Project& project ) { m_project = project; }
 
     void createReport( boost::asio::ip::tcp::socket& socket );
 
+    boost::asio::io_context& getIOContext() const { return m_ioContext; }
+
 private:
     boost::asio::io_context&               m_io_context;
     network::ReceiverChannel               m_receiverChannel;
     Leaf                                   m_leaf;
+    int                                    m_iTimeoutSeconds;
     mutable std::optional< mega::Project > m_project;
 };
 } // namespace mega::service::report

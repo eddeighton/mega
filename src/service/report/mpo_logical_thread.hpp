@@ -65,9 +65,10 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
 
     // network::report::Impl
-    std::string GetReport( const std::string& request, boost::asio::yield_context& yield_ctx ) override;
+    mega::network::HTTPRequestData GetReport( boost::asio::yield_context& ) override;
 
     void run( boost::asio::yield_context& yield_ctx ) override;
+
     virtual void
     RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
@@ -76,10 +77,19 @@ public:
     void stopRunning() { m_bRunning = false; }
 
 private:
-    boost::beast::http::message_generator
-         handleRequest( boost::beast::http::request< boost::beast::http::string_body > &req,
-                        boost::asio::yield_context& yield_ctx );
-    void runHTMLSession( boost::asio::yield_context& yield_ctx );
+    enum HTTPVerbType
+    {
+        eClose,
+        eError,
+        eGet,
+        eHead,
+        ePost,
+        TOTAL_HTTP_VERBS
+    };
+    using HTTPRequest = network::report::MSG_GetReport_Response;
+    void startTCPStream();
+    boost::beast::http::message_generator handleHTTPRequest( const network::HTTPRequestData& msg,
+                                                             boost::asio::yield_context&     yield_ctx );
 
 private:
     bool                                    m_bRunning = false;

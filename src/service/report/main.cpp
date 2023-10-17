@@ -37,6 +37,7 @@ int main( int argc, char* argv[] )
     Port                    daemonPort         = mega::network::MegaDaemonPort();
     boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
     std::string             strConsoleLogLevel = "warn", strLogFileLevel = "warn";
+    int                     timeoutSeconds = 20;
     {
         bool bShowHelp = false;
 
@@ -45,14 +46,15 @@ int main( int argc, char* argv[] )
 
         // clang-format off
         options.add_options()
-        ( "help",    po::bool_switch( &bShowHelp ),                                   "Show Command Line Help" )
-        ( "ip",      po::value< std::string >( &strIP ),                              "Root IP Address" )
-        ( "threads", po::value< int >( &uiNumThreads ),                               "Max number of threads" )
-        ( "log",     po::value< boost::filesystem::path >( &logFolder ),              "Logging folder" )
-        ( "console", po::value< std::string >( &strConsoleLogLevel ),                 "Console logging level" )
-        ( "level",   po::value< std::string >( &strLogFileLevel ),                    "Log file logging level" )
-        ( "port",    po::value< Port >( &port )->default_value( port ),               "Report server http port number" )
-        ( "daemon",  po::value< Port >( &daemonPort )->default_value( daemonPort ),   "Megastructure Daemon port number" )
+        ( "help",    po::bool_switch( &bShowHelp ),                                         "Show Command Line Help" )
+        ( "ip",      po::value< std::string >( &strIP ),                                    "Root IP Address" )
+        ( "threads", po::value< int >( &uiNumThreads ),                                     "Max number of threads" )
+        ( "log",     po::value< boost::filesystem::path >( &logFolder ),                    "Logging folder" )
+        ( "console", po::value< std::string >( &strConsoleLogLevel ),                       "Console logging level" )
+        ( "level",   po::value< std::string >( &strLogFileLevel ),                          "Log file logging level" )
+        ( "port",    po::value< Port >( &port )->default_value( port ),                     "Report server http port number" )
+        ( "daemon",  po::value< Port >( &daemonPort )->default_value( daemonPort ),         "Megastructure Daemon port number" )
+        ( "timeout", po::value< int >( &timeoutSeconds )->default_value( timeoutSeconds ),  "HTTP Timeout in seconds" )
         ;
         // clang-format on
 
@@ -87,7 +89,7 @@ int main( int argc, char* argv[] )
         auto const                     address = boost::asio::ip::make_address( strIP );
         boost::asio::ip::tcp::endpoint endPoint{ address, port };
         boost::asio::io_context        ioService{ uiNumThreads };
-        mega::service::report::Report  reportService( ioService, daemonPort );
+        mega::service::report::Report  reportService( ioService, daemonPort, timeoutSeconds );
 
         {
             const auto& projectOpt = reportService.getProject();

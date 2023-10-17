@@ -19,7 +19,7 @@
 
 msg GetReport
 {
-    request( std::string request );
-    response( std::string response );
+    request();
+    response( mega::network::HTTPRequestData httpRequestData );
 }
 

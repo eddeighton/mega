@@ -55,7 +55,7 @@ public:
         THROW_RTE( "Attempted to serialize SenderRef" );
     }
 
-    MPO               m_mpo;
+    MPO                m_mpo;
     LogicalThreadBase* m_pSender;
 
     struct AllocatorBase
@@ -111,6 +111,20 @@ struct MemoryStatus
     };
     using TypedAllocatorStatusArray = std::array< TypedAllocatorStatus, network::SenderRef::MAX_ALLOCATORS >;
     TypedAllocatorStatusArray m_allocators;
+};
+
+struct HTTPRequestData
+{
+    unsigned    verb    = 0;
+    unsigned    version = 0;
+    std::string request;
+    bool        keep_alive = false;
+
+    template < class Archive >
+    inline void serialize( Archive&, const unsigned int )
+    {
+        THROW_RTE( "Attempted to serialize HTTPRequestData" );
+    }
 };
 
 } // namespace mega::network
