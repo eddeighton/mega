@@ -24,6 +24,7 @@
 
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
+
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/enrole.hxx"
@@ -37,7 +38,9 @@ namespace mega::service
 class Root;
 
 class RootRequestLogicalThread : public network::InThreadLogicalThread,
+
                                  public network::daemon_root::Impl,
+
                                  public network::mpo::Impl,
                                  public network::project::Impl,
                                  public network::enrole::Impl,
@@ -51,7 +54,7 @@ public:
     virtual ~RootRequestLogicalThread();
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
 
     // helpers
     network::root_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx );
@@ -89,6 +92,8 @@ public:
     virtual network::Message ToolRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message PythonRoot( const network::Message&     request,
+                                         boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message ReportRoot( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message LeafRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;

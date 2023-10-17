@@ -38,8 +38,10 @@ namespace mega::service
 {
 
 class DaemonRequestLogicalThread : public network::InThreadLogicalThread,
+
                                    public network::leaf_daemon::Impl,
                                    public network::root_daemon::Impl,
+
                                    public network::mpo::Impl,
                                    public network::enrole::Impl,
                                    public network::status::Impl,
@@ -80,12 +82,16 @@ public:
                                        boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message PythonRoot( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message ReportRoot( const network::Message&     request,
+                                         boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message LeafRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
 
     virtual network::Message ToolDaemon( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message PythonDaemon( const network::Message&     request,
+                                           boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message ReportDaemon( const network::Message&     request,
                                            boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message LeafDaemon( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;

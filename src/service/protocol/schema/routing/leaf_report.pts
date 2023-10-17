@@ -17,47 +17,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-msg TermRoot
+msg RootAllBroadcast
 {
-    request(network::Message request);
-    response(network::Message response);
+    request( network::Message request );
+    response( network::Message response );
 }
 
-msg ExeRoot
+// special case for registering MPO and running simulation
+msg RootSimRun
 {
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg ToolRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg PythonRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg ReportRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg LeafRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg DaemonRoot
-{
-    request(network::Message request);
-    response(network::Message response);
+    request( mega::Project project, mega::MPO mpo );
+    response();
 }

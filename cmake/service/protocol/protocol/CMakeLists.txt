@@ -37,18 +37,24 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( PROTOCOL_SCHEMA_DIR ${MEGA_SRC_DIR}/service/protocol/schema )
 
 set( ROUTING_SCHEMAS
-    daemon_root
     root_daemon
+
+    daemon_root
     daemon_leaf
+
     leaf_daemon
     leaf_term
     leaf_tool
     leaf_python
+    leaf_report
     leaf_exe
+
     term_leaf
     tool_leaf
     python_leaf
+    report_leaf
     exe_leaf
+    
     mpo 
 )
 

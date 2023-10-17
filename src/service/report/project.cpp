@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,47 +18,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "request.hpp"
 
-
-
-msg TermRoot
+namespace mega::service::report
 {
-    request(network::Message request);
-    response(network::Message response);
+
+// network::project::Impl
+void ReportRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "ReportRequestLogicalThread::SetProject: {}", project.getProjectInstallPath().string() );
+    m_report.setProject( project );
 }
 
-msg ExeRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg ToolRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg PythonRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg ReportRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg LeafRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg DaemonRoot
-{
-    request(network::Message request);
-    response(network::Message response);
-}
+} // namespace mega::service::report

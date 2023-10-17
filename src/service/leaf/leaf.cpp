@@ -143,6 +143,7 @@ void Leaf::setActiveProject( const Project& currentProject )
             break;
         case network::Node::Tool:
         case network::Node::Python:
+        case network::Node::Report:
         case network::Node::Executor:
         case network::Node::Plugin:
         {
@@ -237,6 +238,7 @@ network::LogicalThreadBase::Ptr Leaf::joinLogicalThread( const network::Message&
         case network::Node::Terminal:
         case network::Node::Tool:
         case network::Node::Python:
+        case network::Node::Report:
         case network::Node::Executor:
         case network::Node::Plugin:
             return network::LogicalThreadBase::Ptr( new LeafRequestLogicalThread( *this, msg.getLogicalThreadID() ) );

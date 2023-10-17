@@ -23,7 +23,7 @@
 
 #include "service/network/log.hpp"
 
-namespace mega::service::python
+namespace mega::service::report
 {
 
 // network::project::Impl
@@ -37,7 +37,7 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
     {
         std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for( const auto& id : m_python.reportLogicalThreads() )
+            for( const auto& id : m_report.reportLogicalThreads() )
             {
                 if( id != getID() )
                 {
@@ -48,7 +48,7 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
         status.setLogicalThreadID( logicalthreads );
         if( m_mpo.has_value() )
             status.setMPO( m_mpo.value() );
-        status.setDescription( m_python.getProcessName() );
+        status.setDescription( m_report.getProcessName() );
 
         using MPOTimeStampVec = std::vector< std::pair< mega::MPO, TimeStamp > >;
         using MPOVec          = std::vector< mega::MPO >;
@@ -59,7 +59,7 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
 
         {
             std::ostringstream os;
-            os << "Python: " << getLog().getTimeStamp();
+            os << "Report: " << getLog().getTimeStamp();
         }
 
         status.setLogIterator( getLog().getIterator() );
@@ -71,16 +71,16 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
     return status;
 }
 
-network::Status PythonRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
+network::Status ReportRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                       boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "PythonRequestLogicalThread::GetStatus" );
+    SPDLOG_TRACE( "ReportRequestLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
         std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for( const auto& id : m_python.reportLogicalThreads() )
+            for( const auto& id : m_report.reportLogicalThreads() )
             {
                 if( id != getID() )
                 {
@@ -89,13 +89,14 @@ network::Status PythonRequestLogicalThread::GetStatus( const std::vector< networ
             }
         }
         status.setLogicalThreadID( logicalthreads );
-        status.setDescription( m_python.getProcessName() );
+        status.setDescription( m_report.getProcessName() );
+        status.setMP( m_report.getMP() );
     }
 
     return status;
 }
 
-std::string PythonRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string ReportRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     using ::           operator<<;
     std::ostringstream os;
@@ -103,4 +104,4 @@ std::string PythonRequestLogicalThread::Ping( const std::string& strMsg, boost::
     return os.str();
 }
 
-} // namespace mega::service::python
+} // namespace mega::service::report

@@ -34,6 +34,7 @@ public:
         Terminal,
         Tool,
         Python,
+        Report,
         Executor,
         Plugin,
         Daemon,
@@ -43,7 +44,7 @@ public:
 
     static const char* toStr( Type type );
     static Type        fromStr( const char* pszStr );
-    static bool canRunSimulations( Type type );
+    static bool canAllocateObjects( Type type );
 };
 
 std::string makeProcessName( Node::Type type );

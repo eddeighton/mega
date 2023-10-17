@@ -42,6 +42,7 @@ static const NodeStringArray g_nodeTypeStrings =
     std::string{ "Terminal" }, 
     std::string{ "Tool" }, 
     std::string{ "Python" }, 
+    std::string{ "Report" }, 
     std::string{ "Executor" }, 
     std::string{ "Plugin" }, 
     std::string{ "Daemon" },
@@ -55,12 +56,13 @@ const char* Node::toStr( Node::Type type )
     return g_nodeTypeStrings[ type ].c_str();
 }
 
-bool Node::canRunSimulations( Type type )
+bool Node::canAllocateObjects( Type type )
 {
     switch( type )
     {
         case Tool:
         case Python:
+        case Report:
         case Executor:
         case Plugin:
             return true;

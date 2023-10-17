@@ -59,6 +59,17 @@ msg PythonDaemon
     response(network::Message response);
 }
 
+msg ReportRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+msg ReportDaemon
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+
 msg LeafDaemon
 {
     request(network::Message request);

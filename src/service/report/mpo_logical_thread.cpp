@@ -1,0 +1,222 @@
+
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
+
+#include "mpo_logical_thread.hpp"
+
+#include "service/protocol/model/jit.hxx"
+
+#include "service/protocol/common/type_erase.hpp"
+
+namespace mega::service::report
+{
+
+MPOLogicalThread::MPOLogicalThread( Report& report, const network::LogicalThreadID& logicalthreadID )
+    : ReportRequestLogicalThread( report, logicalthreadID )
+    , mega::MPOContext( getID() )
+    , m_report( report )
+{
+}
+
+network::Message MPOLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
+                                                           boost::asio::yield_context& yield_ctx )
+{
+    network::Message result;
+    // if( result = network::report::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
+    //     return result;
+    return ReportRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
+}
+
+network::report_leaf::Request_Sender MPOLogicalThread::getReportRequest( boost::asio::yield_context& yield_ctx )
+{
+    return { *this, m_report.getLeafSender(), yield_ctx };
+}
+
+network::mpo::Request_Sender MPOLogicalThread::getMPRequest( boost::asio::yield_context& yield_ctx )
+{
+    return { *this, m_report.getLeafSender(), yield_ctx };
+}
+
+network::enrole::Request_Encoder MPOLogicalThread::getRootEnroleRequest()
+{
+    VERIFY_RTE( m_pYieldContext );
+    return { [ leafRequest = getReportRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+             { return leafRequest.ReportRoot( msg ); },
+             getID() };
+}
+
+network::stash::Request_Encoder MPOLogicalThread::getRootStashRequest()
+{
+    VERIFY_RTE( m_pYieldContext );
+    return { [ leafRequest = getReportRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+             { return leafRequest.ReportRoot( msg ); },
+             getID() };
+}
+
+network::memory::Request_Encoder MPOLogicalThread::getDaemonMemoryRequest()
+{
+    VERIFY_RTE( m_pYieldContext );
+    return { [ leafRequest = getReportRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+             { return leafRequest.ReportDaemon( msg ); },
+             getID() };
+}
+
+network::sim::Request_Encoder MPOLogicalThread::getMPOSimRequest( mega::MPO mpo )
+{
+    VERIFY_RTE( m_pYieldContext );
+    return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
+             { return leafRequest.MPOUp( msg, mpo ); },
+             getID() };
+}
+
+network::memory::Request_Sender MPOLogicalThread::getLeafMemoryRequest()
+{
+    VERIFY_RTE( m_pYieldContext );
+    return { *this, m_report.getLeafSender(), *m_pYieldContext };
+}
+
+network::jit::Request_Sender MPOLogicalThread::getLeafJITRequest()
+{
+    VERIFY_RTE( m_pYieldContext );
+    return { *this, m_report.getLeafSender(), *m_pYieldContext };
+}
+
+network::mpo::Request_Sender MPOLogicalThread::getMPRequest()
+{
+    VERIFY_RTE( m_pYieldContext );
+    return getMPRequest( *m_pYieldContext );
+}
+
+network::Message MPOLogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+{
+    network::ReceivedMessage msg;
+    while( true )
+    {
+        msg = receive( yield_ctx );
+
+        // simulation is running so process as normal
+        if( isRequest( msg.msg ) )
+        {
+            if( m_mpo.has_value() || ( msg.msg.getID() == network::leaf_report::MSG_RootSimRun_Request::ID ) )
+            {
+                acknowledgeInboundRequest( msg, yield_ctx );
+            }
+            else
+            {
+                // queue the messages while waiting for RootSim run to complete
+                SPDLOG_TRACE( "MPOLogicalThread::dispatchInBoundRequestsUntilResponse queued: {}", msg.msg );
+                m_messageQueue.push_back( msg );
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+    if( msg.msg.getID() == network::MSG_Error_Disconnect::ID )
+    {
+        const std::string& strError = network::MSG_Error_Disconnect::get( msg.msg ).what;
+        SPDLOG_ERROR( "Got error disconnect: {}", strError );
+        throw std::runtime_error( strError );
+    }
+    else if( msg.msg.getID() == network::MSG_Error_Response::ID )
+    {
+        const std::string& strError = network::MSG_Error_Response::get( msg.msg ).what;
+        SPDLOG_ERROR( "Got error response: {}", strError );
+        throw std::runtime_error( strError );
+    }
+    return msg.msg;
+}
+
+void MPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "REPORT MPOLogicalThread: run" );
+    network::sim::Request_Encoder request(
+        [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+        { return rootRequest.MPRoot( msg, mega::MP{} ); },
+        getID() );
+    request.SimStart();
+
+    dispatchRemaining( yield_ctx );
+
+    m_bRunComplete = true;
+}
+
+void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+{
+    m_mpo = mpo;
+
+    setMPOContext( this );
+    m_pYieldContext = &yield_ctx;
+
+    SPDLOG_TRACE( "REPORT RootSimRun: Acquired mpo context: {}", mpo );
+    {
+        createRoot( project, mpo );
+
+        for( const auto& msg : m_messageQueue )
+        {
+            SPDLOG_ERROR( "Unexpected pending message when starting up MPOLogicalThread: {}", msg.msg );
+            using ::operator<<;
+            THROW_RTE( "Unexpected pending message when starting up MPOLogicalThread: " << msg.msg );
+        }
+
+        m_bRunning = true;
+        while( m_bRunning )
+        {
+            run_one( yield_ctx );
+        }
+    }
+    SPDLOG_TRACE( "REPORT RootSimRun: Releasing mpo context: {}", mpo );
+
+    m_pYieldContext = nullptr;
+    resetMPOContext();
+}
+/*
+TypeID MPOLogicalThread::ReportGetInterfaceTypeID( const TypeID& concreteTypeID, boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "MPOLogicalThread::ReportGetInterfaceTypeID" );
+    return getLeafJITRequest().GetInterfaceTypeID( concreteTypeID );
+}
+
+void MPOLogicalThread::ReportExecuteJIT( const mega::runtime::JITFunctor& func, boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "MPOLogicalThread::ReportExecuteJIT" );
+    getLeafJITRequest().ExecuteJIT( func );
+}
+
+TimeStamp MPOLogicalThread::ReportCycle( boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "MPOLogicalThread::ReportCycle" );
+    cycleComplete();
+    return getLog().getTimeStamp();
+}
+
+void MPOLogicalThread::ReportFunctor( const mega::runtime::Functor& functor, boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "MPOLogicalThread::ReportFunctor" );
+    functor();
+}
+
+void MPOLogicalThread::ReportShutdown( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "MPOLogicalThread::ReportShutdown" );
+    m_bRunning = false;
+}
+*/
+} // namespace mega::service::report

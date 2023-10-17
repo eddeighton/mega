@@ -92,11 +92,24 @@ network::Message DaemonRequestLogicalThread::PythonRoot( const network::Message&
     return getRootSender( yield_ctx ).PythonRoot( request );
 }
 
+network::Message DaemonRequestLogicalThread::ReportRoot( const network::Message&     request,
+                                                         boost::asio::yield_context& yield_ctx )
+{
+    return getRootSender( yield_ctx ).ReportRoot( request );
+}
+
 network::Message DaemonRequestLogicalThread::PythonDaemon( const network::Message&     request,
                                                            boost::asio::yield_context& yield_ctx )
 {
     return dispatchInBoundRequest( request, yield_ctx );
 }
+
+network::Message DaemonRequestLogicalThread::ReportDaemon( const network::Message&     request,
+                                                           boost::asio::yield_context& yield_ctx )
+{
+    return dispatchInBoundRequest( request, yield_ctx );
+}
+
 network::Message DaemonRequestLogicalThread::LeafRoot( const network::Message&     request,
                                                        boost::asio::yield_context& yield_ctx )
 {

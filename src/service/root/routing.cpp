@@ -144,6 +144,13 @@ network::Message RootRequestLogicalThread::PythonRoot( const network::Message&  
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
+network::Message RootRequestLogicalThread::ReportRoot( const network::Message&     request,
+                                                       boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "RootRequestLogicalThread::ReportRoot" );
+    return dispatchInBoundRequest( request, yield_ctx );
+}
+
 network::Message RootRequestLogicalThread::LeafRoot( const network::Message&     request,
                                                      boost::asio::yield_context& yield_ctx )
 {

@@ -38,7 +38,7 @@
 
 namespace mega::runtime
 {
-    class RemoteMemoryManager;
+class RemoteMemoryManager;
 }
 namespace mega::service
 {
@@ -83,6 +83,7 @@ public:
     }
     std::optional< task::FileHash > getUnityDBHashCode() const { return m_unityDatabaseHashCode; }
 
+    mega::MP               getMP() const { return m_mp; }
     HeapMemory&            getHeapMemory();
     std::set< mega::MPO >& getMPOs() { return m_mpos; }
     runtime::JIT&          getJIT() { return *m_pJIT; }

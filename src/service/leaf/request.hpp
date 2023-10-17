@@ -29,6 +29,7 @@
 #include "service/protocol/model/exe_leaf.hxx"
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/python_leaf.hxx"
+#include "service/protocol/model/report_leaf.hxx"
 #include "service/protocol/model/daemon_leaf.hxx"
 #include "service/protocol/model/mpo.hxx"
 
@@ -36,6 +37,7 @@
 #include "service/protocol/model/leaf_exe.hxx"
 #include "service/protocol/model/leaf_tool.hxx"
 #include "service/protocol/model/leaf_python.hxx"
+#include "service/protocol/model/leaf_report.hxx"
 #include "service/protocol/model/leaf_term.hxx"
 
 #include "service/protocol/model/status.hxx"
@@ -51,18 +53,21 @@ namespace mega::service
 {
 
 class LeafRequestLogicalThread : public network::InThreadLogicalThread,
-                                public network::term_leaf::Impl,
-                                public network::exe_leaf::Impl,
-                                public network::tool_leaf::Impl,
-                                public network::python_leaf::Impl,
-                                public network::daemon_leaf::Impl,
-                                public network::mpo::Impl,
-                                public network::status::Impl,
-                                public network::job::Impl,
-                                public network::memory::Impl,
-                                public network::jit::Impl,
-                                public network::project::Impl,
-                                public network::enrole::Impl
+
+                                 public network::term_leaf::Impl,
+                                 public network::exe_leaf::Impl,
+                                 public network::tool_leaf::Impl,
+                                 public network::python_leaf::Impl,
+                                 public network::report_leaf::Impl,
+                                 public network::daemon_leaf::Impl,
+
+                                 public network::mpo::Impl,
+                                 public network::status::Impl,
+                                 public network::job::Impl,
+                                 public network::memory::Impl,
+                                 public network::jit::Impl,
+                                 public network::project::Impl,
+                                 public network::enrole::Impl
 {
 protected:
     Leaf& m_leaf;
@@ -72,15 +77,17 @@ public:
     virtual ~LeafRequestLogicalThread();
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
 
     network::leaf_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx );
     network::leaf_exe::Request_Sender    getExeSender( boost::asio::yield_context& yield_ctx );
     network::leaf_tool::Request_Sender   getToolSender( boost::asio::yield_context& yield_ctx );
     network::leaf_python::Request_Sender getPythonSender( boost::asio::yield_context& yield_ctx );
+    network::leaf_report::Request_Sender getReportSender( boost::asio::yield_context& yield_ctx );
     network::leaf_term::Request_Sender   getTermSender( boost::asio::yield_context& yield_ctx );
-    network::mpo::Request_Sender         getMPOUpSender( boost::asio::yield_context& yield_ctx );
-    network::mpo::Request_Sender         getMPODownSender( boost::asio::yield_context& yield_ctx );
+
+    network::mpo::Request_Sender getMPOUpSender( boost::asio::yield_context& yield_ctx );
+    network::mpo::Request_Sender getMPODownSender( boost::asio::yield_context& yield_ctx );
 
     LLVMCompilerImpl getLLVMCompiler( boost::asio::yield_context& yield_ctx )
     {
@@ -107,6 +114,12 @@ public:
     virtual network::Message PythonRoot( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message PythonDaemon( const network::Message&     request,
+                                           boost::asio::yield_context& yield_ctx ) override;
+
+    // network::report_leaf::Impl
+    virtual network::Message ReportRoot( const network::Message&     request,
+                                         boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message ReportDaemon( const network::Message&     request,
                                            boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
@@ -138,11 +151,11 @@ public:
 
     // network::job::Impl
     virtual std::vector< network::LogicalThreadID >
-    JobStart( const utilities::ToolChain&                                  toolChain,
-              const pipeline::Configuration&                               configuration,
+    JobStart( const utilities::ToolChain&                                   toolChain,
+              const pipeline::Configuration&                                configuration,
               const network::LogicalThreadID&                               rootLogicalThreadID,
               const std::vector< std::vector< network::LogicalThreadID > >& jobs,
-              boost::asio::yield_context&                                  yield_ctx ) override
+              boost::asio::yield_context&                                   yield_ctx ) override
     {
         std::vector< network::LogicalThreadID > result;
         for( const auto& j : jobs )
