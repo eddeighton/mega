@@ -10,6 +10,8 @@
 namespace mega::httpserver
 {
 
+boost::beast::string_view mime_type( boost::beast::string_view path );
+
 class NotFoundException : public std::runtime_error
 {
 public:
@@ -19,13 +21,11 @@ public:
     }
 };
 
-using HTTPString     = boost::beast::http::string_body;
-using ReportFunction = std::function< HTTPString::value_type(
-    const boost::beast::http::request< HTTPString >&, boost::asio::yield_context& ) >;
+using ReportFactory = std::function< void( boost::asio::ip::tcp::socket& ) >;
 
 void runHTPPServer( boost::asio::io_context&       ioc,
                     boost::asio::ip::tcp::endpoint endpoint,
-                    ReportFunction&                reportCallback,
+                    ReportFactory&                 reportFactory,
                     boost::asio::yield_context&    yield );
 
 } // namespace mega::httpserver

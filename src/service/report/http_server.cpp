@@ -1,6 +1,8 @@
 
 #include "http_server.hpp"
 
+#include "common/assert_verify.hpp"
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -84,155 +86,6 @@ beast::string_view mime_type( beast::string_view path )
     return "application/text";
 }
 
-// Return a response for the given request.
-//
-// The concrete type of the response message (which depends on the
-// request), is type-erased in message_generator.
-template < class Body, class Allocator >
-http::message_generator handle_request( ReportFunction&                                          reportCallback,
-                                        http::request< Body, http::basic_fields< Allocator > >&& req,
-                                        net::yield_context&                                      yield )
-{
-    // Returns a bad request response
-    auto const bad_request = [ &req ]( beast::string_view why )
-    {
-        http::response< http::string_body > res{ http::status::bad_request, req.version() };
-        res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
-        res.set( http::field::content_type, "text/html" );
-        res.keep_alive( req.keep_alive() );
-        res.body() = std::string( why );
-        res.prepare_payload();
-        return res;
-    };
-
-    // Returns a not found response
-    auto const not_found = [ &req ]( beast::string_view target )
-    {
-        http::response< http::string_body > res{ http::status::not_found, req.version() };
-        res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
-        res.set( http::field::content_type, "text/html" );
-        res.keep_alive( req.keep_alive() );
-        res.body() = "The resource '" + std::string( target ) + "' was not found.";
-        res.prepare_payload();
-        return res;
-    };
-
-    // Returns a server error response
-    auto const server_error = [ &req ]( beast::string_view what )
-    {
-        http::response< http::string_body > res{ http::status::internal_server_error, req.version() };
-        res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
-        res.set( http::field::content_type, "text/html" );
-        res.keep_alive( req.keep_alive() );
-        res.body() = "An error occurred: '" + std::string( what ) + "'";
-        res.prepare_payload();
-        return res;
-    };
-
-    // Make sure we can handle the method
-    if( req.method() != http::verb::get && req.method() != http::verb::head )
-    {
-        return bad_request( "Unknown HTTP-method" );
-    }
-
-    try
-    {
-        http::string_body::value_type body = reportCallback( req, yield );
-
-        // Cache the size since we need it after the move
-        auto const size = body.size();
-
-        // Respond to HEAD request
-        if( req.method() == http::verb::head )
-        {
-            http::response< http::empty_body > res{ http::status::ok, req.version() };
-            res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
-            res.set( http::field::content_type, "text/html" );
-            res.content_length( size );
-            res.keep_alive( req.keep_alive() );
-            return res;
-        }
-        else
-        {
-            // Respond to GET request
-            http::response< http::string_body > res{ std::piecewise_construct, std::make_tuple( std::move( body ) ),
-                                                     std::make_tuple( http::status::ok, req.version() ) };
-            res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
-            res.set( http::field::content_type, "text/html" );
-            res.content_length( size );
-            res.keep_alive( req.keep_alive() );
-            return res;
-        }
-    }
-    catch( NotFoundException& ex )
-    {
-        return not_found( ex.what() );
-    }
-    catch( std::exception& ex )
-    {
-        return server_error( ex.what() );
-    }
-    catch( ... )
-    {
-        return server_error( "Unknown error" );
-    }
-}
-
-//------------------------------------------------------------------------------
-
-// Report a failure
-void fail( beast::error_code ec, char const* what )
-{
-    std::cerr << what << ": " << ec.message() << "\n";
-}
-
-// Handles an HTTP server connection
-void do_session( beast::tcp_stream& stream, ReportFunction& reportCallback, net::yield_context& yield )
-{
-    beast::error_code ec;
-
-    // This buffer is required to persist across reads
-    beast::flat_buffer buffer;
-
-    // This lambda is used to send messages
-    for( ;; )
-    {
-        // Set the timeout.
-        stream.expires_after( std::chrono::seconds( 30 ) );
-
-        // Read a request
-        http::request< http::string_body > req;
-        http::async_read( stream, buffer, req, yield[ ec ] );
-        if( ec == http::error::end_of_stream )
-            break;
-        if( ec )
-            return fail( ec, "read" );
-
-        // Handle the request
-        http::message_generator msg = handle_request( reportCallback, std::move( req ), yield );
-
-        // Determine if we should close the connection
-        bool keep_alive = msg.keep_alive();
-
-        // Send the response
-        beast::async_write( stream, std::move( msg ), yield[ ec ] );
-
-        if( ec )
-            return fail( ec, "write" );
-
-        if( !keep_alive )
-        {
-            // This means we should close the connection, usually because
-            // the response indicated the "Connection: close" semantic.
-            break;
-        }
-    }
-
-    // Send a TCP shutdown
-    stream.socket().shutdown( tcp::socket::shutdown_send, ec );
-
-    // At this point the connection is closed gracefully
-}
 
 } // namespace
 //------------------------------------------------------------------------------
@@ -240,7 +93,7 @@ void do_session( beast::tcp_stream& stream, ReportFunction& reportCallback, net:
 // Accepts incoming connections and launches the sessions
 void runHTPPServer( net::io_context&    ioc,
                     tcp::endpoint       endpoint,
-                    ReportFunction&     reportCallback,
+                    ReportFactory&      reportFactory,
                     net::yield_context& yield_ctx )
 {
     beast::error_code ec;
@@ -249,22 +102,30 @@ void runHTPPServer( net::io_context&    ioc,
     tcp::acceptor acceptor( ioc );
     acceptor.open( endpoint.protocol(), ec );
     if( ec )
-        return fail( ec, "open" );
+    {
+        THROW_RTE( "Failed to open endpoint: " << ec.message() );
+    }
 
     // Allow address reuse
     acceptor.set_option( net::socket_base::reuse_address( true ), ec );
     if( ec )
-        return fail( ec, "set_option" );
+    {
+        THROW_RTE( "Failed to reuse address: " << ec.message() );
+    }
 
     // Bind to the server address
     acceptor.bind( endpoint, ec );
     if( ec )
-        return fail( ec, "bind" );
+    {
+        THROW_RTE( "Failed to bind endpoint: " << ec.message() );
+    }
 
     // Start listening for connections
     acceptor.listen( net::socket_base::max_listen_connections, ec );
     if( ec )
-        return fail( ec, "listen" );
+    {
+        THROW_RTE( "Failed to listen on endpoint: " << ec.message() );
+    }
 
     for( ;; )
     {
@@ -272,19 +133,11 @@ void runHTPPServer( net::io_context&    ioc,
         acceptor.async_accept( socket, yield_ctx[ ec ] );
         if( ec )
         {
-            fail( ec, "accept" );
+            THROW_RTE( "Failed to accept response: " << ec.message() );
         }
         else
         {
-            boost::asio::spawn( acceptor.get_executor(),
-
-                                [ &socket, &reportCallback ]( net::yield_context yield )
-                                {
-                                    beast::tcp_stream tcpStream( std::move( socket ) );
-                                    do_session( tcpStream, reportCallback, yield );
-                                }
-                                //, boost::asio::detached
-            );
+            reportFactory( socket );
         }
     }
 }

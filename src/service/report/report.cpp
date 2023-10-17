@@ -74,22 +74,11 @@ network::LogicalThreadBase::Ptr Report::joinLogicalThread( const network::Messag
     return network::LogicalThreadBase::Ptr( new ReportRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
 }
 
-MPOLogicalThread::Ptr Report::createMPO( boost::asio::yield_context& yield_ctx )
+void Report::createReport( boost::asio::ip::tcp::socket& socket )
 {
     MPOLogicalThread::Ptr pMPOLogicalThread
-        = std::make_shared< MPOLogicalThread >( *this, createLogicalThreadID() );
+        = std::make_shared< MPOLogicalThread >( *this, createLogicalThreadID(), socket );
     logicalthreadInitiated( pMPOLogicalThread );
-
-    // network::sim::Request_Sender rq( callingLogicalThread, pSimulation, yield_ctx );
-    // const mega::MPO              simMPO = rq.SimCreate();
-    // SPDLOG_TRACE( "Executor::createSimulation SimCreate returned {}", simMPO );
-
-    while( !pMPOLogicalThread->isRunning() )
-    {
-        boost::asio::post( yield_ctx );
-    }
-
-    return pMPOLogicalThread;
 }
 
 bool Report::isProjectActive() const

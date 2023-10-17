@@ -68,6 +68,7 @@ set( INTERFACE_SCHEMAS
     platform
     player_network
     python
+    report
     sim
     stash
     status

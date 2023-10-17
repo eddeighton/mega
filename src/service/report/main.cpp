@@ -5,6 +5,7 @@
 
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
+#include "service/protocol/model/report.hxx"
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -78,6 +79,9 @@ int main( int argc, char* argv[] )
 
     SPDLOG_INFO( "Starting report server on: {} : {}", strIP, port );
 
+    mega::network::configureLog(
+        logFolder, "report", mega::network::fromStr( strConsoleLogLevel ), mega::network::fromStr( strLogFileLevel ) );
+
     try
     {
         auto const                     address = boost::asio::ip::make_address( strIP );
@@ -85,51 +89,30 @@ int main( int argc, char* argv[] )
         boost::asio::io_context        ioService{ uiNumThreads };
         mega::service::report::Report  reportService( ioService, daemonPort );
 
-        const auto& projectOpt = reportService.getProject();
-        if( projectOpt.has_value() )
         {
-            using ::operator<<;
-            SPDLOG_INFO( "Reporting node started with MP: {} Project: {}",
-                         reportService.getMP(),
-                         projectOpt.value().getProjectInstallPath().string() );
+            const auto& projectOpt = reportService.getProject();
+            if( projectOpt.has_value() )
+            {
+                using ::operator<<;
+                SPDLOG_INFO( "Reporting node started with MP: {} Project: {}",
+                             reportService.getMP(),
+                             projectOpt.value().getProjectInstallPath().string() );
+            }
+            else
+            {
+                SPDLOG_INFO( "Reporting node started with MPO: {} Project: {}", reportService.getMP(), "none" );
+            }
         }
-        else
-        {
-            SPDLOG_INFO( "Reporting node started with MPO: {} Project: {}", reportService.getMP(), "none" );
-        }
+
+        mega::httpserver::ReportFactory reportFactory
+            = [ &reportService ]( boost::asio::ip::tcp::socket& socket ) { reportService.createReport( socket ); };
 
         boost::asio::spawn(
             ioService,
-            [ &ioService, endPoint, &reportService ]( boost::asio::yield_context yield_ctx )
-            {
-                mega::httpserver::ReportFunction reportFunction
-                    = [ &reportService ](
-                          const boost::beast::http::request< mega::httpserver::HTTPString >& req,
-                          boost::asio::yield_context& yield_ctx ) -> mega::httpserver::HTTPString::value_type
-                {
-                    // test if there is an active project
-                    if( !reportService.isProjectActive() )
-                    {
-                        THROW_RTE( "No active project" );
-                    }
 
-                    auto pMPO = reportService.createMPO( yield_ctx );
+            [ &ioService, endPoint, &reportFactory ]( boost::asio::yield_context yield_ctx )
+            { return mega::httpserver::runHTPPServer( ioService, endPoint, reportFactory, yield_ctx ); },
 
-                    SPDLOG_INFO( "MPO: {} Received report request target: {}",
-                                 pMPO->getThisMPO(),
-                                 req.target() );
-
-                    pMPO->stopRunning();
-
-                    using ::operator<<;
-                    std::ostringstream os;
-                    os << "<html><body><H1>";
-                    os << "Hello from: " << pMPO->getThisMPO() << "</h1></body></html>";
-                    return os.str();
-                };
-
-                return mega::httpserver::runHTPPServer( ioService, endPoint, reportFunction, yield_ctx );
-            },
             []( std::exception_ptr ex )
             {
                 if( ex )

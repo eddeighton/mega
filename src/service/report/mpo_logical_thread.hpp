@@ -25,17 +25,26 @@
 
 #include "service/mpo_context.hpp"
 
+#include "service/protocol/model/report.hxx"
+
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+
+#include <boost/asio/ip/tcp.hpp>
+
 #include <memory>
 
 namespace mega::service::report
 {
 
-class MPOLogicalThread : public ReportRequestLogicalThread, public mega::MPOContext
+class MPOLogicalThread : public ReportRequestLogicalThread, public network::report::Impl, public mega::MPOContext
 {
 public:
     using Ptr = std::shared_ptr< MPOLogicalThread >;
 
-    MPOLogicalThread( Report& report, const network::LogicalThreadID& logicalthreadID );
+    MPOLogicalThread( Report&                         report,
+                      const network::LogicalThreadID& logicalthreadID,
+                      boost::asio::ip::tcp::socket&   socket );
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                                      boost::asio::yield_context& yield_ctx ) override;
@@ -55,6 +64,9 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& childNodeStatus,
                                        boost::asio::yield_context&           yield_ctx ) override;
 
+    // network::report::Impl
+    std::string GetReport( const std::string& request, boost::asio::yield_context& yield_ctx ) override;
+
     void run( boost::asio::yield_context& yield_ctx ) override;
     virtual void
     RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
@@ -64,8 +76,15 @@ public:
     void stopRunning() { m_bRunning = false; }
 
 private:
+    boost::beast::http::message_generator
+         handleRequest( boost::beast::http::request< boost::beast::http::string_body > &req,
+                        boost::asio::yield_context& yield_ctx );
+    void runHTMLSession( boost::asio::yield_context& yield_ctx );
+
+private:
     bool                                    m_bRunning = false;
     Report&                                 m_report;
+    boost::beast::tcp_stream                m_tcpStream;
     std::vector< network::ReceivedMessage > m_messageQueue;
     bool                                    m_bRunComplete = false;
 };

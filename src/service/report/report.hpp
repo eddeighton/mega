@@ -29,6 +29,7 @@
 #include "service/network/receiver_channel.hpp"
 
 #include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
 #include <memory>
 #include <vector>
@@ -60,7 +61,7 @@ public:
     const std::optional< mega::Project >& getProject() const;
     void                                  setProject( const Project& project ) { m_project = project; }
 
-    std::shared_ptr< MPOLogicalThread > createMPO( boost::asio::yield_context& yield_ctx );
+    void createReport( boost::asio::ip::tcp::socket& socket );
 
 private:
     boost::asio::io_context&               m_io_context;
