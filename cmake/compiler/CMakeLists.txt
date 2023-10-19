@@ -52,6 +52,7 @@ set( COMPILER_LIB_HEADERS
     # reusable utilities
     ${MEGA_API_DIR}/compiler/derivation.hpp
     ${MEGA_API_DIR}/compiler/interface.hpp
+    ${MEGA_API_DIR}/compiler/concrete.hpp
     ${MEGA_API_DIR}/compiler/interface_printer.hpp
     ${MEGA_API_DIR}/compiler/interface_link_printer.hpp
     ${MEGA_API_DIR}/compiler/concrete_printer.hpp

@@ -1,6 +1,6 @@
-{% for element in elements %}{{ element }}{% endfor %}
-<ol class="{{style}}">
-{% for child in children %}
-    <li>{{ child }}</li>
+{% for element in label %}{{ element }}{% endfor %}
+<ul class="{{style}}">
+{% for element in elements %}
+    <li>{{ element }}</li>
 {% endfor %}
-</ol>
+</ul>

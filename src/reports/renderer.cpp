@@ -40,6 +40,7 @@
 #include "inja/template.hpp"
 
 #include "boost/filesystem.hpp"
+#include <boost/algorithm/string.hpp>
 
 namespace mega::reports
 {
@@ -165,6 +166,17 @@ public:
     }
 };
 
+std::string escapeHTML( std::string data )
+{
+    using boost::algorithm::replace_all;
+    replace_all( data, "&", "&amp;" );
+    replace_all( data, "\"", "&quot;" );
+    replace_all( data, "\'", "&apos;" );
+    replace_all( data, "<", "&lt;" );
+    replace_all( data, ">", "&gt;" );
+    return data;
+}
+
 struct Args
 {
     Inja&     inja;
@@ -219,7 +231,7 @@ void renderValue( Args& args, const Value& value, std::ostream& os )
     {
         if( auto urlOpt = args.pLinker->link( value ); urlOpt.has_value() )
         {
-            os << "<a href=\"" << urlOpt.value() << "\" >" << osValue.str() << "</a>";
+            os << "<a href=\"" << urlOpt.value() << "\" >" << escapeHTML( osValue.str() ) << "</a>";
             bRendered = true;
         }
     }
@@ -235,7 +247,7 @@ void textToJSON( Args& args, const Text& text, nlohmann::json& data )
     {
         Args&           args;
         nlohmann::json& data;
-        void            operator()( const std::string& str ) const { data.push_back( str ); }
+        void            operator()( const std::string& str ) const { data.push_back( escapeHTML( str ) ); }
         void            operator()( const Value& value ) const
         {
             std::ostringstream osValue;
@@ -264,9 +276,7 @@ void renderLine( Args& args, const Line& line, std::ostream& os )
 void renderMultiline( Args& args, const Multiline& multiline, std::ostream& os )
 {
     nlohmann::json data( { { "style", "multiline_default" }, { "elements", nlohmann::json::array() } } );
-
     textVectorToJSON( args, multiline.m_elements, data[ "elements" ] );
-
     args.inja.renderMultiLine( data, os );
 }
 
@@ -275,16 +285,16 @@ void renderContainer( Args& args, const Container& container, std::ostream& os )
 void renderBranch( Args& args, const Branch& branch, std::ostream& os )
 {
     nlohmann::json data( { { "style", "branch_default" },
-                           { "elements", nlohmann::json::array() },
-                           { "children", nlohmann::json::array() } } );
+                           { "label", nlohmann::json::array() },
+                           { "elements", nlohmann::json::array() } } );
 
-    textVectorToJSON( args, branch.m_label, data[ "elements" ] );
+    textVectorToJSON( args, branch.m_label, data[ "label" ] );
 
     for( const auto& pChildElement : branch.m_elements )
     {
         std::ostringstream osChild;
         renderContainer( args, pChildElement, osChild );
-        data[ "children" ].push_back( osChild.str() );
+        data[ "elements" ].push_back( osChild.str() );
     }
 
     args.inja.renderBranch( data, os );
@@ -372,7 +382,7 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
                         "Invalid edge node id of: " << edge.m_source );
         VERIFY_RTE_MSG( ( edge.m_target ) >= 0 && ( edge.m_target < nodeNames.size() ),
                         "Invalid edge node id of: " << edge.m_target );
-                        
+
         nlohmann::json edgeData( {
 
             { "from", nodeNames[ edge.m_source ] },
@@ -424,13 +434,13 @@ Renderer::~Renderer()
     delete reinterpret_cast< Inja* >( m_pInja );
 }
 
-void Renderer::render( const Container& report, std::ostream& os )
+void Renderer::renderHTML( const Container& report, std::ostream& os )
 {
     Args args{ *reinterpret_cast< Inja* >( m_pInja ), nullptr };
     renderReport( args, report, os );
 }
 
-void Renderer::render( const Container& report, Reporter& linker, std::ostream& os )
+void Renderer::renderHTML( const Container& report, Reporter& linker, std::ostream& os )
 {
     Args args{ *reinterpret_cast< Inja* >( m_pInja ), &linker };
     renderReport( args, report, os );

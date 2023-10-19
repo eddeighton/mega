@@ -46,8 +46,10 @@ public:
 
     inline void registerReporter( Reporter::Ptr pReporter )
     {
-        VERIFY_RTE_MSG( m_reporters.insert( { pReporter->getID(), std::move( pReporter ) } ).second,
-                        "Duplicate reported with ID: " << pReporter->getID() );
+        // NOTE: avoid attempting to use after move in error msg
+        auto tempID = pReporter->getID();
+        VERIFY_RTE_MSG(
+            m_reporters.insert( { tempID, std::move( pReporter ) } ).second, "Duplicate reported with ID: " << tempID );
     }
 
     inline void generate( const URL& url, std::ostream& os )
@@ -63,17 +65,17 @@ public:
             auto iFind2 = m_reporters.find( url.reporterLinkTarget.value() );
             VERIFY_RTE_MSG( iFind2 != m_reporters.end(), "Failed to locate reporter of type: " << url.reportID );
             Reporter& linker = *iFind2->second;
-            render( report, linker, os );
+            renderHTML( report, linker, os );
         }
         else
         {
-            render( report, os );
+            renderHTML( report, os );
         }
     }
 
 private:
-    void render( const Container& report, std::ostream& os );
-    void render( const Container& report, Reporter& linker, std::ostream& os );
+    void renderHTML( const Container& report, std::ostream& os );
+    void renderHTML( const Container& report, Reporter& linker, std::ostream& os );
 
     ReporterMap m_reporters;
 

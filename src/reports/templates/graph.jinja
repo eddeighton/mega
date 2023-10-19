@@ -6,18 +6,23 @@ digraph
 
     node 
     [ 
-        shape     = record 
-        fontname  = monospace
-        fontcolor = black
-        fontsize  = 10
+        shape       = record 
+        style       = solid
+        penwidth    = 1
+        fontname    = monospace
+        fontsize    = 10
+        fontcolor   = black
+        margin      = 0 
+        width       = 0 
+        height      = 0
     ];
 
     edge 
     [ 
         penwidth  = 1
         fontname  = monospace
-        fontcolor = black
         fontsize  = 10
+        fontcolor = black
     ];
 
     graph 
@@ -29,10 +34,7 @@ digraph
 {% for node in nodes %}
     "{{ node.name }}" 
     [
-        penwidth    = 1
-        fontname    = monospace
-        shape       = "record"
-        color       = "{{ node.colour }}"
+        color       = "black"
         fillcolor   = "{{ node.colour }}"
 {% if node.has_url %}
         URL         = "{{ node.url }}"
@@ -43,10 +45,10 @@ digraph
         label       = 
         <
             <table 
-                border      = "2" 
-                cellborder  = "2" 
-                cellpadding = "2" 
-                bgcolor     = "grey"
+                border      = "1" 
+                cellborder  = "1" 
+                cellpadding = "0"
+                bgcolor     = "{{ node.colour }}"
             >
             {% for row in node.rows %}
             <tr>
