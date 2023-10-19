@@ -90,6 +90,7 @@ const mega::TypeID& getInterfaceTypeID( const FinalStage::Concrete::Graph::Verte
     else if( auto pContext = db_cast< const Concrete::Root >( pVertex ) )
     {
         // ignore
+        THROW_RTE( "Root has no concrete type" );
     }
     else
     {

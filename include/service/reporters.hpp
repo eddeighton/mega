@@ -18,33 +18,29 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_October_17_value
-#define GUARD_2023_October_17_value
+#ifndef GUARD_2023_October_19_reporters
+#define GUARD_2023_October_19_reporters
 
-#include "mega/type_id.hpp"
-#include "mega/sub_type_instance.hpp"
-#include "mega/type_instance.hpp"
-#include "mega/invocation_id.hpp"
-#include "mega/mpo.hpp"
-#include "mega/reference.hpp"
-#include "mega/any.hpp"
-#include "mega/types/traits.hpp"
-#include "mega/operation_id.hpp"
-#include "mega/relation_id.hpp"
+#include "reports/report.hpp"
+#include "reports/reporter.hpp"
 
-#include <variant>
+#include "service/memory_manager.hpp"
+#include "database/mpo_database.hpp"
 
 namespace mega::reports
 {
 
-using CompileTimeIdentities
-    = std::variant< TypeID, SubTypeInstance, TypeInstance, InvocationID, OperationID, ExplicitOperationID, RelationID >;
+class MemoryReporter : public mega::reports::Reporter
+{
+    mega::runtime::MemoryManager& m_memoryManager;
+    runtime::MPODatabase& m_database;
+public:
+    MemoryReporter( mega::runtime::MemoryManager& memoryManager, runtime::MPODatabase& database );
+    mega::reports::ReporterID    getID() override;
+    std::optional< std::string > link( const mega::reports::Value& value ) override;
+    mega::reports::Container     generate( const mega::reports::URL& url ) override;
+};
 
-using RuntimeValue
-     = std::variant< Any, BitSet, reference, ReferenceVector, LinkTypeVector, MP, MPO, AllocationID >;
+} // namespace mega::reports
 
-using Value = std::variant< CompileTimeIdentities, RuntimeValue >;
-
-}
-
-#endif // GUARD_2023_October_17_value
+#endif // GUARD_2023_October_19_reporters

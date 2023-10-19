@@ -85,9 +85,11 @@ private:
     io::Manifest                                      m_manifest;
     FinalStage::Database                              m_database;
     std::vector< FinalStage::Components::Component* > m_components;
+    
     FinalStage::Symbols::SymbolTable*                 m_pSymbolTable;
     ConcreteTypeIDMap                                 m_concreteTypeIDs;
     InterfaceTypeIDMap                                m_interfaceTypeIDs;
+
     FinalStage::Concrete::Object*                     m_pConcreteRoot;
     DynamicInvocationsMap                             m_dynamicInvocations;
     RelationMap                                       m_relations;

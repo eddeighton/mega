@@ -19,6 +19,13 @@
 
 #include "database/mpo_database.hpp"
 
+#include "mega/common_strings.hpp"
+
+namespace FinalStage
+{
+#include "compiler/concrete_printer.hpp"
+}
+
 namespace mega::runtime
 {
 
@@ -26,6 +33,9 @@ MPODatabase::MPODatabase( const boost::filesystem::path& projectDatabasePath )
     : m_environment( projectDatabasePath )
     , m_manifest( m_environment, m_environment.project_manifest() )
     , m_database( m_environment, m_manifest.getManifestFilePath() )
+    , m_pSymbolTable( m_database.one< FinalStage::Symbols::SymbolTable >( m_manifest.getManifestFilePath() ) )
+    , m_concreteTypeIDs( m_pSymbolTable->get_concrete_type_ids() )
+    , m_interfaceTypeIDs( m_pSymbolTable->get_interface_type_ids() )
 {
 }
 
@@ -40,5 +50,18 @@ MPODatabase::MemoryMapping MPODatabase::getMemoryMappings()
         result.insert( { pMemoryMap->get_interface()->get_interface_id(), pMemoryMap } );
     }
     return result;
+}
+std::string MPODatabase::getConcreteFullType( TypeID typeID ) const
+{
+    if( typeID.valid() )
+    {
+        auto iFind = m_concreteTypeIDs.find( typeID );
+        VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << typeID );
+        return FinalStage::Concrete::printContextFullType( iFind->second->get_vertex() );
+    }
+    else
+    {
+        return {};
+    }
 }
 } // namespace mega::runtime

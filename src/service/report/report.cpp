@@ -52,7 +52,8 @@ Report::Report( boost::asio::io_context& io_context, short daemonPortNumber, int
     , m_iTimeoutSeconds( iTimeoutSeconds )
 {
     m_receiverChannel.run( m_leaf.getLeafSender() );
-    m_project = m_leaf.startup();
+    m_project                   = m_leaf.startup();
+    m_megastructureInstallation = m_leaf.getMegastructureInstallation();
 }
 
 Report::~Report()

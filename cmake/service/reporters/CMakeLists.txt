@@ -17,9 +17,6 @@
 ##  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 ##  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 cmake_minimum_required( VERSION 3.1...3.16 )
 
 #get boost
@@ -40,60 +37,55 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
-set( TOOL_SRC_DIR ${MEGA_SRC_DIR}/service/tool )
+set( REPORTERS_SRC_DIR ${MEGA_SRC_DIR}/service/reporters )
 
 ####################################################################
 ####################################################################
 
-set( TOOL_LIB_API ${MEGA_API_DIR}/service/tool.hpp )
+set( REPORTERS_LIB_API 
+    ${MEGA_API_DIR}/service/reporters.hpp
+    )
 
-set( TOOL_LIB_SRC 
-    ${TOOL_SRC_DIR}/tool.cpp
-    ${TOOL_SRC_DIR}/request.hpp
-    ${TOOL_SRC_DIR}/routing.cpp
-    ${TOOL_SRC_DIR}/status.cpp
-    ${TOOL_SRC_DIR}/project.cpp
+set( REPORTERS_LIB_SRC 
+    ${REPORTERS_SRC_DIR}/memory.cpp
 )
 
-add_library( tool
-                    ${TOOL_LIB_API}
-					${TOOL_LIB_SRC}
+add_library( reportersLib
+                    ${REPORTERS_LIB_API}
+					${REPORTERS_LIB_SRC}
 				)
 
 IF( ${WIN32} )
-target_compile_options( tool PUBLIC "/await:strict" )
-target_compile_options( tool PRIVATE "/bigobj" )
+target_compile_options( reportersLib PUBLIC "/await:strict" )
+target_compile_options( reportersLib PRIVATE "/bigobj" )
+set_property(TARGET reportersLib PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 ELSE( ${WIN32} )
-target_compile_options( tool PUBLIC "-fcoroutines" )
+target_compile_options( reportersLib PUBLIC "-fcoroutines" )
 ENDIF( ${WIN32} )
 
-target_link_libraries( tool protocol )
-target_link_libraries( tool network )
-target_link_libraries( tool leaf )
-target_link_libraries( tool reportersLib )
+target_include_directories( reportersLib PUBLIC ${MEGA_API_DIR} )
+target_include_directories( reportersLib PUBLIC ${MEGA_SRC_DIR} )
 
-target_include_directories( tool PUBLIC ${MEGA_API_DIR} )
-target_include_directories( tool PUBLIC ${MEGA_SRC_DIR} )
+set_target_properties( reportersLib PROPERTIES FOLDER service )
 
-set_target_properties( tool PROPERTIES FOLDER service )
+link_boost( reportersLib filesystem )
+link_boost( reportersLib system )
+link_boost( reportersLib atomic )
+link_boost( reportersLib coroutine )
+link_boost( reportersLib serialization )
+link_common( reportersLib )
+link_fmt( reportersLib )
+link_spdlog( reportersLib )
 
-link_boost( tool filesystem )
-link_boost( tool system )
-link_boost( tool atomic )
-link_boost( tool coroutine )
-link_boost( tool serialization )
-link_common( tool )
-link_fmt( tool )
-link_spdlog( tool )
+target_link_libraries( reportersLib compiler_config )
+target_link_libraries( reportersLib reports )
+target_link_libraries( reportersLib protocol )
+target_link_libraries( reportersLib network )
+target_link_libraries( reportersLib pipeline )
+target_link_libraries( reportersLib database )
+target_link_libraries( reportersLib orc )
+target_link_libraries( reportersLib log )
 
-target_link_libraries( tool protocol )
-target_link_libraries( tool network )
-target_link_libraries( tool leaf )
-target_link_libraries( tool database )
-target_link_libraries( tool orc )
-target_link_libraries( tool log )
-target_link_libraries( tool mega_mangle )
-
-install( FILES ${TOOL_LIB_API} DESTINATION include/service )
-install( TARGETS tool EXPORT tool DESTINATION bin)
-install( EXPORT tool NAMESPACE MEGA:: FILE tool-config.cmake DESTINATION share )
+install( FILES ${REPORTERS_LIB_API} DESTINATION include/service )
+install( TARGETS reportersLib EXPORT reportersLib DESTINATION bin)
+install( EXPORT reportersLib NAMESPACE MEGA:: FILE reportersLib-config.cmake DESTINATION share )

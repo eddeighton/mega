@@ -50,7 +50,7 @@ set( REPORT_SOURCE
     ${MEGA_SRC_DIR}/service/report/main.cpp 
     )
 
-add_executable( report ${REPORT_SOURCE}  )
+add_executable( report ${REPORT_SOURCE} )
 
 IF( ${WIN32} )
 target_compile_options( report PUBLIC "/await:strict" )
@@ -62,6 +62,8 @@ ENDIF( ${WIN32} )
 
 target_link_libraries( report executorLib )
 target_link_libraries( report mega_mangle )
+target_link_libraries( report reports )
+target_link_libraries( report reportersLib )
 
 set_target_properties( report PROPERTIES FOLDER service )
 

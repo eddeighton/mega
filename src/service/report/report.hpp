@@ -59,6 +59,7 @@ public:
 
     int                                   getTimeoutSeconds() const { return m_iTimeoutSeconds; }
     bool                                  isProjectActive() const;
+    const MegastructureInstallation&      getMegastructureInstallation() const { return m_megastructureInstallation; }
     const std::optional< mega::Project >& getProject() const;
     void                                  setProject( const Project& project ) { m_project = project; }
 
@@ -67,11 +68,12 @@ public:
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
 
 private:
-    boost::asio::io_context&               m_io_context;
-    network::ReceiverChannel               m_receiverChannel;
-    Leaf                                   m_leaf;
-    int                                    m_iTimeoutSeconds;
-    mutable std::optional< mega::Project > m_project;
+    boost::asio::io_context&  m_io_context;
+    network::ReceiverChannel  m_receiverChannel;
+    Leaf                      m_leaf;
+    int                       m_iTimeoutSeconds;
+    std::optional< Project >  m_project;
+    MegastructureInstallation m_megastructureInstallation;
 };
 } // namespace mega::service::report
 

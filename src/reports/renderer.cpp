@@ -212,6 +212,7 @@ void renderValue( Args& args, const Value& value, std::ostream& os )
             void operator()( const mega::ReferenceVector        & value ) const { os << value; }
             void operator()( const mega::LinkTypeVector         & value ) const { os << value; }
             void operator()( const mega::BitSet                 & value ) const { os << value; }
+            void operator()( const mega::AllocationID           & value ) const { os << value; }
             
         } runtimeVisitor{ osValue };
 

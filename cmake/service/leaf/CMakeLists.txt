@@ -75,6 +75,7 @@ target_link_libraries( leaf protocol )
 target_link_libraries( leaf network )
 target_link_libraries( leaf jit )
 target_link_libraries( leaf log )
+target_link_libraries( leaf reportersLib )
 
 target_include_directories( leaf PUBLIC ${MEGA_API_DIR} )
 target_include_directories( leaf PUBLIC ${MEGA_SRC_DIR} )

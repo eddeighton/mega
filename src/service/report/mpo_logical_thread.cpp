@@ -20,12 +20,15 @@
 
 #include "mpo_logical_thread.hpp"
 
+#include "reports/renderer.hpp"
+
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 #include "mega/printer.hpp"
 
 #include "service/mpo_visitor.hpp"
 #include "service/protocol/model/jit.hxx"
+#include "service/reporters.hpp"
 
 #include "service/protocol/common/type_erase.hpp"
 #include "service/protocol/common/sender_ref.hpp"
@@ -390,24 +393,39 @@ boost::beast::http::message_generator MPOLogicalThread::handleHTTPRequest( const
 
     http::string_body::value_type body;
     {
+        using namespace mega::reports;
+        const auto& megaInstall = m_report.getMegastructureInstallation();
+        mega::reports::Renderer renderer( megaInstall.getRuntimeTemplateDir() );
+        renderer.registerReporter( std::make_unique< MemoryReporter >( *m_pMemoryManager, *m_pDatabase ) );
+
         using ::           operator<<;
         std::ostringstream os;
 
-        os << "<html><body><H1>";
-        os << "Hello from MPOLogicalThread: " << getThisMPO() << "</h1><P>";
+        mega::reports::URL url;
+        {
+            std::ostringstream osURL;
+            osURL << "http://0.0.0.0:8080/";
+            url.reportID           = "memory";
+            url.reporterLinkTarget = "memory";
+            url.url                = osURL.str();
+        }
 
+        renderer.generate( url, os );
+
+        body = os.str();
+    }
+
+
+        /*os << "<html><body><H1>";
+        os << "Hello from MPOLogicalThread: " << getThisMPO() << "</h1><P>";
         {
             MPORealToLogicalVisitor mpoRealInstantiation( getThisRoot() );
             LogicalTreePrinter      printer( os );
             LogicalTreeTraversal    objectTraversal( mpoRealInstantiation, printer );
             traverse( objectTraversal );
         }
-
-        os << "</P></body></html>";
-
-        body = os.str();
-    }
-
+        os << "</P></body></html>";*/
+        
     // Cache the size since we need it after the move
     auto const size = body.size();
 

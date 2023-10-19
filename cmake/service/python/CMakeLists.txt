@@ -108,6 +108,7 @@ ENDIF( ${WIN32} )
 
 target_link_libraries( megastructure executorLib )
 target_link_libraries( megastructure mega_mangle )
+target_link_libraries( megastructure reportersLib )
 
 set_target_properties( megastructure PROPERTIES FOLDER service )
 
