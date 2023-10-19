@@ -1,0 +1,71 @@
+digraph
+{
+    rankdir       = LR;
+    ratio         = auto;
+    concentrate   = True;
+
+    node 
+    [ 
+        shape     = record 
+        fontname  = monospace
+        fontcolor = black
+        fontsize  = 10
+    ];
+
+    edge 
+    [ 
+        penwidth  = 1
+        fontname  = monospace
+        fontcolor = black
+        fontsize  = 10
+    ];
+
+    graph 
+    [
+        splines   = true 
+        overlap   = false
+    ]
+
+{% for node in nodes %}
+    "{{ node.name }}" 
+    [
+        penwidth    = 1
+        fontname    = monospace
+        shape       = "record"
+        color       = "{{ node.colour }}"
+        fillcolor   = "{{ node.colour }}"
+{% if node.has_url %}
+        URL         = "{{ node.url }}"
+{% endif %}
+{% if node.has_bookmark %}
+        id          = "{{ node.bookmark }}"
+{% endif %}
+        label       = 
+        <
+            <table 
+                border      = "2" 
+                cellborder  = "2" 
+                cellpadding = "2" 
+                bgcolor     = "grey"
+            >
+            {% for row in node.rows %}
+            <tr>
+            {% for value in row.values %}
+                <td>{{ value }}</td>
+            {% endfor %}
+            </tr>
+            {% endfor %}
+            </table>
+        >
+    ];
+{% endfor %}
+
+{% for edge in edges %}
+    {{ edge.from }} -> {{ edge.to }}
+    [
+        color   = "{{ edge.colour }}"
+        style   = "{{ edge.style }}"
+    ]
+
+{% endfor %}
+}

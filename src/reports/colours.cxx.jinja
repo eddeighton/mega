@@ -18,33 +18,26 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_October_17_value
-#define GUARD_2023_October_17_value
+#include "reports/colours.hxx"
 
-#include "mega/type_id.hpp"
-#include "mega/sub_type_instance.hpp"
-#include "mega/type_instance.hpp"
-#include "mega/invocation_id.hpp"
-#include "mega/mpo.hpp"
-#include "mega/reference.hpp"
-#include "mega/any.hpp"
-#include "mega/types/traits.hpp"
-#include "mega/operation_id.hpp"
-#include "mega/relation_id.hpp"
-
-#include <variant>
+#include <array>
+#include <string>
 
 namespace mega::reports
 {
-
-using CompileTimeIdentities
-    = std::variant< TypeID, SubTypeInstance, TypeInstance, InvocationID, OperationID, ExplicitOperationID, RelationID >;
-
-using RuntimeValue
-     = std::variant< Any, BitSet, reference, ReferenceVector, LinkTypeVector, MP, MPO >;
-
-using Value = std::variant< CompileTimeIdentities, RuntimeValue >;
-
+namespace
+{
+    static std::array< const char*, Colour::TOTAL_COLOURS > g_colourNames =
+    {
+{% for colour in colours %}
+        "{{ colour }}",
+{% endfor %}
+    };
 }
 
-#endif // GUARD_2023_October_17_value
+const char* Colour::str() const
+{
+    return g_colourNames[ m_type ];
+}
+
+}

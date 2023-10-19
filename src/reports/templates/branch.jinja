@@ -1,0 +1,6 @@
+{% for element in elements %}{{ element }}{% endfor %}
+<ol class="{{style}}">
+{% for child in children %}
+    <li>{{ child }}</li>
+{% endfor %}
+</ol>

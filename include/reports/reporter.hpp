@@ -18,33 +18,33 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_October_17_value
-#define GUARD_2023_October_17_value
+#ifndef GUARD_2023_October_19_reporter
+#define GUARD_2023_October_19_reporter
 
-#include "mega/type_id.hpp"
-#include "mega/sub_type_instance.hpp"
-#include "mega/type_instance.hpp"
-#include "mega/invocation_id.hpp"
-#include "mega/mpo.hpp"
-#include "mega/reference.hpp"
-#include "mega/any.hpp"
-#include "mega/types/traits.hpp"
-#include "mega/operation_id.hpp"
-#include "mega/relation_id.hpp"
+#include "value.hpp"
+#include "reporter_id.hpp"
+#include "url.hpp"
+#include "report.hpp"
 
-#include <variant>
+#include <string>
+#include <optional>
+#include <memory>
 
 namespace mega::reports
 {
 
-using CompileTimeIdentities
-    = std::variant< TypeID, SubTypeInstance, TypeInstance, InvocationID, OperationID, ExplicitOperationID, RelationID >;
+class Reporter
+{
+public:
+    using ID  = std::string;
+    using Ptr = std::unique_ptr< Reporter >;
 
-using RuntimeValue
-     = std::variant< Any, BitSet, reference, ReferenceVector, LinkTypeVector, MP, MPO >;
+    virtual ~Reporter()                                     = default;
+    virtual ReporterID           getID()                    = 0;
+    virtual std::optional< URL > link( const Value& value ) = 0;
+    virtual Container            generate( const URL& url ) = 0;
+};
 
-using Value = std::variant< CompileTimeIdentities, RuntimeValue >;
+} // namespace mega::reports
 
-}
-
-#endif // GUARD_2023_October_17_value
+#endif // GUARD_2023_October_19_reporter

@@ -33,20 +33,51 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#################################################################
+## generate colours
+add_custom_target( generate_svg_colours_hxx
+    COMMAND inja
+        --data ${MEGA_API_DIR}/reports/colours.json
+        --template ${MEGA_API_DIR}/reports/colours.hxx.jinja
+        --output ${MEGA_API_DIR}/reports/colours.hxx
+    DEPENDS ${MEGA_API_DIR}/reports/colours.json ${MEGA_API_DIR}/reports/colours.hxx.jinja inja
+    BYPRODUCTS ${MEGA_API_DIR}/reports/colours.hxx
+    COMMENT "Generating SVG Colours" 
+    SOURCES ${MEGA_API_DIR}/reports/colours.json
+)
+add_custom_target( generate_svg_colours_cxx
+    COMMAND inja
+        --data ${MEGA_API_DIR}/reports/colours.json
+        --template ${MEGA_SRC_DIR}/reports/colours.cxx.jinja
+        --output ${MEGA_SRC_DIR}/reports/colours.cxx
+    DEPENDS ${MEGA_API_DIR}/reports/colours.json ${MEGA_SRC_DIR}/reports/colours.cxx.jinja inja
+    BYPRODUCTS ${MEGA_SRC_DIR}/reports/colours.cxx
+    COMMENT "Generating SVG Colours" 
+    SOURCES ${MEGA_API_DIR}/reports/colours.json
+)
 
 #################################################################
-#################################################################
 set( JINJA_TEMPLATES 
-	${MEGA_SRC_DIR}/reports/templates/index.html.jinja 
+	${MEGA_SRC_DIR}/reports/templates/branch.jinja
+	${MEGA_SRC_DIR}/reports/templates/graph.jinja
+	${MEGA_SRC_DIR}/reports/templates/multiline.jinja
+	${MEGA_SRC_DIR}/reports/templates/report.jinja
+	${MEGA_SRC_DIR}/reports/templates/table.jinja
 	)
 
 set( REPORTS_HEADERS
+    ${MEGA_API_DIR}/reports/colours.hxx
+    ${MEGA_API_DIR}/reports/renderer.hpp
+    ${MEGA_API_DIR}/reports/report.hpp
+    ${MEGA_API_DIR}/reports/reporter_id.hpp
+    ${MEGA_API_DIR}/reports/reporter.hpp
+    ${MEGA_API_DIR}/reports/url.hpp
     ${MEGA_API_DIR}/reports/value.hpp
-    ${MEGA_API_DIR}/reports/reports.hpp
 )
 
 set( REPORTS_SOURCE
-    ${MEGA_SRC_DIR}/reports/reports.cpp
+    ${MEGA_SRC_DIR}/reports/colours.cxx
+    ${MEGA_SRC_DIR}/reports/renderer.cpp
 )
 
 add_library( reports SHARED

@@ -18,33 +18,14 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_October_17_value
-#define GUARD_2023_October_17_value
+#ifndef GUARD_2023_October_19_reporter_id
+#define GUARD_2023_October_19_reporter_id
 
-#include "mega/type_id.hpp"
-#include "mega/sub_type_instance.hpp"
-#include "mega/type_instance.hpp"
-#include "mega/invocation_id.hpp"
-#include "mega/mpo.hpp"
-#include "mega/reference.hpp"
-#include "mega/any.hpp"
-#include "mega/types/traits.hpp"
-#include "mega/operation_id.hpp"
-#include "mega/relation_id.hpp"
-
-#include <variant>
+#include <string>
 
 namespace mega::reports
 {
-
-using CompileTimeIdentities
-    = std::variant< TypeID, SubTypeInstance, TypeInstance, InvocationID, OperationID, ExplicitOperationID, RelationID >;
-
-using RuntimeValue
-     = std::variant< Any, BitSet, reference, ReferenceVector, LinkTypeVector, MP, MPO >;
-
-using Value = std::variant< CompileTimeIdentities, RuntimeValue >;
-
+    using ReporterID = std::string;
 }
 
-#endif // GUARD_2023_October_17_value
+#endif //GUARD_2023_October_19_reporter_id

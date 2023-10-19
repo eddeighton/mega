@@ -20,11 +20,13 @@
 #include "database/common/environment_archive.hpp"
 #include "database/model/FinalStage.hxx"
 
-#include "reports/reports.hpp"
+#include "reports/renderer.hpp"
 
 #include "service/network/log.hpp"
 
 #include "utilities/project.hpp"
+
+#include "mega/type_id.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -41,10 +43,102 @@
 namespace driver::report
 {
 
+class TestReporter : public mega::reports::Reporter
+{
+public:
+    using ID = std::string;
+
+    mega::reports::ReporterID           getID() override { return "test"; }
+    std::optional< mega::reports::URL > link( const mega::reports::Value& value ) override { return {}; }
+
+    mega::reports::Container generate( const mega::reports::URL& url ) override
+    {
+        using namespace std::string_literals;
+        using namespace mega::reports;
+
+        Table table{ { "Line", "Multiline", "Branch", "Graph" } };
+
+        for( int i = 0; i != 10; ++i )
+        {
+            // clang-format off
+            table.m_rows.emplace_back
+            (
+                ContainerVector
+                { 
+                    Line{ "Ed was here"s }, 
+                    Multiline
+                    { 
+                        { 
+                            "MPO: ",
+                            mega::MPO{ 1, 2, 3 }, 
+                            " MP: ",
+                            mega::MP{ 1, 2 } 
+                        } 
+                    },
+                    Branch
+                    {
+                        { "BranchLabel" },
+                        ContainerVector
+                        {
+                            Line{ "Branch Element 1"s }, 
+                            Branch
+                            {
+                                { "NestedBranch" },
+                                ContainerVector
+                                {
+                                    Line{ "Element 1"s }, 
+                                    Line{ "Element 2"s }, 
+                                    Multiline
+                                    { 
+                                        { 
+                                            "MPO: ",
+                                            mega::MPO{ 1, 2, 3 }, 
+                                            " MP: ",
+                                            mega::MP{ 1, 2 } 
+                                        } 
+                                    },
+                                    Line{ "Element 4"s }, 
+                                }
+                            },
+                            Line{ "Branch Element 3"s }, 
+                            Line{ "Branch Element 4"s }, 
+                        }
+                    },
+                    Graph
+                    {
+                        {
+                            Graph::Node{ {{ "Node 1" }, { "MPO", mega::MPO{ 3,2,1 } }, { "Type", mega::TypeID::make_context( 123,321 ) } } },
+                            Graph::Node{ {{ "Node 2" }}, Colour::red },
+                            Graph::Node{ {{ "Node 3" }}, Colour::blue },
+                            Graph::Node{ {{ "Node 4" }}, Colour::green },
+                            Graph::Node{ {{ "Node 5" }}, Colour::orange },
+                            Graph::Node{ {{ "Node 6" }}}
+                        },
+                        {
+                            Graph::Edge{ 0, 1 },
+                            Graph::Edge{ 1, 2 },
+                            Graph::Edge{ 2, 3 },
+                            Graph::Edge{ 3, 4, Colour::green },
+                            Graph::Edge{ 4, 5 },
+                           
+                            Graph::Edge{ 2, 4 },
+                            Graph::Edge{ 4, 1 },
+                            Graph::Edge{ 3, 2 }
+                        }
+                    }
+                } 
+            );
+            // clang-format on
+        }
+
+        return table;
+    }
+};
+
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             reportURL;
-    boost::filesystem::path projectPath, outputFilePath;
+    boost::filesystem::path projectPath, outputFilePath, templateDir;
 
     namespace po = boost::program_options;
 
@@ -54,6 +148,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         commandOptions.add_options()
             ( "URL",               po::value< std::string >( &reportURL ),                      "Report URL to generate" )
             ( "project_install",   po::value< boost::filesystem::path >( &projectPath ),        "Path to Megastructure Project" )
+            ( "templates",         po::value< boost::filesystem::path >( &templateDir ),        "Path to report renderer templates" )
             ( "output",            po::value< boost::filesystem::path >( &outputFilePath ),     "Output file" )
             ;
         // clang-format on
@@ -70,120 +165,14 @@ void command( bool bHelp, const std::vector< std::string >& args )
     else
     {
         using namespace mega::reports;
-        Table::Ptr pRoot = std::make_shared< Table >();
 
-        for( int y = 0; y != 10; ++y )
+        Renderer renderer( templateDir );
         {
-            std::vector< Element::Ptr > row;
-            for( int x = 0; x != 4; ++x )
-            {
-                auto pElement = std::make_shared< Element >();
-                switch( x )
-                {
-                    case 0:
-                        pElement->m_properties.push_back( std::make_shared< Property >( "Style", "awesome" ) );
-                        break;
-                    case 1:
-                        pElement->m_properties.push_back(
-                            std::make_shared< Property >( "Type", mega::TypeID::make_context( x, y ) ) );
-                        break;
-                    case 2:
-                        pElement->m_properties.push_back( std::make_shared< Property >( "MPO", mega::MPO( 1, x, y ) ) );
-                        break;
-                    case 3:
-                        pElement->m_properties.push_back(
-                            std::make_shared< Property >( "SubTypeInstance", mega::SubTypeInstance( x, y ) ) );
-                        break;
-                }
-                row.push_back( pElement );
-            }
-            {
-                SVG::Ptr pSVG = std::make_shared< SVG >();
-
-                auto pElement1 = std::make_shared< Element >();
-                pElement1->m_properties.push_back( std::make_shared< Property >( "Node", "1" ) );
-                pElement1->m_properties.push_back( std::make_shared< Property >( "MPO", mega::MPO( 1, 2, 3 ) ) );
-
-                auto pElement2 = std::make_shared< Element >();
-                pElement2->m_properties.push_back( std::make_shared< Property >( "Node", "2" ) );
-
-                auto pElement3 = std::make_shared< Element >();
-                pElement3->m_properties.push_back( std::make_shared< Property >( "Node", "3" ) );
-
-                auto pElement4 = std::make_shared< Element >();
-                pElement4->m_properties.push_back( std::make_shared< Property >( "Node", "4" ) );
-
-                pSVG->m_children.push_back( pElement1 );
-                pSVG->m_children.push_back( pElement2 );
-                pSVG->m_children.push_back( pElement3 );
-                pSVG->m_children.push_back( pElement4 );
-
-                {
-                    auto pEdge1      = std::make_shared< Edge >();
-                    pEdge1->m_source = pElement1;
-                    pEdge1->m_target = pElement2;
-                    pEdge1->m_properties.push_back( std::make_shared< Property >( "color", "FF0000" ) );
-                    pSVG->m_edges.push_back( pEdge1 );
-                }
-                {
-                    auto pEdge2      = std::make_shared< Edge >();
-                    pEdge2->m_source = pElement1;
-                    pEdge2->m_target = pElement3;
-                    pSVG->m_edges.push_back( pEdge2 );
-                }
-                {
-                    auto pEdge      = std::make_shared< Edge >();
-                    pEdge->m_source = pElement1;
-                    pEdge->m_target = pElement4;
-                    pSVG->m_edges.push_back( pEdge );
-                }
-                row.push_back( pSVG );
-            }
-            {
-                TreeNode::Ptr pTree = std::make_shared< TreeNode >();
-                pTree->m_properties.push_back( std::make_shared< Property >( "Tree", "is good" ) );
-                {
-                    auto pTree2 = std::make_shared< TreeNode >();
-                    pTree2->m_properties.push_back( std::make_shared< Property >( "Style", "awesome 1" ) );
-                    pTree->m_children.push_back( pTree2 );
-                    {
-                        auto pElement = std::make_shared< Element >();
-                        pElement->m_properties.push_back( std::make_shared< Property >( "Nested", "1" ) );
-                        pTree2->m_children.push_back( pElement );
-                    }
-                    {
-                        auto pElement = std::make_shared< Element >();
-                        pElement->m_properties.push_back( std::make_shared< Property >( "Nested", "2" ) );
-                        pTree2->m_children.push_back( pElement );
-                    }
-                    {
-                        auto pTree3 = std::make_shared< TreeNode >();
-                        pTree3->m_properties.push_back( std::make_shared< Property >( "Nested", "3" ) );
-                        pTree2->m_children.push_back( pTree3 );
-                        {
-                            auto pElement = std::make_shared< Element >();
-                            pElement->m_properties.push_back( std::make_shared< Property >( "Nested", "1" ) );
-                            pTree3->m_children.push_back( pElement );
-                        }
-                        {
-                            auto pElement = std::make_shared< Element >();
-                            pElement->m_properties.push_back( std::make_shared< Property >( "Nested", "2" ) );
-                            pTree3->m_children.push_back( pElement );
-                        }
-                    }
-                }
-                {
-                    auto pElement = std::make_shared< Element >();
-                    pElement->m_properties.push_back( std::make_shared< Property >( "Style", "awesome 2" ) );
-                    pTree->m_children.push_back( pElement );
-                }
-                row.push_back( pTree );
-            }
-            pRoot->m_rows.push_back( row );
+            renderer.registerReporter( std::make_unique< TestReporter >() );
         }
 
         std::ostringstream os;
-        mega::reports::renderHTML( pRoot, os );
+        renderer.generate( URL{ "test" }, os );
 
         try
         {
