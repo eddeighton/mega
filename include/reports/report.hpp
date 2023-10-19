@@ -60,7 +60,8 @@ class Line
     }
 
 public:
-    Text m_element;
+    Text                   m_element;
+    std::optional< Value > m_bookmark;
 };
 
 class Multiline
@@ -73,7 +74,8 @@ class Multiline
     }
 
 public:
-    TextVector m_elements;
+    TextVector             m_elements;
+    std::optional< Value > m_bookmark;
 };
 
 class Branch
@@ -87,8 +89,9 @@ class Branch
     }
 
 public:
-    TextVector      m_label;
-    ContainerVector m_elements;
+    TextVector             m_label;
+    ContainerVector        m_elements;
+    std::optional< Value > m_bookmark;
 };
 
 class Table

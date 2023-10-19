@@ -1,5 +1,5 @@
-{% for element in label %}{{ element }}{% endfor %}
-<ul class="{{style}}">
+<div class="{{style}}" {% if has_bookmark %}id="{{ bookmark }}"{% endif %}>{% for element in label %}{{ element }}{% endfor %}</div>
+<ul class="{{style}}" >
 {% for element in elements %}
     <li>{{ element }}</li>
 {% endfor %}

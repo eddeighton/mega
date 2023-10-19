@@ -23,6 +23,8 @@
 
 #include "reporter_id.hpp"
 
+#include "common/assert_verify.hpp"
+
 #include <vector>
 #include <string>
 #include <sstream>
@@ -46,14 +48,17 @@ public:
     }
 
     ReporterID                   reportID;
-    std::vector< std::string >   path;
-    std::optional< std::string > bookmark;
     std::optional< ReporterID >  reporterLinkTarget;
+
+    std::string url;
+    // std::vector< std::string >   path;
+    // std::optional< std::string > bookmark;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const URL& url )
 {
-    // os << "http://0.0.0.0:8080/";
+    THROW_TODO;
+    /*os << "http://0.0.0.0:8080/";
 
     bool bFirst = true;
     for( const auto& p : url.path )
@@ -80,7 +85,7 @@ inline std::ostream& operator<<( std::ostream& os, const URL& url )
         os << '/' << url.reporterLinkTarget.value();
     }
 
-    return os;
+    return os;*/
 }
 
 } // namespace mega::reports

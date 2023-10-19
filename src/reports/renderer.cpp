@@ -266,16 +266,38 @@ void textVectorToJSON( Args& args, const TextVector& textVector, nlohmann::json&
     }
 }
 
+template < typename T >
+void addOptionalBookmark( Args& args, T& element, nlohmann::json& data )
+{
+    if( element.m_bookmark.has_value() )
+    {
+        // render bookmark WITHOUT url value
+        std::ostringstream osBookmark;
+        Args               bookmarkArgs{ args.inja, nullptr };
+        renderValue( bookmarkArgs, element.m_bookmark.value(), osBookmark );
+        data[ "has_bookmark" ] = true;
+        data[ "bookmark" ]     = osBookmark.str();
+    }
+}
+
 void renderLine( Args& args, const Line& line, std::ostream& os )
 {
-    nlohmann::json data( { { "style", "multiline_default" }, { "elements", nlohmann::json::array() } } );
+    nlohmann::json data( { { "style", "multiline_default" },
+                           { "elements", nlohmann::json::array() },
+                           { "has_bookmark", false },
+                           { "bookmark", "" } } );
+    addOptionalBookmark( args, line, data );
     textToJSON( args, line.m_element, data[ "elements" ] );
     args.inja.renderMultiLine( data, os );
 }
 
 void renderMultiline( Args& args, const Multiline& multiline, std::ostream& os )
 {
-    nlohmann::json data( { { "style", "multiline_default" }, { "elements", nlohmann::json::array() } } );
+    nlohmann::json data( { { "style", "multiline_default" },
+                           { "elements", nlohmann::json::array() },
+                           { "has_bookmark", false },
+                           { "bookmark", "" } } );
+    addOptionalBookmark( args, multiline, data );
     textVectorToJSON( args, multiline.m_elements, data[ "elements" ] );
     args.inja.renderMultiLine( data, os );
 }
@@ -285,9 +307,12 @@ void renderContainer( Args& args, const Container& container, std::ostream& os )
 void renderBranch( Args& args, const Branch& branch, std::ostream& os )
 {
     nlohmann::json data( { { "style", "branch_default" },
+                           { "has_bookmark", false },
+                           { "bookmark", "" },
                            { "label", nlohmann::json::array() },
                            { "elements", nlohmann::json::array() } } );
 
+    addOptionalBookmark( args, branch, data );
     textVectorToJSON( args, branch.m_label, data[ "label" ] );
 
     for( const auto& pChildElement : branch.m_elements )
@@ -343,7 +368,8 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             { "colour", node.m_colour.str() },
             { "rows", nlohmann::json::array() },
             { "has_url", false },
-            { "has_bookmark", false }
+            { "has_bookmark", false },
+            { "bookmark", "" }
 
         } );
 
@@ -353,15 +379,7 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             nodeData[ "url" ]     = node.m_url.value().str();
         }
 
-        if( node.m_bookmark.has_value() )
-        {
-            // render bookmark WITHOUT url value
-            std::ostringstream osBookmark;
-            Args               bookmarkArgs{ args.inja, nullptr };
-            renderValue( bookmarkArgs, node.m_bookmark.value(), osBookmark );
-            nodeData[ "has_bookmark" ] = true;
-            nodeData[ "bookmark" ]     = osBookmark.str();
-        }
+        addOptionalBookmark( args, node, nodeData );
 
         for( const TextVector& row : node.m_rows )
         {

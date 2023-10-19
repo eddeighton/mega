@@ -58,7 +58,7 @@ public:
 
     mega::reports::ReporterID getID() override { return "test"; }
 
-    std::optional< mega::reports::URL > link( const mega::reports::Value& value ) override { return {}; }
+    std::optional< std::string > link( const mega::reports::Value& value ) override { return {}; }
 
     mega::reports::Container generate( const mega::reports::URL& url ) override
     {
@@ -160,7 +160,7 @@ public:
 
     mega::reports::ReporterID getID() override { return "symbols"; }
 
-    std::optional< mega::reports::URL > link( const mega::reports::Value& value ) override { return {}; }
+    std::optional< std::string > link( const mega::reports::Value& value ) override { return {}; }
 
     mega::reports::Container generate( const mega::reports::URL& url ) override
     {
@@ -233,15 +233,18 @@ public:
 
 class InterfaceReporter : public mega::reports::Reporter
 {
+    std::string            m_strLinkTarget;
     mega::io::Manifest&    m_manifest;
     mega::io::Environment& m_environment;
     FinalStage::Database&  m_database;
 
 public:
-    InterfaceReporter( mega::io::Manifest&    manifest,
+    InterfaceReporter( const std::string&     strLinkTarget,
+                       mega::io::Manifest&    manifest,
                        mega::io::Environment& environment,
                        FinalStage::Database&  database )
-        : m_manifest( manifest )
+        : m_strLinkTarget( strLinkTarget )
+        , m_manifest( manifest )
         , m_environment( environment )
         , m_database( database )
     {
@@ -249,7 +252,25 @@ public:
 
     mega::reports::ReporterID getID() override { return "interface"; }
 
-    std::optional< mega::reports::URL > link( const mega::reports::Value& value ) override { return {}; }
+    std::optional< std::string > link( const mega::reports::Value& value ) override
+    {
+        if( auto pval = std::get_if< mega::reports::CompileTimeIdentities >( &value ) )
+        {
+            if( auto pTypeID = std::get_if< mega::TypeID >( pval ) )
+            {
+                std::ostringstream os;
+                os << "file:///home/foobar/test_Debug/test2.html#" << *pTypeID;
+                return os.str();
+                // mega::reports::URL url;
+                // url.reportID           = getID();
+                // url.reporterLinkTarget = getID();
+                // url.url                = os.str();
+                // return url;
+            }
+        }
+
+        return {};
+    }
 
     void addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
                         const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
@@ -297,6 +318,7 @@ public:
         using namespace mega::reports;
 
         Branch branch;
+        branch.m_bookmark = pContext->get_interface_id();
 
         typeIDs.m_elements.push_back( Line{ pContext->get_interface_id() } );
 
@@ -459,12 +481,23 @@ void command( bool bHelp, const std::vector< std::string >& args )
         Renderer renderer( templateDir );
         {
             renderer.registerReporter( std::make_unique< TestReporter >() );
-            renderer.registerReporter( std::make_unique< InterfaceReporter >( manifest, environment, database ) );
+            renderer.registerReporter(
+                std::make_unique< InterfaceReporter >( outputFilePath.string(), manifest, environment, database ) );
             renderer.registerReporter( std::make_unique< SymbolsReporter >( environment, database ) );
         }
 
         std::ostringstream os;
-        renderer.generate( URL{ reportURL }, os );
+
+        mega::reports::URL url;
+        {
+            std::ostringstream osURL;
+            osURL << "file:///home/foobar/test_Debug/test2.htm";
+            url.reportID           = reportURL;
+            url.reporterLinkTarget = reportURL;
+            url.url                = osURL.str();
+        }
+
+        renderer.generate( url, os );
 
         try
         {

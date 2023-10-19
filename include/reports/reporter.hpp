@@ -39,10 +39,10 @@ public:
     using ID  = std::string;
     using Ptr = std::unique_ptr< Reporter >;
 
-    virtual ~Reporter()                                     = default;
-    virtual ReporterID           getID()                    = 0;
-    virtual std::optional< URL > link( const Value& value ) = 0;
-    virtual Container            generate( const URL& url ) = 0;
+    virtual ~Reporter()                                             = default;
+    virtual ReporterID                   getID()                    = 0;
+    virtual std::optional< std::string > link( const Value& value ) = 0;
+    virtual Container                    generate( const URL& url ) = 0;
 };
 
 } // namespace mega::reports

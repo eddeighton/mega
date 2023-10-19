@@ -1,1 +1,1 @@
-<div class={{style}}>{% for element in elements %}{{ element }}{% endfor %}</div>
+<div class="{{style}}" {% if has_bookmark %}{{ bookmark }}{% endif %}>{% for element in elements %}{{ element }}{% endfor %}</div>
