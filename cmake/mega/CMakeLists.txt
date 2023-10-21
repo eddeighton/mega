@@ -295,6 +295,8 @@ set( MEGA_LIBRARY
  
  target_link_libraries( mega_mangle mega_values )
  target_link_libraries( mega_mangle mega_interface )
+ target_link_libraries( mega_mangle log ) 
+ target_link_libraries( mega_mangle protocol )
 
  IF( ${WIN32} )
  target_compile_options( mega_mangle PRIVATE /bigobj)

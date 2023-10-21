@@ -96,7 +96,7 @@ ELSE( ${WIN32} )
 #set_property(TARGET reports PROPERTY POSITION_INDEPENDENT_CODE ON)
 ENDIF( ${WIN32} )
 
-target_link_libraries( reports mega_mangle )
+target_link_libraries( reports mega_values )
 
 target_include_directories( reports PUBLIC ${MEGA_API_DIR} )
 
