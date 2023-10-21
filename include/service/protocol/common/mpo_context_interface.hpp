@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_January_11_mpo_context_interface
 #define GUARD_2023_January_11_mpo_context_interface
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 namespace mega::runtime
 {

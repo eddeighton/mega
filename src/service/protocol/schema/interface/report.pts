@@ -17,9 +17,22 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg GetReport
+msg HTTPRequest
 {
     request();
     response( mega::network::HTTPRequestData httpRequestData );
+}
+
+
+msg GetReport
+{
+    broadcast( mega::reports::URL url );
+    response( mega::reports::Container report );
+}
+
+msg GetNetworkReport
+{
+    request( mega::reports::URL url );
+    response( mega::reports::Container report );
 }
 

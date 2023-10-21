@@ -17,14 +17,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
+#include "common/serialisation.hpp"
 
 #include "compiler/configuration.hpp"
-#include "database/common/component_info.hpp"
-#include "database/common/serialisation.hpp"
-#include "database/common/environment_build.hpp"
-#include "database/common/environment_archive.hpp"
-#include "database/common/archive.hpp"
+#include "database/component_info.hpp"
+
+#include "database/serialisation.hpp"
+#include "environment/environment_build.hpp"
+#include "environment/environment_archive.hpp"
+#include "database/archive.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
@@ -76,7 +77,7 @@ namespace driver
             }
             else
             {
-                mega::compiler::Directories directories{ srcDir, buildDir, "", "" };
+                mega::io::Directories directories{ srcDir, buildDir, "", "" };
                 mega::io::BuildEnvironment environment( directories );
                 const mega::io::Manifest manifest( environment, environment.project_manifest() );
                 mega::io::ReadArchive::compile_archive( outputFilePath, manifest, srcDir, buildDir );

@@ -28,19 +28,16 @@
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
-#include "utilities/megastructure_installation.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
+#include "mega/values/compilation/megastructure_installation.hpp"
 
 #include "pipeline/pipeline_result.hpp"
 
 #include "pipeline/task.hpp"
 #include "pipeline/pipeline.hpp"
 
-#include "utilities/serialization_helpers.hpp"
-
-#include "version/version.hpp"
-
 #include <common/file.hpp>
+#include "common/serialisation.hpp"
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>

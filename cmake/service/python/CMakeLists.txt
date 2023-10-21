@@ -78,9 +78,9 @@ set( MEGA_PYTHON_SOURCE
 
 set( MEGA_PYTHON_MANGLE
 
-    ${MEGA_API_DIR}/mega/types/python_mangle.hpp
-    ${MEGA_API_DIR}/mega/types/python_mangle_types.cxx
-    #${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
+    ${MEGA_API_DIR}/mega/mangle/python_mangle.hpp
+    ${MEGA_API_DIR}/mega/mangle/python_mangle_types.cxx
+    #${MEGA_API_DIR}/mega/mangle/python_mangle_allocators.cxx
 )
 
 add_library( megastructure SHARED ${MEGA_PYTHON_API} ${MEGA_PYTHON_SOURCE} ${MEGA_PYTHON_MANGLE} )
@@ -108,7 +108,7 @@ ENDIF( ${WIN32} )
 
 target_link_libraries( megastructure executorLib )
 target_link_libraries( megastructure mega_mangle )
-target_link_libraries( megastructure reportersLib )
+target_link_libraries( megastructure reporters )
 
 set_target_properties( megastructure PROPERTIES FOLDER service )
 

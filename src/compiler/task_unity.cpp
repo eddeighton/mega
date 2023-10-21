@@ -20,14 +20,14 @@
 
 #include "base_task.hpp"
 
-#include "mega/relation_io.hpp"
+#include "mega/values/compilation/relation_id.hpp"
 #include "mega/common_strings.hpp"
 
-#include "database/model/UnityStage.hxx"
-#include "database/model/UnityStageView.hxx"
+#include "database/UnityStage.hxx"
+#include "database/UnityStageView.hxx"
 
-#include "database/types/component_type.hpp"
-#include "database/types/sources.hpp"
+#include "database/component_type.hpp"
+#include "database/sources.hpp"
 
 #include "nlohmann/json.hpp"
 

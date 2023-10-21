@@ -20,15 +20,15 @@
 #include "session.hpp"
 #include "clang_utils.hpp"
 
-#include "database/model/OperationsStage.hxx"
+#include "database/OperationsStage.hxx"
 
 #include "invocation/invocation.hpp"
 
-#include "mega/invocation_io.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+#include "mega/values/compilation/operator_id.hpp"
+#include "mega/values/compilation/source_location.hpp"
+
 #include "mega/common_strings.hpp"
-#include "mega/invocation_id.hpp"
-#include "mega/operator_id.hpp"
-#include "database/types/source_location.hpp"
 
 #include <boost/algorithm/string.hpp>
 

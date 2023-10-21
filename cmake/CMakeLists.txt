@@ -85,57 +85,40 @@ set_property(GLOBAL PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 include (InstallRequiredSystemLibraries)
 
 add_subdirectory(inja)
-add_subdirectory(version)
-add_subdirectory(utilities)
-add_subdirectory(pipeline)
+
+add_subdirectory(mega)
 
 add_subdirectory(database)
-
-add_subdirectory(map)
-
-IF( ${WIN32} )
-
-# windows specific projects
-
-ELSE( ${WIN32} )
-
-# linux specific projects
-add_subdirectory(schematic)
-
-ENDIF( ${WIN32} )
-
+add_subdirectory(parser)
 add_subdirectory(invocation)
 add_subdirectory(clang_plugin)
-
-add_subdirectory(parser)
+add_subdirectory(pipeline)
 add_subdirectory(compiler)
+
 add_subdirectory(reports)
+
+add_subdirectory(map)
+add_subdirectory(schematic)
+
+add_subdirectory(service)
 add_subdirectory(log)
 add_subdirectory(orc)
 add_subdirectory(jit)
-add_subdirectory(service)
 add_subdirectory(driver)
-add_subdirectory(tests)
-add_subdirectory(mega)
 
-IF( ${WIN32} )
-
-# windows specific projects
-
-ELSE( ${WIN32} )
-
-# linux specific projects
 add_subdirectory(editor)
 
-ENDIF( ${WIN32} )
+add_subdirectory(tests)
 
-# always last - toolchain reads other files from build
 add_subdirectory(toolchain)
 
-# install scripts
+# # install scripts
 set( MEGA_SCRIPTS
     ${MEGA_ROOT_DIR}/scripts/run_service.sh 
     ${MEGA_ROOT_DIR}/scripts/run_cleanup.sh 
+    ${MEGA_ROOT_DIR}/scripts/clear.sh 
+    ${MEGA_ROOT_DIR}/scripts/wipe_mega_builds.sh 
+    ${MEGA_ROOT_DIR}/scripts/util_cleanup.sh 
 )
 
 install( FILES ${MEGA_SCRIPTS} DESTINATION bin )

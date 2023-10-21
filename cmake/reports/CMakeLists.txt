@@ -80,7 +80,7 @@ set( REPORTS_SOURCE
     ${MEGA_SRC_DIR}/reports/renderer.cpp
 )
 
-add_library( reports SHARED
+add_library( reports
     ${REPORTS_HEADERS}
     ${REPORTS_SOURCE}
 )
@@ -96,7 +96,6 @@ ELSE( ${WIN32} )
 #set_property(TARGET reports PROPERTY POSITION_INDEPENDENT_CODE ON)
 ENDIF( ${WIN32} )
 
-target_link_libraries( reports utilities )
 target_link_libraries( reports mega_mangle )
 
 target_include_directories( reports PUBLIC ${MEGA_API_DIR} )

@@ -65,7 +65,7 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
 
     // network::report::Impl
-    mega::network::HTTPRequestData GetReport( boost::asio::yield_context& ) override;
+    mega::network::HTTPRequestData HTTPRequest( boost::asio::yield_context& ) override;
 
     void run( boost::asio::yield_context& yield_ctx ) override;
 
@@ -86,7 +86,7 @@ private:
         ePost,
         TOTAL_HTTP_VERBS
     };
-    using HTTPRequest = network::report::MSG_GetReport_Response;
+    using HTTPRequestMsg = network::report::MSG_HTTPRequest_Response;
     void startTCPStream();
     boost::beast::http::message_generator handleHTTPRequest( const network::HTTPRequestData& msg,
                                                              boost::asio::yield_context&     yield_ctx );

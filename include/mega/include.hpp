@@ -23,21 +23,23 @@
 #ifndef EG_STANDARD_STUFF
 #define EG_STANDARD_STUFF
 
-#include "native_types.hpp"
-#include "reference.hpp"
-#include "operation_id.hpp"
-#include "result_type.hpp"
-#include "mega/types/traits.hpp"
-#include "type_path.hpp" // has array
-#include "variant.hpp"
-#include "event.hpp"
-#include "clock.hpp"
-#include "operations.hpp" 
-#include "iterators.hpp" // has array and vector and defines __mega_vector std::vector type alias
+#include "mega/values/native_types.hpp"
 
-#include "coroutine.hpp" // has stl dependencies
-#include "resumption.hpp" // has stl dependencies
-#include "maths_types.hpp" // has boost math stuff
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/maths_types.hpp" // has boost math stuff
+
+#include "mega/values/clang/result_type.hpp"
+#include "mega/values/clang/type_path.hpp" // has array
+#include "mega/values/clang/variant.hpp"
+#include "mega/values/clang/event.hpp"
+#include "mega/values/clang/operation_id_types.hpp" 
+
+#include "mega/mangle/traits.hpp"
+
+#include "mega/clock.hpp"
+#include "mega/iterators.hpp" // has array and vector and defines __mega_vector std::vector type alias
+#include "mega/coroutine.hpp" // has stl dependencies
+#include "mega/resumption.hpp" // has stl dependencies
 
 #include <boost/dynamic_bitset.hpp>
 

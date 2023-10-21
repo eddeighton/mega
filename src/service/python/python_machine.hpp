@@ -23,7 +23,7 @@
 
 #include "python_process.hpp"
 
-#include "mega/mpo.hpp"
+#include "mega/values/runtime/mpo.hpp"
 
 #include <vector>
 

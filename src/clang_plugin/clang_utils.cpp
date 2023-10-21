@@ -19,7 +19,7 @@
 
 #include "clang_utils.hpp"
 
-#include "database/types/operation.hpp"
+#include "mega/values/compilation/operation_id.hpp"
 
 #include "mega/common_strings.hpp"
 

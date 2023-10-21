@@ -27,8 +27,8 @@
 
 #include "service/protocol/model/sim.hxx"
 
-#include "service/protocol/common/logical_thread_id.hpp"
-#include "service/protocol/common/status.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
+#include "mega/values/service/status.hpp"
 
 #include "common/unreachable.hpp"
 

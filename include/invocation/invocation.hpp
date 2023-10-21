@@ -20,10 +20,10 @@
 #ifndef INVOCATION_6_JUNE_2022
 #define INVOCATION_6_JUNE_2022
 
-#include "database/model/environment.hxx"
-#include "database/model/OperationsStage.hxx"
+#include "database/environment.hxx"
+#include "database/OperationsStage.hxx"
 
-#include "mega/invocation_id.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
 
 #include <stdexcept>
 #include <vector>

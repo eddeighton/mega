@@ -20,13 +20,13 @@
 
 #include "invoke_fixture.hpp"
 
-#include "database/model/OperationsStage.hxx"
+#include "database/OperationsStage.hxx"
 
 #include "invocation/invocation.hpp"
 
-#include "mega/invocation_io.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
 #include "mega/common_strings.hpp"
-#include "mega/operation_id.hpp"
+#include "mega/values/compilation/operation_id.hpp"
 
 namespace OperationsStage
 {

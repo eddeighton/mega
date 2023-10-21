@@ -28,7 +28,7 @@
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/stash.hxx"
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 
 #include "service/remote_memory_manager.hpp"
 

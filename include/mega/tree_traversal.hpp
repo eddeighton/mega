@@ -22,10 +22,10 @@
 #define GUARD_2023_September_07_tree_traversal
 
 #include "mega/iterator.hpp"
-#include "mega/native_types.hpp"
-#include "mega/type_id.hpp"
-#include "mega/type_instance.hpp"
-#include "mega/any.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/type_instance.hpp"
+#include "mega/values/runtime/any.hpp"
 
 namespace mega
 {

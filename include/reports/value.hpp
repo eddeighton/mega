@@ -21,30 +21,102 @@
 #ifndef GUARD_2023_October_17_value
 #define GUARD_2023_October_17_value
 
-#include "mega/type_id.hpp"
-#include "mega/sub_type_instance.hpp"
-#include "mega/type_instance.hpp"
-#include "mega/invocation_id.hpp"
-#include "mega/mpo.hpp"
-#include "mega/reference.hpp"
-#include "mega/any.hpp"
-#include "mega/types/traits.hpp"
-#include "mega/operation_id.hpp"
-#include "mega/relation_id.hpp"
+// #include "mega/values/compilation/type_id.hpp"
+// #include "mega/sub_type_instance.hpp"
+// #include "mega/values/compilation/type_instance.hpp"
+// #include "mega/values/compilation/invocation_id.hpp"
+// #include "mega/values/runtime/mpo.hpp"
+// #include "mega/values/runtime/reference.hpp"
+// #include "mega/values/compilation/operation_id.hpp"
+// #include "mega/values/compilation/relation_id.hpp"
+// #include "mega/mangle/traits.hpp"
+// 
+// #include "mega/values/compilation/type_id.hpp"
+// #include "mega/values/runtime/reference_io.hpp"
+// #include "mega/values/compilation/invocation_id.hpp"
+// #include "mega/values/native_types_io.hpp"
+// #include "mega/values/compilation/relation_id.hpp"
+// 
+// #include <boost/variant.hpp>
+// #include <variant>
 
-#include <variant>
+#include <any>
 
 namespace mega::reports
 {
+using Value = std::any;
+/*
+// clang-format off
+using CompileTimeIdentities= std::variant
+< 
+    TypeID, 
+    SubTypeInstance, 
+    TypeInstance, 
+    InvocationID, 
+    OperationID, 
+    ExplicitOperationID, 
+    RelationID 
+>;
 
-using CompileTimeIdentities
-    = std::variant< TypeID, SubTypeInstance, TypeInstance, InvocationID, OperationID, ExplicitOperationID, RelationID >;
-
-using RuntimeValue
-     = std::variant< Any, BitSet, reference, ReferenceVector, LinkTypeVector, MP, MPO, AllocationID >;
+using RuntimeValue = std::variant
+< 
+    BitSet, 
+    reference, 
+    ReferenceVector, 
+    LinkTypeVector,
+    MP, 
+    MPO, 
+    AllocationID 
+>;
+// clang-format on
 
 using Value = std::variant< CompileTimeIdentities, RuntimeValue >;
 
-}
+inline std::string toString( const Value& value )
+{
+    using ::operator<<;
+
+    std::ostringstream osValue;
+
+    // clang-format off
+    struct CompilerTimeVisitor
+    {
+        std::ostream& os;
+        void operator()( const mega::TypeID                 & value ) const { os << value; }
+        void operator()( const mega::SubTypeInstance        & value ) const { os << value; }
+        void operator()( const mega::TypeInstance           & value ) const { os << value; }
+        void operator()( const mega::InvocationID           & value ) const { os << value; }
+        void operator()( const mega::OperationID            & value ) const { os << value; }
+        void operator()( const mega::ExplicitOperationID    & value ) const { os << value; }
+        void operator()( const mega::RelationID             & value ) const { os << value; }
+    } compilerTimeVisitor{ osValue };
+
+    struct RuntimeVisitor
+    {
+        std::ostream& os;
+        void operator()( const mega::MP                     & value ) const { os << value; }
+        void operator()( const mega::MPO                    & value ) const { os << value; }
+        void operator()( const mega::reference              & value ) const { os << value; }
+        void operator()( const mega::ReferenceVector        & value ) const { os << value; }
+        void operator()( const mega::LinkTypeVector         & value ) const { os << value; }
+        void operator()( const mega::BitSet                 & value ) const { os << value; }
+        void operator()( const mega::AllocationID           & value ) const { os << value; }
+        
+    } runtimeVisitor{ osValue };
+
+    struct Visitor
+    {
+        CompilerTimeVisitor& compilerTimeVisitor;
+        RuntimeVisitor&      runtimeVisitor;
+        void operator()( const CompileTimeIdentities& value )   const { std::visit( compilerTimeVisitor, value ); }
+        void operator()( const RuntimeValue& value )            const { std::visit( runtimeVisitor, value ); }
+    } visitor{ compilerTimeVisitor, runtimeVisitor };
+    std::visit( visitor, value );
+    // clang-format on
+
+    return osValue.str();
+}*/
+
+} // namespace mega::reports
 
 #endif // GUARD_2023_October_17_value

@@ -18,9 +18,9 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "component_manager.hpp"
-#include "database/model/FinalStage.hxx"
+#include "database/FinalStage.hxx"
 
-#include "database/types/sources.hpp"
+#include "database/sources.hpp"
 #include "service/network/log.hpp"
 
 #include "common/string.hpp"

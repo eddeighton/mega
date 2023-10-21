@@ -21,9 +21,8 @@
 #ifndef GUARD_2022_November_07_address_table
 #define GUARD_2022_November_07_address_table
 
-#include "mega/reference.hpp"
-#include "mega/native_types.hpp"
-
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/native_types.hpp"
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
 

@@ -21,8 +21,7 @@
 #ifndef GUARD_2022_September_30_clock
 #define GUARD_2022_September_30_clock
 
-#include "mega/native_types.hpp"
-
+#include "mega/values/native_types.hpp"
 struct Clock
 {
     static mega::TimeStamp cycle();

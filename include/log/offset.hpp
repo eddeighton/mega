@@ -21,8 +21,7 @@
 #ifndef GUARD_2022_October_10_offset
 #define GUARD_2022_October_10_offset
 
-#include "mega/native_types.hpp"
-
+#include "mega/values/native_types.hpp"
 #include <limits>
 #include <functional>
 

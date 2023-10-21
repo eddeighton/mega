@@ -21,8 +21,8 @@
 #ifndef GUARD_2023_August_30_iterator
 #define GUARD_2023_August_30_iterator
 
-#include "mega/type_id.hpp"
-#include "mega/type_instance.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/type_instance.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/unreachable.hpp"

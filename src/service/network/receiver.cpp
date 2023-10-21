@@ -21,7 +21,7 @@
 #include "service/network/logical_thread_manager.hpp"
 #include "service/network/end_point.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 
 #include "common/assert_verify.hpp"
 

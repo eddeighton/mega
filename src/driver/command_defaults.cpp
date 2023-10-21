@@ -17,16 +17,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/common/environment_archive.hpp"
-#include "database/model/FinalStage.hxx"
+#include "environment/environment_archive.hpp"
+#include "database/FinalStage.hxx"
 
 #include "mega/defaults.hpp"
-#include "mega/type_id_io.hpp"
-#include "mega/reference_io.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/runtime/reference_io.hpp"
 
 #include "service/network/log.hpp"
 
-#include "utilities/project.hpp"
+#include "mega/values/service/project.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"

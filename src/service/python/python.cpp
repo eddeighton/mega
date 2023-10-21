@@ -28,7 +28,7 @@
 #include "service/network/logical_thread_manager.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 
 #include "python.hpp"
 #include "request.hpp"

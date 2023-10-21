@@ -17,16 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/common/environment_archive.hpp"
-#include "database/model/FinalStage.hxx"
+#include "environment/environment_archive.hpp"
+#include "database/FinalStage.hxx"
 
 #include "reports/renderer.hpp"
 
 #include "service/network/log.hpp"
 
-#include "utilities/project.hpp"
+#include "mega/values/service/project.hpp"
 
-#include "mega/type_id.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/mangle/traits.hpp"
 #include "mega/common_strings.hpp"
 
 #include "common/assert_verify.hpp"
@@ -254,7 +255,7 @@ public:
 
     std::optional< std::string > link( const mega::reports::Value& value ) override
     {
-        if( auto pval = std::get_if< mega::reports::CompileTimeIdentities >( &value ) )
+        /*if( auto pval = std::get_if< mega::reports::CompileTimeIdentities >( &value ) )
         {
             if( auto pTypeID = std::get_if< mega::TypeID >( pval ) )
             {
@@ -267,7 +268,7 @@ public:
                 // url.url                = os.str();
                 // return url;
             }
-        }
+        }*/
 
         return {};
     }
@@ -297,7 +298,7 @@ public:
                 else if( auto pCompiler = db_cast< CompilerDimensionTrait >( pDimension ) )
                 {
                     table.m_rows.push_back(
-                        { Line{ "Comp" }, Line{ getIdentifier( pDimension ) }, Line{ mega::psz_bitset } } );
+                        { Line{ "Comp" }, Line{ getIdentifier( pDimension ) }, Line{ std::string{ mega::psz_bitset } } } );
                 }
                 else
                 {

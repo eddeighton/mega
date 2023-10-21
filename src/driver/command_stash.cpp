@@ -22,7 +22,7 @@
 #include "service/terminal.hpp"
 
 #include "service/network/log.hpp"
-#include "service/protocol/common/status.hpp"
+#include "mega/values/service/status.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>

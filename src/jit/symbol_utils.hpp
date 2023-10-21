@@ -20,8 +20,8 @@
 #ifndef SYMBOL_UTILS_SEPT_19_2022
 #define SYMBOL_UTILS_SEPT_19_2022
 
-#include "mega/type_id.hpp"
-#include "mega/sub_type_instance.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/sub_type_instance.hpp"
 
 #include "common/assert_verify.hpp"
 

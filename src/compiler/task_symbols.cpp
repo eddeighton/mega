@@ -21,13 +21,13 @@
 
 #include "mega/common_strings.hpp"
 
-#include "database/model/SymbolAnalysis.hxx"
-#include "database/model/SymbolAnalysisView.hxx"
-#include "database/model/SymbolRollout.hxx"
-#include "database/model/manifest.hxx"
+#include "database/SymbolAnalysis.hxx"
+#include "database/SymbolAnalysisView.hxx"
+#include "database/SymbolRollout.hxx"
+#include "database/manifest.hxx"
 
-#include "database/common/environment_archive.hpp"
-#include "database/common/exception.hpp"
+#include "environment/environment_archive.hpp"
+#include "database/exception.hpp"
 
 namespace SymbolAnalysis
 {

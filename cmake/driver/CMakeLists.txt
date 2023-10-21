@@ -75,7 +75,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/main.cpp
 
 		## ensure the version is baked into the shared object
-		${MEGA_SRC_DIR}/version/version.cxx
+		# ${MEGA_SRC_DIR}/version/version.cxx
 	)
 	
 source_group( src FILES ${DRIVER_SOURCES} )
@@ -87,13 +87,14 @@ add_custom_target( PreprocessMain
 
 add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 
+target_link_libraries( mega mega_interface )
+target_link_libraries( mega mega_values )
 target_link_libraries( mega compiler_config )
 target_link_libraries( mega database )
 target_link_libraries( mega log )
 target_link_libraries( mega network )
 target_link_libraries( mega protocol )
 target_link_libraries( mega terminal )
-target_link_libraries( mega utilities )
 target_link_libraries( mega schematic )
 target_link_libraries( mega reports )
 

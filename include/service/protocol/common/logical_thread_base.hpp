@@ -22,7 +22,7 @@
 
 #include "service/protocol/common/received_message.hpp"
 #include "service/protocol/common/sender.hpp"
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include <cstddef>

@@ -21,8 +21,8 @@
 #ifndef GUARD_2023_January_11_jit_base
 #define GUARD_2023_January_11_jit_base
 
-#include "mega/invocation_id.hpp"
-#include "mega/relation_id.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+#include "mega/values/compilation/relation_id.hpp"
 
 #include "common/unreachable.hpp"
 

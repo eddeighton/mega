@@ -25,7 +25,7 @@
 #include "reports/reporter.hpp"
 
 #include "service/memory_manager.hpp"
-#include "database/mpo_database.hpp"
+#include "environment/mpo_database.hpp"
 
 namespace mega::reports
 {

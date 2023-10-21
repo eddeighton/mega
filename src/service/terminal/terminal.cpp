@@ -28,7 +28,7 @@
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 
 #include "service/protocol/model/leaf_term.hxx"
 #include "service/protocol/model/term_leaf.hxx"

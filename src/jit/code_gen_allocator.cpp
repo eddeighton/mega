@@ -21,7 +21,7 @@
 #include "code_generator.hpp"
 #include "symbol_utils.hpp"
 
-#include "mega/types/traits.hpp"
+#include "mega/mangle/traits.hpp"
 
 #include "mega/common_strings.hpp"
 

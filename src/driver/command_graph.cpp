@@ -17,21 +17,21 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/common/archive.hpp"
-#include "database/model/FinalStage.hxx"
+#include "database/archive.hpp"
+#include "database/FinalStage.hxx"
+#include "database/manifest.hxx"
+#include "database/component_info.hpp"
+#include "database/component_type.hpp"
+#include "database/sources.hpp"
+#include "database/serialisation.hpp"
 
-#include "database/model/manifest.hxx"
+#include "environment/environment_build.hpp"
+#include "environment/environment_archive.hpp"
 
-#include "database/common/component_info.hpp"
-#include "database/common/serialisation.hpp"
-#include "database/common/environment_build.hpp"
-#include "database/common/environment_archive.hpp"
-
-#include "database/types/sources.hpp"
-#include "utilities/cmake.hpp"
+#include "compiler/cmake.hpp"
 
 #include "mega/common_strings.hpp"
-#include "mega/types/traits.hpp"
+#include "mega/mangle/traits.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
@@ -1176,7 +1176,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         std::ostringstream osOutput;
         {
             std::unique_ptr< mega::io::Environment >       pEnvironment;
-            std::unique_ptr< mega::compiler::Directories > m_pDirectories;
+            std::unique_ptr< mega::io::Directories > m_pDirectories;
 
             if( !databaseArchivePath.empty() )
             {
@@ -1184,8 +1184,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
             }
             else if( !srcDir.empty() && !buildDir.empty() )
             {
-                m_pDirectories = std::make_unique< mega::compiler::Directories >(
-                    mega::compiler::Directories{ srcDir, buildDir, "", "" } );
+                m_pDirectories = std::make_unique< mega::io::Directories >(
+                    mega::io::Directories{ srcDir, buildDir, "", "" } );
                 pEnvironment = std::make_unique< mega::io::BuildEnvironment >( *m_pDirectories );
             }
             else

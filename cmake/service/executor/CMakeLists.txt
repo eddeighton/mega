@@ -130,7 +130,7 @@ target_link_options( executor PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 target_link_libraries( executor executorLib )
-target_link_libraries( executor reportersLib )
+target_link_libraries( executor reporters )
 target_link_libraries( executor mega_mangle )
 
 set_target_properties( executor PROPERTIES FOLDER service )

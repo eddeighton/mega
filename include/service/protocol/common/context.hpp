@@ -22,7 +22,7 @@
 
 #include "jit_base.hpp"
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 #include <string>
 #include <vector>

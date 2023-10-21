@@ -29,8 +29,8 @@
 #include "python_mpo.hpp"
 #include "python_type_system.hpp"
 
-#include "mega/invocation_id.hpp"
-#include "mega/types/python_mangle.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+#include "mega/mangle/python_mangle.hpp"
 
 #include "jit/jit_exception.hpp"
 

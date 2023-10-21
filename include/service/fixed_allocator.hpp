@@ -21,8 +21,12 @@
 #ifndef GUARD_2023_April_05_fixed_allocator
 #define GUARD_2023_April_05_fixed_allocator
 
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
+#include "mega/values/native_types.hpp"
+
+#include "mega/values/compilation/size_alignment.hpp"
+
+#include "mega/values/runtime/reference.hpp"
+
 #include "mega/memory.hpp"
 
 #include "service/protocol/common/sender_ref.hpp"

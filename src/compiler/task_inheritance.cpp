@@ -19,14 +19,14 @@
 
 #include "base_task.hpp"
 
-#include "database/model/InheritanceAnalysis.hxx"
-#include "database/model/InheritanceAnalysisView.hxx"
-#include "database/model/InheritanceAnalysisRollout.hxx"
-#include "database/model/manifest.hxx"
+#include "database/InheritanceAnalysis.hxx"
+#include "database/InheritanceAnalysisView.hxx"
+#include "database/InheritanceAnalysisRollout.hxx"
+#include "database/manifest.hxx"
 
-#include "database/common/environment_archive.hpp"
-#include "database/common/exception.hpp"
-#include "database/types/sources.hpp"
+#include "environment/environment_archive.hpp"
+#include "database/exception.hpp"
+#include "database/sources.hpp"
 
 namespace mega::compiler
 {

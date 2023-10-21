@@ -20,14 +20,14 @@
 #include "code_generator.hpp"
 #include "symbol_utils.hpp"
 
-#include "database/model/FinalStage.hxx"
+#include "database/FinalStage.hxx"
 
 #include "log/index_record.hpp"
 
 #include "service/network/log.hpp"
 #include "service/mpo_context.hpp"
 
-#include "mega/relation_io.hpp"
+#include "mega/values/compilation/relation_id.hpp"
 
 #include "nlohmann/json.hpp"
 

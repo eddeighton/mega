@@ -22,11 +22,11 @@
 
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 #include "service/protocol/common/logical_thread_base.hpp"
 #include "service/protocol/model/messages.hxx"
 
-#include "mega/reference_io.hpp"
+#include "mega/values/runtime/reference_io.hpp"
 
 #include <future>
 

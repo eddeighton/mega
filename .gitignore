@@ -13,6 +13,9 @@ tests/database/basic/database/
 tests/database/advanced/database/
 tests/database/multi_stage_base/database/
 deprecated/
+src/database/
+include/database/
+
 
 .vs*
 *.o

@@ -50,42 +50,42 @@ set( REPORTERS_LIB_SRC
     ${REPORTERS_SRC_DIR}/memory.cpp
 )
 
-add_library( reportersLib
+add_library( reporters
                     ${REPORTERS_LIB_API}
 					${REPORTERS_LIB_SRC}
 				)
 
 IF( ${WIN32} )
-target_compile_options( reportersLib PUBLIC "/await:strict" )
-target_compile_options( reportersLib PRIVATE "/bigobj" )
-set_property(TARGET reportersLib PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+target_compile_options( reporters PUBLIC "/await:strict" )
+target_compile_options( reporters PRIVATE "/bigobj" )
+set_property(TARGET reporters PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 ELSE( ${WIN32} )
-target_compile_options( reportersLib PUBLIC "-fcoroutines" )
+target_compile_options( reporters PUBLIC "-fcoroutines" )
 ENDIF( ${WIN32} )
 
-target_include_directories( reportersLib PUBLIC ${MEGA_API_DIR} )
-target_include_directories( reportersLib PUBLIC ${MEGA_SRC_DIR} )
+target_include_directories( reporters PUBLIC ${MEGA_API_DIR} )
+target_include_directories( reporters PUBLIC ${MEGA_SRC_DIR} )
 
-set_target_properties( reportersLib PROPERTIES FOLDER service )
+set_target_properties( reporters PROPERTIES FOLDER service )
 
-link_boost( reportersLib filesystem )
-link_boost( reportersLib system )
-link_boost( reportersLib atomic )
-link_boost( reportersLib coroutine )
-link_boost( reportersLib serialization )
-link_common( reportersLib )
-link_fmt( reportersLib )
-link_spdlog( reportersLib )
+link_boost( reporters filesystem )
+link_boost( reporters system )
+link_boost( reporters atomic )
+link_boost( reporters coroutine )
+link_boost( reporters serialization )
+link_common( reporters )
+link_fmt( reporters )
+link_spdlog( reporters )
 
-target_link_libraries( reportersLib compiler_config )
-target_link_libraries( reportersLib reports )
-target_link_libraries( reportersLib protocol )
-target_link_libraries( reportersLib network )
-target_link_libraries( reportersLib pipeline )
-target_link_libraries( reportersLib database )
-target_link_libraries( reportersLib orc )
-target_link_libraries( reportersLib log )
+target_link_libraries( reporters compiler_config )
+target_link_libraries( reporters reports )
+target_link_libraries( reporters protocol )
+target_link_libraries( reporters network )
+target_link_libraries( reporters pipeline )
+target_link_libraries( reporters database )
+target_link_libraries( reporters orc )
+target_link_libraries( reporters log )
 
 install( FILES ${REPORTERS_LIB_API} DESTINATION include/service )
-install( TARGETS reportersLib EXPORT reportersLib DESTINATION bin)
-install( EXPORT reportersLib NAMESPACE MEGA:: FILE reportersLib-config.cmake DESTINATION share )
+install( TARGETS reporters EXPORT reporters DESTINATION bin)
+install( EXPORT reporters NAMESPACE MEGA:: FILE reporters-config.cmake DESTINATION share )

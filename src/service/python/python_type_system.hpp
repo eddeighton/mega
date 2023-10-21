@@ -23,12 +23,12 @@
 
 #include "service/python/python_type.hpp"
 
-#include "database/python_database.hpp"
+#include "environment/python_database.hpp"
 
-#include "utilities/project.hpp"
+#include "mega/values/service/project.hpp"
 
-#include "mega/type_id.hpp"
-#include "mega/reference.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 #include <pybind11/pybind11.h>
 

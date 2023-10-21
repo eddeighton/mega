@@ -23,8 +23,6 @@
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
-#include "utilities/clang_format.hpp"
-
 #include "nlohmann/json.hpp"
 
 #include "inja/inja.hpp"
@@ -74,8 +72,6 @@ void generate( const Environment& env )
                         inja::Template                tmp      = injaEnv.parse_template( "/protocol.hxx.jinja" );
                         injaEnv.render_to( osOutput, tmp, data );
                         strOutput = osOutput.str();
-
-                        mega::utilities::clang_format( strOutput, std::optional< boost::filesystem::path >() );
                     }
                     std::ostringstream osTargetFile;
                     osTargetFile << "/" << filePath.filename().replace_extension( ".hxx" ).string();
@@ -103,8 +99,6 @@ void generate( const Environment& env )
                         inja::Template                tmp      = injaEnv.parse_template( "/protocol.cxx.jinja" );
                         injaEnv.render_to( osOutput, tmp, data );
                         strOutput = osOutput.str();
-
-                        mega::utilities::clang_format( strOutput, std::optional< boost::filesystem::path >() );
                     }
                     std::ostringstream osTargetFile;
                     osTargetFile << "/" << filePath.filename().replace_extension( ".cxx" ).string();
@@ -144,8 +138,6 @@ void generate( const Environment& env )
                     inja::Template headerTemplate = injaEnv.parse_template( "/" + names.first + ".hxx.jinja" );
                     injaEnv.render_to( osOutput, headerTemplate, data );
                     strOutput = osOutput.str();
-
-                    mega::utilities::clang_format( strOutput, std::optional< boost::filesystem::path >() );
                 }
 
                 std::ostringstream osTargetFile;
@@ -173,8 +165,6 @@ void generate( const Environment& env )
                     inja::Template sourceTemplate = injaEnv.parse_template( "/" + names.first + ".cxx.jinja" );
                     injaEnv.render_to( osOutput, sourceTemplate, data );
                     strOutput = osOutput.str();
-
-                    mega::utilities::clang_format( strOutput, std::optional< boost::filesystem::path >() );
                 }
 
                 std::ostringstream osTargetFile;

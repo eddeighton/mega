@@ -19,18 +19,18 @@
 
 #include "base_task.hpp"
 
-#include "mega/relation_id.hpp"
+#include "mega/values/compilation/relation_id.hpp"
 #include "mega/common_strings.hpp"
 
-#include "database/model/InheritanceAnalysis.hxx"
-#include "database/model/AliasAnalysis.hxx"
-#include "database/model/AliasAnalysisView.hxx"
-#include "database/model/AliasAnalysisRollout.hxx"
-#include "database/model/manifest.hxx"
+#include "database/InheritanceAnalysis.hxx"
+#include "database/AliasAnalysis.hxx"
+#include "database/AliasAnalysisView.hxx"
+#include "database/AliasAnalysisRollout.hxx"
+#include "database/manifest.hxx"
 
-#include "database/common/environment_archive.hpp"
-#include "database/common/exception.hpp"
-#include "database/types/cardinality.hpp"
+#include "environment/environment_archive.hpp"
+#include "database/exception.hpp"
+#include "mega/values/compilation/cardinality.hpp"
 
 #include <unordered_set>
 

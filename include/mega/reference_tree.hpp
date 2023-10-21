@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_September_07_reference_tree
 #define GUARD_2023_September_07_reference_tree
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 #include "mega/tree_traversal.hpp"
 
 namespace mega

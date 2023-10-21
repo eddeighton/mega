@@ -22,14 +22,15 @@
 #include "reports/report.hpp"
 #include "reports/reporter.hpp"
 
-#include "mega/any_io.hpp"
-#include "mega/bitset_io.hpp"
-#include "mega/invocation_io.hpp"
-#include "mega/reference_io.hpp"
-#include "mega/operator_io.hpp"
-#include "mega/type_id_io.hpp"
-#include "mega/native_types_io.hpp"
-#include "mega/relation_io.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+#include "mega/values/compilation/relation_id.hpp"
+#include "mega/values/compilation/operator_id.hpp"
+#include "mega/values/compilation/type_id.hpp"
+
+#include "mega/values/runtime/any.hpp"
+#include "mega/values/runtime/reference.hpp"
+
+#include "mega/values/native_types_io.hpp"
 
 #include "common/process.hpp"
 #include "common/file.hpp"
@@ -185,66 +186,32 @@ struct Args
 
 void renderValue( Args& args, const Value& value, std::ostream& os )
 {
-    using ::operator<<;
-
-    std::ostringstream osValue;
-    {
-        // clang-format off
-        struct CompilerTimeVisitor
-        {
-            std::ostream& os;
-            void operator()( const mega::TypeID                 & value ) const { os << value; }
-            void operator()( const mega::SubTypeInstance        & value ) const { os << value; }
-            void operator()( const mega::TypeInstance           & value ) const { os << value; }
-            void operator()( const mega::InvocationID           & value ) const { os << value; }
-            void operator()( const mega::OperationID            & value ) const { os << value; }
-            void operator()( const mega::ExplicitOperationID    & value ) const { os << value; }
-            void operator()( const mega::RelationID             & value ) const { os << value; }
-        } compilerTimeVisitor{ osValue };
-
-        struct RuntimeVisitor
-        {
-            std::ostream& os;
-            void operator()( const mega::Any                    & value ) const { os << value; }
-            void operator()( const mega::MP                     & value ) const { os << value; }
-            void operator()( const mega::MPO                    & value ) const { os << value; }
-            void operator()( const mega::reference              & value ) const { os << value; }
-            void operator()( const mega::ReferenceVector        & value ) const { os << value; }
-            void operator()( const mega::LinkTypeVector         & value ) const { os << value; }
-            void operator()( const mega::BitSet                 & value ) const { os << value; }
-            void operator()( const mega::AllocationID           & value ) const { os << value; }
-            
-        } runtimeVisitor{ osValue };
-
-        struct Visitor
-        {
-            CompilerTimeVisitor& compilerTimeVisitor;
-            RuntimeVisitor&      runtimeVisitor;
-            void operator()( const CompileTimeIdentities& value )   const { std::visit( compilerTimeVisitor, value ); }
-            void operator()( const RuntimeValue& value )            const { std::visit( runtimeVisitor, value ); }
-        } visitor{ compilerTimeVisitor, runtimeVisitor };
-        std::visit( visitor, value );
-        // clang-format on
-    }
+    THROW_TODO; // how should values work?? 
+    const std::string strValue;//= toString( value );
 
     bool bRendered = false;
     if( args.pLinker )
     {
         if( auto urlOpt = args.pLinker->link( value ); urlOpt.has_value() )
         {
-            os << "<a href=\"" << urlOpt.value() << "\" >" << escapeHTML( osValue.str() ) << "</a>";
+            os << "<a href=\"" << urlOpt.value() << "\" >" << escapeHTML( strValue ) << "</a>";
             bRendered = true;
         }
     }
     if( !bRendered )
     {
-        os << osValue.str();
+        os << strValue;
     }
 }
 
 void textToJSON( Args& args, const Text& text, nlohmann::json& data )
 {
-    struct Visitor
+
+    std::ostringstream osValue;
+    renderValue( args, text, osValue );
+    data.push_back( osValue.str() );
+
+   /* struct Visitor
     {
         Args&           args;
         nlohmann::json& data;
@@ -256,7 +223,7 @@ void textToJSON( Args& args, const Text& text, nlohmann::json& data )
             data.push_back( osValue.str() );
         }
     } visitor{ args, data };
-    std::visit( visitor, text );
+    std::visit( visitor, text );*/
 }
 
 void textVectorToJSON( Args& args, const TextVector& textVector, nlohmann::json& data )

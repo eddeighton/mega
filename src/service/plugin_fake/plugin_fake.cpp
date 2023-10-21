@@ -23,8 +23,7 @@
 #include "service/executor/clock.hpp"
 #include "service/executor/executor.hpp"
 
-#include "mega/native_types.hpp"
-
+#include "mega/values/native_types.hpp"
 #include "service/network/log.hpp"
 
 #include <spdlog/async.h>

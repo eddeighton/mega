@@ -42,7 +42,6 @@ add_library( orc SHARED
 )
 
 target_link_libraries( orc mega_interface )
-target_link_libraries( orc utilities )
 
 # target_link_libraries( orc "X:/win8_static_release/llvm/install/lib/clang/15.0.0/lib/x86_64-pc-windows-msvc/libclang_rt.builtins.a" )
 

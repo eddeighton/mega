@@ -21,10 +21,10 @@
 #ifndef GUARD_2022_October_14_mpo_context
 #define GUARD_2022_October_14_mpo_context
 
-#include "mega/types/traits.hpp"
-#include "mega/reference.hpp"
+#include "mega/mangle/traits.hpp"
+#include "mega/values/runtime/reference.hpp"
 
-#include "database/mpo_database.hpp"
+#include "environment/mpo_database.hpp"
 
 #include "jit/functions.hpp"
 
@@ -34,7 +34,7 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/context.hpp"
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/sim.hxx"

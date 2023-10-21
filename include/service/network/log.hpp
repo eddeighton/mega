@@ -20,10 +20,16 @@
 #ifndef LOG_28_MAY_2022
 #define LOG_28_MAY_2022
 
-#include "mega/invocation_io.hpp"
-#include "mega/reference_io.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/sub_type_instance.hpp"
+#include "mega/values/compilation/type_instance.hpp"
 
-#include "service/protocol/model/messages.hxx"
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/reference_io.hpp"
+
+#include "mega/values/service/logical_thread_id.hpp"
+// #include "service/protocol/model/messages.hxx"
 
 #include <spdlog/spdlog.h>
 
@@ -137,7 +143,7 @@ struct formatter< mega::network::LogTime >
         );
     }
 };
-
+/*
 template <>
 struct formatter< mega::network::Message >
 {
@@ -151,7 +157,7 @@ struct formatter< mega::network::Message >
         return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };
-
+*/
 template <>
 struct formatter< mega::network::LogicalThreadID >
 {

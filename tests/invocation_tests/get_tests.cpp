@@ -20,7 +20,7 @@
 
 #include "invoke_fixture.hpp"
 
-#include "database/model/OperationsStage.hxx"
+#include "database/OperationsStage.hxx"
 
 static constexpr const char Get_Name[] = "Get";
 

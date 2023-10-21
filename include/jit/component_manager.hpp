@@ -23,9 +23,9 @@
 #include "api.hpp"
 #include "functions.hpp"
 
-#include "database/jit_database.hpp"
+#include "environment/jit_database.hpp"
 
-#include "utilities/project.hpp"
+#include "mega/values/service/project.hpp"
 
 #include <boost/filesystem/path.hpp>
 #include <boost/dll/import.hpp>

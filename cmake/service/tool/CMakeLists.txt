@@ -70,7 +70,7 @@ ENDIF( ${WIN32} )
 target_link_libraries( tool protocol )
 target_link_libraries( tool network )
 target_link_libraries( tool leaf )
-target_link_libraries( tool reportersLib )
+target_link_libraries( tool reporters )
 
 target_include_directories( tool PUBLIC ${MEGA_API_DIR} )
 target_include_directories( tool PUBLIC ${MEGA_SRC_DIR} )

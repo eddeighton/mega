@@ -21,8 +21,8 @@
 #ifndef GUARD_2023_March_21_sender_ref
 #define GUARD_2023_March_21_sender_ref
 
-#include "mega/mpo.hpp"
-#include "mega/type_id.hpp"
+#include "mega/values/runtime/mpo.hpp"
+#include "mega/values/compilation/type_id.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -66,51 +66,6 @@ public:
     static constexpr U64 MAX_ALLOCATORS = 8;
     using AllocatorBaseArray            = std::array< AllocatorBase, MAX_ALLOCATORS >;
     AllocatorBaseArray m_allocators;
-};
-
-struct AllocatorStatus
-{
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& total;
-        archive& blockSize;
-        archive& allocations;
-        archive& free;
-    }
-
-    U64 total;
-    U64 blockSize;
-    U64 allocations;
-    U64 free;
-};
-
-struct MemoryStatus
-{
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& m_heap;
-        archive& m_object;
-        archive& m_allocators;
-    }
-
-    U64 m_heap;
-    U64 m_object;
-
-    struct TypedAllocatorStatus
-    {
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
-        {
-            archive& typeID;
-            archive& status;
-        }
-        TypeID          typeID;
-        AllocatorStatus status;
-    };
-    using TypedAllocatorStatusArray = std::array< TypedAllocatorStatus, network::SenderRef::MAX_ALLOCATORS >;
-    TypedAllocatorStatusArray m_allocators;
 };
 
 struct HTTPRequestData

@@ -23,7 +23,7 @@
 
 #include "allocator.hpp"
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 #include <memory>
 

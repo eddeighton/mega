@@ -20,8 +20,8 @@
 #ifndef CLANG_UTILS_19_04_2019
 #define CLANG_UTILS_19_04_2019
 
-#include "mega/operation_id.hpp"
-#include "mega/invocation_id.hpp"
+#include "mega/values/compilation/operation_id.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
 
 #include "common/clang_warnings.hpp"
 #include "common/requireSemicolon.hpp"

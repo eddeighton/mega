@@ -26,7 +26,7 @@
 #include "service/protocol/model/sim.hxx"
 
 #include "service/protocol/common/received_message.hpp"
-#include "service/protocol/common/status.hpp"
+#include "mega/values/service/status.hpp"
 
 #include <optional>
 

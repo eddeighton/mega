@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "version/version.hpp"
+#include "pipeline/version.hpp"
 #include "pipeline/configuration.hpp"
 
 #include "service/network/log.hpp"
@@ -25,9 +25,9 @@
 #include "pipeline/pipeline.hpp"
 
 #include "compiler/configuration.hpp"
+#include "compiler/cmake.hpp"
 
-#include "utilities/cmake.hpp"
-#include "utilities/tool_chain_hash.hpp"
+#include "mega/values/compilation/tool_chain_hash.hpp"
 
 #include "common/file.hpp"
 #include "common/stash.hpp"
@@ -95,7 +95,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
         const boost::filesystem::path    compilerPath = toolChain.megaCompilerPath;
         const mega::pipeline::PipelineID pipelineID   = compilerPath.string();
-        const mega::Version              version      = mega::Version::getVersion();
+        const mega::Version              version;//      = mega::Version::getVersion();
 
         // clang-format off
         mega::compiler::Configuration config =
@@ -106,7 +106,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             projectName,
             componentInfoPaths,
 
-            mega::compiler::Directories
+            mega::io::Directories
             {
                 srcDir,
                 buildDir,

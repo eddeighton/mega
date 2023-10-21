@@ -25,10 +25,10 @@
 #include "service/leaf.hpp"
 
 #include "service/network/logical_thread_manager.hpp"
-#include "utilities/megastructure_installation.hpp"
+#include "mega/values/compilation/megastructure_installation.hpp"
 
 #include "parser/parser.hpp"
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 
 #include <boost/asio/io_service.hpp>
 

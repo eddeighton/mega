@@ -19,17 +19,16 @@
 
 #include "invocation/invocation.hpp"
 
-#include "database/model/OperationsStage.hxx"
-#include "database/types/operation.hpp"
+#include "database/OperationsStage.hxx"
 
 #include "compiler/derivation.hpp"
 
-#include "mega/operation_id.hpp"
+#include "mega/values/compilation/operation_id.hpp"
+
 #include "mega/common_strings.hpp"
-#include "mega/invocation_io.hpp"
 #include "mega/make_unique_without_reorder.hpp"
 
-#include "mega/types/traits.hpp"
+// #include "mega/mangle/traits.hpp"
 
 #include "common/unreachable.hpp"
 

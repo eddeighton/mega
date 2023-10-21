@@ -21,7 +21,8 @@
 #ifndef GUARD_2023_January_13_memory
 #define GUARD_2023_January_13_memory
 
-#include "mega/native_types.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/values/compilation/size_alignment.hpp"
 
 #ifdef _WIN32
 #include <malloc.h>
@@ -31,19 +32,6 @@
 
 namespace mega
 {
-
-struct SizeAlignment
-{
-    U64 size      = 0U;
-    U64 alignment = 0U;
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& size;
-        archive& alignment;
-    }
-};
 
 inline void* malloc( const SizeAlignment& sizeAlignment )
 {

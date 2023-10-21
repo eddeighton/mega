@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 

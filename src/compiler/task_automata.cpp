@@ -23,12 +23,11 @@
 #include "automata.hpp"
 
 #include "mega/common_strings.hpp"
-#include "mega/reference_io.hpp"
 
-#include "database/model/AutomataStage.hxx"
+#include "database/AutomataStage.hxx"
 
-#include "database/types/component_type.hpp"
-#include "database/types/sources.hpp"
+#include "database/component_type.hpp"
+#include "database/sources.hpp"
 
 #include <common/stash.hpp>
 

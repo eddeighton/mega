@@ -23,7 +23,7 @@
 
 #include "service/leaf.hpp"
 
-#include "mega/types/traits.hpp"
+#include "mega/mangle/traits.hpp"
 
 namespace mega::service
 {

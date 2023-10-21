@@ -20,8 +20,7 @@
 #ifndef MEGA_NETWORK_16_MAY_2022
 #define MEGA_NETWORK_16_MAY_2022
 
-#include "mega/native_types.hpp"
-
+#include "mega/values/native_types.hpp"
 #include <boost/asio/ip/tcp.hpp>
 // #include <boost/asio/ip/udp.hpp>
 

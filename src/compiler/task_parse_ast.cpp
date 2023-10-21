@@ -19,7 +19,7 @@
 
 #include "base_task.hpp"
 
-#include "database/model/ParserStage.hxx"
+#include "database/ParserStage.hxx"
 
 #include "parser/parser.hpp"
 

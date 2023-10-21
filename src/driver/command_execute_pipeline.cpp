@@ -25,8 +25,8 @@
 
 #include "parser/parser.hpp"
 
-#include "utilities/cmake.hpp"
-#include "utilities/tool_chain_hash.hpp"
+#include "compiler/cmake.hpp"
+#include "mega/values/compilation/tool_chain_hash.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"

@@ -23,6 +23,7 @@
 
 #include "reporter_id.hpp"
 
+#include "common/serialisation.hpp"
 #include "common/assert_verify.hpp"
 
 #include <vector>
@@ -36,7 +37,17 @@ namespace mega::reports
 
 class URL
 {
+    friend class boost::serialization::access;
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& reportID;
+        archive& reporterLinkTarget;
+        archive& url;
+    }
+
     friend std::ostream& operator<<( std::ostream& os, const URL& url );
+
 public:
     static URL parse( const std::string& strURL );
 
@@ -47,10 +58,9 @@ public:
         return os.str();
     }
 
-    ReporterID                   reportID;
-    std::optional< ReporterID >  reporterLinkTarget;
-
-    std::string url;
+    ReporterID                  reportID;
+    std::optional< ReporterID > reporterLinkTarget;
+    std::string                 url;
     // std::vector< std::string >   path;
     // std::optional< std::string > bookmark;
 };

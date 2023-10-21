@@ -21,9 +21,9 @@
 
 #include "service/network/network.hpp"
 
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
-#include "mega/reference_io.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/reference_io.hpp"
 
 #include "log/range.hpp"
 

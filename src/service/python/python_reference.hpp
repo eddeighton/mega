@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_March_12_python_reference
 #define GUARD_2023_March_12_python_reference
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 #include "jit/functions.hpp"
 

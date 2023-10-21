@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_April_25_boost_serialization_xml_workaround
 #define GUARD_2023_April_25_boost_serialization_xml_workaround
 
-#include "mega/boost_serialization_workaround.hpp"
+#include "boost_serialization_workaround.hpp"
 
 #include <boost/archive/impl/basic_xml_grammar.hpp>
 

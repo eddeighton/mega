@@ -21,8 +21,8 @@
 #ifndef GUARD_2023_March_12_MPO
 #define GUARD_2023_March_12_MPO
 
-#include "mega/mpo.hpp"
-#include "mega/reference.hpp"
+#include "mega/values/runtime/mpo.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 namespace mega::service::python
 {

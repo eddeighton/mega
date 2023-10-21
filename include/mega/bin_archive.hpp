@@ -21,7 +21,7 @@
 #ifndef GUARD_2022_November_03_bin_archive
 #define GUARD_2022_November_03_bin_archive
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 #include "mega/snapshot.hpp"
 
 #include "common/assert_verify.hpp"

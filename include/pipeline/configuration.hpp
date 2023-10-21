@@ -20,7 +20,7 @@
 #ifndef CONFIGURATION_30_MAY_2022
 #define CONFIGURATION_30_MAY_2022
 
-#include "version/version.hpp"
+#include "version.hpp"
 
 #include <vector>
 #include <string>

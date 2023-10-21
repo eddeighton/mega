@@ -22,8 +22,8 @@
 
 #include "../edsUnitTestWrapper.hpp"
 
-#include "utilities/tool_chain_hash.hpp"
-#include "utilities/cmake.hpp"
+#include "mega/values/compilation/tool_chain_hash.hpp"
+#include "compiler/cmake.hpp"
 
 #include <gtest/gtest.h>
 

@@ -25,8 +25,8 @@
 #include "service/network/server.hpp"
 #include "service/network/logical_thread_manager.hpp"
 
-#include "utilities/megastructure_installation.hpp"
-#include "service/protocol/common/root_config.hpp"
+#include "mega/values/compilation/megastructure_installation.hpp"
+#include "mega/values/service/root_config.hpp"
 
 #include "common/stash.hpp"
 

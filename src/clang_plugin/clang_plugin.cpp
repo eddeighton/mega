@@ -19,7 +19,7 @@
 
 #include "clang_plugin/clang_plugin.hpp"
 
-#include "database/common/exception.hpp"
+#include "database/exception.hpp"
 
 #include "session.hpp"
 

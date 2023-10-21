@@ -19,16 +19,16 @@
 
 #include "base_task.hpp"
 
-#include "database/model/FinalStage.hxx"
+#include "database/FinalStage.hxx"
 
-#include "database/types/clang_compilation.hpp"
+#include "compiler/clang_compilation.hpp"
 
-#include "mega/types/traits.hpp"
+#include "mega/mangle/traits.hpp"
 
 #include <common/file.hpp>
 #include <common/string.hpp>
 
-#include "database/types/operation.hpp"
+#include "mega/values/compilation/operation_id.hpp"
 #include "nlohmann/json.hpp"
 
 #include "inja/inja.hpp"

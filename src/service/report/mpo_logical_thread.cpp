@@ -203,9 +203,9 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
 
             switch( msg.msg.getID() )
             {
-                case HTTPRequest::ID:
+                case HTTPRequestMsg::ID:
                 {
-                    const auto& httpRequest = HTTPRequest::get( msg.msg ).httpRequestData;
+                    const auto& httpRequest = HTTPRequestMsg::get( msg.msg ).httpRequestData;
                     switch( httpRequest.verb )
                     {
                         case eClose:
@@ -324,14 +324,14 @@ void MPOLogicalThread::startTCPStream()
                     }
                 }
 
-                send( HTTPRequest::make( getID(),
-                                         HTTPRequest{ mega::network::HTTPRequestData{
+                send( HTTPRequestMsg::make( getID(),
+                                         HTTPRequestMsg{ mega::network::HTTPRequestData{
                                              verbType, req.version(), req.target(), req.keep_alive() } } ) );
             }
 
             // Send a TCP shutdown
             SPDLOG_TRACE( "MPOLogicalThread::startTCPStream shutdown" );
-            send( HTTPRequest::make( getID(), HTTPRequest{ mega::network::HTTPRequestData{ eClose } } ) );
+            send( HTTPRequestMsg::make( getID(), HTTPRequestMsg{ mega::network::HTTPRequestData{ eClose } } ) );
         }
     // segmented stacks do NOT work on windows
 #ifndef BOOST_USE_SEGMENTED_STACKS
@@ -452,10 +452,10 @@ boost::beast::http::message_generator MPOLogicalThread::handleHTTPRequest( const
     }
 }
 
-mega::network::HTTPRequestData MPOLogicalThread::GetReport( boost::asio::yield_context& )
+mega::network::HTTPRequestData MPOLogicalThread::HTTPRequest( boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "MPOLogicalThread::GetReport" );
-    THROW_RTE( "MPOLogicalThread::GetReport" );
+    SPDLOG_TRACE( "MPOLogicalThread::HTTPRequest" );
+    THROW_RTE( "MPOLogicalThread::HTTPRequest" );
     return mega::network::HTTPRequestData{};
 }
 

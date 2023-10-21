@@ -45,7 +45,7 @@ add_library( invocation
 
 set_target_properties( invocation PROPERTIES FOLDER compiler )
 
-target_link_libraries( invocation mega_interface )
+target_link_libraries( invocation mega_values )
 target_link_libraries( invocation database )
 
 IF( ${WIN32} )

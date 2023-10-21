@@ -51,6 +51,8 @@ add_library( parser MODULE
                     ${CLANG_PLUGIN_API}
                     ${CLANG_PLUGIN_SOURCES} )
 
+target_link_libraries( parser mega_values )
+
 set_property(TARGET parser PROPERTY LLVM_ENABLE_RTTI ON )
 set_property(TARGET parser PROPERTY LLVM_ENABLE_EH ON )
 

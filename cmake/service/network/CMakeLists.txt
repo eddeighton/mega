@@ -45,6 +45,7 @@ set( MEGA_NETWORK_API
     ${MEGA_API_DIR}/service/network/receiver.hpp
     ${MEGA_API_DIR}/service/network/sender_factory.hpp
     ${MEGA_API_DIR}/service/network/server.hpp
+    ${MEGA_API_DIR}/service/network/status_printer.hpp
 )
 
 set( MEGA_NETWORK_SRC 
@@ -57,6 +58,7 @@ set( MEGA_NETWORK_SRC
     ${MEGA_SRC_DIR}/service/network/receiver.cpp
     ${MEGA_SRC_DIR}/service/network/sender_factory.cpp
     ${MEGA_SRC_DIR}/service/network/server.cpp
+    ${MEGA_SRC_DIR}/service/network/status_printer.cpp
 )
 
 add_library( network

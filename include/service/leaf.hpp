@@ -25,8 +25,8 @@
 #include "service/network/sender_factory.hpp"
 #include "service/network/receiver_channel.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
-#include "service/protocol/common/node.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
+#include "mega/values/service/node.hpp"
 
 #include "jit/jit.hpp"
 

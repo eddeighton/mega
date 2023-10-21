@@ -32,11 +32,11 @@
 
 #include "service/network/sender_factory.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/stash.hxx"
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 namespace mega::service
 {

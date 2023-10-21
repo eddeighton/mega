@@ -23,8 +23,8 @@
 
 #include "service/network/log.hpp"
 
-#include "utilities/megastructure_installation.hpp"
-#include "utilities/project.hpp"
+#include "mega/values/compilation/megastructure_installation.hpp"
+#include "mega/values/service/project.hpp"
 
 #include "common/requireSemicolon.hpp"
 #include "common/assert_verify.hpp"

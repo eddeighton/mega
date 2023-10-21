@@ -21,20 +21,13 @@
 #ifndef GUARD_2023_October_12_bitset
 #define GUARD_2023_October_12_bitset
 
-#include "mega/native_types.hpp"
-#include "mega/types/traits.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/mangle/traits.hpp"
 
 #include <boost/dynamic_bitset/serialization.hpp>
 
 namespace mega
 {
-/*
-template < class Archive >
-inline void serialize( Archive& ar, Bitset& bitset, const unsigned int version )
-{
-}*/
-
-
 }
 
 #endif //GUARD_2023_October_12_bitset

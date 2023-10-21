@@ -58,8 +58,6 @@ source_group( src FILES ${INJA_SOURCES} )
 
 add_executable( inja ${INJA_SOURCES} )
 
-set_target_properties( inja PROPERTIES FOLDER utilities )
-
 link_boost( inja atomic )
 link_boost( inja program_options )
 link_boost( inja timer )

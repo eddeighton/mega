@@ -26,13 +26,14 @@
 #include "jit/allocator.hpp"
 #include "jit/object_header.hpp"
 
-#include "database/mpo_database.hpp"
+#include "environment/mpo_database.hpp"
 
 #include "service/protocol/common/sender_ref.hpp"
 // #include "service/network/log.hpp"
 
+#include "mega/values/service/status.hpp"
 #include "mega/memory.hpp"
-#include "mega/reference_io.hpp"
+#include "mega/values/runtime/reference_io.hpp"
 
 #include <functional>
 #include <memory>
@@ -65,7 +66,7 @@ class MemoryManager
 public:
     using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID ) >;
 
-    network::MemoryStatus getStatus() const
+    mega::network::MemoryStatus getStatus() const
     {
         network::MemoryStatus status;
         status.m_heap   = m_usedHeapMemory;

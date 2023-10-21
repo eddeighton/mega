@@ -67,7 +67,6 @@ ENDIF( ${WIN32} )
 
 #target_compile_definitions( daemon PUBLIC -DMEGA_CONTEXT_IMPLEMENTOR )
 
-target_link_libraries( root utilities )
 target_link_libraries( root protocol )
 target_link_libraries( root network )
 target_link_libraries( root pipeline )

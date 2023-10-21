@@ -21,16 +21,14 @@
 
 #include "compiler/generator_utility.hpp"
 
-#include "database/types/clang_compilation.hpp"
+#include "compiler/clang_compilation.hpp"
 
-#include "database/model/ConcreteStage.hxx"
-#include "database/model/OperationsStage.hxx"
-#include "database/model/FinalStage.hxx"
+#include "database/ConcreteStage.hxx"
+#include "database/OperationsStage.hxx"
+#include "database/FinalStage.hxx"
 
-#include "database/types/component_type.hpp"
-#include "database/types/sources.hpp"
-
-#include "utilities/clang_format.hpp"
+#include "database/component_type.hpp"
+#include "database/sources.hpp"
 
 #include "common/file.hpp"
 #include <common/stash.hpp>
@@ -230,7 +228,6 @@ public:
                 templateEngine.renderPythonWrappers( data, os );
             }
             std::string strOperations = os.str();
-            mega::utilities::clang_format( strOperations, std::optional< boost::filesystem::path >() );
             boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
         }
 

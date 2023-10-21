@@ -30,14 +30,14 @@
 
 #include "invocation/invocation.hpp"
 
-#include "database/jit_database.hpp"
-#include "database/model/OperationsStage.hxx"
+#include "environment/jit_database.hpp"
+#include "database/OperationsStage.hxx"
 
-#include "utilities/project.hpp"
+#include "mega/values/service/project.hpp"
 #include "service/protocol/common/jit_base.hpp"
 
-#include "mega/invocation_id.hpp"
-#include "mega/relation_id.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+#include "mega/values/compilation/relation_id.hpp"
 
 #include <iostream>
 #include <sstream>

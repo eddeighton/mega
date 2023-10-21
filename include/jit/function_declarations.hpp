@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_January_25_function_declarations
 #define GUARD_2023_January_25_function_declarations
 
-#include "database/model/FinalStage.hxx"
+#include "database/FinalStage.hxx"
 
 #include "nlohmann/json.hpp"
 

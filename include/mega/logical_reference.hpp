@@ -21,8 +21,8 @@
 #ifndef GUARD_2023_September_02_logical_reference
 #define GUARD_2023_September_02_logical_reference
 
-#include "mega/native_types.hpp"
-#include "mega/type_instance.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/values/compilation/type_instance.hpp"
 
 namespace mega
 {

@@ -21,8 +21,7 @@
 #ifndef GUARD_2022_October_10_log
 #define GUARD_2022_October_10_log
 
-#include "mega/native_types.hpp"
-
+#include "mega/values/native_types.hpp"
 #include "log/offset.hpp"
 #include "log/records.hxx"
 #include "log/buffer.hpp"

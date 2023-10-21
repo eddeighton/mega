@@ -20,10 +20,10 @@
 
 #include "base_task.hpp"
 
-#include "database/model/OperationsLocs.hxx"
+#include "database/OperationsLocs.hxx"
 
-#include "database/types/sources.hpp"
-#include "database/types/source_location.hpp"
+#include "database/sources.hpp"
+#include "mega/values/compilation/source_location.hpp"
 
 #include <common/stash.hpp>
 

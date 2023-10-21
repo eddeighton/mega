@@ -20,34 +20,33 @@
 
 
 // copy from mega/src/cmake/database/database/CMakeLists.txt
-#include "database/model/ComponentListing.hxx"
-#include "database/model/ComponentListingView.hxx"
-#include "database/model/ConcreteTypeAnalysis.hxx"
-#include "database/model/ConcreteTypeAnalysisView.hxx"
-#include "database/model/ConcreteTypeRollout.hxx"
-#include "database/model/ConcreteStage.hxx"
-#include "database/model/DependencyAnalysis.hxx"
-#include "database/model/DependencyAnalysisView.hxx"
-#include "database/model/InheritanceAnalysis.hxx"
-#include "database/model/InheritanceAnalysisView.hxx"
-#include "database/model/InheritanceAnalysisRollout.hxx"
-#include "database/model/FinalStage.hxx"    
-#include "database/model/HyperGraphAnalysis.hxx"
-#include "database/model/HyperGraphAnalysisView.hxx"
-#include "database/model/InterfaceAnalysisStage.hxx"
-#include "database/model/InterfaceStage.hxx"
-#include "database/model/MemoryStage.hxx"
-#include "database/model/OperationsStage.hxx"
-#include "database/model/ParserStage.hxx"
-#include "database/model/SymbolAnalysis.hxx"
-#include "database/model/SymbolAnalysisView.hxx"
-#include "database/model/SymbolRollout.hxx"
+#include "database/ComponentListing.hxx"
+#include "database/ComponentListingView.hxx"
+#include "database/ConcreteTypeAnalysis.hxx"
+#include "database/ConcreteTypeAnalysisView.hxx"
+#include "database/ConcreteTypeRollout.hxx"
+#include "database/ConcreteStage.hxx"
+#include "database/DependencyAnalysis.hxx"
+#include "database/DependencyAnalysisView.hxx"
+#include "database/InheritanceAnalysis.hxx"
+#include "database/InheritanceAnalysisView.hxx"
+#include "database/InheritanceAnalysisRollout.hxx"
+#include "database/FinalStage.hxx"    
+#include "database/HyperGraphAnalysis.hxx"
+#include "database/HyperGraphAnalysisView.hxx"
+#include "database/InterfaceAnalysisStage.hxx"
+#include "database/InterfaceStage.hxx"
+#include "database/MemoryStage.hxx"
+#include "database/OperationsStage.hxx"
+#include "database/ParserStage.hxx"
+#include "database/SymbolAnalysis.hxx"
+#include "database/SymbolAnalysisView.hxx"
+#include "database/SymbolRollout.hxx"
     
-#include "database/common/component_info.hpp"
-#include "database/common/serialisation.hpp"
-#include "database/common/environment_build.hpp"
+#include "database/component_info.hpp"
 
-#include "utilities/cmake.hpp"
+#include "database/serialisation.hpp"
+#include "environment/environment_build.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
@@ -133,12 +132,12 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        mega::compiler::Directories directories{ srcDir, buildDir, "", "" };
+        mega::io::Directories directories{ srcDir, buildDir, "", "" };
         mega::io::BuildEnvironment  environment( directories );
 
         bool bMatched = false;
 
-        // copy from /workspace/root/src/mega/src/api/database/model/file_info.hxx
+        // copy from /workspace/root/src/mega/src/api/database/file_info.hxx
         STAGE_DUMP( ComponentListing )
         STAGE_DUMP( ComponentListingView )
         STAGE_DUMP( ParserStage )

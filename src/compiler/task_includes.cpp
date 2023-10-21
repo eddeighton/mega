@@ -19,12 +19,12 @@
 
 #include "base_task.hpp"
 
-#include "database/model/ParserStage.hxx"
-#include "database/model/InterfaceAnalysisStage.hxx"
-#include "database/model/DependencyAnalysisView.hxx"
+#include "database/ParserStage.hxx"
+#include "database/InterfaceAnalysisStage.hxx"
+#include "database/DependencyAnalysisView.hxx"
 
-#include "database/types/clang_compilation.hpp"
-#include "database/types/sources.hpp"
+#include "compiler/clang_compilation.hpp"
+#include "database/sources.hpp"
 #include <common/file.hpp>
 
 namespace mega::compiler
@@ -35,7 +35,7 @@ namespace
 inline void addStandardIncludes( std::ostream& os )
 {
     os << "#include \"mega/include.hpp\"\n";
-    os << "#include \"mega/types/traits.hpp\"\n";
+    os << "#include \"mega/mangle/traits.hpp\"\n";
     os << "#include \"jit/functions.hpp\"\n";
     os << "#include <boost/dll/alias.hpp>\n";
 }

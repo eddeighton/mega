@@ -20,11 +20,11 @@
 #include "service/terminal.hpp"
 
 #include "service/network/log.hpp"
-#include "service/protocol/common/status.hpp"
+#include "mega/values/service/status.hpp"
 
-#include "utilities/status_printer.hpp"
+#include "service/network/status_printer.hpp"
 
-#include "mega/reference_io.hpp"
+#include "mega/values/runtime/reference_io.hpp"
 
 #include "spdlog/stopwatch.h"
 

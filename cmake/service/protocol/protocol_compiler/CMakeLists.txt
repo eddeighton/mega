@@ -57,8 +57,6 @@ ELSE( ${WIN32} )
 target_compile_options( protocol_compiler PUBLIC "-fcoroutines" )
 ENDIF( ${WIN32} )
 
-target_link_libraries( protocol_compiler utilities )
-
 set_target_properties( protocol_compiler PROPERTIES FOLDER service/protocol )
 
 link_boost( protocol_compiler filesystem )

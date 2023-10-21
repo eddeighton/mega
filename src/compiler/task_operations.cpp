@@ -19,12 +19,11 @@
 
 #include "base_task.hpp"
 
-#include "database/model/OperationsStage.hxx"
+#include "database/OperationsStage.hxx"
 
-#include "database/types/clang_compilation.hpp"
+#include "compiler/clang_compilation.hpp"
 
-#include "database/types/sources.hpp"
-#include "utilities/clang_format.hpp"
+#include "database/sources.hpp"
 
 #include "common/file.hpp"
 #include <common/stash.hpp>
@@ -96,7 +95,6 @@ public:
                 Interface::Root*              pRoot = database.one< Interface::Root >( m_sourceFilePath );
                 strOperations                       = OperationsGen::generate( templateEngine, pRoot, true );
             }
-            mega::utilities::clang_format( strOperations, std::optional< boost::filesystem::path >() );
             boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
         }
 

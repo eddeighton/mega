@@ -20,13 +20,13 @@
 #ifndef EG_CLOCK_12_06_2019
 #define EG_CLOCK_12_06_2019
 
-#include "utilities/project.hpp"
+#include "mega/values/service/project.hpp"
 
 #include "service/protocol/common/sender_ref.hpp"
 
 #include "log/range.hpp"
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 #include <chrono>
 #include <memory>

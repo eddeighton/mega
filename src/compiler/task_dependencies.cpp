@@ -19,15 +19,15 @@
 
 #include "base_task.hpp"
 
-#include "database/model/DependencyAnalysis.hxx"
-#include "database/model/DependencyAnalysisView.hxx"
-#include "database/model/manifest.hxx"
+#include "database/DependencyAnalysis.hxx"
+#include "database/DependencyAnalysisView.hxx"
+#include "database/manifest.hxx"
 
-#include "database/common/environment_archive.hpp"
-#include "database/common/exception.hpp"
+#include "environment/environment_archive.hpp"
+#include "database/exception.hpp"
 
-#include "database/types/sources.hpp"
-#include "utilities/glob.hpp"
+#include "database/sources.hpp"
+#include "compiler/glob.hpp"
 
 namespace mega::compiler
 {

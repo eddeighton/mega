@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_August_01_BasicScheduler
 #define GUARD_2023_August_01_BasicScheduler
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 #include "mega/return_reason.hpp"
 
 #include "common/unreachable.hpp"

@@ -19,20 +19,17 @@
 
 #include "base_task.hpp"
 
-#include "database/model/InheritanceAnalysisView.hxx"
-#include "database/model/OperationsStage.hxx"
-#include "database/model/FinalStage.hxx"
+#include "database/InheritanceAnalysisView.hxx"
+#include "database/OperationsStage.hxx"
+#include "database/FinalStage.hxx"
 
-#include "database/types/clang_compilation.hpp"
+#include "compiler/clang_compilation.hpp"
 
-#include "database/types/operation.hpp"
-#include "database/types/sources.hpp"
+#include "mega/values/compilation/operation_id.hpp"
+#include "database/sources.hpp"
 
-#include "utilities/clang_format.hpp"
-
-#include "mega/operation_id.hpp"
 #include "mega/common_strings.hpp"
-#include "mega/types/traits.hpp"
+#include "mega/mangle/traits.hpp"
 
 #include "common/file.hpp"
 
@@ -158,7 +155,6 @@ public:
 
         // clang-format
         std::string strInterface = os.str();
-        mega::utilities::clang_format( strInterface, std::optional< boost::filesystem::path >() );
 
         // generate the interface header
         {

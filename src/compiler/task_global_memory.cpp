@@ -19,16 +19,16 @@
 
 #include "base_task.hpp"
 
-#include "mega/relation_id.hpp"
+#include "mega/values/compilation/relation_id.hpp"
 #include "mega/common_strings.hpp"
 
-#include "database/model/MemoryStage.hxx"
-#include "database/model/GlobalMemoryStage.hxx"
-#include "database/model/GlobalMemoryStageRollout.hxx"
-#include "database/model/manifest.hxx"
+#include "database/MemoryStage.hxx"
+#include "database/GlobalMemoryStage.hxx"
+#include "database/GlobalMemoryStageRollout.hxx"
+#include "database/manifest.hxx"
 
-#include "database/common/environment_archive.hpp"
-#include "database/common/exception.hpp"
+#include "environment/environment_archive.hpp"
+#include "database/exception.hpp"
 
 namespace GlobalMemoryStage
 {

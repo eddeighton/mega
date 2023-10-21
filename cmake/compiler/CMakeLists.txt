@@ -38,6 +38,24 @@ include( ../preprocess_cpp.cmake )
 
 #################################################################
 #################################################################
+# cmake_minimum_required( VERSION 3.1...3.16 )
+# 
+# string( TIMESTAMP CMAKE_TIMESTAMP_STRING "%Y-%m-%d %H:%M:%S" UTC )
+# 
+# set( CMAKE_VERSION_MAJOR        0 )
+# set( CMAKE_VERSION_MINOR        0 )
+# set( CMAKE_VERSION_REVISION     0 )
+# set( CMAKE_VERSION_BUILD        ${CMAKE_TIMESTAMP_STRING} )
+# 
+# configure_file( ${MEGA_SRC_DIR}/version/version.cpp.in ${MEGA_SRC_DIR}/version/version.cxx )
+# 
+# set( VERSION_HEADERS
+#     ${MEGA_API_DIR}/version/version.hpp )
+# 
+# install( FILES ${VERSION_HEADERS} DESTINATION include/version )
+
+#################################################################
+#################################################################
 # configuration library that can be statically linked
 set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/configuration.hpp
@@ -49,7 +67,7 @@ set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/generator_operations.hpp
     ${MEGA_API_DIR}/compiler/generator_implementation.hpp
 
-    # reusable utilities
+    # reusable
     ${MEGA_API_DIR}/compiler/derivation.hpp
     ${MEGA_API_DIR}/compiler/interface.hpp
     ${MEGA_API_DIR}/compiler/concrete.hpp
@@ -101,8 +119,6 @@ set( JINJA_TEMPLATES
 	)
 
 set( COMPILER_TASKS
-    ${MEGA_SRC_DIR}/compiler/automata.cpp
-    ${MEGA_SRC_DIR}/compiler/automata.hpp
     ${MEGA_SRC_DIR}/compiler/task_alias.cpp
     ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
     ${MEGA_SRC_DIR}/compiler/task_automata.cpp
@@ -135,11 +151,16 @@ set( COMPILER_SOURCE
     ${COMPILER_TASKS}
     ${MEGA_SRC_DIR}/compiler/compiler.cpp
 
+    ${MEGA_SRC_DIR}/compiler/automata.cpp
+    ${MEGA_SRC_DIR}/compiler/glob.cpp
+    ${MEGA_SRC_DIR}/compiler/automata.hpp
+    ${MEGA_SRC_DIR}/compiler/clang_compilation.cpp
+
     # generate file from mega mangle
     ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
 
     ## ensure the version is baked into the shared object
-    ${MEGA_SRC_DIR}/version/version.cxx
+    # ${MEGA_SRC_DIR}/version/version.cxx
 )
 
 add_library( compiler MODULE
@@ -163,10 +184,10 @@ add_custom_target( PreprocessCompilerXMacros
 	COMMENT "Proprocessing task_utils.hpp")
 
 target_link_libraries( compiler compiler_config )
-target_link_libraries( compiler utilities )
+target_link_libraries( compiler mega_interface )
+target_link_libraries( compiler mega_values )
 target_link_libraries( compiler database )
 target_link_libraries( compiler pipeline )
-target_link_libraries( compiler schematic )
 
 target_include_directories( compiler PUBLIC ${MEGA_API_DIR} )
 

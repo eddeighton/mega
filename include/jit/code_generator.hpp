@@ -25,15 +25,15 @@
 #include "function_declarations.hpp"
 #include "indent.hpp"
 
-#include "database/jit_database.hpp"
+#include "environment/jit_database.hpp"
 
 #include "invocation_functions.hxx"
 #include "operator_functions.hxx"
 
-#include "utilities/megastructure_installation.hpp"
-#include "utilities/project.hpp"
+#include "mega/values/compilation/megastructure_installation.hpp"
+#include "mega/values/service/project.hpp"
 
-#include "mega/relation_id.hpp"
+#include "mega/values/compilation/relation_id.hpp"
 
 #include <boost/asio/spawn.hpp>
 

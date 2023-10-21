@@ -25,10 +25,12 @@
 
 #include "object_functions.hxx"
 
-#include "mega/type_id.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/size_alignment.hpp"
+
 #include "mega/memory.hpp"
 
-#include "database/jit_database.hpp"
+#include "environment/jit_database.hpp"
 
 #include <memory>
 #include <unordered_map>

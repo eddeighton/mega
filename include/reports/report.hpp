@@ -25,12 +25,7 @@
 #include "reports/url.hpp"
 #include "reports/colours.hxx"
 
-#include "utilities/serialization_helpers.hpp"
-
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/variant.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/string.hpp>
+#include "common/serialisation.hpp"
 
 #include <vector>
 #include <ostream>
@@ -39,7 +34,8 @@
 namespace mega::reports
 {
 
-using Text       = std::variant< std::string, Value >;
+//using Text       = std::variant< std::string, Value >;
+using Text       = Value;
 using TextVector = std::vector< Text >;
 
 class Line;
@@ -56,7 +52,8 @@ class Line
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& m_element;
+        // archive& m_element;
+        // archive& m_bookmark;
     }
 
 public:
@@ -70,7 +67,8 @@ class Multiline
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& m_elements;
+        // archive& m_elements;
+        // archive& m_bookmark;
     }
 
 public:
@@ -84,8 +82,9 @@ class Branch
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& m_label;
+        // archive& m_label;
         archive& m_elements;
+        // archive& m_bookmark;
     }
 
 public:
@@ -126,10 +125,10 @@ public:
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
-            archive& m_rows;
+            //archive& m_rows;
             archive& m_colour;
             archive& m_url;
-            archive& m_bookmark;
+            //archive& m_bookmark;
         }
 
     public:

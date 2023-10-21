@@ -26,8 +26,7 @@
 #pragma warning( disable : 4275 ) // non dll-interface class 'testing::TestPartResultReporterInterface'
 #endif
 
-#include "mega/native_types.hpp"
-
+#include "mega/values/native_types.hpp"
 #include <gtest/gtest.h>
 
 #include <boost/tokenizer.hpp>

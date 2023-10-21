@@ -19,14 +19,13 @@
 
 #include "base_task.hpp"
 
-#include "database/model/InterfaceAnalysisStage.hxx"
+#include "database/InterfaceAnalysisStage.hxx"
 
-#include "database/types/clang_compilation.hpp"
+#include "compiler/clang_compilation.hpp"
 
 #include "mega/common_strings.hpp"
-#include "mega/types/traits.hpp"
-
-#include "utilities/clang_format.hpp"
+#include "mega/values/runtime/reference.hpp"
+#include "mega/mangle/traits.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -127,7 +126,6 @@ public:
 
         // clang-format
         std::string strInterface = os.str();
-        mega::utilities::clang_format( strInterface, std::optional< boost::filesystem::path >() );
 
         // generate the interface header
         {

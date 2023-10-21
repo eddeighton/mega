@@ -23,9 +23,9 @@
 
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
-#include "mega/reference_io.hpp"
-#include "mega/any.hpp"
-#include "mega/any_io.hpp"
+#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/any.hpp"
+#include "mega/values/runtime/any_io.hpp"
 
 #include <boost/algorithm/string.hpp>
 

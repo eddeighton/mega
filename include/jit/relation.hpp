@@ -26,9 +26,9 @@
 
 #include "relation_functions.hxx"
 
-#include "database/jit_database.hpp"
+#include "environment/jit_database.hpp"
 
-#include "mega/relation_id.hpp"
+#include "mega/values/compilation/relation_id.hpp"
 
 #include <memory>
 

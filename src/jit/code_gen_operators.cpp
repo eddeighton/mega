@@ -35,8 +35,8 @@ void gen_new( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JIT
 static const char* szTemplate =
 R"TEMPLATE(
 
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/values/runtime/reference.hpp"
 #include "service/protocol/common/mpo_context_interface.hpp" 
 
 mega::reference mega_new_{{ interface_type }}()
@@ -78,8 +78,8 @@ void gen_delete( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const 
 static const char* szTemplate =
 R"TEMPLATE(
 
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/values/runtime/reference.hpp"
 #include "jit/object_functions.hxx"
 
 void mega_delete_{{ interface_type }}( mega::reference ref )
@@ -122,8 +122,8 @@ void gen_cast( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JI
 static const char* szTemplate =
 R"TEMPLATE(
 
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 mega::reference mega_cast_{{ interface_type }}( const mega::reference& source )
 {

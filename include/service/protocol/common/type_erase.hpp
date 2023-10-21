@@ -21,8 +21,7 @@
 #ifndef GUARD_2023_January_11_launder
 #define GUARD_2023_January_11_launder
 
-#include "mega/native_types.hpp"
-
+#include "mega/values/native_types.hpp"
 namespace mega
 {
 

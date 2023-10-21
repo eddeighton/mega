@@ -29,11 +29,11 @@
 
 #include "service/mpo_visitor.hpp"
 
-#include "mega/reference_io.hpp"
-#include "mega/invocation_id.hpp"
-#include "mega/types/traits.hpp"
+#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+#include "mega/mangle/traits.hpp"
 
-#include "mega/types/python_mangle.hpp"
+#include "mega/mangle/python_mangle.hpp"
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 #include "mega/printer.hpp"

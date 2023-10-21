@@ -17,18 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/common/archive.hpp"
-#include "database/model/FinalStage.hxx"
+#include "database/archive.hpp"
 
-#include "database/model/manifest.hxx"
+#include "database/FinalStage.hxx"
+#include "database/manifest.hxx"
+#include "database/sources.hpp"
+#include "database/serialisation.hpp"
 
-#include "database/common/component_info.hpp"
-#include "database/common/serialisation.hpp"
-#include "database/common/environment_build.hpp"
-#include "database/common/environment_archive.hpp"
+#include "environment/environment_build.hpp"
+#include "environment/environment_archive.hpp"
 
-#include "database/types/sources.hpp"
-#include "utilities/cmake.hpp"
+#include "compiler/cmake.hpp"
 
 #include "mega/common_strings.hpp"
 

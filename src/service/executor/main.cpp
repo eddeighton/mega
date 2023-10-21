@@ -23,7 +23,7 @@
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/node.hpp"
+#include "mega/values/service/node.hpp"
 
 #include "pipeline/pipeline.hpp"
 

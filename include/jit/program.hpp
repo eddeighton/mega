@@ -26,7 +26,7 @@
 
 #include "program_functions.hxx"
 
-#include "database/jit_database.hpp"
+#include "environment/jit_database.hpp"
 
 #include <memory>
 

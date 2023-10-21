@@ -34,6 +34,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
 #get ads
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/qtdock2/qtdock2_include.cmake )
 
@@ -128,16 +131,22 @@ target_link_libraries( editor database )
 target_link_libraries( editor log )
 target_link_libraries( editor network )
 target_link_libraries( editor protocol )
-target_link_libraries( editor utilities )
 target_link_libraries( editor tool )
 
 link_cgal( editor )
 link_qtdock2( editor )
+link_boost( editor atomic )
+link_boost( editor filesystem )
+link_boost( editor iostreams )
+link_boost( editor program_options )
+link_boost( editor serialization )
+link_boost( editor timer )
 link_common( editor )
 link_ed( editor )
-link_fmt( mega )
-link_json( mega )
-link_spdlog( mega )
+link_fmt( editor )
+link_json( editor )
+link_inja( editor )
+link_spdlog( editor )
 
 install( FILES ${EDITOR_HEADERS} DESTINATION include/editor )
 install( FILES ${EDITOR_SRC_DIR}/config.ed DESTINATION bin )

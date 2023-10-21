@@ -23,14 +23,14 @@
 
 #include "base_task.hpp"
 
-#include "database/model/ConcreteTypeAnalysis.hxx"
-#include "database/model/ConcreteTypeAnalysisView.hxx"
-#include "database/model/ConcreteTypeRollout.hxx"
-#include "database/model/manifest.hxx"
+#include "database/ConcreteTypeAnalysis.hxx"
+#include "database/ConcreteTypeAnalysisView.hxx"
+#include "database/ConcreteTypeRollout.hxx"
+#include "database/manifest.hxx"
 
-#include "database/common/environment_archive.hpp"
-#include "database/common/exception.hpp"
-#include "database/types/sources.hpp"
+#include "environment/environment_archive.hpp"
+#include "database/exception.hpp"
+#include "database/sources.hpp"
 
 namespace ConcreteTypeAnalysis
 {

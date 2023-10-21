@@ -20,6 +20,8 @@
 #ifndef COMPILER_CONFIGURATION_27_MAY_2022
 #define COMPILER_CONFIGURATION_27_MAY_2022
 
+#include "mega/values/compilation/compilation_configuration.hpp"
+
 #include "pipeline/configuration.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -30,44 +32,8 @@
 namespace mega::compiler
 {
 
-struct Directories
-{
-    boost::filesystem::path srcDir, buildDir, installDir, templatesDir;
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& boost::serialization::make_nvp( "srcDir", srcDir );
-        archive& boost::serialization::make_nvp( "buildDir", buildDir );
-        archive& boost::serialization::make_nvp( "installDir", installDir );
-        archive& boost::serialization::make_nvp( "templatesDir", templatesDir );
-    }
-};
-
-struct Configuration
-{
-    pipeline::ConfigurationHeader          header;
-    std::string                            projectName;
-    std::vector< boost::filesystem::path > componentInfoPaths;
-    Directories                            directories;
-    boost::filesystem::path                unityProjectDir;
-    boost::filesystem::path                unityEditor;
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        // NOTE: header serialization handled seperately so can access in pipeline abstraction
-        // archive& boost::serialization::make_nvp( "header", header );
-        archive& boost::serialization::make_nvp( "projectName", projectName );
-        archive& boost::serialization::make_nvp( "componentInfoPaths", componentInfoPaths );
-        archive& boost::serialization::make_nvp( "directories", directories );
-        archive& boost::serialization::make_nvp( "unityProjectDir", unityProjectDir );
-        archive& boost::serialization::make_nvp( "unityEditor", unityEditor );
-    }
-};
-
-pipeline::Configuration makePipelineConfiguration( const Configuration& config );
-Configuration           fromPipelineConfiguration( const pipeline::Configuration& pipelineConfig );
+pipeline::Configuration       makePipelineConfiguration( const mega::compiler::Configuration& config );
+mega::compiler::Configuration fromPipelineConfiguration( const pipeline::Configuration& pipelineConfig );
 
 } // namespace mega::compiler
 

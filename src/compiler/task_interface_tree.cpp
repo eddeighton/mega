@@ -21,7 +21,7 @@
 
 #include "base_task.hpp"
 
-#include "database/model/InterfaceStage.hxx"
+#include "database/InterfaceStage.hxx"
 
 namespace mega::compiler
 {

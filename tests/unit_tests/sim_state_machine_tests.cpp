@@ -25,7 +25,7 @@
 #include "service/executor/transaction_machine.hpp"
 #include "service/executor/state_machine.hpp"
 
-#include "utilities/project.hpp"
+#include "mega/values/service/project.hpp"
 
 using namespace std::literals;
 static const mega::MPO id1( 1, 2, 3 );

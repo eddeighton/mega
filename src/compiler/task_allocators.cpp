@@ -19,11 +19,11 @@
 
 #include "base_task.hpp"
 
-#include "database/model/MemoryStage.hxx"
-#include "database/types/sources.hpp"
+#include "database/MemoryStage.hxx"
+#include "database/sources.hpp"
 
-#include "mega/operation_id.hpp"
-#include "mega/types/traits.hpp"
+#include "mega/values/compilation/operation_id.hpp"
+#include "mega/mangle/traits.hpp"
 #include "mega/memory.hpp"
 
 #include "common/file.hpp"
@@ -93,8 +93,8 @@ public:
 
         U64 totalStates = 0;
 
-        Concrete::Context* pReconstruct
-            = database.construct< Concrete::Context >( Concrete::Context::Args{ pContext, localDomain, totalDomain } );
+        Concrete::Context* pReconstruct = database.construct< Concrete::Context >( Concrete::Context::Args{
+            pContext, static_cast< Instance >( localDomain ), static_cast< Instance >( totalDomain ) } );
 
         if( auto pState = db_cast< Concrete::State >( pReconstruct ) )
         {

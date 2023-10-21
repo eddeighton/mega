@@ -21,7 +21,7 @@
 
 #include "mega/common_strings.hpp"
 
-#include "database/model/ConcreteStage.hxx"
+#include "database/ConcreteStage.hxx"
 
 #include <common/stash.hpp>
 

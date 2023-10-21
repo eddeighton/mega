@@ -21,12 +21,14 @@
 #ifndef GUARD_2022_October_31_archive
 #define GUARD_2022_October_31_archive
 
-#include "mega/reference.hpp"
+#include "mega/values/compilation/type_id.hpp"
+
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/maths_types.hpp"
+
 #include "mega/address_table.hpp"
 #include "mega/tag_parser.hpp"
-#include "mega/type_id_io.hpp"
-#include "mega/reference_io.hpp"
-#include "mega/maths_types.hpp"
 
 #include "common/file.hpp"
 #include "common/string.hpp"

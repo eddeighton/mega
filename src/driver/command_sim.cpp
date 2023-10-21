@@ -19,7 +19,7 @@
 
 #include "service/terminal.hpp"
 
-#include "mega/reference_io.hpp"
+#include "mega/values/runtime/reference_io.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>

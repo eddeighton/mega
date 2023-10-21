@@ -24,10 +24,9 @@
 #include "task.hpp"
 #include "stash.hpp"
 #include "configuration.hpp"
+#include "version.hpp"
 
-#include "utilities/tool_chain_hash.hpp"
-
-#include "version/version.hpp"
+#include "mega/values/compilation/tool_chain_hash.hpp"
 
 #include <boost/config.hpp>
 #include <boost/shared_ptr.hpp>

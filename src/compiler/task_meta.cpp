@@ -20,9 +20,9 @@
 
 #include "base_task.hpp"
 
-#include "database/model/MetaStage.hxx"
-#include "database/types/component_type.hpp"
-#include "database/types/sources.hpp"
+#include "database/MetaStage.hxx"
+#include "database/component_type.hpp"
+#include "database/sources.hpp"
 
 #include <common/stash.hpp>
 

@@ -20,8 +20,8 @@
 
 #include "jit/symbol.hpp"
 
-#include "mega/relation_io.hpp"
-#include "mega/invocation_io.hpp"
+#include "mega/values/compilation/relation_id.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
 
 #include "symbol_utils.hpp"
 

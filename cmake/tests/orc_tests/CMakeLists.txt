@@ -69,7 +69,6 @@ link_orc( orc_tests )
 link_common( orc_tests )
 
 target_link_libraries( orc_tests database )
-target_link_libraries( orc_tests utilities )
 target_link_libraries( orc_tests database_compiler)
 
 gtest_add_tests( TARGET orc_tests SOURCES ${ORC_UNIT_TESTS} )

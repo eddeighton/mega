@@ -19,11 +19,13 @@
 
 
 
-#include "utilities/glob.hpp"
+#include "compiler/glob.hpp"
+
+#include "common/file.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <common/file.hpp>
+
 #include <gtest/gtest.h>
 
 #include <utility>

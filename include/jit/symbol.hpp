@@ -21,9 +21,9 @@
 #ifndef GUARD_2023_April_26_orc_symbol
 #define GUARD_2023_April_26_orc_symbol
 
-#include "mega/reference.hpp"
-#include "mega/relation_id.hpp"
-#include "mega/invocation_id.hpp"
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/compilation/relation_id.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
 
 namespace mega::runtime
 {

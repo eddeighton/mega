@@ -23,7 +23,7 @@
 #include "orc_api.hpp"
 #include "symbol.hpp"
 
-#include "utilities/megastructure_installation.hpp"
+#include "mega/values/compilation/megastructure_installation.hpp"
 
 #include <memory>
 #include <set>

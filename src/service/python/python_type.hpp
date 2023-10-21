@@ -21,8 +21,8 @@
 #ifndef GUARD_2023_September_02_python_type
 #define GUARD_2023_September_02_python_type
 
-#include "mega/type_id.hpp"
-#include "mega/reference.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 #include <pybind11/pybind11.h>
 

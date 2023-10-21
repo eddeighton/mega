@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_January_16_record_archive
 #define GUARD_2023_January_16_record_archive
 
-#include "mega/reference.hpp"
+#include "mega/values/runtime/reference.hpp"
 
 #include "common/assert_verify.hpp"
 

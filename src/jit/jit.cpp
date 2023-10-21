@@ -28,9 +28,9 @@
 #include "relation_functions.hxx"
 #include "operator_functions.hxx"
 
-#include "mega/types/traits.hpp"
+#include "mega/mangle/traits.hpp"
 
-#include "database/model/FinalStage.hxx"
+#include "database/FinalStage.hxx"
 
 #include "invocation/invocation.hpp"
 

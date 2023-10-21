@@ -24,15 +24,14 @@
 #include "parser/parser.hpp"
 #include "clang.hpp"
 
-#include "database/types/arguments.hpp"
-#include "database/types/cardinality.hpp"
-#include "database/types/derivation.hpp"
-#include "database/types/ownership.hpp"
-#include "database/types/ownership.hpp"
-#include "database/types/sources.hpp"
+#include "mega/values/compilation/arguments.hpp"
+#include "mega/values/compilation/cardinality.hpp"
+#include "mega/values/compilation/ownership.hpp"
+#include "mega/values/compilation/ownership.hpp"
+#include "database/sources.hpp"
 
-#include "database/model/ParserStage.hxx"
-#include "database/model/environment.hxx"
+#include "database/ParserStage.hxx"
+#include "database/environment.hxx"
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"

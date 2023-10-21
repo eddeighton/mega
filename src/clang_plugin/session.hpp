@@ -17,18 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef SESSION_10_MAY_2022
 #define SESSION_10_MAY_2022
 
 #include "common/clang_warnings.hpp"
 
-#include "database/types/modes.hpp"
-#include "database/types/operation.hpp"
-#include "database/types/sources.hpp"
+#include "mega/values/compilation/modes.hpp"
+#include "mega/values/compilation/operation_id.hpp"
 
-#include "database/common/environment_build.hpp"
+#include "database/sources.hpp"
+
+#include "environment/environment_build.hpp"
 
 #include "clang/AST/ASTContext.h"
 #include "clang/Sema/Sema.h"
@@ -82,7 +81,7 @@ class AnalysisSession : public Session
 {
 protected:
     const boost::filesystem::path m_srcDir, m_buildDir;
-    mega::compiler::Directories   m_directories;
+    mega::io::Directories         m_directories;
     mega::io::BuildEnvironment    m_environment;
     const mega::io::megaFilePath  m_sourceFile;
 
@@ -101,7 +100,7 @@ public:
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const override
     {
-        if ( mega::getOperationName( strIdentifier ) != mega::HIGHEST_OPERATION_TYPE )
+        if( mega::getOperationName( strIdentifier ) != mega::HIGHEST_OPERATION_TYPE )
         {
             return true;
         }

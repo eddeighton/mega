@@ -21,7 +21,7 @@
 
 #include "symbol.hpp"
 
-#include "database/jit_database.hpp"
+#include "environment/jit_database.hpp"
 
 #include "service/network/log.hpp"
 

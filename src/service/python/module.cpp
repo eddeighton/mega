@@ -30,9 +30,10 @@
 #include "service/protocol/common/type_erase.hpp"
 #include "service/protocol/common/jit_base.hpp"
 
-#include "mega/reference_io.hpp"
-#include "mega/invocation_io.hpp"
-#include "mega/maths_types.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/maths_types.hpp"
 
 #include <boost/dynamic_bitset.hpp>
 

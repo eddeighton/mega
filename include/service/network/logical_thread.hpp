@@ -21,7 +21,7 @@
 #define LOGICALTHREAD_24_MAY_2022
 
 #include "service/protocol/common/received_message.hpp"
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 #include "service/protocol/common/logical_thread_base.hpp"
 #include "service/protocol/model/messages.hxx"
 

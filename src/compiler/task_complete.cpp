@@ -19,9 +19,9 @@
 
 #include "base_task.hpp"
 
-#include "database/model/FinalStage.hxx"
-#include "database/types/component_type.hpp"
-#include "database/types/sources.hpp"
+#include "database/FinalStage.hxx"
+#include "database/component_type.hpp"
+#include "database/sources.hpp"
 #include <boost/filesystem/operations.hpp>
 #include <common/stash.hpp>
 

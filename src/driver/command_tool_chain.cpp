@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "utilities/tool_chain_hash.hpp"
+#include "mega/values/compilation/tool_chain_hash.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"

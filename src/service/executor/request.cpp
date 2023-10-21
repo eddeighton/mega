@@ -21,7 +21,7 @@
 #include "service/executor/executor.hpp"
 #include "service/executor/simulation.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 
 #include "service/network/log.hpp"
 

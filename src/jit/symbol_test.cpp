@@ -18,9 +18,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mega/reference.hpp"
-#include "mega/relation_id.hpp"
-#include "mega/invocation_id.hpp"
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/compilation/relation_id.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
 
 #if defined( _WIN32 )
 #    define EXPORT_TEST_SYMBOL __declspec( dllexport )

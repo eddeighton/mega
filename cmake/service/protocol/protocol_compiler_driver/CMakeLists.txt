@@ -40,7 +40,6 @@ link_boost( protocol_compiler_driver program_options )
 link_common( protocol_compiler_driver ) 
 
 target_link_libraries(protocol_compiler_driver protocol_compiler)
-target_link_libraries(protocol_compiler_driver utilities)
 
 install( TARGETS protocol_compiler_driver DESTINATION bin)
 

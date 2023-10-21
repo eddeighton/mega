@@ -21,14 +21,14 @@
 
 #include "mega_mangle_meta.hxx"
 
-#include "database/common/component_info.hpp"
-#include "database/common/serialisation.hpp"
+#include "database/component_info.hpp"
+#include "database/serialisation.hpp"
 
-#include "database/model/manifest.hxx"
-#include "database/model/environment.hxx"
-#include "database/model/ComponentListing.hxx"
+#include "database/manifest.hxx"
+#include "database/environment.hxx"
+#include "database/ComponentListing.hxx"
 
-#include "utilities/glob.hpp"
+#include "compiler/glob.hpp"
 
 #include <common/stash.hpp>
 
@@ -55,7 +55,7 @@ public:
 
         start( taskProgress, "Task_GenerateManifest", projectManifestPath.path(), projectManifestPath.path() );
 
-        const mega::io::Manifest manifest( m_environment, m_componentInfoPaths );
+        const mega::io::Manifest manifest( m_environment, m_environment.srcDir(), m_componentInfoPaths );
         const task::FileHash     hashCode = manifest.save_temp( m_environment, projectManifestPath );
         // const task::DeterminantHash determinant( hashCode );
 

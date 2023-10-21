@@ -17,20 +17,23 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "common/serialisation.hpp"
+
 #include "compiler/configuration.hpp"
 
 #include "base_task.hpp"
-#include "database/types/component_type.hpp"
+#include "database/component_type.hpp"
 #include "task_utils.hpp"
 
 #include "pipeline/task.hpp"
 #include "pipeline/stash.hpp"
 #include "pipeline/pipeline.hpp"
+#include "pipeline/version.hpp"
 
-#include "database/model/manifest.hxx"
-#include "database/model/ComponentListingView.hxx"
+#include "database/manifest.hxx"
+#include "database/ComponentListingView.hxx"
 
-#include "database/types/sources.hpp"
+#include "database/sources.hpp"
 
 #include <common/string.hpp>
 #include "common/assert_verify.hpp"
@@ -196,11 +199,12 @@ public:
         m_configuration = fromPipelineConfiguration( pipelineConfig );
 
         // check the version is latest
-        const auto actualVersion = Version::getVersion();
-        using ::   operator<<;
-        VERIFY_RTE_MSG( actualVersion == m_configuration->header.version,
-                        "Pipeine version mismatch: Configuration version: " << m_configuration->header.version
-                                                                            << " Actual Version: " << actualVersion );
+        // const auto actualVersion = Version::getVersion();
+        // using ::   operator<<;
+        // VERIFY_RTE_MSG( actualVersion == m_configuration->header.version,
+        //                 "Pipeine version mismatch: Configuration version: " << m_configuration->header.version
+        //                                                                    << " Actual Version: " << actualVersion );
+        using ::operator<<;
         osLog << "SUCCESS: Initialised pipeline: " << m_configuration->header.pipelineID
               << " with version: " << m_configuration->header.version;
     }

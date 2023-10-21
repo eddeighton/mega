@@ -25,7 +25,7 @@
 #include "receiver.hpp"
 #include "sender_factory.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 
 #include <boost/asio/strand.hpp>
 #include <boost/asio/ip/tcp.hpp>

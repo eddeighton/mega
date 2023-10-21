@@ -20,7 +20,7 @@
 #include "session.hpp"
 #include "clang_utils.hpp"
 
-#include "database/model/FinalStage.hxx"
+#include "database/FinalStage.hxx"
 
 #include "mega/common_strings.hpp"
 

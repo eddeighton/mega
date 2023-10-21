@@ -24,9 +24,9 @@
 #include <bitset>
 #include <cstddef>
 
-#include "native_types.hpp"
-#include "reference.hpp"
-#include "clock.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/values/runtime/reference.hpp"
+#include "mega/clock.hpp"
 
 #include <boost/circular_buffer.hpp>
 

@@ -21,9 +21,9 @@
 #define MPO_MANAGER_25_AUG_2022
 
 #include "mega/ring_allocator.hpp"
-#include "mega/reference_io.hpp"
+#include "mega/values/runtime/reference_io.hpp"
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 #include "service/network/log.hpp"
 
 #include "common/assert_verify.hpp"

@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_January_22_invoke_fixture
 #define GUARD_2023_January_22_invoke_fixture
 
-#include "utilities/tool_chain_hash.hpp"
+#include "mega/values/compilation/tool_chain_hash.hpp"
 
 #include "version/version.hpp"
 
@@ -30,16 +30,15 @@
 #include "pipeline/configuration.hpp"
 #include "pipeline/pipeline.hpp"
 
-#include "database/common/environment_build.hpp"
-#include "database/common/component_info.hpp"
-#include "database/common/serialisation.hpp"
-#include "database/types/sources.hpp"
+#include "environment/environment_build.hpp"
+#include "database/serialisation.hpp"
+#include "database/sources.hpp"
 
-#include "database/model/manifest.hxx"
-#include "database/model/environment.hxx"
+#include "database/manifest.hxx"
+#include "database/environment.hxx"
 
-#include <common/file.hpp>
-#include <common/string.hpp>
+#include "common/file.hpp"
+#include "common/string.hpp"
 #include "common/assert_verify.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -70,13 +69,13 @@ public:
 
         bool m_bSuccess = false;
 
-        mega::compiler::Directories   m_directories;
+        mega::io::Directories   m_directories;
         mega::io::BuildEnvironment    m_environment;
         mega::pipeline::Configuration m_pipeline;
         boost::filesystem::path       m_srcFilePath;
         mega::io::megaFilePath        m_megaSrcPath;
 
-        Impl( mega::compiler::Directories directories )
+        Impl( mega::io::Directories directories )
             : m_directories{ std::move( directories ) }
             , m_environment( m_directories )
         {
@@ -148,7 +147,7 @@ public:
             boost::filesystem::create_directories( installDir );
 
             m_pImpl
-                = std::make_unique< Impl >( mega::compiler::Directories{ srcDir, buildDir, installDir, g_templatesDir } );
+                = std::make_unique< Impl >( mega::io::Directories{ srcDir, buildDir, installDir, g_templatesDir } );
 
             mega::pipeline::PipelineResult result = m_pImpl->runPipeline();
             ASSERT_TRUE( result.m_bSuccess );

@@ -26,8 +26,6 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/project.hxx"
-#include "service/protocol/model/platform.hxx"
-#include "service/protocol/model/player_network.hxx"
 #include "service/protocol/model/sim.hxx"
 
 #include <chrono>

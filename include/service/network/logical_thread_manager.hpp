@@ -20,7 +20,7 @@
 #ifndef LOGICALTHREAD_MANAGER_26_MAY_2022
 #define LOGICALTHREAD_MANAGER_26_MAY_2022
 
-#include "service/protocol/common/logical_thread_id.hpp"
+#include "mega/values/service/logical_thread_id.hpp"
 
 #include "service/network/logical_thread.hpp"
 

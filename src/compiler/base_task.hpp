@@ -24,11 +24,11 @@
 
 #include "compiler/build_report.hpp"
 
-#include "database/common/environment_stash.hpp"
+#include "environment/environment_stash.hpp"
 
-#include "database/types/sources.hpp"
+#include "database/sources.hpp"
 
-#include "utilities/tool_chain_hash.hpp"
+#include "mega/values/compilation/tool_chain_hash.hpp"
 
 #include "parser/parser.hpp"
 

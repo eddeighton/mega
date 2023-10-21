@@ -17,13 +17,14 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/common/component_info.hpp"
-#include "database/common/serialisation.hpp"
-#include "database/common/environment_build.hpp"
+#include "database/component_info.hpp"
+#include "database/component_type.hpp"
+#include "database/sources.hpp"
 
-#include "database/types/component_type.hpp"
-#include "database/types/sources.hpp"
-#include "utilities/cmake.hpp"
+#include "database/serialisation.hpp"
+#include "environment/environment_build.hpp"
+
+#include "compiler/cmake.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -38,9 +39,7 @@
 #include <vector>
 #include <iostream>
 
-namespace driver
-{
-namespace component_listing
+namespace driver::component_listing
 {
 
 void command( bool bHelp, const std::vector< std::string >& args )
@@ -95,7 +94,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         const std::vector< boost::filesystem::path > includeDirectories
             = mega::utilities::pathListToFolders( mega::utilities::parseCMakeStringList( strIncludeDirectories, ";" ) );
 
-        mega::compiler::Directories directories{ srcDir, buildDir, "", "" };
+        mega::io::Directories directories{ srcDir, buildDir, "", "" };
         mega::io::BuildEnvironment  environment( directories );
 
         const mega::ComponentType componentType = mega::ComponentType::fromStr( strType.c_str() );
@@ -142,5 +141,4 @@ void command( bool bHelp, const std::vector< std::string >& args )
         environment.temp_to_real( componentListingFilePath );
     }
 }
-} // namespace component_listing
 } // namespace driver

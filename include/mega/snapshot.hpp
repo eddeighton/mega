@@ -21,8 +21,8 @@
 #ifndef GUARD_2022_November_02_snapshot
 #define GUARD_2022_November_02_snapshot
 
-#include "mega/reference.hpp"
-#include "mega/native_types.hpp"
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/native_types.hpp"
 #include "mega/address_table.hpp"
 
 #include <unordered_map>

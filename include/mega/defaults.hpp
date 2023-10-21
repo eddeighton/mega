@@ -21,8 +21,7 @@
 #ifndef GUARD_2023_March_26_defaults
 #define GUARD_2023_March_26_defaults
 
-#include "mega/type_id.hpp"
-#include "mega/type_id_io.hpp"
+#include "mega/values/compilation/type_id.hpp"
 
 #include "common/assert_verify.hpp"
 
