@@ -33,6 +33,8 @@
 #include "service/protocol/common/type_erase.hpp"
 #include "service/protocol/common/sender_ref.hpp"
 
+#include "spdlog/stopwatch.h"
+
 #include <boost/beast/version.hpp>
 
 namespace mega::service::report
@@ -395,12 +397,14 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
 
     http::string_body::value_type body;
     {
+        spdlog::stopwatch sw;
+
         auto reportRequest = getRootRequest< network::report::Request_Encoder >( yield_ctx );
 
+        mega::reports::URL url;
         std::ostringstream os;
         {
-            using ::           operator<<;
-            mega::reports::URL url;
+            using ::operator<<;
             {
                 const auto         httpEndpoint = m_report.getHTTPEndPoint();
                 std::ostringstream osURL;
@@ -417,6 +421,9 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
         }
 
         body = os.str();
+
+        SPDLOG_INFO( "HTTP Request: {} took time: {}", url.url,
+                     std::chrono::duration_cast< mega::network::LogTime >( sw.elapsed() ) );
     }
 
     // Cache the size since we need it after the move

@@ -31,6 +31,8 @@
 #include "mega/values/service/logical_thread_id.hpp"
 // #include "service/protocol/model/messages.hxx"
 
+#include "common/time.hpp"
+
 #include <spdlog/spdlog.h>
 
 #include <boost/filesystem/path.hpp>

@@ -20,4 +20,8 @@ sleep 1
 
 ${BUILD_PATH}/${CFG_TUPLE}/mega/install/bin/executor --level info --console error &
 
+sleep 1
+
+${BUILD_PATH}/${CFG_TUPLE}/mega/install/bin/report --level info --console error &
+
 tail -f ./log/root* | mega --trace

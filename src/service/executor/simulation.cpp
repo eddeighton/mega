@@ -41,6 +41,8 @@
 #include "mega/logical_tree.hpp"
 #include "mega/printer.hpp"
 
+#include "common/time.hpp"
+
 #include <boost/filesystem/operations.hpp>
 
 #include <memory>
@@ -171,10 +173,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
 
-                        //for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
+                        // for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
                         //{
-                        //    mega::reference ref = i->first;
-                        
+                        //     mega::reference ref = i->first;
+
                         //    mega::U32 iterator = 1;
                         //    while( true )
                         //    {
@@ -183,7 +185,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         //        {
                         //            break;
                         //        }
-                        
+
                         //        // auto actionContext = mega::reference::make( ref, subTypeInstance );
                         //        // auto pAction = actionFunctionCache.getActionFunction( action.type );
                         //        // mega::ActionCoroutine actionCoroutine = pAction( &actionContext );
@@ -524,12 +526,30 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
 
 mega::reports::Container Simulation::GetReport( const mega::reports::URL&                      url,
                                                 const std::vector< mega::reports::Container >& report,
-                                                boost::asio::yield_context& yield_ctx )
+                                                boost::asio::yield_context&                    yield_ctx )
 {
     SPDLOG_TRACE( "Simulation::GetReport" );
+    VERIFY_RTE( report.empty() );
     using namespace mega::reports;
-    reports::Branch branch{ { getID(), m_executor.getProcessName(), m_mpo.value() }, report };
-    return branch;
+    using namespace std::string_literals;
+    Table table;
+    table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );
+    MPOContext::getBasicReport( table );
+
+    {
+        Table locks{ { "Lock Type"s, "MPO"s } };
+        for( auto mpo : m_transactionMachine.reads() )
+        {
+            locks.m_rows.push_back( { Line{ "READ"s }, Line{ mpo } } );
+        }
+        if( auto writerOpt = m_transactionMachine.writer(); writerOpt.has_value() )
+        {
+            locks.m_rows.push_back( { Line{ "WRITE"s }, Line{ writerOpt.value() } } );
+        }
+        table.m_rows.push_back( { Line{ "   Out Locks: "s }, locks } );
+    }
+
+    return table;
 }
 
 std::string Simulation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )

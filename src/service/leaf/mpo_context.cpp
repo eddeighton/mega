@@ -401,4 +401,72 @@ void MPOContext::cycleComplete()
     m_lockTracker.reset();
 }
 
+/*
+void MPOContest::getDump()
+{
+    os << "<html><body><H1>";
+    os << "Hello from HTTPLogicalThread: " << getThisMPO() << "</h1><P>";
+    {
+        MPORealToLogicalVisitor mpoRealInstantiation( getThisRoot() );
+        LogicalTreePrinter      printer( os );
+        LogicalTreeTraversal    objectTraversal( mpoRealInstantiation, printer );
+        traverse( objectTraversal );
+    }
+    os << "</P></body></html>";
+}
+*/
+
+void MPOContext::getBasicReport( mega::reports::Table& table )
+{
+    SPDLOG_TRACE( "MPOContext::GetBasicReport: mpo: {}", m_mpo.value() );
+
+    using namespace mega::reports;
+    using namespace std::string_literals;
+
+    // clang-format off
+    table.m_rows.push_back( { Line{ "         MPO: "s }, Line{ m_mpo.value() } } );
+    table.m_rows.push_back( { Line{ "   Root Heap: "s }, Line{ m_root } } );
+    table.m_rows.push_back( { Line{ "    Root Net: "s }, Line{ m_root.getNetworkAddress() } } );
+    table.m_rows.push_back( { Line{ "        Tick: "s }, Line{ std::to_string( getLog().getTimeStamp() ) } } );
+    table.m_rows.push_back( { Line{ "  Start Time: "s }, Line{ common::printTimeStamp( m_systemStartTime ) } } );
+    table.m_rows.push_back( { Line{ "Elapsed Time: "s }, Line{ common::printDuration( getElapsedTime() ) } } );
+    table.m_rows.push_back( { Line{ "     Log Dir: "s }, Line{ getLog().getLogFolderPath().string(), 
+        URL::makeFile( getLog().getLogFolderPath().string() ) } } );
+    // clang-format on
+
+    {
+        Table                   logTable;
+        const log::IndexRecord& iter = getLog().getIterator();
+        for( auto i = 0; i != log::toInt( log::TrackID::TOTAL ); ++i )
+        {
+            if( auto amt = iter.get( log::TrackID( i ) ).get(); amt > 0 )
+            {
+                logTable.m_rows.push_back( { Line{ log::toName( log::TrackID( i ) ) },
+                                             Line{ std::to_string( iter.get( log::TrackID( i ) ).get() ) } } );
+            }
+        }
+        table.m_rows.push_back( { Line{ "         Log: "s }, logTable } );
+    }
+
+    {
+        Table locks{ { "Lock Type"s, "MPO"s, "Timestamp"s } };
+        for( auto& [ mpo, timestamp ] : m_lockTracker.getReads() )
+        {
+            locks.m_rows.push_back( { Line{ "READ"s }, Line{ mpo }, Line{ std::to_string( timestamp ) } } );
+        }
+        for( auto& [ mpo, timestamp ] : m_lockTracker.getWrites() )
+        {
+            locks.m_rows.push_back( { Line{ "WRITE"s }, Line{ mpo }, Line{ std::to_string( timestamp ) } } );
+        }
+        table.m_rows.push_back( { Line{ "    In Locks: "s }, locks } );
+    }
+
+    if( m_pMemoryManager )
+    {
+        const network::MemoryStatus memStatus = m_pMemoryManager->getStatus();
+        table.m_rows.push_back( { Line{ "         Mem: "s }, Line{ std::to_string( memStatus.m_heap ) } } );
+        table.m_rows.push_back( { Line{ "         Obj: "s }, Line{ std::to_string( memStatus.m_object ) } } );
+    }
+}
+
 } // namespace mega

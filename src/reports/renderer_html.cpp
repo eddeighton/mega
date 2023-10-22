@@ -297,7 +297,7 @@ void renderTable( Args& args, const Table& table, std::ostream& os )
 {
     nlohmann::json data( { { "headings", nlohmann::json::array() }, { "rows", nlohmann::json::array() } } );
 
-    if( table.m_headings.empty() )
+    if( !table.m_headings.empty() )
     {
         valueVectorToJSON( args, table.m_headings, data[ "headings" ] );
     }

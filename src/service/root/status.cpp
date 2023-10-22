@@ -21,6 +21,8 @@
 
 #include "root.hpp"
 
+#include "common/time.hpp"
+
 #include <chrono>  // chrono::system_clock
 #include <ctime>   // localtime
 #include <sstream> // stringstream
@@ -67,14 +69,8 @@ mega::reports::Container RootRequestLogicalThread::GetReport( const mega::report
     using namespace mega::reports;
     using namespace std::string_literals;
 
-    std::stringstream ss;
-    {
-        auto now       = std::chrono::system_clock::now();
-        auto in_time_t = std::chrono::system_clock::to_time_t( now );
-        ss << std::put_time( std::localtime( &in_time_t ), " %Y-%m-%d %X" );
-    }
 
-    reports::Branch root{ { "Megastructure Service Report"s, ss.str() } };
+    reports::Branch root{ { "Megastructure Service Report"s, common::printCurrentTime() } };
 
     m_root.getGeneralStatusReport( root );
 

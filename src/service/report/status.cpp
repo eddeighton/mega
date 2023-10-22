@@ -71,6 +71,21 @@ network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status
     return status;
 }
 
+mega::reports::Container
+HTTPLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                       const std::vector< mega::reports::Container >& report,
+                                       boost::asio::yield_context&                    yield_ctx )
+{
+    SPDLOG_TRACE( "HTTPLogicalThread::GetReport" );
+    // VERIFY_RTE( report.empty() );
+    using namespace mega::reports;
+    using namespace std::string_literals;
+    Table table;
+    table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );
+    MPOContext::getBasicReport( table );
+    return table;
+}
+
 network::Status ReportRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                        boost::asio::yield_context&           yield_ctx )
 {
@@ -106,25 +121,12 @@ std::string ReportRequestLogicalThread::Ping( const std::string& strMsg, boost::
 
 mega::reports::Container
 ReportRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                       const std::vector< mega::reports::Container >& childReports,
+                                       const std::vector< mega::reports::Container >& report,
                                        boost::asio::yield_context&                    yield_ctx )
 {
     SPDLOG_TRACE( "ReportRequestLogicalThread::GetReport" );
     using namespace mega::reports;
-    reports::Branch branch{ { getID(), m_report.getProcessName(), m_report.getMP() }, childReports };
-
-
-        /*os << "<html><body><H1>";
-        os << "Hello from HTTPLogicalThread: " << getThisMPO() << "</h1><P>";
-        {
-            MPORealToLogicalVisitor mpoRealInstantiation( getThisRoot() );
-            LogicalTreePrinter      printer( os );
-            LogicalTreeTraversal    objectTraversal( mpoRealInstantiation, printer );
-            traverse( objectTraversal );
-        }
-        os << "</P></body></html>";*/
-        
-        
+    reports::Branch branch{ { getID(), m_report.getProcessName(), m_report.getHTTPEndPoint().address().to_string() }, report };
     return branch;
 }
 

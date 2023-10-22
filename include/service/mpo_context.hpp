@@ -68,6 +68,8 @@ protected:
     std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
     network::TransactionProducer::MovedObjects      m_movedObjects; // dependency to SimMoveMachine
 
+    std::chrono::time_point< std::chrono::system_clock > m_systemStartTime = std::chrono::system_clock::now();
+    std::chrono::time_point< std::chrono::steady_clock > m_startTime       = std::chrono::steady_clock::now();
 public:
     MPOContext( const network::LogicalThreadID& logicalthreadID )
         : m_logicalthreadIDRef( logicalthreadID )
@@ -128,6 +130,9 @@ public:
     void applyTransaction( const network::Transaction& transaction );
     void cycleComplete();
 
+    void getBasicReport( mega::reports::Table& table );
+    auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
+                                                    
 protected:
     void createRoot( const Project& project, const mega::MPO& mpo );
 };

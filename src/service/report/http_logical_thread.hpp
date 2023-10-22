@@ -43,8 +43,8 @@ public:
     using Ptr = std::shared_ptr< HTTPLogicalThread >;
 
     HTTPLogicalThread( Report&                         report,
-                      const network::LogicalThreadID& logicalthreadID,
-                      boost::asio::ip::tcp::socket&   socket );
+                       const network::LogicalThreadID& logicalthreadID,
+                       boost::asio::ip::tcp::socket&   socket );
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                                      boost::asio::yield_context& yield_ctx ) override;
@@ -63,6 +63,11 @@ public:
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& childNodeStatus,
                                        boost::asio::yield_context&           yield_ctx ) override;
+
+    // network::report::Impl
+    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
+                                                const std::vector< mega::reports::Container >& report,
+                                                boost::asio::yield_context&                    yield_ctx ) override;
 
     // network::report::Impl
     mega::network::HTTPRequestData HTTPRequest( boost::asio::yield_context& ) override;
@@ -87,7 +92,7 @@ private:
         TOTAL_HTTP_VERBS
     };
     using HTTPRequestMsg = network::report::MSG_HTTPRequest_Response;
-    void startTCPStream();
+    void                                  startTCPStream();
     boost::beast::http::message_generator handleHTTPRequest( const network::HTTPRequestData& msg,
                                                              boost::asio::yield_context&     yield_ctx );
 

@@ -203,10 +203,14 @@ public:
                                         const std::vector< mega::reports::Container >& report,
                                         boost::asio::yield_context&                    yield_ctx ) override
     {
-        SPDLOG_TRACE( "Tool::GenericLogicalThread::GetReport" );
+        SPDLOG_TRACE( "Tool::GetReport" );
+        VERIFY_RTE( report.empty() );
         using namespace mega::reports;
-        reports::Branch branch{ { m_tool.getProcessName(), getID(), m_tool.getMPO() }, report };
-        return branch;
+        using namespace std::string_literals;
+        Table table;
+        table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );
+        MPOContext::getBasicReport( table );
+        return table;
     }
 };
 } // namespace

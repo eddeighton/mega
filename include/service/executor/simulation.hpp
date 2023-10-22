@@ -93,17 +93,15 @@ public:
     virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
                                                 const std::vector< mega::reports::Container >& report,
                                                 boost::asio::yield_context&                    yield_ctx ) override;
+
 private:
     void runSimulation( boost::asio::yield_context& yield_ctx );
-    auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
     friend class TransactionMachine< Simulation >;
     // Simulation concept for state machine
     bool unrequestClock();
 
 private:
-    std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
-
     ProcessClock&        m_processClock;
     network::Sender::Ptr m_pRequestChannelSender;
     MsgTraits::AckVector m_ackVector;

@@ -76,9 +76,13 @@ mega::reports::Container MPOLogicalThread::GetReport( const mega::reports::URL& 
                                                       boost::asio::yield_context&                    yield_ctx )
 {
     SPDLOG_TRACE( "MPOLogicalThread::GetReport" );
+    VERIFY_RTE( report.empty() );
     using namespace mega::reports;
-    reports::Branch branch{ { getID(), m_python.getProcessName(), m_mpo.value() }, report };
-    return branch;
+    using namespace std::string_literals;
+    Table table;
+    table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );
+    MPOContext::getBasicReport( table );
+    return table;
 }
 
 network::Status PythonRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,

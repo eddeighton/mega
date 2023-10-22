@@ -39,26 +39,6 @@
 #include <thread>
 #include <iomanip>
 
-auto elapsed( std::chrono::steady_clock::time_point& last )
-{
-    const auto timeNow = std::chrono::steady_clock::now();
-    const auto delta   = std::chrono::duration_cast< std::chrono::steady_clock::duration >( timeNow - last );
-    last               = timeNow;
-    return delta;
-}
-
-template < typename T >
-void print( const T& dur, std::ostream& os )
-{
-    using DurationType = std::chrono::duration< mega::I64, std::ratio< 1, 1'000'000'000 > >;
-    auto c             = std::chrono::duration_cast< DurationType >( dur ).count();
-    auto sec           = ( c % 1'000'000'000'000 ) / 1'000'000'000;
-    auto ms            = ( c % 1'000'000'000 ) / 1'000'000;
-    auto us            = ( c % 1'000'000 ) / 1'000;
-    os << sec << "." << std::setw( 3 ) << std::setfill( '0' ) << ms << "ms." << std::setw( 3 ) << std::setfill( '0' )
-       << us << "us";
-}
-
 #pragma pack(1)
 struct MemoryRecordHeader
 {
