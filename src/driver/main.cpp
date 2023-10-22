@@ -48,17 +48,24 @@ namespace mega
 class MPOContext
 {
 };
-MPOContext* getMPOContext() { return nullptr; }
-void        resetMPOContext() {}
-void        setMPOContext( MPOContext* pMPOContext ) {}
+MPOContext* getMPOContext()
+{
+    return nullptr;
+}
+void resetMPOContext()
+{
+}
+void setMPOContext( MPOContext* pMPOContext )
+{
+}
 } // namespace mega
 
 namespace driver
 {
-#define COMMAND( cmd, input, desc )                                                   \
-    namespace cmd                                                              \
-    {                                                                          \
-    extern void command( bool bHelp, const std::vector< std::string >& args ); \
+#define COMMAND( cmd, input, desc )                                                                     \
+    namespace cmd                                                                                       \
+    {                                                                                                   \
+    extern void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args ); \
     }
 #include "commands.xmc"
 #undef COMMAND
@@ -75,7 +82,7 @@ enum MainCommand
 
 int main( int argc, const char* argv[] )
 {
-    //boost::timer::cpu_timer timer;
+    // boost::timer::cpu_timer timer;
 
     boost::filesystem::path logDir             = boost::filesystem::current_path();
     std::string             strConsoleLogLevel = "info";
@@ -120,7 +127,7 @@ int main( int argc, const char* argv[] )
                 ;
         }
 
-        if ( cmds.count() > 1 )
+        if( cmds.count() > 1 )
         {
             spdlog::info( "Invalid command combination. Type '--help' for options" );
             return 1;
@@ -145,20 +152,21 @@ int main( int argc, const char* argv[] )
         po::store( parsedOptions, vm );
         po::notify( vm );
 
-        mega::network::configureLog(
-            logDir, "driver", mega::network::fromStr( strConsoleLogLevel ), mega::network::fromStr( strLogFileLevel ) );
+        auto log = mega::network::configureLog(
+            mega::network::Log::Config{ logDir, "driver", mega::network::fromStr( strConsoleLogLevel ),
+                                        mega::network::fromStr( strLogFileLevel ) } );
 
         try
         {
-            if ( bGeneralWait )
+            if( bGeneralWait )
             {
                 spdlog::info( "Waiting for input..." );
                 char c;
                 std::cin >> c;
             }
 
-#define COMMAND( cmd, input, desc )                                                                   \
-    if ( bCmd_##cmd )                                                                          \
+#define COMMAND( cmd, input, desc )                                                            \
+    if( bCmd_##cmd )                                                                           \
     {                                                                                          \
         cmds.set( eCmd_##cmd );                                                                \
         VERIFY_RTE_MSG( mainCmd == TOTAL_MAIN_COMMANDS, "Duplicate main commands specified" ); \
@@ -172,18 +180,18 @@ int main( int argc, const char* argv[] )
             std::vector< std::string > commandArguments
                 = po::collect_unrecognized( parsedOptions.options, po::include_positional );
 
-            switch ( mainCmd )
+            switch( mainCmd )
             {
-#define COMMAND( cmd, input, desc )                                 \
-    case eCmd_##cmd:                                         \
-        driver::cmd::command( bShowHelp, commandArguments ); \
+#define COMMAND( cmd, input, desc )                               \
+    case eCmd_##cmd:                                              \
+        driver::cmd::command( log, bShowHelp, commandArguments ); \
         break;
 #include "commands.xmc"
 #undef COMMAND
 
                 case TOTAL_MAIN_COMMANDS:
                 default:
-                    if ( vm.count( "help" ) )
+                    if( vm.count( "help" ) )
                     {
                         std::cout << visibleOptions << "\n";
                     }
@@ -195,22 +203,22 @@ int main( int argc, const char* argv[] )
             }
             return 0;
         }
-        catch ( boost::program_options::error& e )
+        catch( boost::program_options::error& e )
         {
             spdlog::error( "Invalid input. {}. Type '--help' for options", e.what() );
             return 1;
         }
-        catch ( boost::archive::archive_exception& ex )
+        catch( boost::archive::archive_exception& ex )
         {
             spdlog::error( "Archive Exception: {} {}", ex.code, ex.what() );
             return 1;
         }
-        catch ( std::exception& e )
+        catch( std::exception& e )
         {
             spdlog::error( "Exception: {}", e.what() );
             return 1;
         }
-        catch ( ... )
+        catch( ... )
         {
             spdlog::error( "Unknown error" );
             return 1;

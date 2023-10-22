@@ -69,8 +69,9 @@ public:
     void run( boost::asio::yield_context& yield_ctx ) { m_functor( *this, m_terminal.getLeafSender(), yield_ctx ); }
 };
 
-Terminal::Terminal( short daemonPortNumber )
-    : network::LogicalThreadManager( network::makeProcessName( network::Node::Terminal ), m_io_context )
+Terminal::Terminal( network::Log log, short daemonPortNumber )
+    : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Terminal ), m_io_context )
+    , m_log( log )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf( m_receiverChannel.getSender(), network::Node::Terminal, daemonPortNumber )
 {

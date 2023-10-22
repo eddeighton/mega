@@ -93,14 +93,15 @@ int main( int argc, const char* argv[] )
 
     try
     {
-        mega::network::configureLog( logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
-                                     mega::network::fromStr( strLogFileLevel ) );
+        auto log = mega::network::configureLog(
+            mega::network::Log::Config{ logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
+                                        mega::network::fromStr( strLogFileLevel ) } );
 
         boost::asio::io_context ioContext;
 
         mega::service::ProcessClockStandalone clock( ioContext, tickRate );
         mega::service::Executor               executor(
-            ioContext, uiNumThreads, daemonPortNumber, clock, mega::network::Node::Executor );
+            ioContext, log, uiNumThreads, daemonPortNumber, clock, mega::network::Node::Executor );
 
         /*auto signalHandler = [ &executor ]( const boost::system::error_code& error, int signalNumber )
             {

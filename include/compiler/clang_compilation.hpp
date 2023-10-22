@@ -83,7 +83,7 @@ public:
                                  TComponentType* pComponent, const io::megaFilePath& sourceFile )
     {
         Compilation compilation;
-        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
         compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
@@ -106,7 +106,7 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode::eInterface;
+        compilation.compilationMode = CompilationMode{ CompilationMode::eInterface };
 
         compilation.compiler_command = toolChain.clangCompilerPath.string();
         compilation.compiler_plugin  = toolChain.clangPluginPath;
@@ -137,7 +137,7 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode::eOperations;
+        compilation.compilationMode = CompilationMode{ CompilationMode::eOperations };
 
         compilation.compiler_command = toolChain.clangCompilerPath.string();
         compilation.compiler_plugin  = toolChain.clangPluginPath;
@@ -169,7 +169,7 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
         compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
@@ -192,7 +192,7 @@ public:
                                                                TComponentType*             pComponent )
     {
         Compilation compilation;
-        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
         compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
@@ -216,7 +216,7 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode::eLibrary;
+        compilation.compilationMode = CompilationMode{ CompilationMode::eLibrary };
 
         compilation.compiler_command = toolChain.clangCompilerPath.string();
         compilation.compiler_plugin  = toolChain.clangPluginPath;
@@ -249,7 +249,7 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode::eCPP;
+        compilation.compilationMode = CompilationMode{ CompilationMode::eCPP };
 
         compilation.compiler_command = toolChain.clangCompilerPath.string();
         compilation.compiler_plugin  = toolChain.clangPluginPath;
@@ -285,7 +285,7 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
         compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
@@ -313,7 +313,7 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
         compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
@@ -339,7 +339,7 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
         compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();

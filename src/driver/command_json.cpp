@@ -48,6 +48,7 @@
 #include "database/serialisation.hpp"
 #include "environment/environment_build.hpp"
 
+#include "service/network/log.hpp"
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
 
@@ -81,7 +82,7 @@ namespace driver
 {
 namespace json
 {
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path srcDir, buildDir, outputFilePath, sourceFilePath;
     std::string             strStage = "FinalStage";

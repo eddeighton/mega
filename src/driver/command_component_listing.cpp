@@ -26,6 +26,7 @@
 
 #include "compiler/cmake.hpp"
 
+#include "service/network/log.hpp"
 #include "common/assert_verify.hpp"
 
 #include <boost/process/environment.hpp>
@@ -42,7 +43,7 @@
 namespace driver::component_listing
 {
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path srcDir, buildDir, componentSrcDir, componentBuildDir, componentFilePath;
     std::string strType, strComponentName, strCPPFlags, strCPPDefines, strIncludeDirectories, strDependencyFilePaths;

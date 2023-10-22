@@ -137,7 +137,6 @@ PYBIND11_MODULE( megastructure, pythonModule )
         "Complete current cycle ( will commit all transactions to remote MPOs )" );
 
     // boost dynamic_bitset
-    
 
     // maths
     using namespace boost::qvm;
@@ -274,15 +273,16 @@ PythonModule::LogConfig::LogConfig( const char* pszConsoleLogLevel, const char* 
         strConsoleLogLevel = pszConsoleLogLevel;
     if( pszFileLogLevel )
         strLogFileLevel = pszFileLogLevel;
-    m_pLogger = mega::network::configureLog(
-        logFolder, "python", mega::network::fromStr( strConsoleLogLevel ), mega::network::fromStr( strLogFileLevel ) );
+    m_log = mega::network::configureLog( network::Log::Config{ logFolder, "python",
+                                                               mega::network::fromStr( strConsoleLogLevel ),
+                                                               mega::network::fromStr( strLogFileLevel ) } );
 
     m_pThreadPool = spdlog::thread_pool();
 }
 
 PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel )
     : m_logConfig( pszConsoleLogLevel, pszFileLogLevel )
-    , m_python( m_ioContext, daemonPort )
+    , m_python( m_ioContext, m_logConfig.m_log, daemonPort )
 {
     SPDLOG_TRACE( "PythonModule::ctor" );
 
@@ -546,7 +546,7 @@ PythonProcess PythonModule::getProcess( std::string strID /*= ""*/ )
     auto mpo = m_python.getMPO();
     if( strID.empty() )
     {
-        return PythonProcess( *this, mpo );
+        return PythonProcess( *this, mpo.getMP() );
     }
     else
     {

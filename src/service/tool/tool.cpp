@@ -198,11 +198,22 @@ public:
 
         return status;
     }
+
+    mega::reports::Container GetReport( const mega::reports::URL&                      url,
+                                        const std::vector< mega::reports::Container >& report,
+                                        boost::asio::yield_context&                    yield_ctx ) override
+    {
+        SPDLOG_TRACE( "Tool::GenericLogicalThread::GetReport" );
+        using namespace mega::reports;
+        reports::Branch branch{ { m_tool.getProcessName(), getID(), m_tool.getMPO() }, report };
+        return branch;
+    }
 };
 } // namespace
 
-Tool::Tool( short daemonPortNumber )
-    : network::LogicalThreadManager( network::makeProcessName( network::Node::Tool ), m_io_context )
+Tool::Tool( short daemonPortNumber, network::Log log )
+    : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Tool ), m_io_context )
+    , m_log( log )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf( m_receiverChannel.getSender(), network::Node::Tool, daemonPortNumber )
 {

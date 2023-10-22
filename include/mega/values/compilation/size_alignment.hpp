@@ -23,6 +23,10 @@
 
 #include "mega/values/native_types.hpp"
 
+#ifndef MEGAJIT
+#include <ostream>
+#endif
+
 namespace mega
 {
 struct SizeAlignment
@@ -38,5 +42,12 @@ struct SizeAlignment
     }
 };
 }
+
+#ifndef MEGAJIT
+inline std::ostream& operator<<( std::ostream& os, const mega::SizeAlignment& sizeAlignment )
+{
+    return os << "( size: " << sizeAlignment.size << " align: " << sizeAlignment.alignment << " )";
+}
+#endif
 
 #endif //GUARD_2023_sizealign_21_oct

@@ -41,6 +41,7 @@
 #include "service/protocol/model/leaf_term.hxx"
 
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/report.hxx"
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/project.hxx"
@@ -63,6 +64,7 @@ class LeafRequestLogicalThread : public network::InThreadLogicalThread,
 
                                  public network::mpo::Impl,
                                  public network::status::Impl,
+                                 public network::report::Impl,
                                  public network::job::Impl,
                                  public network::memory::Impl,
                                  public network::jit::Impl,
@@ -148,6 +150,11 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
+
+    // network::report::Impl
+    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
+                                                const std::vector< mega::reports::Container >& report,
+                                                boost::asio::yield_context&                    yield_ctx ) override;
 
     // network::job::Impl
     virtual std::vector< network::LogicalThreadID >

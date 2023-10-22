@@ -18,9 +18,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mpo_logical_thread.hpp"
+#include "http_logical_thread.hpp"
 
-#include "reports/renderer.hpp"
+#include "reports/renderer_html.hpp"
 
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
@@ -38,9 +38,9 @@
 namespace mega::service::report
 {
 
-MPOLogicalThread::MPOLogicalThread( Report&                         report,
-                                    const network::LogicalThreadID& logicalthreadID,
-                                    boost::asio::ip::tcp::socket&   socket )
+HTTPLogicalThread::HTTPLogicalThread( Report&                         report,
+                                      const network::LogicalThreadID& logicalthreadID,
+                                      boost::asio::ip::tcp::socket&   socket )
     : ReportRequestLogicalThread( report, logicalthreadID )
     , mega::MPOContext( getID() )
     , m_report( report )
@@ -48,8 +48,8 @@ MPOLogicalThread::MPOLogicalThread( Report&                         report,
 {
 }
 
-network::Message MPOLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
-                                                           boost::asio::yield_context& yield_ctx )
+network::Message HTTPLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
+                                                            boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
     if( result = network::report::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
@@ -57,17 +57,17 @@ network::Message MPOLogicalThread::dispatchInBoundRequest( const network::Messag
     return ReportRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
 
-network::report_leaf::Request_Sender MPOLogicalThread::getReportRequest( boost::asio::yield_context& yield_ctx )
+network::report_leaf::Request_Sender HTTPLogicalThread::getReportRequest( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_report.getLeafSender(), yield_ctx };
 }
 
-network::mpo::Request_Sender MPOLogicalThread::getMPRequest( boost::asio::yield_context& yield_ctx )
+network::mpo::Request_Sender HTTPLogicalThread::getMPRequest( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_report.getLeafSender(), yield_ctx };
 }
 
-network::enrole::Request_Encoder MPOLogicalThread::getRootEnroleRequest()
+network::enrole::Request_Encoder HTTPLogicalThread::getRootEnroleRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getReportRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
@@ -75,7 +75,7 @@ network::enrole::Request_Encoder MPOLogicalThread::getRootEnroleRequest()
              getID() };
 }
 
-network::stash::Request_Encoder MPOLogicalThread::getRootStashRequest()
+network::stash::Request_Encoder HTTPLogicalThread::getRootStashRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getReportRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
@@ -83,7 +83,7 @@ network::stash::Request_Encoder MPOLogicalThread::getRootStashRequest()
              getID() };
 }
 
-network::memory::Request_Encoder MPOLogicalThread::getDaemonMemoryRequest()
+network::memory::Request_Encoder HTTPLogicalThread::getDaemonMemoryRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getReportRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
@@ -91,7 +91,7 @@ network::memory::Request_Encoder MPOLogicalThread::getDaemonMemoryRequest()
              getID() };
 }
 
-network::sim::Request_Encoder MPOLogicalThread::getMPOSimRequest( mega::MPO mpo )
+network::sim::Request_Encoder HTTPLogicalThread::getMPOSimRequest( mega::MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
@@ -99,25 +99,25 @@ network::sim::Request_Encoder MPOLogicalThread::getMPOSimRequest( mega::MPO mpo 
              getID() };
 }
 
-network::memory::Request_Sender MPOLogicalThread::getLeafMemoryRequest()
+network::memory::Request_Sender HTTPLogicalThread::getLeafMemoryRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { *this, m_report.getLeafSender(), *m_pYieldContext };
 }
 
-network::jit::Request_Sender MPOLogicalThread::getLeafJITRequest()
+network::jit::Request_Sender HTTPLogicalThread::getLeafJITRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { *this, m_report.getLeafSender(), *m_pYieldContext };
 }
 
-network::mpo::Request_Sender MPOLogicalThread::getMPRequest()
+network::mpo::Request_Sender HTTPLogicalThread::getMPRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return getMPRequest( *m_pYieldContext );
 }
 
-network::Message MPOLogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+network::Message HTTPLogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
     network::ReceivedMessage msg;
     while( true )
@@ -134,7 +134,7 @@ network::Message MPOLogicalThread::dispatchInBoundRequestsUntilResponse( boost::
             else
             {
                 // queue the messages while waiting for RootSim run to complete
-                SPDLOG_TRACE( "MPOLogicalThread::dispatchInBoundRequestsUntilResponse queued: {}", msg.msg );
+                SPDLOG_TRACE( "HTTPLogicalThread::dispatchInBoundRequestsUntilResponse queued: {}", msg.msg );
                 m_messageQueue.push_back( msg );
             }
         }
@@ -158,9 +158,9 @@ network::Message MPOLogicalThread::dispatchInBoundRequestsUntilResponse( boost::
     return msg.msg;
 }
 
-void MPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
+void HTTPLogicalThread::run( boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "REPORT MPOLogicalThread: run" );
+    SPDLOG_TRACE( "REPORT HTTPLogicalThread: run" );
     network::sim::Request_Encoder request(
         [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
         { return rootRequest.MPRoot( msg, mega::MP{} ); },
@@ -172,7 +172,9 @@ void MPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
     m_bRunComplete = true;
 }
 
-void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+void HTTPLogicalThread::RootSimRun( const Project&              project,
+                                    const mega::MPO&            mpo,
+                                    boost::asio::yield_context& yield_ctx )
 {
     m_mpo = mpo;
 
@@ -187,9 +189,9 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
 
         for( const auto& msg : m_messageQueue )
         {
-            SPDLOG_ERROR( "Unexpected pending message when starting up MPOLogicalThread: {}", msg.msg );
+            SPDLOG_ERROR( "Unexpected pending message when starting up HTTPLogicalThread: {}", msg.msg );
             using ::operator<<;
-            THROW_RTE( "Unexpected pending message when starting up MPOLogicalThread: " << msg.msg );
+            THROW_RTE( "Unexpected pending message when starting up HTTPLogicalThread: " << msg.msg );
         }
 
         m_bRunning = true;
@@ -212,7 +214,7 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
                         case eError:
                         {
                             m_bRunning = false;
-                            SPDLOG_TRACE( "MPOLogicalThread::RootSimRun shutting down" );
+                            SPDLOG_TRACE( "HTTPLogicalThread::RootSimRun shutting down" );
                         }
                         break;
                         case eGet:
@@ -222,7 +224,7 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
                             // generate response
                             if( httpRequest.version != 0 )
                             {
-                                SPDLOG_TRACE( "MPOLogicalThread::RootSimRun got html request" );
+                                SPDLOG_TRACE( "HTTPLogicalThread::RootSimRun got html request" );
                                 // Handle the request
                                 boost::beast::http::message_generator httpMsg
                                     = handleHTTPRequest( httpRequest, yield_ctx );
@@ -267,7 +269,7 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
     resetMPOContext();
 }
 
-void MPOLogicalThread::startTCPStream()
+void HTTPLogicalThread::startTCPStream()
 {
     // start tcp session reader coroutine
     boost::asio::spawn(
@@ -295,12 +297,12 @@ void MPOLogicalThread::startTCPStream()
 
                 if( ec == boost::beast::http::error::end_of_stream )
                 {
-                    SPDLOG_TRACE( "MPOLogicalThread::startTCPStream End of stream" );
+                    SPDLOG_TRACE( "HTTPLogicalThread::startTCPStream End of stream" );
                     break;
                 }
                 else if( ec )
                 {
-                    SPDLOG_ERROR( "MPOLogicalThread::startTCPStream Error: {}", ec.message() );
+                    SPDLOG_ERROR( "HTTPLogicalThread::startTCPStream Error: {}", ec.message() );
                     break;
                 }
 
@@ -325,12 +327,12 @@ void MPOLogicalThread::startTCPStream()
                 }
 
                 send( HTTPRequestMsg::make( getID(),
-                                         HTTPRequestMsg{ mega::network::HTTPRequestData{
-                                             verbType, req.version(), req.target(), req.keep_alive() } } ) );
+                                            HTTPRequestMsg{ mega::network::HTTPRequestData{
+                                                verbType, req.version(), req.target(), req.keep_alive() } } ) );
             }
 
             // Send a TCP shutdown
-            SPDLOG_TRACE( "MPOLogicalThread::startTCPStream shutdown" );
+            SPDLOG_TRACE( "HTTPLogicalThread::startTCPStream shutdown" );
             send( HTTPRequestMsg::make( getID(), HTTPRequestMsg{ mega::network::HTTPRequestData{ eClose } } ) );
         }
     // segmented stacks do NOT work on windows
@@ -341,8 +343,8 @@ void MPOLogicalThread::startTCPStream()
     );
 }
 
-boost::beast::http::message_generator MPOLogicalThread::handleHTTPRequest( const network::HTTPRequestData& httpRequest,
-                                                                           boost::asio::yield_context&     yield_ctx )
+boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( const network::HTTPRequestData& httpRequest,
+                                                                            boost::asio::yield_context&     yield_ctx )
 {
     namespace beast = boost::beast;         // from <boost/beast.hpp>
     namespace http  = beast::http;          // from <boost/beast/http.hpp>
@@ -393,39 +395,30 @@ boost::beast::http::message_generator MPOLogicalThread::handleHTTPRequest( const
 
     http::string_body::value_type body;
     {
-        using namespace mega::reports;
-        const auto& megaInstall = m_report.getMegastructureInstallation();
-        mega::reports::Renderer renderer( megaInstall.getRuntimeTemplateDir() );
-        renderer.registerReporter( std::make_unique< MemoryReporter >( *m_pMemoryManager, *m_pDatabase ) );
+        auto reportRequest = getRootRequest< network::report::Request_Encoder >( yield_ctx );
 
-        using ::           operator<<;
         std::ostringstream os;
-
-        mega::reports::URL url;
         {
-            std::ostringstream osURL;
-            osURL << "http://0.0.0.0:8080/";
-            url.reportID           = "memory";
-            url.reporterLinkTarget = "memory";
-            url.url                = osURL.str();
-        }
+            using ::           operator<<;
+            mega::reports::URL url;
+            {
+                const auto         httpEndpoint = m_report.getHTTPEndPoint();
+                std::ostringstream osURL;
+                osURL << "http://" << httpEndpoint.address() << ":" << httpEndpoint.port() << "/"
+                      << httpRequest.request;
+                url.url = osURL.str();
+            }
 
-        renderer.generate( url, os );
+            auto reportContainer = reportRequest.GetNetworkReport( url );
+
+            using namespace mega::reports;
+            mega::reports::HTMLRenderer renderer( m_report.getMegastructureInstallation().getRuntimeTemplateDir() );
+            renderer.render( reportContainer, os );
+        }
 
         body = os.str();
     }
 
-
-        /*os << "<html><body><H1>";
-        os << "Hello from MPOLogicalThread: " << getThisMPO() << "</h1><P>";
-        {
-            MPORealToLogicalVisitor mpoRealInstantiation( getThisRoot() );
-            LogicalTreePrinter      printer( os );
-            LogicalTreeTraversal    objectTraversal( mpoRealInstantiation, printer );
-            traverse( objectTraversal );
-        }
-        os << "</P></body></html>";*/
-        
     // Cache the size since we need it after the move
     auto const size = body.size();
 
@@ -452,10 +445,10 @@ boost::beast::http::message_generator MPOLogicalThread::handleHTTPRequest( const
     }
 }
 
-mega::network::HTTPRequestData MPOLogicalThread::HTTPRequest( boost::asio::yield_context& )
+mega::network::HTTPRequestData HTTPLogicalThread::HTTPRequest( boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "MPOLogicalThread::HTTPRequest" );
-    THROW_RTE( "MPOLogicalThread::HTTPRequest" );
+    SPDLOG_TRACE( "HTTPLogicalThread::HTTPRequest" );
+    THROW_RTE( "HTTPLogicalThread::HTTPRequest" );
     return mega::network::HTTPRequestData{};
 }
 

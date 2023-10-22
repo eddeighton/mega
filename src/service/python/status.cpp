@@ -29,7 +29,7 @@ namespace mega::service::python
 // network::project::Impl
 
 network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                            boost::asio::yield_context&           yield_ctx )
+                                             boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "MPOLogicalThread::GetStatus" );
 
@@ -71,8 +71,18 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
     return status;
 }
 
+mega::reports::Container MPOLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                                      const std::vector< mega::reports::Container >& report,
+                                                      boost::asio::yield_context&                    yield_ctx )
+{
+    SPDLOG_TRACE( "MPOLogicalThread::GetReport" );
+    using namespace mega::reports;
+    reports::Branch branch{ { getID(), m_python.getProcessName(), m_mpo.value() }, report };
+    return branch;
+}
+
 network::Status PythonRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                      boost::asio::yield_context&           yield_ctx )
+                                                       boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "PythonRequestLogicalThread::GetStatus" );
 
@@ -103,4 +113,13 @@ std::string PythonRequestLogicalThread::Ping( const std::string& strMsg, boost::
     return os.str();
 }
 
+mega::reports::Container PythonRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                                                const std::vector< mega::reports::Container >& report,
+                                                                boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "PythonRequestLogicalThread::GetReport" );
+    using namespace mega::reports;
+    reports::Branch branch{ { getID(), m_python.getProcessName() }, report };
+    return branch;
+}
 } // namespace mega::service::python

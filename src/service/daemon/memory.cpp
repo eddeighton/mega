@@ -47,7 +47,8 @@ void DaemonRequestLogicalThread::RootSimRun( const Project& project, const MPO& 
     VERIFY_RTE( pOriginalRequestResponseSender );
     auto pConnection = m_daemon.m_server.getConnection( pOriginalRequestResponseSender );
     VERIFY_RTE( pConnection );
-    VERIFY_RTE( network::Node::canAllocateObjects( pConnection->getTypeOpt().value() ) );
+    VERIFY_RTE( pConnection->getTypeOpt().has_value() );
+    VERIFY_RTE( pConnection->getTypeOpt().value().canAllocateObjects() );
 
     {
         // network::Server::ConnectionLabelRAII connectionLabel( m_daemon.m_server, mpo, pConnection );

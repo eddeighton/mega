@@ -47,7 +47,7 @@ public:
     using Ptr = std::shared_ptr< Plugin >;
 
     // Plugin
-    Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads );
+    Plugin( boost::asio::io_context& ioContext, network::Log log, U64 uiNumThreads );
     ~Plugin();
 
     Plugin( const Plugin& )            = delete;

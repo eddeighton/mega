@@ -21,6 +21,12 @@
 
 #include "root.hpp"
 
+#include <chrono>  // chrono::system_clock
+#include <ctime>   // localtime
+#include <sstream> // stringstream
+#include <iomanip> // put_time
+#include <string>  // string
+
 namespace mega::service
 {
 
@@ -31,16 +37,16 @@ network::Status RootRequestLogicalThread::GetNetworkStatus( boost::asio::yield_c
 }
 
 network::Status RootRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                    boost::asio::yield_context&           yield_ctx )
+                                                     boost::asio::yield_context&           yield_ctx )
 {
     // SPDLOG_TRACE( "RootRequestLogicalThread::GetVersion" );
     network::Status status{ childNodeStatus };
     {
         std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for ( const auto& [ id, pCon ] : m_root.m_logicalthreads )
+            for( const auto& [ id, pCon ] : m_root.m_logicalthreads )
             {
-                if ( id != getID() )
+                if( id != getID() )
                 {
                     logicalthreads.push_back( id );
                 }
@@ -51,6 +57,39 @@ network::Status RootRequestLogicalThread::GetStatus( const std::vector< network:
     }
 
     return status;
+}
+
+mega::reports::Container RootRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                                              const std::vector< mega::reports::Container >& report,
+                                                              boost::asio::yield_context&                    yield_ctx )
+{
+    SPDLOG_TRACE( "RootRequestLogicalThread::GetReport" );
+    using namespace mega::reports;
+    using namespace std::string_literals;
+
+    std::stringstream ss;
+    {
+        auto now       = std::chrono::system_clock::now();
+        auto in_time_t = std::chrono::system_clock::to_time_t( now );
+        ss << std::put_time( std::localtime( &in_time_t ), " %Y-%m-%d %X" );
+    }
+
+    reports::Branch root{ { "Megastructure Service Report"s, ss.str() } };
+
+    m_root.getGeneralStatusReport( root );
+
+    for( const auto& child : report )
+    {
+        root.m_elements.push_back( child );
+    }
+
+    return root;
+}
+
+mega::reports::Container RootRequestLogicalThread::GetNetworkReport( const mega::reports::URL&   url,
+                                                                     boost::asio::yield_context& yield_ctx )
+{
+    return getAllBroadcastRequest< network::report::Request_Encoder >( yield_ctx ).GetReport( url, {} );
 }
 
 } // namespace mega::service

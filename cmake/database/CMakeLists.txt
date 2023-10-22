@@ -83,6 +83,7 @@ set( DATABASE_SCHEMAS
 )
 
 MegaDatabase( 
+    DBNAME      database
     DBCOMPILER  ${DB_COMPILER}
     LIB         ${DB_LIB}
     TEMPLATE    ${DB_TEMPLATES}

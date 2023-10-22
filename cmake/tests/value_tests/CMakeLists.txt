@@ -43,6 +43,7 @@ set( VALUE_UNIT_TESTS
 	${VALUE_TESTS_DIR}/relation_id_tests.cpp
 	${VALUE_TESTS_DIR}/sub_type_instance_tests.cpp
 	${VALUE_TESTS_DIR}/type_id_tests.cpp
+	${VALUE_TESTS_DIR}/report_value_tests.cpp
 
 	#${VALUE_TESTS_DIR}/reference_tests.cpp
 	)
@@ -52,6 +53,7 @@ enable_testing()
 add_executable( value_tests ${VALUE_UNIT_TESTS} ${VALUE_TESTS_DIR}/main_test_runner.cpp )
 
 target_link_libraries( value_tests mega_values )
+target_link_libraries( value_tests reports )
 
 IF( ${WIN32} )
 target_compile_options( value_tests PUBLIC "/await:strict" )

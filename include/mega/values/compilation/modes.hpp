@@ -44,7 +44,7 @@ public:
         : m_value( TOTAL_COMPILATION_MODES )
     {
     }
-    CompilationMode( Value value )
+    explicit CompilationMode( Value value )
         : m_value( value )
     {
     }

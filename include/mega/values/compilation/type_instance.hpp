@@ -45,24 +45,27 @@ struct TypeInstance
 
     TypeInstance() = default;
 
-    constexpr TypeInstance( TypeID _type, Instance _instance )
+    constexpr explicit TypeInstance( TypeID _type, Instance _instance )
         : type( _type )
         , instance( _instance )
     {
     }
-    constexpr TypeInstance( TypeID::ValueType _type, Instance _instance )
+    constexpr explicit TypeInstance( TypeID::ValueType _type, Instance _instance )
         : type( _type )
         , instance( _instance )
     {
     }
 
-    constexpr TypeInstance( SubType objectID, SubTypeInstance subTypeInstance )
+    constexpr explicit TypeInstance( SubType objectID, SubTypeInstance subTypeInstance )
         : type( TypeID::make_context( objectID, subTypeInstance.getSubType() ) )
         , instance( subTypeInstance.getInstance() )
     {
     }
 
-    static constexpr TypeInstance make_object( TypeID type ) { return { TypeID::make_object_from_typeID( type ), 0 }; }
+    static constexpr TypeInstance make_object( TypeID type )
+    {
+        return TypeInstance{ TypeID::make_object_from_typeID( type ), 0 };
+    }
     static constexpr TypeInstance make_root() { return make_object( ROOT_TYPE_ID ); }
 
     constexpr inline bool operator==( const TypeInstance& cmp ) const
@@ -83,7 +86,7 @@ struct TypeInstance
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        if constexpr( boost::serialization::IsXMLArchive< Archive >::Value )
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {
             archive& boost::serialization::make_nvp( "type", type );
             archive& boost::serialization::make_nvp( "instance", instance );

@@ -21,6 +21,9 @@
 #define NODE_17_JUNE_2022
 
 #include <string>
+#include <ostream>
+
+#include "common/serialisation.hpp"
 
 namespace mega::network
 {
@@ -42,12 +45,39 @@ public:
         TOTAL_NODE_TYPES
     };
 
-    static const char* toStr( Type type );
-    static Type        fromStr( const char* pszStr );
-    static bool canAllocateObjects( Type type );
+    Node() = default;
+    inline Node( Type type ) : m_type( type ) {}
+
+    inline operator Type() const { return m_type; }
+
+    const std::string& str() const;
+    bool canAllocateObjects() const;
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            archive& boost::serialization::make_nvp( "node", m_type );
+        }
+        else
+        {
+            archive& m_type;
+        }
+    }
+
+    static Node fromStr( const char* pszStr );
+    static std::string makeProcessName( Node node );
+
+private:
+    Type m_type = TOTAL_NODE_TYPES;
 };
 
-std::string makeProcessName( Node::Type type );
+
+inline std::ostream& operator<<( std::ostream& os, const Node& node )
+{
+    return os << node.str();
+}
 
 extern const char* ENV_PROCESS_UUID;
 extern const char* ENV_CFG_TYPE;

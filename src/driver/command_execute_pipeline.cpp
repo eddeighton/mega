@@ -28,6 +28,7 @@
 #include "compiler/cmake.hpp"
 #include "mega/values/compilation/tool_chain_hash.hpp"
 
+#include "service/network/log.hpp"
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 #include "common/stash.hpp"
@@ -47,7 +48,7 @@
 namespace driver::execute_pipeline
 {
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path stashDir, pipelineXML, outputPipelineResultPath, inputPipelineResultPath, toolchainXML;
     bool                    bRunLocally = false, bForceNoStash = false, bExecuteUpTo = false;
@@ -122,7 +123,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             {
                 try
                 {
-                    mega::service::Terminal terminal;
+                    mega::service::Terminal terminal( log );
                     pipelineResult = terminal.PipelineRun( pipelineConfig );
                 }
                 catch( std::exception& ex )

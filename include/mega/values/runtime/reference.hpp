@@ -152,29 +152,29 @@ public:
     {
     }
 
-    constexpr reference( TypeInstance typeInstance, HeapAddress heap )
+    constexpr explicit reference( TypeInstance typeInstance, HeapAddress heap )
         : prc{ heap, 0U, HEAP_ADDRESS, typeInstance }
     {
     }
-    constexpr reference( TypeInstance typeInstance, MPO mpo, AllocationID allocationID )
+    constexpr explicit reference( TypeInstance typeInstance, MPO mpo, AllocationID allocationID )
         : net{ allocationID, mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID(), NETWORK_ADDRESS, typeInstance }
     {
     }
 
     static constexpr inline reference make_root( MPO mpo )
     {
-        return { TypeInstance::make_root(), mpo, ROOT_OBJECT_ID };
+        return reference{ TypeInstance::make_root(), mpo, ROOT_OBJECT_ID };
     }
 
     static constexpr inline reference make( const reference& other, TypeInstance typeInstance )
     {
         if( other.isHeapAddress() )
         {
-            return { typeInstance, other.getHeap() };
+            return reference{ typeInstance, other.getHeap() };
         }
         else
         {
-            return { typeInstance, other.getMPO(), other.getAllocationID() };
+            return reference{ typeInstance, other.getMPO(), other.getAllocationID() };
         }
     }
 

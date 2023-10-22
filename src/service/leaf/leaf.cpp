@@ -94,7 +94,7 @@ public:
         {
             using ::           operator<<;
             std::ostringstream os;
-            os << network::Node::toStr( m_leaf.m_nodeType ) << " " << m_leaf.m_mp;
+            os << m_leaf.m_nodeType << " " << m_leaf.m_mp;
             common::ProcessID::setDescription( os.str().c_str() );
         }
 
@@ -102,8 +102,8 @@ public:
     }
 };
 
-Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short daemonPortNumber )
-    : network::LogicalThreadManager( network::makeProcessName( network::Node::Leaf ), m_io_context )
+Leaf::Leaf( network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber )
+    : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Leaf ), m_io_context )
     , m_pSender( pSender )
     , m_nodeType( nodeType )
     , m_io_context( 1 ) // single threaded concurrency hint
@@ -116,11 +116,61 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short da
     m_pSelfSender = m_receiverChannel.getSender();
 }
 
+void Leaf::getGeneralStatusReport( mega::reports::Branch& report )
+{
+    using namespace mega::reports;
+    using namespace std::string_literals;
+
+    VERIFY_RTE( m_pRemoteMemoryManager );
+
+    const network::MemoryStatus remoteMemStatus = m_pRemoteMemoryManager->getStatus();
+
+    Table tables;
+    {
+        Table table;
+        // clang-format off
+        table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
+        table.m_rows.push_back( { Line{ "   Node Type: "s }, Line{ m_nodeType } } );
+        table.m_rows.push_back( { Line{ "          MP: "s }, Line{ m_mp } } );
+        table.m_rows.push_back( { Line{ "  Remote Mem: "s }, Line{ std::to_string( remoteMemStatus.m_heap ) } } );
+        table.m_rows.push_back( { Line{ "  Remote Obj: "s }, Line{ std::to_string( remoteMemStatus.m_object ) } } );
+        // clang-format on
+
+        if( m_unityDatabaseHashCode.has_value() )
+        {
+            table.m_rows.push_back(
+                { Line{ "Unity DBHash: "s }, Line{ m_unityDatabaseHashCode.value().toHexString() } } );
+        }
+
+        tables.m_rows.push_back( { table } );
+    }
+
+    if( m_pJIT )
+    {
+        const network::JITStatus jitStatus = m_pJIT->getStatus();
+
+        Table jitStatusTable;
+        // clang-format off
+        jitStatusTable.m_rows.push_back( { Line{ " Functions: "s }, Line{ std::to_string( jitStatus.m_functionPointers ) } } );
+        jitStatusTable.m_rows.push_back( { Line{ "Allocators: "s }, Line{ std::to_string( jitStatus.m_allocators ) } } );
+        jitStatusTable.m_rows.push_back( { Line{ "Relations:  "s }, Line{ std::to_string( jitStatus.m_relations ) } } );
+        jitStatusTable.m_rows.push_back( { Line{ "Invocations:"s }, Line{ std::to_string( jitStatus.m_invocations ) } } );
+        jitStatusTable.m_rows.push_back( { Line{ "Operators:  "s }, Line{ std::to_string( jitStatus.m_operators ) } } );
+        jitStatusTable.m_rows.push_back( { Line{ "Interfaces: "s }, Line{ std::to_string( jitStatus.m_componentManagerStatus.m_interfaceComponents  ) } } );
+        jitStatusTable.m_rows.push_back( { Line{ "Python:     "s }, Line{ std::to_string( jitStatus.m_componentManagerStatus.m_pythonComponents ) } } );
+        // clang-format on
+
+        tables.m_rows.back().push_back( jitStatusTable );
+    }
+
+    report.m_elements.push_back( tables );
+}
+
 std::optional< Project > Leaf::startup()
 {
     network::ConcurrentChannel completionChannel( m_io_context );
-    std::promise< void > promise;
-    std::future< void >  future = promise.get_future();
+    std::promise< void >       promise;
+    std::future< void >        future = promise.get_future();
     logicalthreadInitiated( std::make_shared< LeafEnrole >( *this, promise ) );
     future.get();
     return m_activeProject;

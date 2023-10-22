@@ -33,9 +33,9 @@
 namespace mega::service
 {
 
-Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
+Plugin::Plugin( boost::asio::io_context& ioContext, network::Log log, U64 uiNumThreads )
     : m_channel( ioContext )
-    , m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), *this, network::Node::Plugin )
+    , m_executor( ioContext, log, uiNumThreads, mega::network::MegaDaemonPort(), *this, network::Node::Plugin )
     , m_stateMachine( *this )
 {
     SPDLOG_TRACE( "Plugin::Plugin()" );
@@ -76,7 +76,7 @@ bool Plugin::unrequestClock( network::LogicalThreadBase* pSender, MPO mpo )
 {
     THROW_TODO;
     using namespace network::sim;
-    //send( MSG_SimClock_Request::make( m_logicalThreadID, MSG_SimClock_Request{ mpo, std::move( range ) } ) );
+    // send( MSG_SimClock_Request::make( m_logicalThreadID, MSG_SimClock_Request{ mpo, std::move( range ) } ) );
 }
 
 void Plugin::requestMove( network::LogicalThreadBase* pSender, MPO mpo )

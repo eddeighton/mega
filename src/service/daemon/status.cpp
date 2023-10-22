@@ -25,16 +25,16 @@ namespace mega::service
 {
 // network::project::Impl
 network::Status DaemonRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                      boost::asio::yield_context&           yield_ctx )
+                                                       boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
         std::vector< network::LogicalThreadID > logicalthreads;
-        for ( const auto& [ id, pCon ] : m_daemon.m_logicalthreads )
+        for( const auto& [ id, pCon ] : m_daemon.m_logicalthreads )
         {
-            if ( id != getID() )
+            if( id != getID() )
             {
                 logicalthreads.push_back( id );
             }
@@ -50,8 +50,28 @@ network::Status DaemonRequestLogicalThread::GetStatus( const std::vector< networ
 std::string DaemonRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
+    using ::           operator<<;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }
 
+mega::reports::Container DaemonRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                                                const std::vector< mega::reports::Container >& report,
+                                                                boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "DaemonRequestLogicalThread::GetReport" );
+    using namespace mega::reports;
+    using namespace std::string_literals;
+
+    reports::Branch daemon{ { m_daemon.getProcessName() } };
+
+    m_daemon.getGeneralStatusReport( daemon );
+
+    for( const auto& child : report )
+    {
+        daemon.m_elements.push_back( child );
+    }
+
+    return daemon;
+}
 } // namespace mega::service

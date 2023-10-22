@@ -39,14 +39,15 @@
 namespace mega::service::report
 {
 
-class MPOLogicalThread;
+class HTTPLogicalThread;
 
 class Report : public network::LogicalThreadManager
 {
     friend class PythonRequestLogicalThread;
 
 public:
-    Report( boost::asio::io_context& io_context, short daemonPortNumber, int iTimeoutSeconds );
+    Report( boost::asio::io_context& io_context, network::Log log, short daemonPortNumber, int iTimeoutSeconds,
+            const boost::asio::ip::tcp::endpoint& httpEndPoint );
     ~Report();
 
     void shutdown();
@@ -58,6 +59,7 @@ public:
     MP                   getMP() const { return m_leaf.getMP(); }
 
     int                                   getTimeoutSeconds() const { return m_iTimeoutSeconds; }
+    const boost::asio::ip::tcp::endpoint& getHTTPEndPoint() const { return m_httpEndPoint; }
     bool                                  isProjectActive() const;
     const MegastructureInstallation&      getMegastructureInstallation() const { return m_megastructureInstallation; }
     const std::optional< mega::Project >& getProject() const;
@@ -68,12 +70,14 @@ public:
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
 
 private:
-    boost::asio::io_context&  m_io_context;
-    network::ReceiverChannel  m_receiverChannel;
-    Leaf                      m_leaf;
-    int                       m_iTimeoutSeconds;
-    std::optional< Project >  m_project;
-    MegastructureInstallation m_megastructureInstallation;
+    network::Log                   m_log;
+    boost::asio::io_context&       m_io_context;
+    network::ReceiverChannel       m_receiverChannel;
+    Leaf                           m_leaf;
+    int                            m_iTimeoutSeconds;
+    boost::asio::ip::tcp::endpoint m_httpEndPoint;
+    std::optional< Project >       m_project;
+    MegastructureInstallation      m_megastructureInstallation;
 };
 } // namespace mega::service::report
 

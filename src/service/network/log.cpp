@@ -53,18 +53,15 @@ LoggingLevel fromStr( const std::string& str )
     return static_cast< LoggingLevel >( std::distance( logLevels.begin(), iter ) );
 }
 
-std::shared_ptr< spdlog::logger > configureLog( const boost::filesystem::path& logFolderPath,
-                                                const std::string&             strLogName,
-                                                LoggingLevel                   consoleLoggingLevel,
-                                                LoggingLevel                   fileLoggingLevel )
+Log configureLog( Log::Config config )
 {
+    Log result{ config };
+
     // hacks!!
     static StaticInit init;
 
-    std::shared_ptr< spdlog::logger > pResult;
-
     auto consoleLevel = spdlog::level::warn;
-    switch( consoleLoggingLevel )
+    switch( result.config.consoleLoggingLevel )
     {
         case eDebug:
             consoleLevel = spdlog::level::debug;
@@ -81,12 +78,13 @@ std::shared_ptr< spdlog::logger > configureLog( const boost::filesystem::path& l
         case eError:
             consoleLevel = spdlog::level::err;
             break;
+        default:
         case eOff:
             consoleLevel = spdlog::level::off;
             break;
     }
     auto fileLevel = spdlog::level::warn;
-    switch( fileLoggingLevel )
+    switch( result.config.fileLoggingLevel )
     {
         case eDebug:
             fileLevel = spdlog::level::debug;
@@ -103,13 +101,14 @@ std::shared_ptr< spdlog::logger > configureLog( const boost::filesystem::path& l
         case eError:
             fileLevel = spdlog::level::err;
             break;
+        default:
         case eOff:
             fileLevel = spdlog::level::off;
             break;
     }
     const spdlog::level::level_enum sinkLevel = std::min( consoleLevel, fileLevel );
 
-    spdlog::drop( strLogName );
+    spdlog::drop( result.config.strLogName );
 
     auto console_sink = std::make_shared< spdlog::sinks::stdout_color_sink_mt >();
     {
@@ -120,42 +119,46 @@ std::shared_ptr< spdlog::logger > configureLog( const boost::filesystem::path& l
     if( fileLevel == spdlog::level::off )
     {
         auto logger = std::shared_ptr< spdlog::async_logger >( new spdlog::async_logger(
-            strLogName, { console_sink }, spdlog::thread_pool(), spdlog::async_overflow_policy::block ) );
+            result.config.strLogName, { console_sink }, spdlog::thread_pool(), spdlog::async_overflow_policy::block ) );
         {
             logger->set_level( sinkLevel );
         }
 
         spdlog::flush_every( std::chrono::seconds( 1 ) );
 
-        pResult = logger;
+        result.pLogger = logger;
     }
     else
     {
-        std::ostringstream osLogFileName;
-        osLogFileName << strLogName << "_" << common::ProcessID::get().getPID() << ".log";
+        boost::filesystem::path desiredLogFilePath;
+        {
+            std::ostringstream osLogFileName;
+            osLogFileName << result.config.strLogName << "_" << common::ProcessID::get().getPID() << ".log";
+            desiredLogFilePath = result.config.logFolder / osLogFileName.str();
+        }
 
-        const boost::filesystem::path logFilePath = logFolderPath / osLogFileName.str();
-
-        auto file_sink = std::make_shared< spdlog::sinks::daily_file_sink_st >( logFilePath.string(), 23, 59 );
+        auto file_sink = std::make_shared< spdlog::sinks::daily_file_sink_st >( desiredLogFilePath.string(), 23, 59 );
         {
             file_sink->set_level( fileLevel );
             file_sink->set_pattern( "%v" );
         }
+        result.logFile = file_sink->filename();
 
-        auto logger = std::shared_ptr< spdlog::async_logger >( new spdlog::async_logger(
-            strLogName, { console_sink, file_sink }, spdlog::thread_pool(), spdlog::async_overflow_policy::block ) );
+        auto logger = std::shared_ptr< spdlog::async_logger >(
+            new spdlog::async_logger( result.config.strLogName, { console_sink, file_sink }, spdlog::thread_pool(),
+                                      spdlog::async_overflow_policy::block ) );
         {
             logger->set_level( sinkLevel );
         }
 
         spdlog::flush_every( std::chrono::seconds( 1 ) );
 
-        pResult = logger;
+        result.pLogger = logger;
     }
 
-    spdlog::set_default_logger( pResult );
+    spdlog::set_default_logger( result.pLogger );
 
-    return pResult;
+    return result;
 }
 
 } // namespace mega::network

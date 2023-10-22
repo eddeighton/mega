@@ -62,4 +62,23 @@ std::string ExecutorRequestLogicalThread::Ping( const std::string& strMsg, boost
     return os.str();
 }
 
+mega::reports::Container ExecutorRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                                                const std::vector< mega::reports::Container >& report,
+                                                                boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "ExecutorRequestLogicalThread::GetReport" );
+    using namespace mega::reports;
+    using namespace std::string_literals;
+
+    reports::Branch exe{ { m_executor.getProcessName() } };
+
+    m_executor.getGeneralStatusReport( exe );
+
+    for( const auto& child : report )
+    {
+        exe.m_elements.push_back( child );
+    }
+
+    return exe;
+}
 } // namespace mega::service

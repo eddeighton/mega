@@ -47,33 +47,30 @@ mega::reports::Container MemoryReporter::generate( const mega::reports::URL& url
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    Table test{ { { "Type Name" },
-                  { "Allocation ID" },
-                  { "Reference" },
-                  { "Network Address" },
-                  { "Bytes" },
-                  { "Alignment" },
-                  { "Ref Count" },
-                  { "Lock Cycle" } } };
+    Table test{ { { "Type Name"s },
+                  //{ "Allocation ID" },
+                  { "Heap Address"s },
+                  { "Network Address"s },
+                  { "SizeAlignment"s },
+                  { "Ref Count"s },
+                  { "Lock Cycle"s } } };
 
     for( auto i = m_memoryManager.begin(), iEnd = m_memoryManager.end(); i != iEnd; ++i )
     {
         const reference& ref = i->first;
         VERIFY_RTE( ref.isHeapAddress() );
 
-        auto       pHeader       = reinterpret_cast< runtime::ObjectHeader* >( ref.getHeap() );
-        const auto sizeAlignment = pHeader->m_pAllocator->getSizeAlignment();
+        auto pHeader = reinterpret_cast< runtime::ObjectHeader* >( ref.getHeap() );
 
         // clang-format off
         test.m_rows.push_back(
             ContainerVector
             {
                 Line( { m_database.getConcreteFullType( ref.getType() ) } ),
-                Line( { ref.getAllocationID() } ),
+                //Line( { RuntimeValue{ ref.getAllocationID() } } ),
                 Line( { ref } ),
                 Line( { ref.getNetworkAddress() } ),
-                Line( { std::to_string( sizeAlignment.size ) } ),
-                Line( { std::to_string( sizeAlignment.alignment ) } ),
+                Line( { pHeader->m_pAllocator->getSizeAlignment() } ),
                 Line( { std::to_string( ref.getRefCount() ) } ),
                 Line( { std::to_string( ref.getLockCycle() ) } )
             }

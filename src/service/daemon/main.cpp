@@ -41,7 +41,6 @@ void handle_sigchld( int signum )
     wait( NULL ); // or some other wait variant that reads the child process' status information
 }
 
-
 // dummy implementation of MPOContext
 namespace mega
 {
@@ -62,7 +61,7 @@ void setMPOContext( MPOContext* pMPOContext )
 
 int main( int argc, const char* argv[] )
 {
-    signal(SIGCHLD, handle_sigchld);
+    signal( SIGCHLD, handle_sigchld );
 
     std::string strIP = "localhost";
 
@@ -110,12 +109,13 @@ int main( int argc, const char* argv[] )
 
     try
     {
-        mega::network::configureLog( logFolder, "daemon", mega::network::fromStr( strConsoleLogLevel ),
-                                     mega::network::fromStr( strLogFileLevel ) );
+        auto log = mega::network::configureLog(
+            mega::network::Log::Config{ logFolder, "daemon", mega::network::fromStr( strConsoleLogLevel ),
+                                        mega::network::fromStr( strLogFileLevel ) } );
 
         boost::asio::io_context ioContext( 1 );
 
-        mega::service::Daemon daemon( ioContext, strIP, rootPortNumber, daemonPortNumber );
+        mega::service::Daemon daemon( ioContext, log, strIP, rootPortNumber, daemonPortNumber );
 
         std::vector< std::thread > threads;
         for( NumThreadsType i = 0; i < uiNumThreads; ++i )

@@ -23,6 +23,7 @@
 #include "service/network/client.hpp"
 #include "service/network/server.hpp"
 #include "service/network/logical_thread_manager.hpp"
+#include "service/network/log.hpp"
 
 #include "service/network/network.hpp"
 
@@ -37,10 +38,9 @@ class Daemon : public network::LogicalThreadManager
     friend class DaemonEnrole;
 
 public:
-    Daemon( boost::asio::io_context& ioContext,
-            const std::string&       strRootIP,
-            short                    rootPortNumber   = mega::network::MegaRootPort(),
-            short                    daemonPortNumber = mega::network::MegaDaemonPort() );
+    Daemon( boost::asio::io_context& ioContext, network::Log log, const std::string& strRootIP,
+            short rootPortNumber   = mega::network::MegaRootPort(),
+            short daemonPortNumber = mega::network::MegaDaemonPort() );
 
     void shutdown();
 
@@ -50,9 +50,12 @@ public:
     void                           setActiveProject( const Project& project );
     const std::optional< Project > getActiveProject() const { return m_activeProject; }
 
+    void getGeneralStatusReport( mega::reports::Branch& report );
+
 private:
     void onLeafDisconnect( mega::MP mp );
 
+    network::Log             m_log;
     network::Client          m_rootClient;
     network::Server          m_server;
     MachineID                m_machineID;

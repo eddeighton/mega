@@ -28,6 +28,7 @@
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/sim.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/report.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/enrole.hxx"
 
@@ -41,6 +42,7 @@ class ExecutorRequestLogicalThread : public network::ConcurrentLogicalThread,
                                      public network::mpo::Impl,
                                      public network::job::Impl,
                                      public network::status::Impl,
+                                     public network::report::Impl,
                                      public network::sim::Impl,
                                      public network::project::Impl,
                                      public network::enrole::Impl
@@ -92,6 +94,11 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
+    // network::report::Impl
+    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
+                                                const std::vector< mega::reports::Container >& report,
+                                                boost::asio::yield_context&                    yield_ctx ) override;
+                                                
     // network::job::Impl - note also in JobLogicalThread
     virtual std::vector< network::LogicalThreadID >
     JobStart( const utilities::ToolChain&                                   toolChain,

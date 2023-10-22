@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,59 +18,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg EnroleDaemon
-{
-    request();
-    response( MachineID daemonMachineID );
-}
+#include "reports/value.hpp"
 
-msg EnroleLeafWithDaemon
+namespace mega::reports
 {
-    request( std::string startupUUID, mega::network::Node type );
-    response( MP leafMP );
-}
 
-msg EnroleLeafWithRoot
+std::string toString( const Value& value )
 {
-    request( std::string startupUUID, MachineID daemonMachineID );
-    response( MP leafMP );
+    std::ostringstream osValue;
+    boost::apply_visitor( [ & ]( const auto& arg ) { using ::operator<<; osValue << arg; }, value );
+    return osValue.str();
 }
-
-msg EnroleLeafDisconnect
-{
-    request( MP leafMP );
-    response();
-}
-
-msg EnroleGetDaemons
-{
-    request();
-    response( std::vector< mega::MachineID > daemons );
-}
-msg EnroleGetProcesses
-{
-    request( mega::MachineID machineID );
-    response( std::vector< mega::MP > machineProcesses );
-}
-msg EnroleGetMPO
-{
-    request( mega::MP machineProcess );
-    response( std::vector< mega::MPO > mpos );
-}
-
-msg EnroleCreateExecutor
-{
-    request( MachineID daemonMachineID );
-    response( mega::MP executorMP );
-}
-msg EnroleDestroy
-{
-    request();
-    response();
-}
-msg EnroleDaemonSpawn
-{
-    request( std::string strProgram, std::string strStartupUUID );
-    response();
-}
-
+} // namespace mega::reports

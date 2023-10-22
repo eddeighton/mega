@@ -48,6 +48,8 @@ network::Message ExecutorRequestLogicalThread::dispatchInBoundRequest( const net
         return result;
     if( result = network::status::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
+    if( result = network::report::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
+        return result;
     if( result = network::project::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
     if( result = network::enrole::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
@@ -88,6 +90,18 @@ network::Message ExecutorRequestLogicalThread::RootAllBroadcast( const network::
                         const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
                             request.getLogicalThreadID(),
                             network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) } );
+                        responses.push_back( responseWrapper );
+                    }
+                    break;
+                    case network::report::MSG_GetReport_Request::ID:
+                    {
+                        SPDLOG_TRACE(
+                            "ExecutorRequestLogicalThread::RootAllBroadcast to logical thread: {}", pThread->getID() );
+                        auto&                           msg = network::report::MSG_GetReport_Request::get( request );
+                        network::report::Request_Sender rq( *this, pThread, yield_ctx );
+                        const network::Message          responseWrapper = network::report::MSG_GetReport_Response::make(
+                            request.getLogicalThreadID(),
+                            network::report::MSG_GetReport_Response{ rq.GetReport( msg.url, msg.report ) } );
                         responses.push_back( responseWrapper );
                     }
                     break;

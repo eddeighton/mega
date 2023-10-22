@@ -40,9 +40,16 @@ namespace mega
 class MPOContext
 {
 };
-MPOContext* getMPOContext() { return nullptr; }
-void        resetMPOContext() {}
-void        setMPOContext( MPOContext* pMPOContext ) {}
+MPOContext* getMPOContext()
+{
+    return nullptr;
+}
+void resetMPOContext()
+{
+}
+void setMPOContext( MPOContext* pMPOContext )
+{
+}
 } // namespace mega
 
 int main( int argc, const char* argv[] )
@@ -52,7 +59,6 @@ int main( int argc, const char* argv[] )
 #else
     SPDLOG_INFO( "Segmented stacks NOT enabled" );
 #endif
-
 
     using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
     NumThreadsType          uiNumThreads       = 1U;
@@ -84,7 +90,7 @@ int main( int argc, const char* argv[] )
         po::store( parsedOptions, vm );
         po::notify( vm );
 
-        if ( bShowHelp )
+        if( bShowHelp )
         {
             std::cout << options << "\n";
             return 0;
@@ -95,26 +101,27 @@ int main( int argc, const char* argv[] )
 
     try
     {
-        mega::network::configureLog( logFolder, "root", mega::network::fromStr( strConsoleLogLevel ),
-                                                       mega::network::fromStr( strLogFileLevel ) );
+        auto log = mega::network::configureLog(
+            mega::network::Log::Config{ logFolder, "root", mega::network::fromStr( strConsoleLogLevel ),
+                                        mega::network::fromStr( strLogFileLevel ) } );
 
         boost::asio::io_context ioContext( 1 );
 
         SPDLOG_INFO( "Using stash folder: {}", stashFolder.string() );
 
-        mega::service::Root root( ioContext, stashFolder, portNumber );
+        mega::service::Root root( ioContext, log, stashFolder, portNumber );
 
         std::vector< std::thread > threads;
-        for ( int i = 0; i < uiNumThreads; ++i )
+        for( int i = 0; i < uiNumThreads; ++i )
         {
             threads.emplace_back( std::move( std::thread( [ &ioContext ]() { ioContext.run(); } ) ) );
         }
-        for ( std::thread& thread : threads )
+        for( std::thread& thread : threads )
         {
             thread.join();
         }
     }
-    catch ( std::exception& ex )
+    catch( std::exception& ex )
     {
         std::cerr << "Exception: " << ex.what() << std::endl;
         return -1;

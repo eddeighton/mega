@@ -52,7 +52,7 @@ public:
         m_daemon.setActiveProject( getRootRequest< network::project::Request_Encoder >( yield_ctx ).GetProject() );
 
         std::ostringstream os;
-        os << network::Node::toStr( network::Node::Daemon ) << " " << m_daemon.m_machineID;
+        os << network::Node( network::Node::Daemon ) << " " << m_daemon.m_machineID;
         common::ProcessID::setDescription( os.str().c_str() );
 
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
@@ -61,11 +61,10 @@ public:
 
 ////////////////////////////////////////////////////////////////
 // Daemon
-Daemon::Daemon( boost::asio::io_context& ioContext,
-                const std::string&       strRootIP,
-                short                    rootPortNumber,
-                short                    daemonPortNumber )
-    : network::LogicalThreadManager( network::makeProcessName( network::Node::Daemon ), ioContext )
+Daemon::Daemon( boost::asio::io_context& ioContext, network::Log log, const std::string& strRootIP,
+                short rootPortNumber, short daemonPortNumber )
+    : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Daemon ), ioContext )
+    , m_log( log )
     , m_rootClient( ioContext, *this, strRootIP, rootPortNumber )
     , m_server( ioContext, *this, daemonPortNumber )
 {
@@ -84,6 +83,23 @@ Daemon::Daemon( boost::asio::io_context& ioContext,
     }
 }
 
+void Daemon::getGeneralStatusReport( mega::reports::Branch& report )
+{
+    using namespace mega::reports;
+    using namespace std::string_literals;
+
+    Table table;
+    // clang-format off
+    table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
+    table.m_rows.push_back( { Line{ "          IP: "s }, Line{ m_server.getEndPoint().address().to_string() } } );
+    table.m_rows.push_back( { Line{ "        PORT: "s }, Line{ std::to_string( m_server.getEndPoint().port() ) } } );
+    table.m_rows.push_back( { Line{ "  Machine ID: "s }, Line{ m_machineID } } );
+    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, URL::makeFile( m_log.logFile ) } } );
+    // clang-format on
+
+    report.m_elements.push_back( table );
+}
+
 void Daemon::setActiveProject( const Project& project )
 {
     m_activeProject = project;
@@ -93,7 +109,7 @@ void Daemon::onLeafDisconnect( mega::MP leafMP )
 {
     m_server.unLabelConnection( leafMP );
 
-    //onDisconnect();
+    // onDisconnect();
 
     class DaemonLeafDisconnect : public DaemonRequestLogicalThread
     {

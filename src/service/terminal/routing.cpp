@@ -43,6 +43,8 @@ network::Message TerminalRequestLogicalThread::dispatchInBoundRequest( const net
         return result;
     if( result = network::status::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
+    if( result = network::report::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
+        return result;
     if( result = network::project::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "TerminalRequestLogicalThread::dispatchInBoundRequest failed" );

@@ -35,6 +35,7 @@
 #include "ed/file.hpp"
 #endif
 
+#include "service/network/log.hpp"
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
@@ -50,7 +51,7 @@
 namespace driver::map
 {
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path schematicFilePath, projectPath, outputFilePath;
     bool bTest = false;

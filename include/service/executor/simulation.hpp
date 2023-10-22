@@ -89,6 +89,10 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
+    // network::report::Impl
+    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
+                                                const std::vector< mega::reports::Container >& report,
+                                                boost::asio::yield_context&                    yield_ctx ) override;
 private:
     void runSimulation( boost::asio::yield_context& yield_ctx );
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }

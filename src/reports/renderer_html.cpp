@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "reports/renderer.hpp"
+#include "reports/renderer_html.hpp"
 #include "reports/report.hpp"
 #include "reports/reporter.hpp"
 
@@ -186,51 +186,37 @@ struct Args
 
 void renderValue( Args& args, const Value& value, std::ostream& os )
 {
-    THROW_TODO; // how should values work?? 
-    const std::string strValue;//= toString( value );
-
-    bool bRendered = false;
-    if( args.pLinker )
+    // if string then do NOT allow linking
+    if( const std::string* pString = boost::get< std::string >( &value ) )
     {
-        if( auto urlOpt = args.pLinker->link( value ); urlOpt.has_value() )
-        {
-            os << "<a href=\"" << urlOpt.value() << "\" >" << escapeHTML( strValue ) << "</a>";
-            bRendered = true;
-        }
+        os << escapeHTML( *pString );
     }
-    if( !bRendered )
+    else
     {
-        os << strValue;
+        if( args.pLinker )
+        {
+            if( auto urlOpt = args.pLinker->link( value ); urlOpt.has_value() )
+            {
+                os << "<a href=\"" << urlOpt.value() << "\" >" << escapeHTML( toString( value ) ) << "</a>";
+                return;
+            }
+        }
+        os << toString( value );
     }
 }
 
-void textToJSON( Args& args, const Text& text, nlohmann::json& data )
+void valueToJSON( Args& args, const Value& value, nlohmann::json& data )
 {
-
     std::ostringstream osValue;
-    renderValue( args, text, osValue );
+    renderValue( args, value, osValue );
     data.push_back( osValue.str() );
-
-   /* struct Visitor
-    {
-        Args&           args;
-        nlohmann::json& data;
-        void            operator()( const std::string& str ) const { data.push_back( escapeHTML( str ) ); }
-        void            operator()( const Value& value ) const
-        {
-            std::ostringstream osValue;
-            renderValue( args, value, osValue );
-            data.push_back( osValue.str() );
-        }
-    } visitor{ args, data };
-    std::visit( visitor, text );*/
 }
 
-void textVectorToJSON( Args& args, const TextVector& textVector, nlohmann::json& data )
+void valueVectorToJSON( Args& args, const ValueVector& textVector, nlohmann::json& data )
 {
     for( const auto& text : textVector )
     {
-        textToJSON( args, text, data );
+        valueToJSON( args, text, data );
     }
 }
 
@@ -239,7 +225,7 @@ void addOptionalBookmark( Args& args, T& element, nlohmann::json& data )
 {
     if( element.m_bookmark.has_value() )
     {
-        // render bookmark WITHOUT url value
+        // render bookmark WITHOUT linker interaction
         std::ostringstream osBookmark;
         Args               bookmarkArgs{ args.inja, nullptr };
         renderValue( bookmarkArgs, element.m_bookmark.value(), osBookmark );
@@ -248,14 +234,26 @@ void addOptionalBookmark( Args& args, T& element, nlohmann::json& data )
     }
 }
 
+template < typename T >
+void addOptionalLink( Args& args, T& element, nlohmann::json& data )
+{
+    if( element.m_url.has_value() )
+    {
+        data[ "has_link" ] = true;
+        data[ "link" ]     = element.m_url.value().str();
+    }
+}
+
 void renderLine( Args& args, const Line& line, std::ostream& os )
 {
     nlohmann::json data( { { "style", "multiline_default" },
                            { "elements", nlohmann::json::array() },
                            { "has_bookmark", false },
+                           { "has_link", false },
                            { "bookmark", "" } } );
     addOptionalBookmark( args, line, data );
-    textToJSON( args, line.m_element, data[ "elements" ] );
+    addOptionalLink( args, line, data );
+    valueToJSON( args, line.m_element, data[ "elements" ] );
     args.inja.renderMultiLine( data, os );
 }
 
@@ -264,9 +262,11 @@ void renderMultiline( Args& args, const Multiline& multiline, std::ostream& os )
     nlohmann::json data( { { "style", "multiline_default" },
                            { "elements", nlohmann::json::array() },
                            { "has_bookmark", false },
+                           { "has_link", false },
                            { "bookmark", "" } } );
     addOptionalBookmark( args, multiline, data );
-    textVectorToJSON( args, multiline.m_elements, data[ "elements" ] );
+    addOptionalLink( args, multiline, data );
+    valueVectorToJSON( args, multiline.m_elements, data[ "elements" ] );
     args.inja.renderMultiLine( data, os );
 }
 
@@ -281,7 +281,7 @@ void renderBranch( Args& args, const Branch& branch, std::ostream& os )
                            { "elements", nlohmann::json::array() } } );
 
     addOptionalBookmark( args, branch, data );
-    textVectorToJSON( args, branch.m_label, data[ "label" ] );
+    valueVectorToJSON( args, branch.m_label, data[ "label" ] );
 
     for( const auto& pChildElement : branch.m_elements )
     {
@@ -297,11 +297,10 @@ void renderTable( Args& args, const Table& table, std::ostream& os )
 {
     nlohmann::json data( { { "headings", nlohmann::json::array() }, { "rows", nlohmann::json::array() } } );
 
-    for( const auto& heading : table.m_headings )
+    if( table.m_headings.empty() )
     {
-        data[ "headings" ].push_back( heading );
+        valueVectorToJSON( args, table.m_headings, data[ "headings" ] );
     }
-
     for( const auto& pRow : table.m_rows )
     {
         nlohmann::json row( { { "values", nlohmann::json::array() } } );
@@ -349,12 +348,12 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
 
         addOptionalBookmark( args, node, nodeData );
 
-        for( const TextVector& row : node.m_rows )
+        for( const ValueVector& row : node.m_rows )
         {
             nlohmann::json rowData( { { "values", nlohmann::json::array() } } );
-            for( const Text& text : row )
+            for( const Value& value : row )
             {
-                textToJSON( args, text, rowData[ "values" ] );
+                valueToJSON( args, value, rowData[ "values" ] );
             }
             nodeData[ "rows" ].push_back( rowData );
         }
@@ -390,15 +389,19 @@ void renderContainer( Args& args, const Container& container, std::ostream& os )
 
     struct Visitor
     {
+        using result_type = void;
+
         Args&         args;
         std::ostream& os;
-        void          operator()( const Line& line ) const { renderLine( args, line, os ); }
-        void          operator()( const Multiline& multiline ) const { renderMultiline( args, multiline, os ); }
-        void          operator()( const Branch& branch ) const { renderBranch( args, branch, os ); }
-        void          operator()( const Table& table ) const { renderTable( args, table, os ); }
-        void          operator()( const Graph& graph ) const { renderGraph( args, graph, os ); }
+
+        void operator()( const Line& line ) const { renderLine( args, line, os ); }
+        void operator()( const Multiline& multiline ) const { renderMultiline( args, multiline, os ); }
+        void operator()( const Branch& branch ) const { renderBranch( args, branch, os ); }
+        void operator()( const Table& table ) const { renderTable( args, table, os ); }
+        void operator()( const Graph& graph ) const { renderGraph( args, graph, os ); }
     } visitor{ args, os };
-    std::visit( visitor, container );
+
+    boost::apply_visitor( visitor, container );
 }
 
 void renderReport( Args& args, const Container& container, std::ostream& os )
@@ -411,22 +414,22 @@ void renderReport( Args& args, const Container& container, std::ostream& os )
 
 } // namespace
 
-Renderer::Renderer( const boost::filesystem::path& templateDir )
+HTMLRenderer::HTMLRenderer( const boost::filesystem::path& templateDir )
     : m_pInja( new Inja( templateDir ) )
 {
 }
-Renderer::~Renderer()
+HTMLRenderer::~HTMLRenderer()
 {
     delete reinterpret_cast< Inja* >( m_pInja );
 }
 
-void Renderer::renderHTML( const Container& report, std::ostream& os )
+void HTMLRenderer::render( const Container& report, std::ostream& os )
 {
     Args args{ *reinterpret_cast< Inja* >( m_pInja ), nullptr };
     renderReport( args, report, os );
 }
 
-void Renderer::renderHTML( const Container& report, Reporter& linker, std::ostream& os )
+void HTMLRenderer::render( const Container& report, Reporter& linker, std::ostream& os )
 {
     Args args{ *reinterpret_cast< Inja* >( m_pInja ), &linker };
     renderReport( args, report, os );

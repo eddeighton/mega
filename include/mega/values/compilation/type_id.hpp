@@ -99,8 +99,8 @@ public:
     constexpr inline SubType   getObjectID() const { return contextID.object; }
     constexpr inline SubType   getSubObjectID() const { return contextID.subObject; }
 
-    constexpr inline      operator ValueType() const { return value; }
-    constexpr inline bool valid() const { return value != 0U; }
+    constexpr inline operator ValueType() const { return value; }
+    constexpr inline bool     valid() const { return value != 0U; }
 
     constexpr inline bool operator==( const TypeID& cmp ) const { return value == cmp.value; }
     constexpr inline bool operator!=( const TypeID& cmp ) const { return !( *this == cmp ); }
@@ -131,7 +131,7 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        if constexpr( boost::serialization::IsXMLArchive< Archive >::Value )
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {
             archive& boost::serialization::make_nvp( "symbolID", value );
         }
@@ -141,7 +141,6 @@ public:
         }
     }
 #endif
-
 };
 
 #ifndef MEGAJIT

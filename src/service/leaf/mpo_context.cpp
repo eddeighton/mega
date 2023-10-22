@@ -167,7 +167,7 @@ void MPOContext::networkToHeap( reference& ref )
 
     if( ref.isNetworkAddress() )
     {
-        ASSERT( m_pMemoryManager );
+        VERIFY_RTE_MSG( m_pMemoryManager , "MPOContext::networkToHeap: Memory manager not allocated" );
         ref = m_pMemoryManager->networkToHeap( ref );
     }
 }
@@ -253,26 +253,33 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     m_mpo = mpo;
 
     m_pDatabase.reset();
-    m_pDatabase = std::make_unique< runtime::MPODatabase >( project.getProjectDatabase() );
-
     m_pMemoryManager.reset();
 
-    m_pMemoryManager = std::make_unique< runtime::MemoryManager >(
-        *m_pDatabase,
-        mpo,
-        [ jitRequest = getLeafJITRequest() ]( TypeID typeID ) mutable -> runtime::Allocator::Ptr
-        {
-            runtime::Allocator::Ptr pAllocator;
-            jitRequest.GetAllocator( typeID, type_erase( &pAllocator ) );
-            return pAllocator;
-        } );
+    if( boost::filesystem::exists( project.getProjectDatabase() ) )
+    {
+        m_pDatabase = std::make_unique< runtime::MPODatabase >( project.getProjectDatabase() );
 
-    // instantiate the root
-    m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
-    VERIFY_RTE_MSG( m_root.valid(), "Root allocation failed" );
-    SPDLOG_TRACE( "MPOContext::createRoot: root: {} net: {}", m_root.getObjectAddress(), m_root.getNetworkAddress() );
-    m_pLog->record(
-        mega::log::Structure::Write( m_root, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+        m_pMemoryManager = std::make_unique< runtime::MemoryManager >(
+            *m_pDatabase,
+            mpo,
+            [ jitRequest = getLeafJITRequest() ]( TypeID typeID ) mutable -> runtime::Allocator::Ptr
+            {
+                runtime::Allocator::Ptr pAllocator;
+                jitRequest.GetAllocator( typeID, type_erase( &pAllocator ) );
+                return pAllocator;
+            } );
+
+        // instantiate the root
+        m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
+        VERIFY_RTE_MSG( m_root.valid(), "Root allocation failed" );
+        SPDLOG_INFO( "Created Root: {} net: {}", m_root.getObjectAddress(), m_root.getNetworkAddress() );
+        m_pLog->record(
+            mega::log::Structure::Write( m_root, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+    }
+    else
+    {
+        SPDLOG_WARN( "Could not create root - no database found at: {}", project.getProjectDatabase().string() );
+    }
 }
 
 void MPOContext::jit( runtime::JITFunctor func )
@@ -352,26 +359,29 @@ void MPOContext::cycleComplete()
     network::TransactionProducer::UnparentedSet   unparentedObjects;
     m_pTransactionProducer->generate( transactions, unparentedObjects, m_movedObjects );
 
-    m_pMemoryManager->Garbage();
-
-    for( const auto& unparentedObject : unparentedObjects )
+    if( m_pMemoryManager )
     {
-        // DONT DESTOY THE ROOT!
-        VERIFY_RTE( unparentedObject.getType() != ROOT_TYPE_ID );
+        m_pMemoryManager->Garbage();
 
-        // destroy the object
-        SPDLOG_TRACE( "MPOContext: cycleComplete: {} unparented: {}", m_mpo.value(), unparentedObject );
-        if( unparentedObject.getMPO() == m_mpo.value() )
+        for( const auto& unparentedObject : unparentedObjects )
         {
-            // delete the heap address
-            reference deleteRef = unparentedObject;
-            if( deleteRef.isNetworkAddress() )
+            // DONT DESTOY THE ROOT!
+            VERIFY_RTE( unparentedObject.getType() != ROOT_TYPE_ID );
+
+            // destroy the object
+            SPDLOG_TRACE( "MPOContext: cycleComplete: {} unparented: {}", m_mpo.value(), unparentedObject );
+            if( unparentedObject.getMPO() == m_mpo.value() )
             {
-                deleteRef = m_pMemoryManager->networkToHeap( deleteRef );
+                // delete the heap address
+                reference deleteRef = unparentedObject;
+                if( deleteRef.isNetworkAddress() )
+                {
+                    deleteRef = m_pMemoryManager->networkToHeap( deleteRef );
+                }
+                m_pMemoryManager->Delete( deleteRef );
+                m_pLog->record( mega::log::Structure::Write(
+                    deleteRef, deleteRef.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
             }
-            m_pMemoryManager->Delete( deleteRef );
-            m_pLog->record( mega::log::Structure::Write(
-                deleteRef, deleteRef.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
         }
     }
 

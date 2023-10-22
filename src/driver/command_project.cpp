@@ -19,6 +19,7 @@
 
 #include "service/terminal.hpp"
 
+#include "service/network/log.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
 
@@ -29,7 +30,7 @@
 namespace driver::project
 {
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path projectPath;
     bool                    bGetProject    = false;
@@ -62,13 +63,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         if( !projectPath.empty() )
         {
-            mega::service::Terminal terminal;
+            mega::service::Terminal terminal( log );
             const mega::Project     project( projectPath );
             terminal.SetProject( project );
         }
         else if( bUpdateProject )
         {
-            mega::service::Terminal terminal;
+            mega::service::Terminal terminal( log );
             const mega::Project     project = terminal.GetProject();
             if( project.isEmpty() )
             {
@@ -81,19 +82,19 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
         else if( bGetProject )
         {
-            mega::service::Terminal terminal;
+            mega::service::Terminal terminal( log );
             const mega::Project     project = terminal.GetProject();
             std::cout << project.getProjectInstallPath().string() << std::endl;
         }
         else if( bResetProject )
         {
-            mega::service::Terminal terminal;
+            mega::service::Terminal terminal( log );
             const mega::Project     project;
             terminal.SetProject( project );
         }
         else // if ( bGetInstallInfo )
         {
-            mega::service::Terminal          terminal;
+            mega::service::Terminal          terminal( log );
             const mega::Project              project   = terminal.GetProject();
             const auto                       result    = terminal.GetMegastructureInstallation();
             const mega::utilities::ToolChain toolChain = result.getToolchain();

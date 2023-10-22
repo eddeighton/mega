@@ -27,7 +27,7 @@ namespace mega::service
 {
 // network::enrole::Impl
 MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&               startupUUID,
-                                                     const mega::network::Node::Type& type,
+                                                     const mega::network::Node& type,
                                                      boost::asio::yield_context&      yield_ctx )
 {
     network::Server::Connection::Ptr pConnection

@@ -52,16 +52,19 @@ class Executor : public network::LogicalThreadManager
     friend class PlayerNetwork;
 
     using SimulationMap = std::unordered_map< mega::MPO, std::shared_ptr< Simulation >, mega::MPO::Hash >;
-public:
 
+public:
     Executor( boost::asio::io_context& io_context,
+              network::Log             log,
               U64                      numThreads,
               short                    daemonPortNumber,
               ProcessClock&            processClock,
-              network::Node::Type      nodeType );
+              network::Node            nodeType );
 
     ~Executor() override;
 
+    void getGeneralStatusReport( mega::reports::Branch& report );
+    
     void shutdown();
     void shutdown( boost::asio::yield_context& yield_ctx );
 
@@ -81,6 +84,7 @@ public:
     void updateActiveProjectToClock();
 
 private:
+    network::Log                             m_log;
     boost::asio::io_context&                 m_io_context;
     U64                                      m_numThreads;
     ProcessClock&                            m_processClock;

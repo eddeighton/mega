@@ -62,7 +62,6 @@ set( MEGA_VALUES_COMPILATION_HEADERS
     ${MEGA_VALUES_COMPILATION_DIR}/relation_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/size_alignment.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/source_location.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/sources.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/sub_type_instance.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/tool_chain_hash.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/type_id_sequence.hpp

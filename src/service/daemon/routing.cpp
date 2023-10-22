@@ -50,6 +50,8 @@ network::Message DaemonRequestLogicalThread::dispatchInBoundRequest( const netwo
         return result;
     if( result = network::status::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
+    if( result = network::report::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
+        return result;
     if( result = network::job::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
     if( result = network::memory::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )

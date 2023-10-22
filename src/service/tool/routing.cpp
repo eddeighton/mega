@@ -43,6 +43,8 @@ network::Message ToolRequestLogicalThread::dispatchInBoundRequest( const network
         return result;
     if( result = network::status::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
+    if( result = network::report::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
+        return result;
     if( result = network::project::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "ToolRequestLogicalThread::dispatchInBoundRequest failed: " << msg );

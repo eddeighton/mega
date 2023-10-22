@@ -42,7 +42,7 @@ public:
         : m_value( TOTAL_OWNERSHIP_MODES )
     {
     }
-    Ownership( Value value )
+    explicit Ownership( Value value )
         : m_value( value )
     {
     }

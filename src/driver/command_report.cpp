@@ -20,7 +20,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "reports/renderer.hpp"
+#include "reports/renderer_html.hpp"
 
 #include "service/network/log.hpp"
 
@@ -30,6 +30,7 @@
 #include "mega/mangle/traits.hpp"
 #include "mega/common_strings.hpp"
 
+#include "service/network/log.hpp"
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
@@ -66,7 +67,7 @@ public:
         using namespace std::string_literals;
         using namespace mega::reports;
 
-        Table table{ { "Line", "Multiline", "Branch", "Graph" } };
+        Table table{ { "Line"s, "Multiline"s, "Branch"s, "Graph"s } };
 
         for( int i = 0; i != 10; ++i )
         {
@@ -79,21 +80,21 @@ public:
                     Multiline
                     { 
                         { 
-                            "MPO: ",
+                            "MPO: "s,
                             mega::MPO{ 1, 2, 3 }, 
-                            " MP: ",
+                            " MP: "s,
                             mega::MP{ 1, 2 } 
                         } 
                     },
                     Branch
                     {
-                        { "BranchLabel" },
+                        { "BranchLabel"s },
                         ContainerVector
                         {
                             Line{ "Branch Element 1"s }, 
                             Branch
                             {
-                                { "NestedBranch" },
+                                { "NestedBranch"s },
                                 ContainerVector
                                 {
                                     Line{ "Element 1"s }, 
@@ -101,9 +102,9 @@ public:
                                     Multiline
                                     { 
                                         { 
-                                            "MPO: ",
+                                            "MPO: "s,
                                             mega::MPO{ 1, 2, 3 }, 
-                                            " MP: ",
+                                            " MP: "s,
                                             mega::MP{ 1, 2 } 
                                         } 
                                     },
@@ -117,12 +118,12 @@ public:
                     Graph
                     {
                         {
-                            Graph::Node{ {{ "Node 1" }, { "MPO", mega::MPO{ 3,2,1 } }, { "Type", mega::TypeID::make_context( 123,321 ) } } },
-                            Graph::Node{ {{ "Node 2" }}, Colour::red },
-                            Graph::Node{ {{ "Node 3" }}, Colour::blue },
-                            Graph::Node{ {{ "Node 4" }}, Colour::green },
-                            Graph::Node{ {{ "Node 5" }}, Colour::orange },
-                            Graph::Node{ {{ "Node 6" }}}
+                            Graph::Node{ {{ "Node 1"s }, { "MPO"s, mega::MPO{ 3,2,1 } }, { "Type"s, mega::TypeID::make_context( 123,321 ) } } },
+                            Graph::Node{ {{ "Node 2"s }}, Colour::red },
+                            Graph::Node{ {{ "Node 3"s }}, Colour::blue },
+                            Graph::Node{ {{ "Node 4"s }}, Colour::green },
+                            Graph::Node{ {{ "Node 5"s }}, Colour::orange },
+                            Graph::Node{ {{ "Node 6"s }}}
                         },
                         {
                             Graph::Edge{ 0, 1 },
@@ -169,12 +170,12 @@ public:
         using namespace std::string_literals;
         using namespace mega::reports;
 
-        Branch branch{ { "Symbols" } };
+        Branch branch{ { "Symbols"s } };
 
         auto pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
         {
-            Table concrete{ { "Concrete Type ID", "Interface Type ID", "Full Type Name", "Component" } };
+            Table concrete{ { "Concrete Type ID"s, "Interface Type ID"s, "Full Type Name"s, "Component"s } };
             for( auto [ typeID, pConcreteID ] : pSymbolTable->get_concrete_type_ids() )
             {
                 auto pVertex = pConcreteID->get_vertex();
@@ -190,8 +191,8 @@ public:
         {
             Table interface {
                 {
-                    "Interface Type ID", "Full Type Name", "Data Type", "Erased Type", "Mangle", "Simple", "Size",
-                        "Alignment"
+                    "Interface Type ID"s, "Full Type Name"s, "Data Type"s, "Erased Type"s, "Mangle"s, "Simple"s,
+                        "Size"s, "Alignment"s
                 }
             };
             for( auto [ typeID, pInterfaceTypeID ] : pSymbolTable->get_interface_type_ids() )
@@ -255,20 +256,17 @@ public:
 
     std::optional< std::string > link( const mega::reports::Value& value ) override
     {
-        /*if( auto pval = std::get_if< mega::reports::CompileTimeIdentities >( &value ) )
+        if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
         {
-            if( auto pTypeID = std::get_if< mega::TypeID >( pval ) )
-            {
-                std::ostringstream os;
-                os << "file:///home/foobar/test_Debug/test2.html#" << *pTypeID;
-                return os.str();
-                // mega::reports::URL url;
-                // url.reportID           = getID();
-                // url.reporterLinkTarget = getID();
-                // url.url                = os.str();
-                // return url;
-            }
-        }*/
+            std::ostringstream os;
+            os << "file:///home/foobar/test_Debug/test2.html#" << *pTypeID;
+            return os.str();
+            // mega::reports::URL url;
+            // url.reportID           = getID();
+            // url.reporterLinkTarget = getID();
+            // url.url                = os.str();
+            // return url;
+        }
 
         return {};
     }
@@ -283,8 +281,8 @@ public:
 
         if( !dimensions.empty() )
         {
-            Table table{ { "Dimension", "Identifier", "Canon" } };
-            Table table2{ { "Data" } };
+            Table table{ { "Dimension"s, "Identifier"s, "Canon"s } };
+            Table table2{ { "Data"s } };
 
             for( DimensionTrait* pDimension : dimensions )
             {
@@ -292,13 +290,13 @@ public:
 
                 if( auto pUser = db_cast< UserDimensionTrait >( pDimension ) )
                 {
-                    table.m_rows.push_back(
-                        { Line{ "User" }, Line{ getIdentifier( pDimension ) }, Line{ pUser->get_canonical_type() } } );
+                    table.m_rows.push_back( { Line{ "User "s }, Line{ getIdentifier( pDimension ) },
+                                              Line{ pUser->get_canonical_type() } } );
                 }
                 else if( auto pCompiler = db_cast< CompilerDimensionTrait >( pDimension ) )
                 {
-                    table.m_rows.push_back(
-                        { Line{ "Comp" }, Line{ getIdentifier( pDimension ) }, Line{ std::string{ mega::psz_bitset } } } );
+                    table.m_rows.push_back( { Line{ "Comp "s }, Line{ getIdentifier( pDimension ) },
+                                              Line{ std::string{ mega::psz_bitset } } } );
                 }
                 else
                 {
@@ -325,18 +323,18 @@ public:
 
         if( auto pNamespace = db_cast< Namespace >( pContext ) )
         {
-            branch.m_label = TextVector{ { "Namespace", Interface::getIdentifier( pContext ) } };
+            branch.m_label = { { "Namespace "s, Interface::getIdentifier( pContext ) } };
             addProperties( typeIDs, branch, pNamespace->get_dimension_traits() );
         }
         else if( auto pAbstract = db_cast< Abstract >( pContext ) )
         {
-            branch.m_label = TextVector{ { "Interface", Interface::getIdentifier( pContext ) } };
+            branch.m_label = { { "Interface "s, Interface::getIdentifier( pContext ) } };
 
             // addInheritance( pAbstract->get_inheritance_trait(), node );
         }
         else if( auto pAction = db_cast< Action >( pContext ) )
         {
-            branch.m_label = TextVector{ { "Action", Interface::getIdentifier( pContext ) } };
+            branch.m_label = { { "Action "s, Interface::getIdentifier( pContext ) } };
             addProperties( typeIDs, branch, pAction->get_dimension_traits() );
 
             // addInheritance( pAction->get_inheritance_trait(), node );
@@ -344,7 +342,7 @@ public:
         }
         else if( auto pComponent = db_cast< Component >( pContext ) )
         {
-            branch.m_label = TextVector{ { "Component", Interface::getIdentifier( pContext ) } };
+            branch.m_label = { { "Component "s, Interface::getIdentifier( pContext ) } };
             addProperties( typeIDs, branch, pComponent->get_dimension_traits() );
 
             // addInheritance( pComponent->get_inheritance_trait(), node );
@@ -352,7 +350,7 @@ public:
         }
         else if( auto pState = db_cast< State >( pContext ) )
         {
-            branch.m_label = TextVector{ { "State", Interface::getIdentifier( pContext ) } };
+            branch.m_label = { { "State "s, Interface::getIdentifier( pContext ) } };
             addProperties( typeIDs, branch, pState->get_dimension_traits() );
 
             // addInheritance( pState->get_inheritance_trait(), node );
@@ -360,21 +358,21 @@ public:
         }
         else if( auto pEvent = db_cast< Event >( pContext ) )
         {
-            branch.m_label = TextVector{ { "Event", Interface::getIdentifier( pContext ) } };
+            branch.m_label = { { "Event "s, Interface::getIdentifier( pContext ) } };
             addProperties( typeIDs, branch, pEvent->get_dimension_traits() );
 
             // addInheritance( pEvent->get_inheritance_trait(), node );
         }
         else if( auto pInterupt = db_cast< Interupt >( pContext ) )
         {
-            branch.m_label = TextVector{ { "Interupt", Interface::getIdentifier( pContext ) } };
+            branch.m_label = { { "Interupt "s, Interface::getIdentifier( pContext ) } };
 
             // addTransition( pInterupt->get_transition_trait(), node );
             // addEvent( pInterupt->get_events_trait(), node );
         }
         else if( auto pFunction = db_cast< Function >( pContext ) )
         {
-            branch.m_label = TextVector{ { "Function", Interface::getIdentifier( pContext ) } };
+            branch.m_label = { { "Function "s, Interface::getIdentifier( pContext ) } };
 
             // {
             //     nlohmann::json     arguments;
@@ -391,7 +389,7 @@ public:
         }
         else if( auto pObject = db_cast< Object >( pContext ) )
         {
-            branch.m_label = TextVector{ { "Object", Interface::getIdentifier( pContext ) } };
+            branch.m_label = { { "Object "s, Interface::getIdentifier( pContext ) } };
             addProperties( typeIDs, branch, pObject->get_dimension_traits() );
 
             // addInheritance( pObject->get_inheritance_trait(), node );
@@ -415,7 +413,7 @@ public:
         using namespace std::string_literals;
         using namespace mega::reports;
 
-        Table root{ { "TypeID", "Tree" } };
+        Table root{ { "TypeID"s, "Tree"s } };
 
         for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
@@ -437,7 +435,7 @@ public:
     }
 };
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command(mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     std::string             reportURL;
     boost::filesystem::path projectPath, outputFilePath, templateDir;
@@ -468,37 +466,50 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         using namespace mega::reports;
 
-        const mega::Project project( projectPath );
-
-        VERIFY_RTE_MSG( boost::filesystem::exists( project.getProjectDatabase() ),
-                        "Failed to locate project database at: " << project.getProjectDatabase().string() );
-
-        mega::io::ArchiveEnvironment environment( project.getProjectDatabase() );
-        mega::io::Manifest           manifest( environment, environment.project_manifest() );
-
-        using namespace FinalStage;
-        Database database( environment, environment.project_manifest() );
-
-        Renderer renderer( templateDir );
+        mega::reports::URL url;
         {
-            renderer.registerReporter( std::make_unique< TestReporter >() );
-            renderer.registerReporter(
-                std::make_unique< InterfaceReporter >( outputFilePath.string(), manifest, environment, database ) );
-            renderer.registerReporter( std::make_unique< SymbolsReporter >( environment, database ) );
+            url.url = reportURL;
+        }
+
+        Container result;
+
+        if( reportURL == "test" )
+        {
+            TestReporter reporter;
+            result = reporter.generate( url );
+        }
+        else
+        {
+            const mega::Project project( projectPath );
+            VERIFY_RTE_MSG( boost::filesystem::exists( project.getProjectDatabase() ),
+                            "Failed to locate project database at: " << project.getProjectDatabase().string() );
+
+            mega::io::ArchiveEnvironment environment( project.getProjectDatabase() );
+            mega::io::Manifest           manifest( environment, environment.project_manifest() );
+
+            using namespace FinalStage;
+            Database database( environment, environment.project_manifest() );
+
+            if( reportURL == "symbols" )
+            {
+                SymbolsReporter reporter( environment, database );
+                result = reporter.generate( url );
+            }
+            else if( reportURL == "interface" )
+            {
+                InterfaceReporter reporter( outputFilePath.string(), manifest, environment, database );
+                result = reporter.generate( url );
+            }
+            else
+            {
+                THROW_RTE( "Unknown report type: " << reportURL );
+            }
         }
 
         std::ostringstream os;
 
-        mega::reports::URL url;
-        {
-            std::ostringstream osURL;
-            osURL << "file:///home/foobar/test_Debug/test2.htm";
-            url.reportID           = reportURL;
-            url.reporterLinkTarget = reportURL;
-            url.url                = osURL.str();
-        }
-
-        renderer.generate( url, os );
+        HTMLRenderer renderer( templateDir );
+        renderer.render( result, os );
 
         try
         {

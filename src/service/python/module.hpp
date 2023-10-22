@@ -62,8 +62,9 @@ class PythonModule
     {
         LogConfig( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
 
+        network::Log m_log; // stolen by module
+
     private:
-        std::shared_ptr< spdlog::logger >               m_pLogger;
         std::shared_ptr< spdlog::details::thread_pool > m_pThreadPool;
     };
 

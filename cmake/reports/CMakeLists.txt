@@ -67,7 +67,7 @@ set( JINJA_TEMPLATES
 
 set( REPORTS_HEADERS
     ${MEGA_API_DIR}/reports/colours.hxx
-    ${MEGA_API_DIR}/reports/renderer.hpp
+    ${MEGA_API_DIR}/reports/renderer_html.hpp
     ${MEGA_API_DIR}/reports/report.hpp
     ${MEGA_API_DIR}/reports/reporter_id.hpp
     ${MEGA_API_DIR}/reports/reporter.hpp
@@ -77,7 +77,8 @@ set( REPORTS_HEADERS
 
 set( REPORTS_SOURCE
     ${MEGA_SRC_DIR}/reports/colours.cxx
-    ${MEGA_SRC_DIR}/reports/renderer.cpp
+    ${MEGA_SRC_DIR}/reports/renderer_html.cpp
+    ${MEGA_SRC_DIR}/reports/value.cpp
 )
 
 add_library( reports

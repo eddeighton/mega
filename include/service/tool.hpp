@@ -26,6 +26,7 @@
 #include "service/network/logical_thread_manager.hpp"
 #include "service/network/sender_factory.hpp"
 #include "service/network/receiver_channel.hpp"
+#include "service/network/log.hpp"
 
 #include <boost/asio/io_service.hpp>
 
@@ -41,7 +42,7 @@ class Tool : public network::LogicalThreadManager
     friend class ToolRequestLogicalThread;
 
 public:
-    Tool( short daemonPortNumber );
+    Tool( short daemonPortNumber, network::Log log );
     ~Tool();
 
     void shutdown();
@@ -64,6 +65,7 @@ public:
     void setMPO( MPO mpo ) { m_mpo = mpo; }
 
 private:
+    network::Log               m_log;
     boost::asio::io_context    m_io_context;
     network::ReceiverChannel   m_receiverChannel;
     Leaf                       m_leaf;

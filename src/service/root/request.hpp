@@ -29,6 +29,7 @@
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/report.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/sim.hxx"
@@ -45,6 +46,7 @@ class RootRequestLogicalThread : public network::InThreadLogicalThread,
                                  public network::project::Impl,
                                  public network::enrole::Impl,
                                  public network::status::Impl,
+                                 public network::report::Impl,
                                  public network::stash::Impl,
                                  public network::job::Impl,
                                  public network::sim::Impl
@@ -132,6 +134,13 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual network::Status GetNetworkStatus( boost::asio::yield_context& yield_ctx ) override;
+
+    // network::report::Impl
+    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
+                                                const std::vector< mega::reports::Container >& report,
+                                                boost::asio::yield_context&                    yield_ctx ) override;
+    virtual mega::reports::Container GetNetworkReport( const mega::reports::URL&   url,
+                                                       boost::asio::yield_context& yield_ctx ) override;
 
     // network::stash::Impl
     virtual void           StashClear( boost::asio::yield_context& yield_ctx ) override;

@@ -21,6 +21,7 @@
 
 #include "mega/values/runtime/reference_io.hpp"
 
+#include "service/network/log.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
 
@@ -57,7 +58,7 @@ mega::MPO toMPO( const std::string& strMPO )
     return mpo;
 }
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     bool        bList = false;
     std::string strCreate, strList, strDestroy, strID, strRead, strWrite, strRelease, strSuspend, strResume, strStop,
@@ -101,14 +102,14 @@ void command( bool bHelp, const std::vector< std::string >& args )
             if( std::count( strCreate.begin(), strCreate.end(), '.' ) == 0 )
             {
                 const mega::MachineID   daemonMachineID = toMachineID( strCreate );
-                mega::service::Terminal terminal;
+                mega::service::Terminal terminal( log );
                 const mega::MP          executorMP = terminal.ExecutorCreate( daemonMachineID );
                 std::cout << executorMP << std::endl;
             }
             else if( std::count( strCreate.begin(), strCreate.end(), '.' ) == 1 )
             {
                 const mega::MP          executorMP = toMP( strCreate );
-                mega::service::Terminal terminal;
+                mega::service::Terminal terminal( log );
                 const mega::MPO         simMPO = terminal.SimCreate( executorMP );
                 std::cout << simMPO << std::endl;
             }
@@ -122,13 +123,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
             if( std::count( strDestroy.begin(), strDestroy.end(), '.' ) == 1 )
             {
                 const mega::MP          executorMP = toMP( strDestroy );
-                mega::service::Terminal terminal;
+                mega::service::Terminal terminal( log );
                 terminal.ExecutorDestroy( executorMP );
             }
             else if( std::count( strDestroy.begin(), strDestroy.end(), '.' ) == 2 )
             {
                 const mega::MPO         simMPO = toMPO( strDestroy );
-                mega::service::Terminal terminal;
+                mega::service::Terminal terminal( log );
                 terminal.SimDestroy( simMPO );
             }
             else
@@ -141,7 +142,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strRead );
-            mega::service::Terminal terminal;
+            mega::service::Terminal terminal( log );
             const mega::TimeStamp   lockCycle = terminal.SimRead( sourceMPO, targetMPO );
             std::cout << lockCycle << std::endl;
         }
@@ -150,7 +151,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strWrite );
-            mega::service::Terminal terminal;
+            mega::service::Terminal terminal( log );
             const mega::TimeStamp   lockCycle = terminal.SimWrite( sourceMPO, targetMPO );
             std::cout << lockCycle << std::endl;
         }
@@ -159,13 +160,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
             VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strRelease );
-            mega::service::Terminal terminal;
+            mega::service::Terminal terminal( log );
             terminal.SimRelease( sourceMPO, targetMPO );
         }
         else if( !strErrorCheck.empty() )
         {
             const mega::MPO         targetMPO = toMPO( strErrorCheck );
-            mega::service::Terminal terminal;
+            mega::service::Terminal terminal( log );
             try
             {
                 terminal.SimErrorCheck( targetMPO );

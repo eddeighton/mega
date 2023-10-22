@@ -48,8 +48,8 @@ class FakePlugin : public ProcessClock
 public:
     using Ptr = std::shared_ptr< FakePlugin >;
 
-    FakePlugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
-        : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), *this, network::Node::Plugin )
+    FakePlugin( boost::asio::io_context& ioContext, network::Log log, U64 uiNumThreads )
+        : m_executor( ioContext, log, uiNumThreads, mega::network::MegaDaemonPort(), *this, network::Node::Plugin )
     {
     }
 
@@ -118,6 +118,7 @@ public:
                    U64 uiNumThreads = std::thread::hardware_concurrency() )
         : m_work_guard( m_ioContext.get_executor() )
     {
+        mega::network::Log log;
         {
             boost::filesystem::path logFolder;
             {
@@ -140,13 +141,13 @@ public:
                 strConsoleLogLevel = pszConsoleLogLevel;
             if( pszFileLogLevel )
                 strLogFileLevel = pszFileLogLevel;
-            m_pLogger
-                = mega::network::configureLog( logFolder, "plugin_fake", mega::network::fromStr( strConsoleLogLevel ),
-                                               mega::network::fromStr( strLogFileLevel ) );
+            log = mega::network::configureLog(
+                mega::network::Log::Config{ logFolder, "plugin_fake", mega::network::fromStr( strConsoleLogLevel ),
+                                            mega::network::fromStr( strLogFileLevel ) } );
             m_pThreadPool = spdlog::thread_pool();
         }
 
-        m_pPlugin = std::make_shared< FakePlugin >( m_ioContext, uiNumThreads );
+        m_pPlugin = std::make_shared< FakePlugin >( m_ioContext, log, uiNumThreads );
 
         for( int i = 0; i < uiNumThreads; ++i )
         {
@@ -164,7 +165,6 @@ public:
         }
     }
 
-    std::shared_ptr< spdlog::logger >               m_pLogger;
     std::shared_ptr< spdlog::details::thread_pool > m_pThreadPool;
     boost::asio::io_context                         m_ioContext;
     using ExecutorType = decltype( m_ioContext.get_executor() );

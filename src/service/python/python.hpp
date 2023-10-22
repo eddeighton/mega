@@ -43,7 +43,7 @@ class Python : public network::LogicalThreadManager
     friend class PythonRequestLogicalThread;
 
 public:
-    Python( boost::asio::io_context& io_context, short daemonPortNumber );
+    Python( boost::asio::io_context& io_context, network::Log log, short daemonPortNumber );
     ~Python();
 
     void shutdown();
@@ -67,6 +67,7 @@ public:
     void                                  setProject( const Project& project ) { m_project = project; }
 
 private:
+    network::Log                           m_log;
     boost::asio::io_context&               m_io_context;
     network::ReceiverChannel               m_receiverChannel;
     Leaf                                   m_leaf;

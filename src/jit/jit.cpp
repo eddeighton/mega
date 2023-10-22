@@ -88,6 +88,20 @@ JIT::~JIT()
     }
 }
 
+network::JITStatus JIT::getStatus() const
+{
+    network::JITStatus status;
+
+    status.m_functionPointers       = m_functionPointers.size();
+    status.m_allocators             = m_allocators.size();
+    status.m_relations              = m_relations.size();
+    status.m_invocations            = m_invocations.size();
+    status.m_operators              = m_operators.size();
+    status.m_componentManagerStatus = m_componentManager.getStatus();
+
+    return status;
+}
+
 mega::TypeID JIT::getInterfaceTypeID( TypeID concreteTypeID ) const
 {
     return m_database.getInterfaceTypeID( concreteTypeID );
@@ -323,7 +337,7 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
         break;
         case mega::id_exp_Link_Read:
         {
-            functionType     = mega::runtime::invocation::eLinkRead;
+            functionType       = mega::runtime::invocation::eLinkRead;
             result.mangledType = getReturnTypeMangleType( pInvocationFinal->get_return_type(), invocationID );
         }
         break;

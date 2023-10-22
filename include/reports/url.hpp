@@ -41,16 +41,12 @@ class URL
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& reportID;
-        archive& reporterLinkTarget;
         archive& url;
     }
 
     friend std::ostream& operator<<( std::ostream& os, const URL& url );
 
 public:
-    static URL parse( const std::string& strURL );
-
     inline std::string str() const
     {
         std::ostringstream os;
@@ -58,44 +54,30 @@ public:
         return os.str();
     }
 
-    ReporterID                  reportID;
-    std::optional< ReporterID > reporterLinkTarget;
-    std::string                 url;
-    // std::vector< std::string >   path;
-    // std::optional< std::string > bookmark;
+    static inline URL makeFile( const boost::filesystem::path& filePath )
+    {
+        std::ostringstream osFileURL;
+        
+        osFileURL << "file:///" << filePath.string();
+
+        return URL{ osFileURL.str() };
+    }
+
+    static inline URL makeWEB( const std::string& strReport )
+    {
+        std::ostringstream osWEB;
+        
+        osWEB << "http://0.0.0.0:8080/" << strReport;
+
+        return URL{ osWEB.str() };
+    }
+
+    std::string url;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const URL& url )
 {
-    THROW_TODO;
-    /*os << "http://0.0.0.0:8080/";
-
-    bool bFirst = true;
-    for( const auto& p : url.path )
-    {
-        if( bFirst )
-        {
-            bFirst = false;
-        }
-        else
-        {
-            os << '/';
-        }
-        os << p;
-    }
-
-    os << url.reportID;
-
-    if( url.bookmark.has_value() )
-    {
-        os << '/' << url.bookmark.value();
-    }
-    if( url.reporterLinkTarget.has_value() )
-    {
-        os << '/' << url.reporterLinkTarget.value();
-    }
-
-    return os;*/
+    return os << url.url;
 }
 
 } // namespace mega::reports

@@ -24,6 +24,9 @@
 
 #include "service/network/server.hpp"
 #include "service/network/logical_thread_manager.hpp"
+#include "service/network/log.hpp"
+
+#include "reports/report.hpp"
 
 #include "mega/values/compilation/megastructure_installation.hpp"
 #include "mega/values/service/root_config.hpp"
@@ -44,7 +47,8 @@ class Root : public network::LogicalThreadManager
     using StartupUUIDMap = std::map< std::string, MP >;
 
 public:
-    Root( boost::asio::io_context& ioContext, const boost::filesystem::path& stashFolder, short portNumber );
+    Root( boost::asio::io_context& ioContext, network::Log log, const boost::filesystem::path& stashFolder,
+          short portNumber );
     void shutdown();
 
     // network::LogicalThreadManager
@@ -57,6 +61,8 @@ public:
     void                setStartupUUIDMP( const std::string& strUUID, MP mp );
     std::optional< MP > getAndResetStartupUUID( const std::string& strUUID );
 
+    void getGeneralStatusReport( mega::reports::Branch& report );
+
 private:
     void loadConfig();
     void saveConfig();
@@ -64,6 +70,8 @@ private:
     void onDaemonDisconnect( mega::MachineID machineID );
 
 private:
+    network::Log                               m_log;
+    const boost::filesystem::path              m_stashFolder;
     network::Server                            m_server;
     task::BuildHashCodes                       m_buildHashCodes;
     task::Stash                                m_stash;

@@ -43,9 +43,10 @@
 namespace mega::service
 {
 
-Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short daemonPortNumber,
-                    ProcessClock& processClock, network::Node::Type nodeType )
-    : network::LogicalThreadManager( network::makeProcessName( nodeType ), io_context )
+Executor::Executor( boost::asio::io_context& io_context, network::Log log, U64 numThreads, short daemonPortNumber,
+                    ProcessClock& processClock, network::Node nodeType )
+    : network::LogicalThreadManager( network::Node::makeProcessName( nodeType ), io_context )
+    , m_log( log )
     , m_io_context( io_context )
     , m_numThreads( numThreads )
     , m_processClock( processClock )
@@ -90,6 +91,28 @@ Executor::~Executor()
     }
 }
 
+void Executor::getGeneralStatusReport( mega::reports::Branch& report )
+{
+    using namespace mega::reports;
+    using namespace std::string_literals;
+
+    Table threads;
+    for( const auto& threadID : reportLogicalThreads() )
+    {
+        threads.m_rows.push_back( { Line{ threadID } } );
+    }
+
+    Table table;
+    // clang-format off
+    table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
+    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, URL::makeFile( m_log.logFile ) } } );
+    table.m_rows.push_back( { Line{ "     Threads: "s }, Line{ std::to_string( m_numThreads ) } } );
+    table.m_rows.push_back( { Line{ "Mega Threads: "s }, threads } );
+    // clang-format on
+
+    report.m_elements.push_back( table );
+}
+
 class ExecutorShutdownPromise : public ExecutorRequestLogicalThread
 {
     std::promise< void >&          m_promise;
@@ -123,8 +146,8 @@ void Executor::shutdown()
         if( !simulations.empty() )
         {
             SPDLOG_WARN( "Simulations still running when shutting executor down" );
-            std::promise< void >            promise;
-            std::future< void >             future = promise.get_future();
+            std::promise< void > promise;
+            std::future< void >  future = promise.get_future();
             logicalthreadInitiated( std::make_shared< ExecutorShutdownPromise >( *this, promise, simulations ) );
             future.get();
         }

@@ -62,8 +62,8 @@ struct MemoryStatus
         archive& m_allocators;
     }
 
-    U64 m_heap;
-    U64 m_object;
+    U64 m_heap   = 0;
+    U64 m_object = 0;
 
     struct TypedAllocatorStatus
     {
@@ -80,6 +80,39 @@ struct MemoryStatus
     TypedAllocatorStatusArray m_allocators;
 };
 
+struct ComponentMgrStatus
+{
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& m_interfaceComponents;
+        archive& m_pythonComponents;
+    }
+
+    U64 m_interfaceComponents = 0;
+    U64 m_pythonComponents    = 0;
+};
+
+struct JITStatus
+{
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& m_functionPointers;
+        archive& m_allocators;
+        archive& m_relations;
+        archive& m_invocations;
+        archive& m_operators;
+    }
+
+    U64 m_functionPointers = 0;
+    U64 m_allocators       = 0;
+    U64 m_relations        = 0;
+    U64 m_invocations      = 0;
+    U64 m_operators        = 0;
+
+    ComponentMgrStatus m_componentManagerStatus;
+};
 
 class Status
 {
@@ -92,11 +125,11 @@ class Status
         }
         else if( getMP().has_value() )
         {
-            mpoIsh = MPO{ getMP().value(), 0 };
+            mpoIsh = MPO( getMP().value(), OwnerID{} );
         }
         else if( getMachineID().has_value() )
         {
-            mpoIsh = MPO{ getMachineID().value(), 0, 0 };
+            mpoIsh = MPO{ getMachineID().value(), ProcessID{}, OwnerID{} };
         }
         else
         {

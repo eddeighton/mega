@@ -34,65 +34,82 @@
 namespace mega::reports
 {
 
-//using Text       = std::variant< std::string, Value >;
-using Text       = Value;
-using TextVector = std::vector< Text >;
+using ValueVector = std::vector< Value >;
 
+class Link;
 class Line;
 class Multiline;
 class Branch;
 class Table;
 class Graph;
-using Container       = std::variant< Line, Multiline, Branch, Table, Graph >;
+using Container       = boost::variant< Line, Multiline, Branch, Table, Graph >;
 using ContainerVector = std::vector< Container >;
 
+/***
+    Line{ Value, opt< URL >, opt< Bookmark > }
+*/
 class Line
 {
     friend class boost::serialization::access;
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        // archive& m_element;
-        // archive& m_bookmark;
+        archive& m_element;
+        archive& m_url;
+        archive& m_bookmark;
     }
 
 public:
-    Text                   m_element;
+    Value                  m_element;
+    std::optional< URL>    m_url;
     std::optional< Value > m_bookmark;
 };
 
+/***
+    Multiline{ vec< Value >, opt< URL >, opt< Bookmark > }
+*/
 class Multiline
 {
     friend class boost::serialization::access;
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        // archive& m_elements;
-        // archive& m_bookmark;
+        archive& m_elements;
+        archive& m_url;
+        archive& m_bookmark;
     }
 
 public:
-    TextVector             m_elements;
+    ValueVector            m_elements;
+    std::optional< URL>    m_url;
     std::optional< Value > m_bookmark;
 };
 
+/***
+    Branch{ vec< Value >, vec< Container >, opt< Bookmark > }
+*/
 class Branch
 {
     friend class boost::serialization::access;
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        // archive& m_label;
+        archive& m_label;
         archive& m_elements;
-        // archive& m_bookmark;
+        archive& m_bookmark;
     }
 
 public:
-    TextVector             m_label;
+    ValueVector            m_label;
     ContainerVector        m_elements;
     std::optional< Value > m_bookmark;
 };
 
+/***
+    Table{ vec< Value >, vec< vec< Container > > }
+
+    NOTE: If headings are empty then only containers row columns displayed
+*/
 class Table
 {
     friend class boost::serialization::access;
@@ -104,10 +121,18 @@ class Table
     }
 
 public:
-    std::vector< std::string >     m_headings;
+    std::vector< Value >           m_headings;
     std::vector< ContainerVector > m_rows;
 };
 
+/***
+    Graph{ vec< Node >, vec< Edge > }
+
+    Node{ vec< vec< Value > >, colour( lightblue ), opt< URL >, opt< Bookmark > }
+    Edge{ sourceIndex, targetIndex, style }
+
+    Edge Styles: dashed, dotted, solid, invis, bold
+*/
 class Graph
 {
     friend class boost::serialization::access;
@@ -125,19 +150,19 @@ public:
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
-            //archive& m_rows;
+            archive& m_rows;
             archive& m_colour;
             archive& m_url;
-            //archive& m_bookmark;
+            archive& m_bookmark;
         }
 
     public:
         using Vector = std::vector< Node >;
 
-        std::vector< TextVector > m_rows;
-        Colour                    m_colour = Colour::lightblue;
-        std::optional< URL >      m_url;
-        std::optional< Value >    m_bookmark;
+        std::vector< ValueVector > m_rows;
+        Colour                     m_colour = Colour::lightblue;
+        std::optional< URL >       m_url;
+        std::optional< Value >     m_bookmark;
     };
 
     class Edge

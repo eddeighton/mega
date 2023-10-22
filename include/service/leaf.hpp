@@ -52,9 +52,11 @@ class Leaf : public network::LogicalThreadManager
     friend class MPOEntry;
 
 public:
-    Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short daemonPortNumber );
+    Leaf( network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber );
     ~Leaf();
 
+    void getGeneralStatusReport( mega::reports::Branch& report );
+    
     std::optional< Project > startup();
 
     // void shutdown();
@@ -63,7 +65,7 @@ public:
     // network::LogicalThreadManager
     virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
-    network::Node::Type  getType() const { return m_nodeType; }
+    network::Node        getType() const { return m_nodeType; }
     network::Sender::Ptr getDaemonSender() { return m_client.getSender(); }
     network::Sender::Ptr getNodeChannelSender() { return m_pSender; }
     network::Sender::Ptr getLeafSender() { return m_pSelfSender; }
@@ -91,7 +93,7 @@ public:
 private:
     network::Sender::Ptr     m_pSender;
     network::Sender::Ptr     m_pSelfSender;
-    network::Node::Type      m_nodeType;
+    network::Node            m_nodeType;
     boost::asio::io_context  m_io_context;
     network::ReceiverChannel m_receiverChannel;
     network::Client          m_client;

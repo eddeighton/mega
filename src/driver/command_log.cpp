@@ -34,7 +34,7 @@
 namespace driver::log
 {
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path logFolderPath;
 

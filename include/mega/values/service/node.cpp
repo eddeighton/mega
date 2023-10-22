@@ -51,14 +51,14 @@ static const NodeStringArray g_nodeTypeStrings =
 // clang-format on
 } // namespace
 
-const char* Node::toStr( Node::Type type )
+const std::string& Node::str() const
 {
-    return g_nodeTypeStrings[ type ].c_str();
+    return g_nodeTypeStrings[ m_type ];
 }
 
-bool Node::canAllocateObjects( Type type )
+bool Node::canAllocateObjects() const
 {
-    switch( type )
+    switch( m_type )
     {
         case Tool:
         case Python:
@@ -78,19 +78,19 @@ bool Node::canAllocateObjects( Type type )
     }
 }
 
-Node::Type Node::fromStr( const char* pszStr )
+Node Node::fromStr( const char* pszStr )
 {
     auto iFind = std::find( g_nodeTypeStrings.begin(), g_nodeTypeStrings.end(), pszStr );
     if( iFind == g_nodeTypeStrings.end() )
-        return TOTAL_NODE_TYPES;
+        return Node{ TOTAL_NODE_TYPES };
     else
-        return static_cast< Node::Type >( std::distance( g_nodeTypeStrings.begin(), iFind ) );
+        return Node{ static_cast< Node::Type >( std::distance( g_nodeTypeStrings.begin(), iFind ) ) };
 }
 
-std::string makeProcessName( Node::Type type )
+std::string Node::makeProcessName( Node node )
 {
     std::ostringstream os;
-    os << Node::toStr( type ) << "_" << common::ProcessID::get().getPID();
+    os << node.str() << "_" << common::ProcessID::get().getPID();
     return os.str();
 }
 

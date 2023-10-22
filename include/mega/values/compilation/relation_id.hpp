@@ -38,17 +38,17 @@ public:
 
     constexpr inline RelationID()                    = default;
     constexpr inline RelationID( const RelationID& ) = default;
-    constexpr inline RelationID( TypeID lower, TypeID upper )
+    constexpr explicit inline RelationID( TypeID lower, TypeID upper )
         : m_lower( ( lower < upper ) ? lower : upper )
         , m_upper( ( lower < upper ) ? upper : lower )
     {
     }
-    constexpr inline RelationID( TypeID::ValueType lower, TypeID::ValueType upper )
+    constexpr explicit inline RelationID( TypeID::ValueType lower, TypeID::ValueType upper )
         : m_lower( ( lower < upper ) ? lower : upper )
         , m_upper( ( lower < upper ) ? upper : lower )
     {
     }
-    constexpr inline RelationID( ValueType id )
+    constexpr explicit inline RelationID( ValueType id )
         : m_lower( static_cast< TypeID::ValueType >( id >> SHIFT ) )
         , m_upper( static_cast< TypeID::ValueType >( id ) )
     {

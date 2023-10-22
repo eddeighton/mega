@@ -24,6 +24,7 @@
 
 #include "service/protocol/model/leaf_term.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/report.hxx"
 #include "service/protocol/model/project.hxx"
 
 namespace mega::service
@@ -32,6 +33,7 @@ namespace mega::service
 class TerminalRequestLogicalThread : public network::InThreadLogicalThread,
                                      public network::leaf_term::Impl,
                                      public network::status::Impl,
+                                     public network::report::Impl,
                                      public network::project::Impl
 {
 protected:
@@ -53,6 +55,11 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
+    // network::report::Impl
+    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
+                                                const std::vector< mega::reports::Container >& report,
+                                                boost::asio::yield_context&                    yield_ctx ) override;
+                                                
     // network::project::Impl
     virtual void SetProject( const mega::Project& project, boost::asio::yield_context& yield_ctx ) override;
 };

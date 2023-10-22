@@ -26,6 +26,7 @@
 #include "pipeline/pipeline.hpp"
 
 #include "service/network/network.hpp"
+#include "service/network/log.hpp"
 
 #include "service/network/logical_thread_manager.hpp"
 #include "mega/values/service/logical_thread_id.hpp"
@@ -49,7 +50,7 @@ class Terminal : public network::LogicalThreadManager
     friend class TerminalRequestLogicalThread;
 
 public:
-    Terminal( short daemonPortNumber = mega::network::MegaDaemonPort() );
+    Terminal( network::Log log, short daemonPortNumber = mega::network::MegaDaemonPort() );
     ~Terminal();
 
     void shutdown();
@@ -117,6 +118,7 @@ private:
     }
 
 private:
+    network::Log             m_log;
     boost::asio::io_context  m_io_context;
     network::ReceiverChannel m_receiverChannel;
     Leaf                     m_leaf;

@@ -26,6 +26,7 @@
 #include "environment/jit_database.hpp"
 
 #include "mega/values/service/project.hpp"
+#include "mega/values/service/status.hpp"
 
 #include <boost/filesystem/path.hpp>
 #include <boost/dll/import.hpp>
@@ -69,6 +70,8 @@ public:
     using Ptr = std::unique_ptr< ComponentManager >;
 
     ComponentManager( const mega::Project& project, JITDatabase& database );
+
+    network::ComponentMgrStatus getStatus() const;
 
     TypeErasedFunction getOperationFunctionPtr( mega::TypeID interfaceTypeID );
     TypeErasedFunction getPythonFunctionPtr( mega::TypeID interfaceTypeID, void* pPythonCaster );

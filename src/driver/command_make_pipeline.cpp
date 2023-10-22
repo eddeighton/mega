@@ -29,6 +29,7 @@
 
 #include "mega/values/compilation/tool_chain_hash.hpp"
 
+#include "service/network/log.hpp"
 #include "common/file.hpp"
 #include "common/stash.hpp"
 
@@ -43,7 +44,7 @@
 namespace driver::make_pipeline
 {
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     std::string             projectName, strComponentInfoPaths;
     boost::filesystem::path srcDir, buildDir, installDir, templatesDir, toolchainXML, unityProjectDir, unityEditor,

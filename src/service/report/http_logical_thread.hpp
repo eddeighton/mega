@@ -37,12 +37,12 @@
 namespace mega::service::report
 {
 
-class MPOLogicalThread : public ReportRequestLogicalThread, public network::report::Impl, public mega::MPOContext
+class HTTPLogicalThread : public ReportRequestLogicalThread, public mega::MPOContext
 {
 public:
-    using Ptr = std::shared_ptr< MPOLogicalThread >;
+    using Ptr = std::shared_ptr< HTTPLogicalThread >;
 
-    MPOLogicalThread( Report&                         report,
+    HTTPLogicalThread( Report&                         report,
                       const network::LogicalThreadID& logicalthreadID,
                       boost::asio::ip::tcp::socket&   socket );
 

@@ -21,101 +21,67 @@
 #ifndef GUARD_2023_October_17_value
 #define GUARD_2023_October_17_value
 
-// #include "mega/values/compilation/type_id.hpp"
-// #include "mega/sub_type_instance.hpp"
-// #include "mega/values/compilation/type_instance.hpp"
-// #include "mega/values/compilation/invocation_id.hpp"
-// #include "mega/values/runtime/mpo.hpp"
-// #include "mega/values/runtime/reference.hpp"
-// #include "mega/values/compilation/operation_id.hpp"
-// #include "mega/values/compilation/relation_id.hpp"
-// #include "mega/mangle/traits.hpp"
-// 
-// #include "mega/values/compilation/type_id.hpp"
-// #include "mega/values/runtime/reference_io.hpp"
-// #include "mega/values/compilation/invocation_id.hpp"
-// #include "mega/values/native_types_io.hpp"
-// #include "mega/values/compilation/relation_id.hpp"
-// 
-// #include <boost/variant.hpp>
-// #include <variant>
+#include "database/directories.hpp"
+#include "database/manifest_data.hpp"
+#include "database/component_info.hpp"
 
-#include <any>
+#include "mega/values/compilation/compilation_configuration.hpp"
+#include "mega/values/compilation/megastructure_installation.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+#include "mega/values/compilation/relation_id.hpp"
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/size_alignment.hpp"
+
+#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/mpo.hpp"
+
+#include "mega/values/service/logical_thread_id.hpp"
+#include "mega/values/service//node.hpp"
+#include "mega/values/service/project.hpp"
+#include "mega/values/service/root_config.hpp"
+
+#include <boost/variant.hpp>
+#include <boost/filesystem/path.hpp>
+
+#include <string>
 
 namespace mega::reports
 {
-using Value = std::any;
-/*
+    
 // clang-format off
-using CompileTimeIdentities= std::variant
+using Value = boost::variant
 < 
-    TypeID, 
-    SubTypeInstance, 
-    TypeInstance, 
-    InvocationID, 
-    OperationID, 
-    ExplicitOperationID, 
-    RelationID 
->;
+    std::string, 
+    boost::filesystem::path,
 
-using RuntimeValue = std::variant
-< 
-    BitSet, 
-    reference, 
-    ReferenceVector, 
-    LinkTypeVector,
-    MP, 
-    MPO, 
-    AllocationID 
+    // Database Types
+    // mega::io::Directories,
+
+    // Compilation Types
+    TypeID, 
+    InvocationID, 
+    RelationID, 
+    SizeAlignment,
+    MegastructureInstallation,
+
+    // Runtime Types
+    MachineID,
+    MP,
+    MPO,
+    reference,
+    AllocationID,
+
+    // Service Types
+    mega::network::LogicalThreadID,
+    mega::network::Node,
+    mega::Project
+    //mega::network::RootConfig
+
 >;
 // clang-format on
 
-using Value = std::variant< CompileTimeIdentities, RuntimeValue >;
-
-inline std::string toString( const Value& value )
-{
-    using ::operator<<;
-
-    std::ostringstream osValue;
-
-    // clang-format off
-    struct CompilerTimeVisitor
-    {
-        std::ostream& os;
-        void operator()( const mega::TypeID                 & value ) const { os << value; }
-        void operator()( const mega::SubTypeInstance        & value ) const { os << value; }
-        void operator()( const mega::TypeInstance           & value ) const { os << value; }
-        void operator()( const mega::InvocationID           & value ) const { os << value; }
-        void operator()( const mega::OperationID            & value ) const { os << value; }
-        void operator()( const mega::ExplicitOperationID    & value ) const { os << value; }
-        void operator()( const mega::RelationID             & value ) const { os << value; }
-    } compilerTimeVisitor{ osValue };
-
-    struct RuntimeVisitor
-    {
-        std::ostream& os;
-        void operator()( const mega::MP                     & value ) const { os << value; }
-        void operator()( const mega::MPO                    & value ) const { os << value; }
-        void operator()( const mega::reference              & value ) const { os << value; }
-        void operator()( const mega::ReferenceVector        & value ) const { os << value; }
-        void operator()( const mega::LinkTypeVector         & value ) const { os << value; }
-        void operator()( const mega::BitSet                 & value ) const { os << value; }
-        void operator()( const mega::AllocationID           & value ) const { os << value; }
-        
-    } runtimeVisitor{ osValue };
-
-    struct Visitor
-    {
-        CompilerTimeVisitor& compilerTimeVisitor;
-        RuntimeVisitor&      runtimeVisitor;
-        void operator()( const CompileTimeIdentities& value )   const { std::visit( compilerTimeVisitor, value ); }
-        void operator()( const RuntimeValue& value )            const { std::visit( runtimeVisitor, value ); }
-    } visitor{ compilerTimeVisitor, runtimeVisitor };
-    std::visit( visitor, value );
-    // clang-format on
-
-    return osValue.str();
-}*/
+std::string toString( const Value& value );
 
 } // namespace mega::reports
 

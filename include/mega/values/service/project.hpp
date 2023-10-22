@@ -25,6 +25,8 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include <ostream>
+
 namespace mega
 {
 
@@ -49,9 +51,16 @@ public:
         archive& boost::serialization::make_nvp( "installationPath", m_projectInstallPath );
     }
 
+    inline bool operator==( const Project& cmp ) const { return m_projectInstallPath == cmp.m_projectInstallPath; }
+
 private:
     boost::filesystem::path m_projectInstallPath;
 };
+
+inline std::ostream& operator<<( std::ostream& os, const Project& project )
+{
+    return os << project.getProjectInstallPath().string();
+}
 
 } // namespace mega
 

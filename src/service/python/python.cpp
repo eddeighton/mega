@@ -44,8 +44,9 @@
 namespace mega::service::python
 {
 
-Python::Python( boost::asio::io_context& io_context, short daemonPortNumber )
-    : network::LogicalThreadManager( network::makeProcessName( network::Node::Python ), io_context )
+Python::Python( boost::asio::io_context& io_context, network::Log log, short daemonPortNumber )
+    : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Python ), io_context )
+    , m_log( log )
     , m_io_context( io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf( m_receiverChannel.getSender(), network::Node::Python, daemonPortNumber )
@@ -64,9 +65,9 @@ void Python::shutdown()
     // TODO ?
 }
 
-const std::optional< mega::Project >& Python::getProject() const 
-{ 
-    return m_project; 
+const std::optional< mega::Project >& Python::getProject() const
+{
+    return m_project;
 }
 
 network::LogicalThreadBase::Ptr Python::joinLogicalThread( const network::Message& msg )

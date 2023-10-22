@@ -43,6 +43,7 @@ public:
                    U64 uiNumThreads = std::thread::hardware_concurrency() )
         : m_work_guard( m_ioContext.get_executor() )
     {
+        mega::network::Log log;
         {
             boost::filesystem::path logFolder;
             {
@@ -65,12 +66,13 @@ public:
                 strConsoleLogLevel = pszConsoleLogLevel;
             if( pszFileLogLevel )
                 strLogFileLevel = pszFileLogLevel;
-            m_pLogger = mega::network::configureLog( logFolder, "plugin", mega::network::fromStr( strConsoleLogLevel ),
-                                                     mega::network::fromStr( strLogFileLevel ) );
+            log = mega::network::configureLog(
+                mega::network::Log::Config{ logFolder, "plugin", mega::network::fromStr( strConsoleLogLevel ),
+                                            mega::network::fromStr( strLogFileLevel ) } );
             m_pThreadPool = spdlog::thread_pool();
         }
 
-        m_pPlugin = std::make_shared< mega::service::Plugin >( m_ioContext, uiNumThreads );
+        m_pPlugin = std::make_shared< mega::service::Plugin >( m_ioContext, log, uiNumThreads );
 
         for( int i = 0; i < uiNumThreads; ++i )
         {
@@ -88,7 +90,6 @@ public:
         }
     }
 
-    std::shared_ptr< spdlog::logger >               m_pLogger;
     std::shared_ptr< spdlog::details::thread_pool > m_pThreadPool;
     boost::asio::io_context                         m_ioContext;
     using ExecutorType = decltype( m_ioContext.get_executor() );

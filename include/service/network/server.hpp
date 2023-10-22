@@ -57,10 +57,10 @@ public:
         bool        isSender( Sender::Ptr pSender ) { return m_pSender == pSender; }
         Sender::Ptr getSender() const { return m_pSender; }
 
-        const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
-        const std::optional< Label >&      getLabel() const { return m_labelOpt; }
+        const std::optional< Node >&    getTypeOpt() const { return m_typeOpt; }
+        const std::optional< Label >&   getLabel() const { return m_labelOpt; }
 
-        void setType( Node::Type type ) { m_typeOpt = type; }
+        void setType( Node type ) { m_typeOpt = type; }
         void setLabel( Label label ) { m_labelOpt = label; }
 
         template < typename TFunctor >
@@ -83,7 +83,7 @@ public:
         Traits::Socket                      m_socket;
         SocketReceiver                      m_receiver;
         Sender::Ptr                         m_pSender;
-        std::optional< Node::Type >         m_typeOpt;
+        std::optional< Node >               m_typeOpt;
         std::optional< DisconnectCallback > m_disconnectCallback;
         std::optional< Label >              m_labelOpt;
     };
@@ -92,6 +92,8 @@ public:
 
 public:
     Server( boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager, short port );
+
+    const auto getEndPoint() const { return m_acceptor.local_endpoint(); }
 
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
     const ConnectionMap&     getConnections() const { return m_connections; }

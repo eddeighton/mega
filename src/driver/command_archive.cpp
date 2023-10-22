@@ -27,6 +27,8 @@
 #include "environment/environment_archive.hpp"
 #include "database/archive.hpp"
 
+#include "service/network/log.hpp"
+
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
 
@@ -43,7 +45,7 @@ namespace driver
 {
     namespace archive
     {
-        void command( bool bHelp, const std::vector< std::string >& args )
+        void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
         {
             boost::filesystem::path srcDir, buildDir, outputFilePath, inputArchiveFilePath;
 

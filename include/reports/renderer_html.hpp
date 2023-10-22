@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,59 +18,37 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg EnroleDaemon
-{
-    request();
-    response( MachineID daemonMachineID );
-}
+#ifndef GUARD_2023_October_19_renderer
+#define GUARD_2023_October_19_renderer
 
-msg EnroleLeafWithDaemon
-{
-    request( std::string startupUUID, mega::network::Node type );
-    response( MP leafMP );
-}
+#include "colours.hxx"
+#include "reporter_id.hpp"
+#include "reporter.hpp"
+#include "url.hpp"
 
-msg EnroleLeafWithRoot
-{
-    request( std::string startupUUID, MachineID daemonMachineID );
-    response( MP leafMP );
-}
+#include <memory>
+#include <map>
 
-msg EnroleLeafDisconnect
-{
-    request( MP leafMP );
-    response();
-}
+#include "common/assert_verify.hpp"
 
-msg EnroleGetDaemons
-{
-    request();
-    response( std::vector< mega::MachineID > daemons );
-}
-msg EnroleGetProcesses
-{
-    request( mega::MachineID machineID );
-    response( std::vector< mega::MP > machineProcesses );
-}
-msg EnroleGetMPO
-{
-    request( mega::MP machineProcess );
-    response( std::vector< mega::MPO > mpos );
-}
+#include <boost/filesystem/path.hpp>
 
-msg EnroleCreateExecutor
+namespace mega::reports
 {
-    request( MachineID daemonMachineID );
-    response( mega::MP executorMP );
-}
-msg EnroleDestroy
-{
-    request();
-    response();
-}
-msg EnroleDaemonSpawn
-{
-    request( std::string strProgram, std::string strStartupUUID );
-    response();
-}
 
+class HTMLRenderer
+{
+public:
+    HTMLRenderer( const boost::filesystem::path& templateDir );
+    ~HTMLRenderer();
+
+    void render( const Container& report, std::ostream& os );
+    void render( const Container& report, Reporter& linker, std::ostream& os );
+
+private:
+    void* m_pInja;
+};
+
+} // namespace mega::reports
+
+#endif // GUARD_2023_October_19_renderer

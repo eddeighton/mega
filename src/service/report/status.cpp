@@ -19,7 +19,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "request.hpp"
-#include "mpo_logical_thread.hpp"
+#include "http_logical_thread.hpp"
 
 #include "service/network/log.hpp"
 
@@ -28,10 +28,10 @@ namespace mega::service::report
 
 // network::project::Impl
 
-network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                            boost::asio::yield_context&           yield_ctx )
+network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
+                                             boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "MPOLogicalThread::GetStatus" );
+    SPDLOG_TRACE( "HTTPLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
@@ -72,7 +72,7 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
 }
 
 network::Status ReportRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                      boost::asio::yield_context&           yield_ctx )
+                                                       boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "ReportRequestLogicalThread::GetStatus" );
 
@@ -102,6 +102,30 @@ std::string ReportRequestLogicalThread::Ping( const std::string& strMsg, boost::
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
+}
+
+mega::reports::Container
+ReportRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                       const std::vector< mega::reports::Container >& childReports,
+                                       boost::asio::yield_context&                    yield_ctx )
+{
+    SPDLOG_TRACE( "ReportRequestLogicalThread::GetReport" );
+    using namespace mega::reports;
+    reports::Branch branch{ { getID(), m_report.getProcessName(), m_report.getMP() }, childReports };
+
+
+        /*os << "<html><body><H1>";
+        os << "Hello from HTTPLogicalThread: " << getThisMPO() << "</h1><P>";
+        {
+            MPORealToLogicalVisitor mpoRealInstantiation( getThisRoot() );
+            LogicalTreePrinter      printer( os );
+            LogicalTreeTraversal    objectTraversal( mpoRealInstantiation, printer );
+            traverse( objectTraversal );
+        }
+        os << "</P></body></html>";*/
+        
+        
+    return branch;
 }
 
 } // namespace mega::service::report

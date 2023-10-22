@@ -34,6 +34,7 @@
 #include "database/OperationsStage.hxx"
 
 #include "mega/values/service/project.hpp"
+#include "mega/values/service/status.hpp"
 #include "service/protocol/common/jit_base.hpp"
 
 #include "mega/values/compilation/invocation_id.hpp"
@@ -57,6 +58,8 @@ public:
 
     TypeID getInterfaceTypeID( TypeID concreteTypeID ) const;
 
+    network::JITStatus getStatus() const;
+    
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& typeID );
 
     virtual InvocationTypeInfo compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
@@ -76,6 +79,7 @@ public:
                                       void** ppFunction ) override;
 
 private:
+
     Relation::Ptr getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
     Program::Ptr  getProgram( const CodeGenerator::LLVMCompiler& compiler );
 

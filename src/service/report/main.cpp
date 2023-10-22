@@ -1,7 +1,7 @@
 
 #include "http_server.hpp"
 #include "report.hpp"
-#include "mpo_logical_thread.hpp"
+#include "http_logical_thread.hpp"
 
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
@@ -81,15 +81,16 @@ int main( int argc, char* argv[] )
 
     SPDLOG_INFO( "Starting report server on: {} : {}", strIP, port );
 
-    mega::network::configureLog(
-        logFolder, "report", mega::network::fromStr( strConsoleLogLevel ), mega::network::fromStr( strLogFileLevel ) );
+    auto log = mega::network::configureLog( mega::network::Log::Config{ logFolder, "report",
+                                                                        mega::network::fromStr( strConsoleLogLevel ),
+                                                                        mega::network::fromStr( strLogFileLevel ) } );
 
     try
     {
         auto const                     address = boost::asio::ip::make_address( strIP );
         boost::asio::ip::tcp::endpoint endPoint{ address, port };
         boost::asio::io_context        ioService{ uiNumThreads };
-        mega::service::report::Report  reportService( ioService, daemonPort, timeoutSeconds );
+        mega::service::report::Report  reportService( ioService, log, daemonPort, timeoutSeconds, endPoint );
 
         {
             const auto& projectOpt = reportService.getProject();

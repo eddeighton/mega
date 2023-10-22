@@ -27,7 +27,7 @@ namespace mega::service
 
 // network::project::Impl
 network::Status LeafRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                    boost::asio::yield_context&           yield_ctx )
+                                                     boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::GetStatus" );
 
@@ -46,7 +46,7 @@ network::Status LeafRequestLogicalThread::GetStatus( const std::vector< network:
         status.setLogicalThreadID( logicalthreads );
         status.setMP( m_leaf.m_mp );
         std::ostringstream os;
-        os << m_leaf.getProcessName() << " of type: " << mega::network::Node::toStr( m_leaf.m_nodeType );
+        os << m_leaf.getProcessName() << " of type: " << m_leaf.m_nodeType;
         status.setDescription( os.str() );
 
         status.setMemory( m_leaf.m_pRemoteMemoryManager->getStatus() );
@@ -63,4 +63,23 @@ std::string LeafRequestLogicalThread::Ping( const std::string& strMsg, boost::as
     return os.str();
 }
 
+mega::reports::Container LeafRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                                              const std::vector< mega::reports::Container >& report,
+                                                              boost::asio::yield_context&                    yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestLogicalThread::GetReport" );
+    using namespace mega::reports;
+    using namespace std::string_literals;
+
+    reports::Branch leaf{ { m_leaf.getProcessName() } };
+
+    m_leaf.getGeneralStatusReport( leaf );
+
+    for( const auto& child : report )
+    {
+        leaf.m_elements.push_back( child );
+    }
+
+    return leaf;
+}
 } // namespace mega::service

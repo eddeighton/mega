@@ -30,6 +30,7 @@
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/report.hxx"
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"
@@ -45,6 +46,7 @@ class DaemonRequestLogicalThread : public network::InThreadLogicalThread,
                                    public network::mpo::Impl,
                                    public network::enrole::Impl,
                                    public network::status::Impl,
+                                   public network::report::Impl,
                                    public network::job::Impl,
                                    public network::memory::Impl,
                                    public network::project::Impl,
@@ -58,7 +60,7 @@ public:
     virtual ~DaemonRequestLogicalThread();
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
 
     // helpers
     network::daemon_root::Request_Sender getRootSender( boost::asio::yield_context& yield_ctx )
@@ -119,7 +121,7 @@ public:
                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
-    virtual MP   EnroleLeafWithDaemon( const std::string& startupUUID, const network::Node::Type& type,
+    virtual MP   EnroleLeafWithDaemon( const std::string& startupUUID, const network::Node& type,
                                        boost::asio::yield_context& yield_ctx ) override;
     virtual void EnroleDaemonSpawn( const std::string& strProgram, const std::string& startupUUID,
                                     boost::asio::yield_context& yield_ctx ) override;
@@ -128,6 +130,11 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
+
+    // network::report::Impl
+    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
+                                                const std::vector< mega::reports::Container >& report,
+                                                boost::asio::yield_context&                    yield_ctx ) override;
 
     // network::memory::Impl
     virtual void MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;

@@ -33,6 +33,7 @@
 #include "mega/common_strings.hpp"
 #include "mega/mangle/traits.hpp"
 
+#include "service/network/log.hpp"
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
 #include "common/requireSemicolon.hpp"
@@ -1144,7 +1145,7 @@ void generateAutomataGraphViz( std::ostream& os, mega::io::Environment& environm
     os << data;
 }
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     std::string             strGraphType;
     boost::filesystem::path srcDir, buildDir, databaseArchivePath, outputFilePath;

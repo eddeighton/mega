@@ -58,4 +58,13 @@ std::string ToolRequestLogicalThread::Ping( const std::string& strMsg, boost::as
     return os.str();
 }
 
+mega::reports::Container ToolRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                                                const std::vector< mega::reports::Container >& report,
+                                                                boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "ToolRequestLogicalThread::GetReport" );
+    using namespace mega::reports;
+    reports::Branch branch{ { getID(), m_tool.getProcessName(), m_tool.getMPO() }, report };
+    return branch;
+}
 } // namespace mega::service

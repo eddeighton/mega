@@ -109,6 +109,22 @@ ComponentManager::ComponentManager( const mega::Project& project, JITDatabase& d
 {
 }
 
+network::ComponentMgrStatus ComponentManager::getStatus() const
+{
+    network::ComponentMgrStatus status;
+
+    for( const auto& [ path, pInterfaceComponent ] : m_interfaceComponents )
+    {
+        ++status.m_interfaceComponents;
+    }
+    for( const auto& [ path, pInterfaceComponent ] : m_pythonComponents )
+    {
+        ++status.m_pythonComponents;
+    }
+
+    return status;
+}
+
 TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID interfaceTypeID )
 {
     SPDLOG_TRACE( "RUNTIME: ComponentManager getOperationFunctionPtr : {}", interfaceTypeID );

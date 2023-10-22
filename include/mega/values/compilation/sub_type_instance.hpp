@@ -64,11 +64,11 @@ public:
     {
     }
 
-    constexpr SubTypeInstance( SubType subType, Instance instance )
+    constexpr explicit SubTypeInstance( SubType subType, Instance instance )
         : m_data{ instance, subType }
     {
     }
-    constexpr SubTypeInstance( ValueType value )
+    constexpr explicit SubTypeInstance( ValueType value )
         : m_value{ value }
     {
     }
@@ -90,7 +90,7 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        if constexpr( boost::serialization::IsXMLArchive< Archive >::Value )
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {
             archive& boost::serialization::make_nvp( "subTypeInstance", m_value );
         }

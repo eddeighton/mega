@@ -19,7 +19,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "report.hpp"
-#include "mpo_logical_thread.hpp"
+#include "http_logical_thread.hpp"
 
 #include "request.hpp"
 
@@ -44,12 +44,15 @@
 namespace mega::service::report
 {
 
-Report::Report( boost::asio::io_context& io_context, short daemonPortNumber, int iTimeoutSeconds )
-    : network::LogicalThreadManager( network::makeProcessName( network::Node::Report ), io_context )
+Report::Report( boost::asio::io_context& io_context, network::Log log, short daemonPortNumber, int iTimeoutSeconds,
+                const boost::asio::ip::tcp::endpoint& httpEndPoint )
+    : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Report ), io_context )
+    , m_log( log )
     , m_io_context( io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf( m_receiverChannel.getSender(), network::Node::Report, daemonPortNumber )
     , m_iTimeoutSeconds( iTimeoutSeconds )
+    , m_httpEndPoint( httpEndPoint )
 {
     m_receiverChannel.run( m_leaf.getLeafSender() );
     m_project                   = m_leaf.startup();
@@ -78,8 +81,8 @@ network::LogicalThreadBase::Ptr Report::joinLogicalThread( const network::Messag
 
 void Report::createReport( boost::asio::ip::tcp::socket& socket )
 {
-    MPOLogicalThread::Ptr pMPOLogicalThread
-        = std::make_shared< MPOLogicalThread >( *this, createLogicalThreadID(), socket );
+    HTTPLogicalThread::Ptr pMPOLogicalThread
+        = std::make_shared< HTTPLogicalThread >( *this, createLogicalThreadID(), socket );
     logicalthreadInitiated( pMPOLogicalThread );
 }
 

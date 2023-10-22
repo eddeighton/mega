@@ -257,7 +257,7 @@ void simpleReport( std::atomic< bool >& bContinue, bool bShowMsgs, bool bShowSta
         }
     }
 }
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     namespace po    = boost::program_options;
     bool bShowUI    = true;

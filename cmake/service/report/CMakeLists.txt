@@ -44,8 +44,8 @@ set( REPORT_SOURCE
     ${MEGA_SRC_DIR}/service/report/routing.cpp 
     ${MEGA_SRC_DIR}/service/report/report.hpp 
     ${MEGA_SRC_DIR}/service/report/report.cpp 
-    ${MEGA_SRC_DIR}/service/report/mpo_logical_thread.hpp 
-    ${MEGA_SRC_DIR}/service/report/mpo_logical_thread.cpp 
+    ${MEGA_SRC_DIR}/service/report/http_logical_thread.hpp 
+    ${MEGA_SRC_DIR}/service/report/http_logical_thread.cpp 
     ${MEGA_SRC_DIR}/service/report/http_server.cpp 
     ${MEGA_SRC_DIR}/service/report/main.cpp 
     )

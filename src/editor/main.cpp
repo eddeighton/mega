@@ -83,12 +83,13 @@ int main( int argc, char* argv[] )
 
     try
     {
-        mega::network::configureLog( logFolder, "editor", mega::network::fromStr( strConsoleLogLevel ),
-                                     mega::network::fromStr( strLogFileLevel ) );
+        auto log = mega::network::configureLog(
+            mega::network::Log::Config{ logFolder, "editor", mega::network::fromStr( strConsoleLogLevel ),
+                                        mega::network::fromStr( strLogFileLevel ) } );
 
         if( bConnect )
         {
-            mega::service::Tool tool( daemonPortNumber );
+            mega::service::Tool tool( daemonPortNumber, log );
 
             mega::service::Tool::Functor functor = [ argc, argv ]( boost::asio::yield_context& yield_ctx ) -> int
             { return runGuiInService( argc, argv, yield_ctx ); };

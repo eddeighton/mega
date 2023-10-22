@@ -26,6 +26,7 @@
 
 #include "mega/values/runtime/reference_io.hpp"
 
+#include "service/network/log.hpp"
 #include "spdlog/stopwatch.h"
 
 #include <boost/program_options.hpp>
@@ -38,7 +39,7 @@
 namespace driver::status
 {
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     bool                                   bTime = false;
     std::string                            strMPO, strMsg;
@@ -73,7 +74,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        mega::service::Terminal terminal;
+        mega::service::Terminal terminal( log );
 
         if( msgSize )
         {

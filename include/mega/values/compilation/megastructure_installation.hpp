@@ -27,6 +27,8 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include <ostream>
+
 namespace mega
 {
 
@@ -49,12 +51,24 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& boost::serialization::make_nvp( "installationPath", m_installationPath );
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            archive& boost::serialization::make_nvp( "installationPath", m_installationPath );
+        }
+        else
+        {
+            archive& m_installationPath;
+        }
     }
 
 private:
     boost::filesystem::path m_installationPath;
 };
+
+inline std::ostream& operator<<( std::ostream& os, const MegastructureInstallation& megaInstall )
+{
+    return os << megaInstall.getInstallationPath().string();
+}
 
 } // namespace mega
 

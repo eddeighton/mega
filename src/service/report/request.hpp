@@ -27,6 +27,8 @@
 #include "service/protocol/model/leaf_report.hxx"
 #include "service/protocol/model/report_leaf.hxx"
 
+#include "service/protocol/model/report.hxx"
+
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/project.hxx"
@@ -39,7 +41,8 @@ class ReportRequestLogicalThread : public network::InThreadLogicalThread,
                                    public network::report_leaf::Impl,
                                    public network::mpo::Impl,
                                    public network::status::Impl,
-                                   public network::project::Impl
+                                   public network::project::Impl,
+                                   public network::report::Impl
 {
 protected:
     Report& m_report;
@@ -49,7 +52,7 @@ public:
     virtual ~ReportRequestLogicalThread();
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
 
     network::report_leaf::Request_Sender getReportRequest( boost::asio::yield_context& yield_ctx );
 
@@ -94,6 +97,11 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& childNodeStatus,
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
+
+    // network::report::Impl
+    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
+                                                const std::vector< mega::reports::Container >& report,
+                                                boost::asio::yield_context&                    yield_ctx ) override;
 
     // network::project::Impl
     virtual void SetProject( const mega::Project& project, boost::asio::yield_context& yield_ctx ) override;

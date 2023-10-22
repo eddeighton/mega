@@ -19,6 +19,7 @@
 
 #include "mega/values/compilation/tool_chain_hash.hpp"
 
+#include "service/network/log.hpp"
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
@@ -37,7 +38,7 @@ namespace driver
 {
 namespace tool_chain
 {
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path clangPlugin, parser, megaCompiler, megaExecutor, clangCompiler, database, jit, megaMangle, leaf;
     boost::filesystem::path outputFilePath;

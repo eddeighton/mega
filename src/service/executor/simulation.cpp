@@ -171,28 +171,28 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
 
-                        for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
-                        {
-                            mega::reference ref = i->first;
-
-                            mega::U32 iterator = 1;
-                            while( true )
-                            {
-                                SubTypeInstance subTypeInstance = funcEnumerate( ref, iterator );
-                                if( iterator == 0 )
-                                {
-                                    break;
-                                }
-
-                                // auto actionContext = mega::reference::make( ref, subTypeInstance );
-                                // auto pAction = actionFunctionCache.getActionFunction( action.type );
-                                // mega::ActionCoroutine actionCoroutine = pAction( &actionContext );
-                                // while( !actionCoroutine.done() )
-                                // {
-                                //     actionCoroutine.resume();
-                                // }
-                            }
-                        }
+                        //for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
+                        //{
+                        //    mega::reference ref = i->first;
+                        
+                        //    mega::U32 iterator = 1;
+                        //    while( true )
+                        //    {
+                        //        SubTypeInstance subTypeInstance = funcEnumerate( ref, iterator );
+                        //        if( iterator == 0 )
+                        //        {
+                        //            break;
+                        //        }
+                        
+                        //        // auto actionContext = mega::reference::make( ref, subTypeInstance );
+                        //        // auto pAction = actionFunctionCache.getActionFunction( action.type );
+                        //        // mega::ActionCoroutine actionCoroutine = pAction( &actionContext );
+                        //        // while( !actionCoroutine.done() )
+                        //        // {
+                        //        //     actionCoroutine.resume();
+                        //        // }
+                        //    }
+                        //}
                     }
 
                     cycleComplete();
@@ -520,6 +520,16 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
     }
 
     return status;
+}
+
+mega::reports::Container Simulation::GetReport( const mega::reports::URL&                      url,
+                                                const std::vector< mega::reports::Container >& report,
+                                                boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "Simulation::GetReport" );
+    using namespace mega::reports;
+    reports::Branch branch{ { getID(), m_executor.getProcessName(), m_mpo.value() }, report };
+    return branch;
 }
 
 std::string Simulation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )

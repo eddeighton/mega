@@ -24,6 +24,7 @@
 #include "service/network/log.hpp"
 #include "mega/values/service/status.hpp"
 
+#include "service/network/log.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
 
@@ -36,7 +37,7 @@ namespace driver
 namespace stash
 {
 
-void command( bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     bool bClear = false;
 
@@ -62,7 +63,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         if ( bClear )
         {
-            mega::service::Terminal terminal;
+            mega::service::Terminal terminal( log );
             terminal.ClearStash();
             std::cout << "Stash cleared" << std::endl;
         }

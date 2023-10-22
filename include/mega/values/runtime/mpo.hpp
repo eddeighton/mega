@@ -35,12 +35,12 @@ class MP
 public:
     struct Hash
     {
-        inline U64 operator()( const MP& mp ) const noexcept { return mp.m_machineID + ( (U64)mp.m_processID << 4 ); }
+        inline U64 operator()( const MP& mp ) const noexcept { return mp.m_machineID + ( ( U64 )mp.m_processID << 4 ); }
     };
 
     MP() = default;
 
-    constexpr MP( MachineID machineID, ProcessID processID )
+    constexpr explicit MP( MachineID machineID, ProcessID processID )
         : m_machineID( machineID )
         , m_processID( processID )
         , m_padding( 0U )
@@ -48,7 +48,7 @@ public:
     }
 
     constexpr MP( const MP& mpo ) = default;
-    constexpr MP( const MPO& mpo );
+    constexpr explicit MP( const MPO& mpo );
 
     constexpr inline MachineID getMachineID() const { return m_machineID; }
     constexpr inline ProcessID getProcessID() const { return m_processID; }
@@ -60,7 +60,8 @@ public:
     constexpr inline bool operator!=( const MP& cmp ) const { return !( *this == cmp ); }
     constexpr inline bool operator<( const MP& cmp ) const
     {
-        return ( m_machineID != cmp.m_machineID ) ? ( m_machineID < cmp.m_machineID ) : ( m_processID < cmp.m_processID );
+        return ( m_machineID != cmp.m_machineID ) ? ( m_machineID < cmp.m_machineID )
+                                                  : ( m_processID < cmp.m_processID );
     }
 
     constexpr void setMachineID( MachineID machineID ) { m_machineID = machineID; }
@@ -79,19 +80,20 @@ public:
     {
         inline U64 operator()( const MPO& mpo ) const noexcept
         {
-            return mpo.m_machineID + ( (U64)mpo.m_processID << 4 ) + ( (U64)mpo.m_ownerID << 6 );
+            return mpo.m_machineID + ( ( U64 )mpo.m_processID << 4 ) + ( ( U64 )mpo.m_ownerID << 6 );
         }
     };
 
-    MPO() = default;
-    constexpr MPO( MachineID machineID, ProcessID processID, OwnerID ownerID )
+    MPO()                           = default;
+    constexpr MPO( const MPO& mpo ) = default;
+    constexpr explicit MPO( MachineID machineID, ProcessID processID, OwnerID ownerID )
         : m_machineID( machineID )
         , m_processID( processID )
         , m_ownerID( ownerID )
         , m_padding( 0U )
     {
     }
-    constexpr MPO( MP mp, OwnerID ownerID )
+    constexpr explicit MPO( MP mp, OwnerID ownerID )
         : MPO{ mp.getMachineID(), mp.getProcessID(), ownerID }
     {
     }
@@ -99,6 +101,7 @@ public:
     constexpr inline MachineID getMachineID() const { return m_machineID; }
     constexpr inline ProcessID getProcessID() const { return m_processID; }
     constexpr inline OwnerID   getOwnerID() const { return m_ownerID; }
+    constexpr inline MP        getMP() const { return MP( m_machineID, m_processID ); }
 
     constexpr inline bool operator==( const MPO& cmp ) const
     {
@@ -109,7 +112,7 @@ public:
     {
         return ( m_machineID != cmp.m_machineID )   ? ( m_machineID < cmp.m_machineID )
                : ( m_processID != cmp.m_processID ) ? ( m_processID < cmp.m_processID )
-                                                : ( m_ownerID < cmp.m_ownerID );
+                                                    : ( m_ownerID < cmp.m_ownerID );
     }
 
     constexpr void setMachineID( MachineID machineID ) { m_machineID = machineID; }
@@ -123,6 +126,6 @@ constexpr MP::MP( const MPO& mpo )
 {
 }
 
-}
+} // namespace mega
 
-#endif //GUARD_2023_January_07_mpo
+#endif // GUARD_2023_January_07_mpo
