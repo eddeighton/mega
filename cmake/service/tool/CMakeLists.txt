@@ -53,6 +53,8 @@ set( TOOL_LIB_SRC
     ${TOOL_SRC_DIR}/routing.cpp
     ${TOOL_SRC_DIR}/status.cpp
     ${TOOL_SRC_DIR}/project.cpp
+    ${TOOL_SRC_DIR}/tool_logical_thread.hpp
+    ${TOOL_SRC_DIR}/tool_logical_thread.cpp
 )
 
 add_library( tool

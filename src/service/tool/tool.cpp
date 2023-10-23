@@ -20,6 +20,7 @@
 #include "service/tool.hpp"
 
 #include "request.hpp"
+#include "tool_logical_thread.hpp"
 
 #include "service/mpo_context.hpp"
 
@@ -29,11 +30,6 @@
 
 #include "mega/values/service/logical_thread_id.hpp"
 
-#include "service/protocol/model/tool_leaf.hxx"
-#include "service/protocol/model/memory.hxx"
-#include "service/protocol/model/sim.hxx"
-#include "service/protocol/model/stash.hxx"
-#include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
 
 #include "log/file_log.hpp"
@@ -47,173 +43,6 @@
 
 namespace mega::service
 {
-
-namespace
-{
-template < typename TLogicalThreadFunctor >
-class GenericLogicalThread : public ToolRequestLogicalThread, public mega::MPOContext
-{
-    Tool&                 m_tool;
-    TLogicalThreadFunctor m_functor;
-
-public:
-    GenericLogicalThread( Tool& tool, const network::LogicalThreadID& logicalthreadID, TLogicalThreadFunctor&& functor )
-        : ToolRequestLogicalThread( tool, logicalthreadID )
-        , mega::MPOContext( getID() )
-        , m_tool( tool )
-        , m_functor( functor )
-    {
-    }
-
-    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                                     boost::asio::yield_context& yield_ctx ) override
-    {
-        return ToolRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
-    }
-
-    network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx )
-    {
-        return network::tool_leaf::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
-    }
-    network::mpo::Request_Sender getMPRequest( boost::asio::yield_context& yield_ctx )
-    {
-        return network::mpo::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
-    }
-    virtual network::enrole::Request_Encoder getRootEnroleRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { [ leafRequest = getToolRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
-                 { return leafRequest.ToolRoot( msg ); },
-                 getID() };
-    }
-    virtual network::stash::Request_Encoder getRootStashRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { [ leafRequest = getToolRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
-                 { return leafRequest.ToolRoot( msg ); },
-                 getID() };
-    }
-    virtual network::memory::Request_Encoder getDaemonMemoryRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { [ leafRequest = getToolRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
-                 { return leafRequest.ToolDaemon( msg ); },
-                 getID() };
-    }
-    virtual network::sim::Request_Encoder getMPOSimRequest( MPO mpo ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
-                 { return leafRequest.MPOUp( msg, mpo ); },
-                 getID() };
-    }
-    virtual network::memory::Request_Sender getLeafMemoryRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { *this, m_tool.getLeafSender(), *m_pYieldContext };
-    }
-    virtual network::jit::Request_Sender getLeafJITRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { *this, m_tool.getLeafSender(), *m_pYieldContext };
-    }
-
-    virtual network::mpo::Request_Sender getMPRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getMPRequest( *m_pYieldContext );
-    }
-
-    void run( boost::asio::yield_context& yield_ctx ) override
-    {
-        SPDLOG_TRACE( "TOOL: run function" );
-        network::sim::Request_Encoder request(
-            [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-            { return rootRequest.MPRoot( msg, mega::MP{} ); },
-            getID() );
-        request.SimStart();
-        SPDLOG_TRACE( "TOOL: run complete" );
-
-        // run complete will stop the receiver and ioservice.run() will complete.
-        m_tool.runComplete();
-    }
-
-    virtual void RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx ) override
-    {
-        m_tool.setMPO( mpo );
-
-        setMPOContext( this );
-        m_pYieldContext = &yield_ctx;
-
-        // note the runtime will query getThisMPO while creating the root
-        SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", mpo );
-        {
-            createRoot( project, mpo );
-            m_functor( yield_ctx );
-        }
-        SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", mpo );
-
-        m_pYieldContext = nullptr;
-        resetMPOContext();
-    }
-
-    virtual network::Status GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                       boost::asio::yield_context&           yield_ctx ) override
-    {
-        SPDLOG_TRACE( "ToolRequestLogicalThread::GetStatus" );
-
-        network::Status status{ childNodeStatus };
-        {
-            std::vector< network::LogicalThreadID > logicalthreads;
-            {
-                for( const auto& id : m_tool.reportLogicalThreads() )
-                {
-                    if( id != getID() )
-                    {
-                        logicalthreads.push_back( id );
-                    }
-                }
-            }
-            status.setLogicalThreadID( logicalthreads );
-            status.setMPO( m_tool.getMPO() );
-            status.setDescription( m_tool.getProcessName() );
-
-            using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
-            using MPOVec          = std::vector< MPO >;
-            if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
-                status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
-            if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
-                status.setWrites( MPOTimeStampVec{ writes.begin(), writes.end() } );
-
-            {
-                std::ostringstream os;
-                os << "Tool: " << getLog().getTimeStamp();
-            }
-
-            status.setLogIterator( getLog().getIterator() );
-            status.setLogFolder( getLog().getLogFolderPath().string() );
-
-            status.setMemory( m_pMemoryManager->getStatus() );
-        }
-
-        return status;
-    }
-
-    mega::reports::Container GetReport( const mega::reports::URL&                      url,
-                                        const std::vector< mega::reports::Container >& report,
-                                        boost::asio::yield_context&                    yield_ctx ) override
-    {
-        SPDLOG_TRACE( "Tool::GetReport" );
-        VERIFY_RTE( report.empty() );
-        using namespace mega::reports;
-        using namespace std::string_literals;
-        Table table;
-        table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );
-        MPOContext::getBasicReport( table );
-        return table;
-    }
-};
-} // namespace
 
 Tool::Tool( short daemonPortNumber, network::Log log )
     : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Tool ), m_io_context )
@@ -261,8 +90,8 @@ void Tool::run( Tool::Functor& function )
                 exceptionResult = std::current_exception();
             }
         };
-        logicalthreadInitiated( std::make_shared< GenericLogicalThread< decltype( func ) > >(
-            *this, createLogicalThreadID(), std::move( func ) ) );
+        logicalthreadInitiated(
+            std::make_shared< ToolMPOLogicalThread >( *this, createLogicalThreadID(), std::move( func ) ) );
     }
 
     // run until m_tool.runComplete();

@@ -19,6 +19,8 @@
 
 #include "request.hpp"
 
+#include "tool_logical_thread.hpp"
+
 #include "service/network/log.hpp"
 
 namespace mega::service
@@ -58,7 +60,57 @@ network::tool_leaf::Request_Sender ToolRequestLogicalThread::getToolRequest( boo
 network::Message ToolRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                              boost::asio::yield_context& yield_ctx )
 {
-    return dispatchInBoundRequest( request, yield_ctx );
+    // dispatch to the python MPO conversation
+    SPDLOG_TRACE( "ToolRequestLogicalThread::RootAllBroadcast" );
+    std::vector< network::Message > responses;
+    {
+        for( auto pThread : m_tool.getLogicalThreads() )
+        {
+            if( std::dynamic_pointer_cast< ToolMPOLogicalThread >( pThread ) )
+            {
+                if( pThread->getID() != getID() )
+                {
+                    switch( request.getID() )
+                    {
+                        case network::status::MSG_GetStatus_Request::ID:
+                        {
+                            SPDLOG_TRACE(
+                                "ToolRequestLogicalThread::RootAllBroadcast to logical thread: {}", pThread->getID() );
+                            auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
+                            network::status::Request_Sender rq( *this, pThread, yield_ctx );
+                            const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
+                                request.getLogicalThreadID(),
+                                network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) } );
+                            responses.push_back( responseWrapper );
+                        }
+                        break;
+                        case network::report::MSG_GetReport_Request::ID:
+                        {
+                            SPDLOG_TRACE(
+                                "ToolRequestLogicalThread::RootAllBroadcast to logical thread: {}", pThread->getID() );
+                            auto&                           msg = network::report::MSG_GetReport_Request::get( request );
+                            network::report::Request_Sender rq( *this, pThread, yield_ctx );
+                            const network::Message          responseWrapper = network::report::MSG_GetReport_Response::make(
+                                request.getLogicalThreadID(),
+                                network::report::MSG_GetReport_Response{ rq.GetReport( msg.url, msg.report ) } );
+                            responses.push_back( responseWrapper );
+                        }
+                        break;
+                        default:
+                        {
+                            THROW_RTE( "Unsupported RootAllBroadcast request type" );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    SPDLOG_TRACE( "ToolRequestLogicalThread::RootAllBroadcast got: {} responses", responses.size() );
+
+    network::Message aggregateRequest = std::move( request );
+    network::aggregate( aggregateRequest, responses );
+
+    return dispatchInBoundRequest( aggregateRequest, yield_ctx );
 }
 
 network::Message ToolRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,

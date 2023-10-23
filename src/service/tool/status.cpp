@@ -64,7 +64,8 @@ mega::reports::Container ToolRequestLogicalThread::GetReport( const mega::report
 {
     SPDLOG_TRACE( "ToolRequestLogicalThread::GetReport" );
     using namespace mega::reports;
-    reports::Branch branch{ { getID(), m_tool.getProcessName(), m_tool.getMPO() }, report };
+    using namespace std::string_literals;
+    reports::Branch branch{ { getID(), " "s, m_tool.getProcessName(), " "s, m_tool.getMPO() }, report };
     return branch;
 }
 } // namespace mega::service

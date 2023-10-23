@@ -123,7 +123,8 @@ mega::reports::Container PythonRequestLogicalThread::GetReport( const mega::repo
 {
     SPDLOG_TRACE( "PythonRequestLogicalThread::GetReport" );
     using namespace mega::reports;
-    reports::Branch branch{ { getID(), m_python.getProcessName() }, report };
+    using namespace std::string_literals;
+    reports::Branch branch{ { getID(), " "s, m_python.getProcessName() }, report };
     return branch;
 }
 } // namespace mega::service::python

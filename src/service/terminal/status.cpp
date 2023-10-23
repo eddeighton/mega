@@ -63,7 +63,8 @@ mega::reports::Container TerminalRequestLogicalThread::GetReport( const mega::re
 {
     SPDLOG_TRACE( "TerminalRequestLogicalThread::GetReport" );
     using namespace mega::reports;
-    reports::Branch branch{ { getID(), m_terminal.m_strProcessName }, report };
+    using namespace std::string_literals;
+    reports::Branch branch{ { getID(), " "s, m_terminal.m_strProcessName }, report };
     return branch;
 }
 } // namespace mega::service
