@@ -79,6 +79,7 @@ set( REPORTS_SOURCE
     ${MEGA_SRC_DIR}/reports/colours.cxx
     ${MEGA_SRC_DIR}/reports/renderer_html.cpp
     ${MEGA_SRC_DIR}/reports/value.cpp
+    ${MEGA_SRC_DIR}/reports/url.cpp
 )
 
 add_library( reports
