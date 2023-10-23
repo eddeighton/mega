@@ -70,7 +70,6 @@ target_link_libraries( plugin_fake mega_mangle )
 
 set_target_properties( plugin_fake PROPERTIES FOLDER service )
 
-link_boost( plugin_fake atomic )
 link_boost( plugin_fake program_options )
 link_boost( plugin_fake timer )
 link_boost( plugin_fake filesystem )

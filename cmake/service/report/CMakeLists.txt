@@ -67,7 +67,6 @@ target_link_libraries( report reporters )
 
 set_target_properties( report PROPERTIES FOLDER service )
 
-link_boost( report atomic )
 link_boost( report program_options )
 link_boost( report timer )
 link_boost( report filesystem )

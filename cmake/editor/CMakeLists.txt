@@ -135,7 +135,6 @@ target_link_libraries( editor tool )
 
 link_cgal( editor )
 link_qtdock2( editor )
-link_boost( editor atomic )
 link_boost( editor filesystem )
 link_boost( editor iostreams )
 link_boost( editor program_options )

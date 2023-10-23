@@ -115,17 +115,19 @@ set( MEGA_VALUES_RUNTIME_SRC
 
 set( MEGA_VALUES_SERVICE_DIR ${MEGA_VALUES_DIR}/service )
 set( MEGA_VALUES_SERVICE_HEADERS
-    ${MEGA_VALUES_SERVICE_DIR}/project.hpp
     ${MEGA_VALUES_SERVICE_DIR}/logical_thread_id.hpp
     ${MEGA_VALUES_SERVICE_DIR}/node.hpp
+    ${MEGA_VALUES_SERVICE_DIR}/project.hpp
     ${MEGA_VALUES_SERVICE_DIR}/root_config.hpp
     ${MEGA_VALUES_SERVICE_DIR}/status.hpp
+    ${MEGA_VALUES_SERVICE_DIR}/url.hpp
 
 )
 set( MEGA_VALUES_SERVICE_SRC
     ${MEGA_VALUES_SERVICE_DIR}/project.cpp
     ${MEGA_VALUES_SERVICE_DIR}/node.cpp
     ${MEGA_VALUES_SERVICE_DIR}/root_config.cpp
+    ${MEGA_VALUES_SERVICE_DIR}/url.cpp
 )
 
 set( MEGA_VALUES_HEADERS
@@ -148,6 +150,7 @@ target_include_directories( mega_values PUBLIC ${MEGA_API_DIR} )
 link_boost( mega_values system )
 link_boost( mega_values filesystem )
 link_boost( mega_values serialization )
+link_boost( mega_values url )
 link_common( mega_values )
 
 install( TARGETS mega_values EXPORT mega_values DESTINATION bin)

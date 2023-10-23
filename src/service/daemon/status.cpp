@@ -65,7 +65,7 @@ mega::reports::Container DaemonRequestLogicalThread::GetReport( const mega::repo
 
     reports::Branch daemon{ { m_daemon.getProcessName() } };
 
-    m_daemon.getGeneralStatusReport( daemon );
+    m_daemon.getGeneralStatusReport( url, daemon );
 
     for( const auto& child : report )
     {

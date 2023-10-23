@@ -86,7 +86,6 @@ link_boost( mega_tests system )
 link_boost( mega_tests date_time )
 link_boost( mega_tests program_options )
 link_boost( mega_tests iostreams )
-link_boost( mega_tests atomic )
 link_boost( mega_tests serialization )
 link_gtest( mega_tests )
 

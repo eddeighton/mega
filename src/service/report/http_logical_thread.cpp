@@ -352,10 +352,10 @@ void HTTPLogicalThread::RootSimRun( const Project&              project,
 boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( const network::HTTPRequestData& httpRequest,
                                                                             boost::asio::yield_context&     yield_ctx )
 {
-    namespace beast = boost::beast;         // from <boost/beast.hpp>
-    namespace http  = beast::http;          // from <boost/beast/http.hpp>
-    namespace net   = boost::asio;          // from <boost/asio.hpp>
-    using tcp       = boost::asio::ip::tcp; // from <boost/asio/ip/tcp.hpp>
+    namespace beast = boost::beast;
+    namespace http  = beast::http;
+    namespace net   = boost::asio;
+    using tcp       = boost::asio::ip::tcp;
 
     // Returns a bad request response
     auto const bad_request = [ &httpRequest ]( beast::string_view why )
@@ -408,11 +408,10 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
         {
             using ::operator<<;
             {
-                const auto         httpEndpoint = m_report.getHTTPEndPoint();
-                std::ostringstream osURL;
-                osURL << "http://" << httpEndpoint.address() << ":" << httpEndpoint.port() << "/"
-                      << httpRequest.request;
-                url.url = osURL.str();
+                const auto httpEndpoint = m_report.getHTTPEndPoint();
+                url                     = boost::urls::parse_origin_form( httpRequest.request ).value();
+                url.set_encoded_host_address( httpEndpoint.address().to_string() );
+                url.set_port_number( httpEndpoint.port() );
             }
 
             mega::reports::Container reportContainer;
@@ -431,7 +430,7 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
 
         body = os.str();
 
-        SPDLOG_INFO( "HTTP Request: {} took time: {}", url.url,
+        SPDLOG_INFO( "HTTP Request: {} took time: {}", url.c_str(),
                      std::chrono::duration_cast< mega::network::LogTime >( sw.elapsed() ) );
     }
 

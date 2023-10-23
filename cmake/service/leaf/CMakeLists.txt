@@ -84,7 +84,6 @@ set_target_properties( leaf PROPERTIES FOLDER service )
 
 link_boost( leaf filesystem )
 link_boost( leaf system )
-link_boost( leaf atomic )
 link_boost( leaf coroutine )
 link_boost( leaf serialization )
 

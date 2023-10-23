@@ -91,7 +91,7 @@ Executor::~Executor()
     }
 }
 
-void Executor::getGeneralStatusReport( mega::reports::Branch& report )
+void Executor::getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report )
 {
     using namespace mega::reports;
     using namespace std::string_literals;
@@ -105,7 +105,7 @@ void Executor::getGeneralStatusReport( mega::reports::Branch& report )
     Table table;
     // clang-format off
     table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
-    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, URL::makeFile( m_log.logFile ) } } );
+    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, makeFileURL( url, m_log.logFile ) } } );
     table.m_rows.push_back( { Line{ "     Threads: "s }, Line{ std::to_string( m_numThreads ) } } );
     table.m_rows.push_back( { Line{ "Mega Threads: "s }, threads } );
     // clang-format on

@@ -73,7 +73,7 @@ mega::reports::Container LeafRequestLogicalThread::GetReport( const mega::report
 
     reports::Branch leaf{ { m_leaf.getProcessName() } };
 
-    m_leaf.getGeneralStatusReport( leaf );
+    m_leaf.getGeneralStatusReport( url, leaf );
 
     for( const auto& child : report )
     {

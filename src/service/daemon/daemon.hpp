@@ -50,7 +50,7 @@ public:
     void                           setActiveProject( const Project& project );
     const std::optional< Project > getActiveProject() const { return m_activeProject; }
 
-    void getGeneralStatusReport( mega::reports::Branch& report );
+    void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
 
 private:
     void onLeafDisconnect( mega::MP mp );

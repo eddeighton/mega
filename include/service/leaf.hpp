@@ -55,7 +55,7 @@ public:
     Leaf( network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber );
     ~Leaf();
 
-    void getGeneralStatusReport( mega::reports::Branch& report );
+    void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
     
     std::optional< Project > startup();
 

@@ -81,7 +81,7 @@ mega::reports::Container MPOLogicalThread::GetReport( const mega::reports::URL& 
     using namespace std::string_literals;
     Table table;
     table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );
-    MPOContext::getBasicReport( table );
+    MPOContext::getBasicReport( url, table );
     return table;
 }
 

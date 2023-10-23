@@ -91,7 +91,6 @@ set_target_properties( executorLib PROPERTIES FOLDER service )
 
 link_boost( executorLib filesystem )
 link_boost( executorLib system )
-link_boost( executorLib atomic )
 link_boost( executorLib coroutine )
 link_boost( executorLib serialization )
 link_common( executorLib )

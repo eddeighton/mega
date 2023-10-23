@@ -124,7 +124,6 @@ target_link_libraries( database mega_values )
 link_boost( database filesystem )
 link_boost( database system )
 link_boost( database iostreams )
-link_boost( database atomic )
 link_boost( database serialization )
 link_common( database )
 

@@ -18,12 +18,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_October_19_reporter
-#define GUARD_2023_October_19_reporter
+#ifndef GUARD_2023_October_23_linker
+#define GUARD_2023_October_23_linker
 
 #include "value.hpp"
 #include "reporter_id.hpp"
-#include "report.hpp"
 
 #include "mega/values/service/url.hpp"
 
@@ -34,17 +33,13 @@
 namespace mega::reports
 {
 
-class Reporter
+class Linker
 {
 public:
-    using ID  = std::string;
-    using Ptr = std::unique_ptr< Reporter >;
-
-    virtual ~Reporter()                           = default;
-    virtual ReporterID getID()                    = 0;
-    virtual Container  generate( const URL& url ) = 0;
+    virtual ~Linker()                                             = default;
+    virtual std::optional< URL > link( const Value& value ) const = 0;
 };
 
 } // namespace mega::reports
 
-#endif // GUARD_2023_October_19_reporter
+#endif // GUARD_2023_October_23_linker

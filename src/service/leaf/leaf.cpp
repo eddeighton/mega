@@ -116,7 +116,7 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node nodeType, short daemonPo
     m_pSelfSender = m_receiverChannel.getSender();
 }
 
-void Leaf::getGeneralStatusReport( mega::reports::Branch& report )
+void Leaf::getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report )
 {
     using namespace mega::reports;
     using namespace std::string_literals;

@@ -18,9 +18,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "reports/url.hpp"
+#include "mega/values/service/url.hpp"
 
 namespace mega::reports
 {
     
+URL makeFileURL( const URL& url, const boost::filesystem::path& filePath )
+{
+    URL result = url;
+    result.params().set( "file", filePath.string() );
+    return result;
+}
+
 }

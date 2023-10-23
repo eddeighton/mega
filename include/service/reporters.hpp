@@ -37,7 +37,6 @@ class MemoryReporter : public mega::reports::Reporter
 public:
     MemoryReporter( mega::runtime::MemoryManager& memoryManager, runtime::MPODatabase& database );
     mega::reports::ReporterID    getID() override;
-    std::optional< std::string > link( const mega::reports::Value& value ) override;
     mega::reports::Container     generate( const mega::reports::URL& url ) override;
 };
 

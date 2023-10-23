@@ -22,6 +22,8 @@
 #include "jit/program_functions.hxx"
 #include "jit/jit_exception.hpp"
 
+#include "mega/values/service/url.hpp"
+
 #include "service/mpo_context.hpp"
 #include "service/cycle.hpp"
 
@@ -167,7 +169,7 @@ void MPOContext::networkToHeap( reference& ref )
 
     if( ref.isNetworkAddress() )
     {
-        VERIFY_RTE_MSG( m_pMemoryManager , "MPOContext::networkToHeap: Memory manager not allocated" );
+        VERIFY_RTE_MSG( m_pMemoryManager, "MPOContext::networkToHeap: Memory manager not allocated" );
         ref = m_pMemoryManager->networkToHeap( ref );
     }
 }
@@ -416,7 +418,7 @@ void MPOContest::getDump()
 }
 */
 
-void MPOContext::getBasicReport( mega::reports::Table& table )
+void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::Table& table )
 {
     SPDLOG_TRACE( "MPOContext::GetBasicReport: mpo: {}", m_mpo.value() );
 
@@ -431,7 +433,7 @@ void MPOContext::getBasicReport( mega::reports::Table& table )
     table.m_rows.push_back( { Line{ "  Start Time: "s }, Line{ common::printTimeStamp( m_systemStartTime ) } } );
     table.m_rows.push_back( { Line{ "Elapsed Time: "s }, Line{ common::printDuration( getElapsedTime() ) } } );
     table.m_rows.push_back( { Line{ "     Log Dir: "s }, Line{ getLog().getLogFolderPath().string(), 
-        URL::makeFile( getLog().getLogFolderPath().string() ) } } );
+        makeFileURL( url, getLog().getLogFolderPath().string() ) } } );
     // clang-format on
 
     {

@@ -21,16 +21,17 @@
 #include "database/FinalStage.hxx"
 
 #include "reports/renderer_html.hpp"
+#include "reports/reporter.hpp"
 
 #include "service/network/log.hpp"
 
+#include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
-
 #include "mega/values/compilation/type_id.hpp"
+
 #include "mega/mangle/traits.hpp"
 #include "mega/common_strings.hpp"
 
-#include "service/network/log.hpp"
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
@@ -59,8 +60,6 @@ public:
     using ID = std::string;
 
     mega::reports::ReporterID getID() override { return "test"; }
-
-    std::optional< std::string > link( const mega::reports::Value& value ) override { return {}; }
 
     mega::reports::Container generate( const mega::reports::URL& url ) override
     {
@@ -162,8 +161,6 @@ public:
 
     mega::reports::ReporterID getID() override { return "symbols"; }
 
-    std::optional< std::string > link( const mega::reports::Value& value ) override { return {}; }
-
     mega::reports::Container generate( const mega::reports::URL& url ) override
     {
         using namespace FinalStage;
@@ -253,23 +250,6 @@ public:
     }
 
     mega::reports::ReporterID getID() override { return "interface"; }
-
-    std::optional< std::string > link( const mega::reports::Value& value ) override
-    {
-        if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
-        {
-            std::ostringstream os;
-            os << "file:///home/foobar/test_Debug/test2.html#" << *pTypeID;
-            return os.str();
-            // mega::reports::URL url;
-            // url.reportID           = getID();
-            // url.reporterLinkTarget = getID();
-            // url.url                = os.str();
-            // return url;
-        }
-
-        return {};
-    }
 
     void addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
                         const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
@@ -435,7 +415,7 @@ public:
     }
 };
 
-void command(mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     std::string             reportURL;
     boost::filesystem::path projectPath, outputFilePath, templateDir;
@@ -466,14 +446,25 @@ void command(mega::network::Log& log, bool bHelp, const std::vector< std::string
     {
         using namespace mega::reports;
 
-        mega::reports::URL url;
+        const mega::reports::URL url = boost::urls::parse_origin_form( reportURL ).value();
+
+        std::string strReport;
         {
-            url.url = reportURL;
+            auto iFind = url.params().find( "report" );
+            if( iFind != url.params().end() )
+            {
+                strReport = ( *iFind ).value;
+            }
+            else
+            {
+                SPDLOG_WARN( "No report type specified so using 'test'" );
+                strReport = "test";
+            }
         }
 
         Container result;
 
-        if( reportURL == "test" )
+        if( strReport == "test" )
         {
             TestReporter reporter;
             result = reporter.generate( url );
@@ -490,26 +481,45 @@ void command(mega::network::Log& log, bool bHelp, const std::vector< std::string
             using namespace FinalStage;
             Database database( environment, environment.project_manifest() );
 
-            if( reportURL == "symbols" )
+            if( strReport == "symbols" )
             {
                 SymbolsReporter reporter( environment, database );
                 result = reporter.generate( url );
             }
-            else if( reportURL == "interface" )
+            else if( strReport == "interface" )
             {
                 InterfaceReporter reporter( outputFilePath.string(), manifest, environment, database );
                 result = reporter.generate( url );
             }
             else
             {
-                THROW_RTE( "Unknown report type: " << reportURL );
+                THROW_RTE( "Unknown report type: " << strReport );
             }
         }
+
+        struct Linker : mega::reports::Linker
+        {
+            const mega::reports::URL& m_url;
+            Linker( const mega::reports::URL& url )
+                : m_url( url )
+            {
+            }
+            std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
+            {
+                if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
+                {
+                    URL url = m_url;
+                    url.set_fragment( mega::reports::toString( value ) );
+                    return url;
+                }
+                return {};
+            }
+        } linker{ url };
 
         std::ostringstream os;
 
         HTMLRenderer renderer( templateDir );
-        renderer.render( result, os );
+        renderer.render( result, linker, os );
 
         try
         {

@@ -72,7 +72,7 @@ mega::reports::Container ExecutorRequestLogicalThread::GetReport( const mega::re
 
     reports::Branch exe{ { m_executor.getProcessName() } };
 
-    m_executor.getGeneralStatusReport( exe );
+    m_executor.getGeneralStatusReport( url, exe );
 
     for( const auto& child : report )
     {

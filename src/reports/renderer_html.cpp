@@ -180,36 +180,50 @@ std::string escapeHTML( std::string data )
 
 struct Args
 {
-    Inja&     inja;
-    Reporter* pLinker = nullptr;
+    Inja&   inja;
+    Linker* pLinker = nullptr;
 };
-
-void renderValue( Args& args, const Value& value, std::ostream& os )
-{
-    // if string then do NOT allow linking
-    if( const std::string* pString = boost::get< std::string >( &value ) )
-    {
-        os << escapeHTML( *pString );
-    }
-    else
-    {
-        if( args.pLinker )
-        {
-            if( auto urlOpt = args.pLinker->link( value ); urlOpt.has_value() )
-            {
-                os << "<a href=\"" << urlOpt.value() << "\" >" << escapeHTML( toString( value ) ) << "</a>";
-                return;
-            }
-        }
-        os << toString( value );
-    }
-}
 
 void valueToJSON( Args& args, const Value& value, nlohmann::json& data )
 {
-    std::ostringstream osValue;
-    renderValue( args, value, osValue );
-    data.push_back( osValue.str() );
+    std::optional< URL > urlOpt;
+    if( args.pLinker )
+    {
+        urlOpt = args.pLinker->link( value );
+    }
+
+    std::ostringstream os;
+    if( urlOpt.has_value() )
+    {
+        os << "<a href=\"" <<  urlOpt.value().c_str() << "\">" << escapeHTML( toString( value ) ) << "</a>";
+    }
+    else
+    {
+        os << escapeHTML( toString( value ) );
+    }
+
+    data.push_back( os.str() );
+}
+
+void graphValueToJSON( Args& args, const Value& value, nlohmann::json& data )
+{
+    std::optional< URL > urlOpt;
+    if( args.pLinker )
+    {
+        urlOpt = args.pLinker->link( value );
+    }
+
+    std::ostringstream os;
+    if( urlOpt.has_value() )
+    {
+        os << "<td href=\"" <<  urlOpt.value().c_str() << "\"><U>" << escapeHTML( toString( value ) ) << "</U></td>";
+    }
+    else
+    {
+        os << "<td>" << escapeHTML( toString( value ) ) << "</td>";
+    }
+
+    data.push_back( os.str() );
 }
 
 void valueVectorToJSON( Args& args, const ValueVector& textVector, nlohmann::json& data )
@@ -225,23 +239,21 @@ void addOptionalBookmark( Args& args, T& element, nlohmann::json& data )
 {
     if( element.m_bookmark.has_value() )
     {
-        // render bookmark WITHOUT linker interaction
-        std::ostringstream osBookmark;
-        Args               bookmarkArgs{ args.inja, nullptr };
-        renderValue( bookmarkArgs, element.m_bookmark.value(), osBookmark );
         data[ "has_bookmark" ] = true;
-        data[ "bookmark" ]     = osBookmark.str();
+        data[ "bookmark" ]     = escapeHTML( toString( element.m_bookmark.value() ) );
     }
 }
 
 template < typename T >
-void addOptionalLink( Args& args, T& element, nlohmann::json& data )
+bool addOptionalLink( Args& args, T& element, nlohmann::json& data )
 {
     if( element.m_url.has_value() )
     {
         data[ "has_link" ] = true;
-        data[ "link" ]     = element.m_url.value().str();
+        data[ "link" ]     = element.m_url.value().c_str();
+        return true;
     }
+    return false;
 }
 
 void renderLine( Args& args, const Line& line, std::ostream& os )
@@ -252,8 +264,15 @@ void renderLine( Args& args, const Line& line, std::ostream& os )
                            { "has_link", false },
                            { "bookmark", "" } } );
     addOptionalBookmark( args, line, data );
-    addOptionalLink( args, line, data );
-    valueToJSON( args, line.m_element, data[ "elements" ] );
+    if( addOptionalLink( args, line, data ) )
+    {
+        Args noLinkerArgs{ args.inja, nullptr };
+        valueToJSON( noLinkerArgs, line.m_element, data[ "elements" ] );
+    }
+    else
+    {
+        valueToJSON( args, line.m_element, data[ "elements" ] );
+    }
     args.inja.renderMultiLine( data, os );
 }
 
@@ -265,8 +284,16 @@ void renderMultiline( Args& args, const Multiline& multiline, std::ostream& os )
                            { "has_link", false },
                            { "bookmark", "" } } );
     addOptionalBookmark( args, multiline, data );
-    addOptionalLink( args, multiline, data );
-    valueVectorToJSON( args, multiline.m_elements, data[ "elements" ] );
+    if( addOptionalLink( args, multiline, data ) )
+    {
+        Args noLinkerArgs{ args.inja, nullptr };
+        valueVectorToJSON( noLinkerArgs, multiline.m_elements, data[ "elements" ] );
+    }
+    else
+    {
+        valueVectorToJSON( args, multiline.m_elements, data[ "elements" ] );
+    }
+
     args.inja.renderMultiLine( data, os );
 }
 
@@ -343,7 +370,7 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
         if( node.m_url.has_value() )
         {
             nodeData[ "has_url" ] = true;
-            nodeData[ "url" ]     = node.m_url.value().str();
+            nodeData[ "url" ]     = node.m_url.value().c_str();
         }
 
         addOptionalBookmark( args, node, nodeData );
@@ -353,7 +380,8 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             nlohmann::json rowData( { { "values", nlohmann::json::array() } } );
             for( const Value& value : row )
             {
-                valueToJSON( args, value, rowData[ "values" ] );
+                //NOTE graph value generates <td>value</td> so can generate href in graphviz
+                graphValueToJSON( args, value, rowData[ "values" ] );
             }
             nodeData[ "rows" ].push_back( rowData );
         }
@@ -429,7 +457,7 @@ void HTMLRenderer::render( const Container& report, std::ostream& os )
     renderReport( args, report, os );
 }
 
-void HTMLRenderer::render( const Container& report, Reporter& linker, std::ostream& os )
+void HTMLRenderer::render( const Container& report, Linker& linker, std::ostream& os )
 {
     Args args{ *reinterpret_cast< Inja* >( m_pInja ), &linker };
     renderReport( args, report, os );

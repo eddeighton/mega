@@ -81,7 +81,6 @@ set_target_properties( tool PROPERTIES FOLDER service )
 
 link_boost( tool filesystem )
 link_boost( tool system )
-link_boost( tool atomic )
 link_boost( tool coroutine )
 link_boost( tool serialization )
 link_common( tool )

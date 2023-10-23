@@ -21,6 +21,7 @@
 #include "request.hpp"
 
 #include "mega/values/compilation/operation_id.hpp"
+#include "mega/values/service/url.hpp"
 
 #include "service/network/logical_thread.hpp"
 #include "service/network/network.hpp"
@@ -83,7 +84,7 @@ Daemon::Daemon( boost::asio::io_context& ioContext, network::Log log, const std:
     }
 }
 
-void Daemon::getGeneralStatusReport( mega::reports::Branch& report )
+void Daemon::getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report )
 {
     using namespace mega::reports;
     using namespace std::string_literals;
@@ -94,7 +95,7 @@ void Daemon::getGeneralStatusReport( mega::reports::Branch& report )
     table.m_rows.push_back( { Line{ "          IP: "s }, Line{ m_server.getEndPoint().address().to_string() } } );
     table.m_rows.push_back( { Line{ "        PORT: "s }, Line{ std::to_string( m_server.getEndPoint().port() ) } } );
     table.m_rows.push_back( { Line{ "  Machine ID: "s }, Line{ m_machineID } } );
-    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, URL::makeFile( m_log.logFile ) } } );
+    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, makeFileURL( url, m_log.logFile ) } } );
     // clang-format on
 
     report.m_elements.push_back( table );

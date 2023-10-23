@@ -23,8 +23,10 @@
 
 #include "colours.hxx"
 #include "reporter_id.hpp"
-#include "reporter.hpp"
-#include "url.hpp"
+#include "linker.hpp"
+#include "report.hpp"
+
+#include "mega/values/service/url.hpp"
 
 #include <memory>
 #include <map>
@@ -43,7 +45,7 @@ public:
     ~HTMLRenderer();
 
     void render( const Container& report, std::ostream& os );
-    void render( const Container& report, Reporter& linker, std::ostream& os );
+    void render( const Container& report, Linker& linker, std::ostream& os );
 
 private:
     void* m_pInja;

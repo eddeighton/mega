@@ -72,7 +72,7 @@ mega::reports::Container RootRequestLogicalThread::GetReport( const mega::report
 
     reports::Branch root{ { "Megastructure Service Report"s, common::printCurrentTime() } };
 
-    m_root.getGeneralStatusReport( root );
+    m_root.getGeneralStatusReport( url, root );
 
     for( const auto& child : report )
     {

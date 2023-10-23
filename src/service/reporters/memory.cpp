@@ -37,11 +37,6 @@ mega::reports::ReporterID MemoryReporter::getID()
     return "memory";
 }
 
-std::optional< std::string > MemoryReporter::link( const mega::reports::Value& value )
-{
-    return {};
-}
-
 mega::reports::Container MemoryReporter::generate( const mega::reports::URL& url )
 {
     using namespace std::string_literals;

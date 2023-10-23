@@ -61,7 +61,7 @@ public:
     void                setStartupUUIDMP( const std::string& strUUID, MP mp );
     std::optional< MP > getAndResetStartupUUID( const std::string& strUUID );
 
-    void getGeneralStatusReport( mega::reports::Branch& report );
+    void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
 
 private:
     void loadConfig();

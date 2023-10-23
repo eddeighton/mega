@@ -21,10 +21,10 @@
 #ifndef GUARD_2023_October_19_url
 #define GUARD_2023_October_19_url
 
-#include "reporter_id.hpp"
-
 #include "common/serialisation.hpp"
 #include "common/assert_verify.hpp"
+
+#include <boost/url.hpp>
 
 #include <vector>
 #include <string>
@@ -35,51 +35,33 @@
 namespace mega::reports
 {
 
-class URL
-{
-    friend class boost::serialization::access;
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& url;
-    }
+using URL = boost::url;
 
-    friend std::ostream& operator<<( std::ostream& os, const URL& url );
-
-public:
-    inline std::string str() const
-    {
-        std::ostringstream os;
-        os << *this;
-        return os.str();
-    }
-
-    static inline URL makeFile( const boost::filesystem::path& filePath )
-    {
-        std::ostringstream osFileURL;
-        
-        osFileURL << "file:///" << filePath.string();
-
-        return URL{ osFileURL.str() };
-    }
-
-    static inline URL makeWEB( const std::string& strReport )
-    {
-        std::ostringstream osWEB;
-        
-        osWEB << "http://0.0.0.0:8080/" << strReport;
-
-        return URL{ osWEB.str() };
-    }
-
-    std::string url;
-};
-
-inline std::ostream& operator<<( std::ostream& os, const URL& url )
-{
-    return os << url.url;
-}
+URL makeFileURL( const URL& url, const boost::filesystem::path& filePath );
 
 } // namespace mega::reports
+
+
+namespace boost::serialization
+{
+
+template < class Archive >
+inline void serialize( Archive& ar, ::mega::reports::URL& url, const unsigned int version )
+{
+    if constexpr( Archive::is_saving::value )
+    {
+        std::string view = url.buffer();
+        ar & view;
+    }
+
+    if constexpr( Archive::is_loading::value )
+    {
+        std::string str;
+        ar & str;
+        url = ::mega::reports::URL( str );
+    }
+}
+
+}
 
 #endif // GUARD_2023_October_19_url
