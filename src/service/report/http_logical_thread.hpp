@@ -48,7 +48,6 @@ public:
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                                      boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
 
     network::report_leaf::Request_Sender     getReportRequest( boost::asio::yield_context& yield_ctx );
     network::mpo::Request_Sender             getMPRequest( boost::asio::yield_context& yield_ctx );
@@ -72,7 +71,9 @@ public:
     // network::report::Impl
     mega::network::HTTPRequestData HTTPRequest( boost::asio::yield_context& ) override;
 
-    void run( boost::asio::yield_context& yield_ctx ) override;
+    virtual void unqueue() override;
+    virtual bool queue( const network::ReceivedMessage& msg ) override;
+    void         run( boost::asio::yield_context& yield_ctx ) override;
 
     virtual void
     RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
@@ -91,12 +92,37 @@ private:
         ePost,
         TOTAL_HTTP_VERBS
     };
+    static inline std::string verbToString( HTTPVerbType verbType )
+    {
+        using namespace std::string_literals;
+        static const std::array< std::string, TOTAL_HTTP_VERBS > g_verbNames =
+        {
+            "eClose"s,
+            "eError"s,
+            "eGet"s,
+            "eHead"s,
+            "ePost"s
+        };
+        return g_verbNames[ verbType ];
+    }
     using HTTPRequestMsg = network::report::MSG_HTTPRequest_Response;
-    void                                  startTCPStream();
+    void                                  spawnTCPStream();
     boost::beast::http::message_generator handleHTTPRequest( const network::HTTPRequestData& msg,
                                                              boost::asio::yield_context&     yield_ctx );
 
 private:
+    int m_queueStack = 0;
+    struct QueueStackDepth
+    {
+        int& stackDepth;
+        QueueStackDepth( int& st )
+            : stackDepth( st )
+        {
+            ++stackDepth;
+        }
+        ~QueueStackDepth() { --stackDepth; }
+    };
+
     bool                                    m_bRunning = false;
     Report&                                 m_report;
     boost::beast::tcp_stream                m_tcpStream;

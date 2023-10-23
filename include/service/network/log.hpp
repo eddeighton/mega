@@ -29,7 +29,6 @@
 #include "mega/values/runtime/reference_io.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
-// #include "service/protocol/model/messages.hxx"
 
 #include "common/time.hpp"
 
@@ -158,21 +157,7 @@ struct formatter< mega::network::LogTime >
         );
     }
 };
-/*
-template <>
-struct formatter< mega::network::Message >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
 
-    template < typename FormatContext >
-    inline auto format( const mega::network::Message& msg, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        std::ostringstream os;
-        os << msg;
-        return fmt::format_to( ctx.out(), "{}", os.str() );
-    }
-};
-*/
 template <>
 struct formatter< mega::network::LogicalThreadID >
 {

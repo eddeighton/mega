@@ -42,6 +42,8 @@
 #include "reports/url.hpp"
 #include "reports/report.hpp"
 
+#include "service/network/log.hpp"
+
 #include "pipeline/pipeline_result.hpp"
 
 #include "common/stash.hpp"
@@ -104,6 +106,30 @@ public:
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
+std::ostream& operator<<( std::ostream& os, const Message& msg );
+
+}
+
+namespace fmt
+{
+template <>
+struct formatter< mega::network::Message >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+
+    template < typename FormatContext >
+    inline auto format( const mega::network::Message& msg, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        std::ostringstream os;
+        os << msg;
+        return fmt::format_to( ctx.out(), "{}", os.str() );
+    }
+};
+}
+
+namespace mega::network
+{
+
 {%for message in messages%}
 {%for namespace in message.namespaces%}
 {%if loop.is_first %}namespace {{namespace}}{%else%}::{{namespace}}{%endif%}
@@ -158,8 +184,6 @@ void Message::save( Archive& ar, const unsigned int version ) const
 {
     encode( ar, *this );
 }
-
-std::ostream& operator<<( std::ostream& os, const Message& msg );
 
 void aggregate( Message& request, const std::vector< Message >& responses );
 

@@ -48,6 +48,7 @@ HTTPLogicalThread::HTTPLogicalThread( Report&                         report,
     , m_report( report )
     , m_tcpStream( std::move( socket ) )
 {
+    m_bEnableQueueing = true;
 }
 
 network::Message HTTPLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
@@ -119,47 +120,6 @@ network::mpo::Request_Sender HTTPLogicalThread::getMPRequest()
     return getMPRequest( *m_pYieldContext );
 }
 
-network::Message HTTPLogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
-{
-    network::ReceivedMessage msg;
-    while( true )
-    {
-        msg = receive( yield_ctx );
-
-        // simulation is running so process as normal
-        if( isRequest( msg.msg ) )
-        {
-            if( m_mpo.has_value() || ( msg.msg.getID() == network::leaf_report::MSG_RootSimRun_Request::ID ) )
-            {
-                acknowledgeInboundRequest( msg, yield_ctx );
-            }
-            else
-            {
-                // queue the messages while waiting for RootSim run to complete
-                SPDLOG_TRACE( "HTTPLogicalThread::dispatchInBoundRequestsUntilResponse queued: {}", msg.msg );
-                m_messageQueue.push_back( msg );
-            }
-        }
-        else
-        {
-            break;
-        }
-    }
-    if( msg.msg.getID() == network::MSG_Error_Disconnect::ID )
-    {
-        const std::string& strError = network::MSG_Error_Disconnect::get( msg.msg ).what;
-        SPDLOG_ERROR( "Got error disconnect: {}", strError );
-        throw std::runtime_error( strError );
-    }
-    else if( msg.msg.getID() == network::MSG_Error_Response::ID )
-    {
-        const std::string& strError = network::MSG_Error_Response::get( msg.msg ).what;
-        SPDLOG_ERROR( "Got error response: {}", strError );
-        throw std::runtime_error( strError );
-    }
-    return msg.msg;
-}
-
 void HTTPLogicalThread::run( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "REPORT HTTPLogicalThread: run" );
@@ -172,6 +132,121 @@ void HTTPLogicalThread::run( boost::asio::yield_context& yield_ctx )
     dispatchRemaining( yield_ctx );
 
     m_bRunComplete = true;
+}
+
+bool HTTPLogicalThread::queue( const network::ReceivedMessage& msg )
+{
+    // if processing a report request then postpone further http requests
+    if( msg.msg.getID() == HTTPRequestMsg::ID )
+    {
+        const network::HTTPRequestData& httpRequest = HTTPRequestMsg::get( msg.msg ).httpRequestData;
+        if( m_queueStack != 0 )
+        {
+            SPDLOG_TRACE( "HTTPLogicalThread::queue queuing HTTPRequestMsg verb: {} request: {}",
+                          verbToString( static_cast< HTTPVerbType >( httpRequest.verb ) ), httpRequest.request );
+            m_messageQueue.push_back( msg );
+            return true;
+        }
+        else
+        {
+            SPDLOG_TRACE( "HTTPLogicalThread::queue NOT queuing HTTPRequestMsg verb: {} request: {}",
+                          verbToString( static_cast< HTTPVerbType >( httpRequest.verb ) ), httpRequest.request );
+        }
+    }
+    return ReportRequestLogicalThread::queue( msg );
+}
+
+void HTTPLogicalThread::unqueue()
+{
+    // at startup will queue the SimCreate request which should be
+    // acknowledged once simulation has completed startup
+    if( !m_messageQueue.empty() )
+    {
+        SPDLOG_TRACE( "HTTPLogicalThread::unqueue" );
+        VERIFY_RTE( m_unqueuedMessages.empty() );
+        m_unqueuedMessages.swap( m_messageQueue );
+        std::reverse( m_unqueuedMessages.begin(), m_unqueuedMessages.end() );
+    }
+    else
+    {
+        // allow ordinary request processing
+        ReportRequestLogicalThread::unqueue();
+    }
+}
+
+void HTTPLogicalThread::spawnTCPStream()
+{
+    // start tcp session reader coroutine
+    boost::asio::spawn(
+
+        m_report.getIOContext(),
+
+        [ this, timeout = m_report.getTimeoutSeconds() ]( boost::asio::yield_context yield_ctx )
+        {
+            boost::beast::error_code ec;
+
+            // This buffer is required to persist across reads
+            boost::beast::flat_buffer buffer;
+
+            // This lambda is used to send messages
+            for( ; m_bRunning; )
+            {
+                // Set the timeout.
+                m_tcpStream.expires_after( std::chrono::seconds( timeout ) );
+
+                // Read a request
+                boost::beast::http::request< boost::beast::http::string_body > req;
+                {
+                    boost::beast::http::async_read( m_tcpStream, buffer, req, yield_ctx[ ec ] );
+                }
+
+                if( ec == boost::beast::http::error::end_of_stream )
+                {
+                    SPDLOG_TRACE( "HTTPLogicalThread::spawnTCPStream End of stream" );
+                    break;
+                }
+                else if( ec )
+                {
+                    SPDLOG_ERROR( "HTTPLogicalThread::spawnTCPStream complete: {}", ec.message() );
+                    break;
+                }
+
+                HTTPVerbType verbType = TOTAL_HTTP_VERBS;
+                {
+                    switch( req.method() )
+                    {
+                        case boost::beast::http::verb::get:
+                            verbType = eGet;
+                            break;
+                        case boost::beast::http::verb::head:
+                            verbType = eHead;
+                            break;
+                        case boost::beast::http::verb::post:
+                            verbType = ePost;
+                            break;
+                        default:
+                        {
+                            THROW_RTE( "Unknown http verb" );
+                        }
+                    }
+                }
+
+                SPDLOG_TRACE( "HTTPLogicalThread::spawnTCPStream sending {}", verbToString( verbType ) );
+                send( HTTPRequestMsg::make( getID(),
+                                            HTTPRequestMsg{ mega::network::HTTPRequestData{
+                                                verbType, req.version(), req.target(), req.keep_alive() } } ) );
+            }
+
+            // Send a TCP shutdown
+            SPDLOG_TRACE( "HTTPLogicalThread::spawnTCPStream sending eClose" );
+            send( HTTPRequestMsg::make( getID(), HTTPRequestMsg{ mega::network::HTTPRequestData{ eClose } } ) );
+        }
+    // segmented stacks do NOT work on windows
+#ifndef BOOST_USE_SEGMENTED_STACKS
+        ,
+        boost::coroutines::attributes( network::NON_SEGMENTED_STACK_SIZE )
+#endif
+    );
 }
 
 void HTTPLogicalThread::RootSimRun( const Project&              project,
@@ -198,10 +273,11 @@ void HTTPLogicalThread::RootSimRun( const Project&              project,
 
         m_bRunning = true;
 
-        startTCPStream();
+        spawnTCPStream();
 
         while( m_bRunning )
         {
+            ASSERT( m_queueStack == 0 );
             unqueue();
             const network::ReceivedMessage msg = receiveDeferred( yield_ctx );
 
@@ -209,7 +285,7 @@ void HTTPLogicalThread::RootSimRun( const Project&              project,
             {
                 case HTTPRequestMsg::ID:
                 {
-                    const auto& httpRequest = HTTPRequestMsg::get( msg.msg ).httpRequestData;
+                    const network::HTTPRequestData& httpRequest = HTTPRequestMsg::get( msg.msg ).httpRequestData;
                     switch( httpRequest.verb )
                     {
                         case eClose:
@@ -226,7 +302,8 @@ void HTTPLogicalThread::RootSimRun( const Project&              project,
                             // generate response
                             if( httpRequest.version != 0 )
                             {
-                                SPDLOG_TRACE( "HTTPLogicalThread::RootSimRun got html request" );
+                                SPDLOG_TRACE( "HTTPLogicalThread::RootSimRun HTTP Request {}", httpRequest.request );
+
                                 // Handle the request
                                 boost::beast::http::message_generator httpMsg
                                     = handleHTTPRequest( httpRequest, yield_ctx );
@@ -257,6 +334,7 @@ void HTTPLogicalThread::RootSimRun( const Project&              project,
                 break;
                 default:
                 {
+                    QueueStackDepth queueMsgs( m_queueStack );
                     acknowledgeInboundRequest( msg, yield_ctx );
                 }
                 break;
@@ -269,80 +347,6 @@ void HTTPLogicalThread::RootSimRun( const Project&              project,
 
     m_pYieldContext = nullptr;
     resetMPOContext();
-}
-
-void HTTPLogicalThread::startTCPStream()
-{
-    // start tcp session reader coroutine
-    boost::asio::spawn(
-
-        m_report.getIOContext(),
-
-        [ this, timeout = m_report.getTimeoutSeconds() ]( boost::asio::yield_context yield_ctx )
-        {
-            boost::beast::error_code ec;
-
-            // This buffer is required to persist across reads
-            boost::beast::flat_buffer buffer;
-
-            // This lambda is used to send messages
-            for( ; m_bRunning; )
-            {
-                // Set the timeout.
-                m_tcpStream.expires_after( std::chrono::seconds( timeout ) );
-
-                // Read a request
-                boost::beast::http::request< boost::beast::http::string_body > req;
-                {
-                    boost::beast::http::async_read( m_tcpStream, buffer, req, yield_ctx[ ec ] );
-                }
-
-                if( ec == boost::beast::http::error::end_of_stream )
-                {
-                    SPDLOG_TRACE( "HTTPLogicalThread::startTCPStream End of stream" );
-                    break;
-                }
-                else if( ec )
-                {
-                    SPDLOG_ERROR( "HTTPLogicalThread::startTCPStream Error: {}", ec.message() );
-                    break;
-                }
-
-                HTTPVerbType verbType = TOTAL_HTTP_VERBS;
-                {
-                    switch( req.method() )
-                    {
-                        case boost::beast::http::verb::get:
-                            verbType = eGet;
-                            break;
-                        case boost::beast::http::verb::head:
-                            verbType = eHead;
-                            break;
-                        case boost::beast::http::verb::post:
-                            verbType = ePost;
-                            break;
-                        default:
-                        {
-                            THROW_RTE( "Unknown http verb" );
-                        }
-                    }
-                }
-
-                send( HTTPRequestMsg::make( getID(),
-                                            HTTPRequestMsg{ mega::network::HTTPRequestData{
-                                                verbType, req.version(), req.target(), req.keep_alive() } } ) );
-            }
-
-            // Send a TCP shutdown
-            SPDLOG_TRACE( "HTTPLogicalThread::startTCPStream shutdown" );
-            send( HTTPRequestMsg::make( getID(), HTTPRequestMsg{ mega::network::HTTPRequestData{ eClose } } ) );
-        }
-    // segmented stacks do NOT work on windows
-#ifndef BOOST_USE_SEGMENTED_STACKS
-        ,
-        boost::coroutines::attributes( network::NON_SEGMENTED_STACK_SIZE )
-#endif
-    );
 }
 
 boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( const network::HTTPRequestData& httpRequest,
@@ -399,8 +403,6 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
     {
         spdlog::stopwatch sw;
 
-        auto reportRequest = getRootRequest< network::report::Request_Encoder >( yield_ctx );
-
         mega::reports::URL url;
         std::ostringstream os;
         {
@@ -413,7 +415,14 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
                 url.url = osURL.str();
             }
 
-            auto reportContainer = reportRequest.GetNetworkReport( url );
+            mega::reports::Container reportContainer;
+            {
+                QueueStackDepth queueMsgs( m_queueStack );
+                {
+                    auto reportRequest = getRootRequest< network::report::Request_Encoder >( yield_ctx );
+                    reportContainer    = reportRequest.GetNetworkReport( url );
+                }
+            }
 
             using namespace mega::reports;
             mega::reports::HTMLRenderer renderer( m_report.getMegastructureInstallation().getRuntimeTemplateDir() );

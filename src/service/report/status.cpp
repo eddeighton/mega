@@ -29,7 +29,7 @@ namespace mega::service::report
 // network::project::Impl
 
 network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                             boost::asio::yield_context&           yield_ctx )
+                                              boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "HTTPLogicalThread::GetStatus" );
 
@@ -71,10 +71,9 @@ network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status
     return status;
 }
 
-mega::reports::Container
-HTTPLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                       const std::vector< mega::reports::Container >& report,
-                                       boost::asio::yield_context&                    yield_ctx )
+mega::reports::Container HTTPLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                                       const std::vector< mega::reports::Container >& report,
+                                                       boost::asio::yield_context&                    yield_ctx )
 {
     SPDLOG_TRACE( "HTTPLogicalThread::GetReport" );
     // VERIFY_RTE( report.empty() );
@@ -119,14 +118,14 @@ std::string ReportRequestLogicalThread::Ping( const std::string& strMsg, boost::
     return os.str();
 }
 
-mega::reports::Container
-ReportRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                       const std::vector< mega::reports::Container >& report,
-                                       boost::asio::yield_context&                    yield_ctx )
+mega::reports::Container ReportRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
+                                                                const std::vector< mega::reports::Container >& report,
+                                                                boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "ReportRequestLogicalThread::GetReport" );
     using namespace mega::reports;
-    reports::Branch branch{ { getID(), m_report.getProcessName(), m_report.getHTTPEndPoint().address().to_string() }, report };
+    reports::Branch branch{
+        { getID(), m_report.getProcessName(), m_report.getHTTPEndPoint().address().to_string() }, report };
     return branch;
 }
 
