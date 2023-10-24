@@ -36,11 +36,11 @@ digraph
     [
         color       = "black"
         fillcolor   = "{{ node.colour }}"
-{% if node.has_url %}
-        URL         = "{{ node.url }}"
-{% endif %}
 {% if node.has_bookmark %}
         id          = "{{ node.bookmark }}"
+{% endif %}
+{% if node.has_url %}
+        URL         = "{{ node.url }}"
 {% endif %}
         label       = 
         <

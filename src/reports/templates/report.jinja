@@ -39,18 +39,42 @@ td
 <script type="text/javascript">
 
     currentReportType = "home"
-
-    const queryString = window.location.search
-    const urlParams = new URLSearchParams(queryString);
     
-    if( urlParams.has( "report" ) )
+    stateMachine = function() 
     {
-        currentReportType = urlParams.get( "report" )
-        console.log( "Report Type is: " + currentReportType )
+        const queryString = window.location.search
+        const urlParams = new URLSearchParams(queryString);
+
+        /*if( window.location.hash.length === 0 )
+        {
+            // no fragment - nothing to do
+            console.log( "No fragment nothing to do" )
+        }
+        else
+        {
+            hash = window.location.hash.substring( 1 )
+            const element = document.getElementById( hash );
+            if( element )
+            {
+                element.scrollIntoView();
+                console.log( "Scrolled to element: " + hash )
+            }
+            else
+            {
+                console.log( "Could not locate element: " + hash )
+            }
+        }*/
+        if( urlParams.has( "report" ) )
+        {
+            currentReportType = urlParams.get( "report" )
+            console.log( "Report Type is: " + currentReportType )
+        }
     }
 
-
-
+    window.onrefresh = stateMachine
+    window.onload = stateMachine
+    
+    
     /*
     A 65
     B 66
