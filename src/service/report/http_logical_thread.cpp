@@ -425,7 +425,26 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
 
             using namespace mega::reports;
             mega::reports::HTMLRenderer renderer( m_report.getMegastructureInstallation().getRuntimeTemplateDir() );
-            renderer.render( reportContainer, os );
+
+            struct Linker : public mega::reports::Linker
+            {
+                const mega::reports::URL& m_url;
+                Linker( const mega::reports::URL& url )
+                    : m_url( url )
+                {
+                }
+                std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
+                {
+                    if( auto pMPO = boost::get< mega::MPO >( &value ) )
+                    {
+                        URL url = m_url;
+                        url.set_fragment( mega::reports::toString( value ) );
+                        return url;
+                    }
+                    return {};
+                }
+            } linker( url );
+            renderer.render( reportContainer, linker, os );
         }
 
         body = os.str();

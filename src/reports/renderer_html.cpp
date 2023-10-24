@@ -184,6 +184,52 @@ struct Args
     Linker* pLinker = nullptr;
 };
 
+std::string javascriptHREF( const URL& url )
+{
+    std::ostringstream os;
+
+    os << "javascript:navigateTo( &quot;" << url.encoded_path() << "&quot;,";
+
+    bool bHasReportType = false;
+    {
+        auto iFind = url.params().find( "report" );
+        if( iFind != url.params().end() )
+        {
+            bHasReportType = true;
+        }
+    }
+    
+    if( ( !url.params().empty() ) && ( !bHasReportType || ( url.params().size() > 1 ) ) )
+    {
+        if( bHasReportType )
+        {
+            //remove the report type
+            URL temp = url;
+            temp.params().erase( "report" );
+            os << " &quot;" << temp.encoded_params() << "&quot; ,";
+        }
+        else
+        {
+            os << " &quot;" << url.encoded_params() << "&quot; ,";
+        }
+    }
+    else
+    {
+        os << " &quot;&quot; ,";
+    }
+
+    if( url.has_fragment() )
+    {
+        os << " &quot;" << url.encoded_fragment() << "&quot; )";
+    }
+    else
+    {
+        os << " &quot;&quot; )";
+    }
+
+    return os.str();
+}
+
 void valueToJSON( Args& args, const Value& value, nlohmann::json& data )
 {
     std::optional< URL > urlOpt;
@@ -195,7 +241,7 @@ void valueToJSON( Args& args, const Value& value, nlohmann::json& data )
     std::ostringstream os;
     if( urlOpt.has_value() )
     {
-        os << "<a href=\"" <<  urlOpt.value().c_str() << "\">" << escapeHTML( toString( value ) ) << "</a>";
+        os << "<a href=\"" << javascriptHREF( urlOpt.value() ) << "\">" << escapeHTML( toString( value ) ) << "</a>";
     }
     else
     {
@@ -216,7 +262,8 @@ void graphValueToJSON( Args& args, const Value& value, nlohmann::json& data )
     std::ostringstream os;
     if( urlOpt.has_value() )
     {
-        os << "<td href=\"" <<  urlOpt.value().c_str() << "\"><U>" << escapeHTML( toString( value ) ) << "</U></td>";
+        os << "<td href=\"" << javascriptHREF( urlOpt.value() ) << "\"><U>" << escapeHTML( toString( value ) )
+           << "</U></td>";
     }
     else
     {
@@ -250,7 +297,7 @@ bool addOptionalLink( Args& args, T& element, nlohmann::json& data )
     if( element.m_url.has_value() )
     {
         data[ "has_link" ] = true;
-        data[ "link" ]     = element.m_url.value().c_str();
+        data[ "link" ]     = javascriptHREF( element.m_url.value() );
         return true;
     }
     return false;
@@ -370,7 +417,7 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
         if( node.m_url.has_value() )
         {
             nodeData[ "has_url" ] = true;
-            nodeData[ "url" ]     = node.m_url.value().c_str();
+            nodeData[ "url" ]     = javascriptHREF( node.m_url.value() );
         }
 
         addOptionalBookmark( args, node, nodeData );
@@ -380,7 +427,7 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             nlohmann::json rowData( { { "values", nlohmann::json::array() } } );
             for( const Value& value : row )
             {
-                //NOTE graph value generates <td>value</td> so can generate href in graphviz
+                // NOTE graph value generates <td>value</td> so can generate href in graphviz
                 graphValueToJSON( args, value, rowData[ "values" ] );
             }
             nodeData[ "rows" ].push_back( rowData );

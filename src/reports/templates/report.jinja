@@ -37,6 +37,69 @@ td
 </head>
 
 <body>
+
+<script type="text/javascript">
+
+    currentReportType = "home"
+
+    const queryString = window.location.search
+    const urlParams = new URLSearchParams(queryString);
+    
+    if( urlParams.has( "report" ) )
+    {
+        currentReportType = urlParams.get( "report" )
+        console.log( "Report Type is: " + currentReportType )
+    }
+
+    document.onkeypress = function (e) 
+    {
+        e = e || window.event;
+        lastKeyPressed = e.keyCode
+        console.log( "onkeypress= " + lastKeyPressed )
+
+        if( lastKeyPressed == 105 ) // i
+        {
+            currentReportType = "interface"
+        }
+        else if( lastKeyPressed == 99 ) // c
+        {
+            currentReportType = "concrete"
+        }
+        else if( lastKeyPressed == 115 ) // s
+        {
+            currentReportType = "service"
+        }
+        else if( lastKeyPressed == 104 ) // h
+        {
+            currentReportType = "home"
+        }
+        console.log( "Report Type is: " + currentReportType )
+    };
+
+    // your handler
+    function navigateTo( path, params, fragment ) 
+    {
+        if( params )
+        {
+            newLocation = path + "?" + params + "&report=" + currentReportType
+        }
+        else
+        {
+            newLocation = path + "?report=" + currentReportType
+        }
+
+        if( fragment )
+        {
+            newLocation = newLocation + "#" + fragment
+        }
+
+        console.log( "href= " + newLocation + "\n" )
+
+        window.location.href = newLocation
+    }
+
+</script>
+
 {{ body }}
 </body>
 
