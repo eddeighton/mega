@@ -25,7 +25,6 @@
 #include "database/FinalStage.hxx"
 
 #include "reports/renderer_html.hpp"
-#include "reports/reporter.hpp"
 
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
@@ -53,6 +52,8 @@ namespace FinalStage
 namespace mega::reporters
 {
 
+const mega::reports::ReporterID SymbolsReporter::ID = "Symbols";
+
 SymbolsReporter::SymbolsReporter( mega::io::Environment& environment, FinalStage::Database& database )
     : m_environment( environment )
     , m_database( database )
@@ -70,23 +71,43 @@ mega::reports::Container SymbolsReporter::generate( const mega::reports::URL& ur
     auto pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
     {
-        Table concrete{ { "Concrete Type ID"s, "Interface Type ID"s, "Full Type Name"s, "Component"s } };
-        for( auto [ typeID, pConcreteID ] : pSymbolTable->get_concrete_type_ids() )
+        Table symbols {
+            {
+                "Symbol ID"s, "Name"s
+            }
+        };
+        for( auto [ symbolID, pSymbolID ] : pSymbolTable->get_symbol_type_ids() )
         {
-            auto pVertex = pConcreteID->get_vertex();
+            symbols.m_rows.push_back( ContainerVector{
+                Line{ symbolID, std::nullopt, symbolID }, 
+                Line{ pSymbolID->get_symbol() }
 
-            // clang-format off
-            concrete.m_rows.push_back( ContainerVector{
-                Line{ typeID, std::nullopt, typeID }, 
-                Line{ Concrete::getConcreteInterfaceTypeID( pVertex ) },
-                Line{ Concrete::printContextFullType( pVertex ) }, 
-                Line{ pVertex->get_component()->get_name() } }
-
-            );
-            // clang-format on
+            } );
         }
-        branch.m_elements.push_back( std::move( concrete ) );
+        branch.m_elements.push_back( std::move( symbols ) );
     }
+
+    return branch;
+}
+
+const mega::reports::ReporterID InterfaceTypeIDReporter::ID = "Interface";
+
+InterfaceTypeIDReporter::InterfaceTypeIDReporter( mega::io::Environment& environment, FinalStage::Database& database )
+    : m_environment( environment )
+    , m_database( database )
+{
+}
+
+mega::reports::Container InterfaceTypeIDReporter::generate( const mega::reports::URL& url )
+{
+    using namespace FinalStage;
+    using namespace std::string_literals;
+    using namespace mega::reports;
+
+    Branch branch{ { "(I)nterface"s } };
+
+    auto pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+
     {
         Table interface {
             {
@@ -135,24 +156,47 @@ mega::reports::Container SymbolsReporter::generate( const mega::reports::URL& ur
         }
         branch.m_elements.push_back( std::move( interface ) );
     }
-    {
-        Table symbols {
-            {
-                "Symbol ID"s, "Name"s
-            }
-        };
-        for( auto [ symbolID, pSymbolID ] : pSymbolTable->get_symbol_type_ids() )
-        {
-            symbols.m_rows.push_back( ContainerVector{
-                Line{ symbolID, std::nullopt, symbolID }, 
-                Line{ pSymbolID->get_symbol() }
-
-            } );
-        }
-        branch.m_elements.push_back( std::move( symbols ) );
-    }
 
     return branch;
 }
 
+const mega::reports::ReporterID ConcreteTypeIDReporter::ID = "Concrete";
+
+ConcreteTypeIDReporter::ConcreteTypeIDReporter( mega::io::Environment& environment, FinalStage::Database& database )
+    : m_environment( environment )
+    , m_database( database )
+{
+}
+
+mega::reports::Container ConcreteTypeIDReporter::generate( const mega::reports::URL& url )
+{
+    using namespace FinalStage;
+    using namespace std::string_literals;
+    using namespace mega::reports;
+
+    Branch branch{ { "(C)oncrete"s } };
+
+    auto pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+
+    {
+        Table concrete{ { "Concrete Type ID"s, "Interface Type ID"s, "Full Type Name"s, "Component"s } };
+        for( auto [ typeID, pConcreteID ] : pSymbolTable->get_concrete_type_ids() )
+        {
+            auto pVertex = pConcreteID->get_vertex();
+
+            // clang-format off
+            concrete.m_rows.push_back( ContainerVector{
+                Line{ typeID, std::nullopt, typeID }, 
+                Line{ Concrete::getConcreteInterfaceTypeID( pVertex ) },
+                Line{ Concrete::printContextFullType( pVertex ) }, 
+                Line{ pVertex->get_component()->get_name() } }
+
+            );
+            // clang-format on
+        }
+        branch.m_elements.push_back( std::move( concrete ) );
+    }
+    
+    return branch;
+}
 } // namespace mega::reporters

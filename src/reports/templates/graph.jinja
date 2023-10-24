@@ -62,6 +62,43 @@ digraph
     ];
 {% endfor %}
 
+{% for subgraph in subgraphs %}
+    subgraph {{ subgraph.name }}
+    {
+        style       = dashed
+        penwidth    = 2
+{% if subgraph.has_url %}
+        URL         = "{{ subgraph.url }}"
+{% endif %}
+{% if subgraph.has_bookmark %}
+        id          = "{{ subgraph.bookmark }}"
+{% endif %}
+{% if subgraph.has_label %}
+        label       = 
+        <
+            <table 
+                border      = "1" 
+                cellborder  = "1" 
+                cellpadding = "0"
+                bgcolor     = "{{ subgraph.colour }}"
+            >
+            {% for row in subgraph.rows %}
+            <tr>
+            {% for value in row.values %}
+                {{ value }}
+            {% endfor %}
+            </tr>
+            {% endfor %}
+            </table>
+        >
+{% endif %}
+
+{% for node in subgraph.nodes %}
+        {{ node }};
+{% endfor %}
+    }
+{% endfor %}
+
 {% for edge in edges %}
     {{ edge.from }} -> {{ edge.to }}
     [

@@ -32,10 +32,7 @@ MemoryReporter::MemoryReporter( mega::runtime::MemoryManager& memoryManager, run
 {
 }
 
-mega::reports::ReporterID MemoryReporter::getID()
-{
-    return "memory";
-}
+const mega::reports::ReporterID MemoryReporter::ID = "memory";
 
 mega::reports::Container MemoryReporter::generate( const mega::reports::URL& url )
 {

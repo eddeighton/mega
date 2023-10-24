@@ -71,7 +71,6 @@ set( REPORTS_HEADERS
     ${MEGA_API_DIR}/reports/renderer_html.hpp
     ${MEGA_API_DIR}/reports/report.hpp
     ${MEGA_API_DIR}/reports/reporter_id.hpp
-    ${MEGA_API_DIR}/reports/reporter.hpp
     ${MEGA_API_DIR}/reports/value.hpp
 )
 

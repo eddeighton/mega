@@ -22,7 +22,7 @@
 #define GUARD_2023_October_19_reporters
 
 #include "reports/report.hpp"
-#include "reports/reporter.hpp"
+#include "reports/reporter_id.hpp"
 
 #include "service/memory_manager.hpp"
 #include "environment/mpo_database.hpp"
@@ -30,14 +30,15 @@
 namespace mega::reports
 {
 
-class MemoryReporter : public mega::reports::Reporter
+class MemoryReporter
 {
     mega::runtime::MemoryManager& m_memoryManager;
-    runtime::MPODatabase& m_database;
+    runtime::MPODatabase&         m_database;
+
 public:
     MemoryReporter( mega::runtime::MemoryManager& memoryManager, runtime::MPODatabase& database );
-    mega::reports::ReporterID    getID() override;
-    mega::reports::Container     generate( const mega::reports::URL& url ) override;
+    static const mega::reports::ReporterID ID;
+    mega::reports::Container               generate( const mega::reports::URL& url );
 };
 
 } // namespace mega::reports

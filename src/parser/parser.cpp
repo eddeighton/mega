@@ -103,7 +103,7 @@ public:
         std::string strName;
         {
             std::ostringstream osName;
-            osName << "_anon_" << strFileName << '_' << szLineNumber;
+            osName << "_anon_" << szLineNumber;
             strName = osName.str();
             boost::replace_all( strName, "/", "_" );
             boost::replace_all( strName, ".", "_" );

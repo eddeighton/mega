@@ -477,7 +477,7 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
     }
 
     using namespace mega::reports;
-    mega::reports::HTMLRenderer renderer( m_report.getMegastructureInstallation().getRuntimeTemplateDir() );
+    mega::reports::HTMLRenderer renderer( m_report.getMegastructureInstallation().getRuntimeTemplateDir(), true );
 
     struct Linker : public mega::reports::Linker
     {

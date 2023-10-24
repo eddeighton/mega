@@ -21,7 +21,6 @@
 #include "database/FinalStage.hxx"
 
 #include "reports/renderer_html.hpp"
-#include "reports/reporter.hpp"
 
 #include "database_reporters/factory.hpp"
 
@@ -150,6 +149,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 {
     std::string             reportURL;
     boost::filesystem::path projectPath, outputFilePath, templateDir;
+    bool                    bClearTempFiles = true;
 
     namespace po = boost::program_options;
 
@@ -161,6 +161,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             ( "project_install",   po::value< boost::filesystem::path >( &projectPath ),        "Path to Megastructure Project" )
             ( "templates",         po::value< boost::filesystem::path >( &templateDir ),        "Path to report renderer templates" )
             ( "output",            po::value< boost::filesystem::path >( &outputFilePath ),     "Output file" )
+            ( "clear_temp",        po::value< bool >( &bClearTempFiles ),                       "Clear temporary files" )
             ;
         // clang-format on
     }
@@ -211,7 +212,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
         std::ostringstream os;
 
-        HTMLRenderer renderer( templateDir );
+        HTMLRenderer renderer( templateDir, bClearTempFiles );
         renderer.render( result, linker, os );
 
         try

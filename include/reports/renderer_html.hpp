@@ -41,7 +41,7 @@ namespace mega::reports
 class HTMLRenderer
 {
 public:
-    HTMLRenderer( const boost::filesystem::path& templateDir );
+    HTMLRenderer( const boost::filesystem::path& templateDir, bool bClearTempFiles );
     ~HTMLRenderer();
 
     void render( const Container& report, std::ostream& os );

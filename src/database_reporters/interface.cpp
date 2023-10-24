@@ -24,7 +24,6 @@
 #include "database/FinalStage.hxx"
 
 #include "reports/renderer_html.hpp"
-#include "reports/reporter.hpp"
 
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
@@ -51,6 +50,8 @@ namespace FinalStage
 
 namespace mega::reporters
 {
+
+const mega::reports::ReporterID InterfaceReporter::ID = "interface";
 
 InterfaceReporter::InterfaceReporter( mega::io::Manifest&    manifest,
                                       mega::io::Environment& environment,

@@ -62,7 +62,7 @@ class Line
 
 public:
     Value                  m_element;
-    std::optional< URL>    m_url;
+    std::optional< URL >   m_url;
     std::optional< Value > m_bookmark;
 };
 
@@ -82,7 +82,7 @@ class Multiline
 
 public:
     ValueVector            m_elements;
-    std::optional< URL>    m_url;
+    std::optional< URL >   m_url;
     std::optional< Value > m_bookmark;
 };
 
@@ -166,6 +166,29 @@ public:
         std::optional< Value >     m_bookmark;
     };
 
+    class Subgraph
+    {
+        friend class boost::serialization::access;
+        template < class Archive >
+        inline void serialize( Archive& archive, const unsigned int version )
+        {
+            archive& m_rows;
+            archive& m_colour;
+            archive& m_url;
+            archive& m_bookmark;
+            archive& m_nodes;
+        }
+
+    public:
+        using Vector = std::vector< Subgraph >;
+        
+        std::vector< ValueVector > m_rows;
+        Colour                     m_colour = Colour::lightblue;
+        std::optional< URL >       m_url;
+        std::optional< Value >     m_bookmark;
+        std::vector< std::size_t > m_nodes;
+    };
+
     class Edge
     {
         friend class boost::serialization::access;
@@ -218,13 +241,14 @@ public:
             Type m_style = solid;
         };
 
-        int    m_source, m_target;
-        Colour m_colour = Colour::black;
-        Style  m_style  = Style::solid;
+        std::size_t m_source, m_target;
+        Colour      m_colour = Colour::black;
+        Style       m_style  = Style::solid;
     };
 
-    Node::Vector m_nodes;
-    Edge::Vector m_edges;
+    Node::Vector     m_nodes;
+    Edge::Vector     m_edges;
+    Subgraph::Vector m_subgraphs;
 };
 
 } // namespace mega::reports

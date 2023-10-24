@@ -23,18 +23,27 @@
 
 namespace mega::reporters
 {
-
 bool isCompilationReportType( const mega::reports::URL& url )
 {
+    static std::map< char, std::string > reportedIDMap;
+    if( reportedIDMap.empty() )
+    {
+        // clang-format off
+        VERIFY_RTE_MSG( reportedIDMap.insert( { SymbolsReporter::ID.front(), SymbolsReporter::ID } ).second, "Invalid reported first char" );
+        VERIFY_RTE_MSG( reportedIDMap.insert( { InterfaceTypeIDReporter::ID.front(), InterfaceTypeIDReporter::ID } ).second, "Invalid reported first char" );
+        VERIFY_RTE_MSG( reportedIDMap.insert( { ConcreteTypeIDReporter::ID.front(), ConcreteTypeIDReporter::ID } ).second, "Invalid reported first char" );
+        VERIFY_RTE_MSG( reportedIDMap.insert( { InterfaceReporter::ID.front(), InterfaceReporter::ID } ).second, "Invalid reported first char" );
+        VERIFY_RTE_MSG( reportedIDMap.insert( { InheritanceReporter::ID.front(), InheritanceReporter::ID } ).second, "Invalid reported first char" );
+
+        // clang-format on
+    }
+
     auto reportType = mega::reports::getReportType( url );
 
     if( reportType.has_value() )
     {
-        if( reportType.value() == "interface" )
-        {
-            return true;
-        }
-        else if( reportType.value() == "symbols" )
+        auto iFind = reportedIDMap.find( reportType.value().front() );
+        if( iFind != reportedIDMap.end() )
         {
             return true;
         }
@@ -47,14 +56,29 @@ mega::reports::Container generateCompilationReport( const mega::reports::URL& ur
     if( mega::reporters::isCompilationReportType( url ) )
     {
         auto reportType = mega::reports::getReportType( url ).value();
-        if( reportType == "symbols" )
+        if( reportType == SymbolsReporter::ID )
         {
             mega::reporters::SymbolsReporter reporter( args.environment, args.database );
             return reporter.generate( url );
         }
-        else if( reportType == "interface" )
+        else if( reportType == InterfaceTypeIDReporter::ID )
+        {
+            mega::reporters::InterfaceTypeIDReporter reporter( args.environment, args.database );
+            return reporter.generate( url );
+        }
+        else if( reportType == ConcreteTypeIDReporter::ID )
+        {
+            mega::reporters::ConcreteTypeIDReporter reporter( args.environment, args.database );
+            return reporter.generate( url );
+        }
+        else if( reportType == InterfaceReporter::ID )
         {
             mega::reporters::InterfaceReporter reporter( args.manifest, args.environment, args.database );
+            return reporter.generate( url );
+        }
+        else if( reportType == InheritanceReporter::ID )
+        {
+            mega::reporters::InheritanceReporter reporter( args.manifest, args.environment, args.database );
             return reporter.generate( url );
         }
     }

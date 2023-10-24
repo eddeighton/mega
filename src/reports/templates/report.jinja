@@ -49,7 +49,36 @@ td
         console.log( "Report Type is: " + currentReportType )
     }
 
+
+
     /*
+    A 65
+    B 66
+    C 67
+    D 68
+    E 69
+    F 70
+    G 71
+    H 72
+    I 73
+    J 74
+    K 75
+    L 76
+    M 77
+    N 78
+    O 79
+    P 80
+    Q 81
+    R 82
+    S 83
+    T 84
+    U 85
+    V 86
+    W 87
+    X 88
+    Y 89
+    Z 90
+
     a 97
     b 98
     c 99
@@ -84,21 +113,29 @@ td
         lastKeyPressed = e.keyCode
         console.log( "onkeypress= " + lastKeyPressed )
 
-        if( lastKeyPressed == 105 ) // i
+        if( lastKeyPressed == 83 ) // S
+        {
+            currentReportType = "Symbols"
+        }
+        if( lastKeyPressed == 73 ) // I
+        {
+            currentReportType = "Interface"
+        }
+        else if( lastKeyPressed == 67 ) // C
+        {
+            currentReportType = "Concrete"
+        }
+        else if( lastKeyPressed == 105 ) // i
         {
             currentReportType = "interface"
-        }
-        else if( lastKeyPressed == 99 ) // c
-        {
-            currentReportType = "concrete"
-        }
-        else if( lastKeyPressed == 115 ) // s
-        {
-            currentReportType = "symbols"
         }
         else if( lastKeyPressed == 109 ) // m
         {
             currentReportType = "memory"
+        }
+        else if( lastKeyPressed == 110 ) // n
+        {
+            currentReportType = "nheritance"
         }
         else if( lastKeyPressed == 104 ) // h
         {
@@ -130,7 +167,7 @@ td
     }
 
 </script>
-
+<p>(S)ymbolsIDs (I)nterfaceIDs (C)oncreteIDs (i)interfaceTree (m)emory (h)ome</p>
 {{ body }}
 </body>
 

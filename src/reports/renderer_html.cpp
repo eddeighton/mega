@@ -20,7 +20,6 @@
 
 #include "reports/renderer_html.hpp"
 #include "reports/report.hpp"
-#include "reports/reporter.hpp"
 
 #include "mega/values/compilation/invocation_id.hpp"
 #include "mega/values/compilation/relation_id.hpp"
@@ -52,6 +51,7 @@ class Inja
 {
     ::inja::Environment     m_injaEnvironment;
     boost::filesystem::path m_tempFolder;
+    bool                    m_bClearTempFiles;
 
     enum TemplateType
     {
@@ -84,9 +84,10 @@ class Inja
     }
 
 public:
-    Inja( const boost::filesystem::path& templateDir )
+    Inja( const boost::filesystem::path& templateDir, bool bClearTempFiles )
         : m_templateNames{ "report.jinja", "multiline.jinja", "branch.jinja", "table.jinja", "graph.jinja" }
         , m_tempFolder( boost::filesystem::temp_directory_path() / "graphs" / common::uuid() )
+        , m_bClearTempFiles( bClearTempFiles )
     {
         boost::filesystem::create_directories( m_tempFolder );
         VERIFY_RTE_MSG(
@@ -105,8 +106,10 @@ public:
 
     ~Inja()
     {
-        //
-        boost::filesystem::remove_all( m_tempFolder );
+        if( m_bClearTempFiles )
+        {
+            boost::filesystem::remove_all( m_tempFolder );
+        }
     }
 
     void renderReport( const nlohmann::json& data, std::ostream& os ) { renderTemplate( data, eReport, os ); }
@@ -198,12 +201,12 @@ std::string javascriptHREF( const URL& url )
             bHasReportType = true;
         }
     }
-    
+
     if( ( !url.params().empty() ) && ( !bHasReportType || ( url.params().size() > 1 ) ) )
     {
         if( bHasReportType )
         {
-            //remove the report type
+            // remove the report type
             URL temp = url;
             temp.params().erase( "report" );
             os << " &quot;" << temp.encoded_params() << "&quot; ,";
@@ -394,7 +397,9 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
 {
     using namespace std::string_literals;
 
-    nlohmann::json data( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
+    nlohmann::json data( { { "nodes", nlohmann::json::array() },
+                           { "edges", nlohmann::json::array() },
+                           { "subgraphs", nlohmann::json::array() } } );
 
     std::vector< std::string > nodeNames;
     for( const auto& node : graph.m_nodes )
@@ -434,6 +439,56 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
         }
 
         data[ "nodes" ].push_back( nodeData );
+    }
+
+    std::vector< std::string > subgraphNames;
+    for( const auto& subgraph : graph.m_subgraphs )
+    {
+        std::ostringstream osNodeName;
+        // NOTE: MUST start with 'cluster'
+        osNodeName << "cluster_" << subgraphNames.size();
+        subgraphNames.push_back( osNodeName.str() );
+
+        nlohmann::json subgraphData( {
+
+            { "name", osNodeName.str() },
+            { "colour", subgraph.m_colour.str() },
+            { "rows", nlohmann::json::array() },
+            { "nodes", nlohmann::json::array() },
+            { "has_url", false },
+            { "has_bookmark", false },
+            { "has_label", false },
+            { "bookmark", "" }
+
+        } );
+
+        if( subgraph.m_url.has_value() )
+        {
+            subgraphData[ "has_url" ] = true;
+            subgraphData[ "url" ]     = javascriptHREF( subgraph.m_url.value() );
+        }
+
+        addOptionalBookmark( args, subgraph, subgraphData );
+
+        for( const ValueVector& row : subgraph.m_rows )
+        {
+            nlohmann::json rowData( { { "values", nlohmann::json::array() } } );
+            for( const Value& value : row )
+            {
+                // NOTE graph value generates <td>value</td> so can generate href in graphviz
+                graphValueToJSON( args, value, rowData[ "values" ] );
+                subgraphData[ "has_label" ] = true;
+            }
+            subgraphData[ "rows" ].push_back( rowData );
+        }
+
+        for( auto iNode : subgraph.m_nodes )
+        {
+            VERIFY_RTE_MSG( ( iNode ) >= 0 && ( iNode < nodeNames.size() ), "Invalid subgraph node id of: " << iNode );
+            subgraphData[ "nodes" ].push_back( nodeNames[ iNode ] );
+        }
+
+        data[ "subgraphs" ].push_back( subgraphData );
     }
 
     for( const auto& edge : graph.m_edges )
@@ -489,8 +544,8 @@ void renderReport( Args& args, const Container& container, std::ostream& os )
 
 } // namespace
 
-HTMLRenderer::HTMLRenderer( const boost::filesystem::path& templateDir )
-    : m_pInja( new Inja( templateDir ) )
+HTMLRenderer::HTMLRenderer( const boost::filesystem::path& templateDir, bool bClearTempFiles )
+    : m_pInja( new Inja( templateDir, bClearTempFiles ) )
 {
 }
 HTMLRenderer::~HTMLRenderer()

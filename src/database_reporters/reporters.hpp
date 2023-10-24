@@ -23,24 +23,46 @@
 #include "database/FinalStage.hxx"
 #include "environment/environment_archive.hpp"
 #include "reports/report.hpp"
-#include "reports/reporter.hpp"
+#include "reports/reporter_id.hpp"
 #include "mega/values/service/url.hpp"
 
 namespace mega::reporters
 {
 
-class SymbolsReporter : public mega::reports::Reporter
+class SymbolsReporter
 {
     mega::io::Environment& m_environment;
     FinalStage::Database&  m_database;
 
 public:
     SymbolsReporter( mega::io::Environment& environment, FinalStage::Database& database );
-    mega::reports::ReporterID getID() override { return "symbols"; }
-    mega::reports::Container  generate( const mega::reports::URL& url ) override;
+    static const mega::reports::ReporterID ID;
+    mega::reports::Container               generate( const mega::reports::URL& url );
 };
 
-class InterfaceReporter : public mega::reports::Reporter
+class InterfaceTypeIDReporter
+{
+    mega::io::Environment& m_environment;
+    FinalStage::Database&  m_database;
+
+public:
+    InterfaceTypeIDReporter( mega::io::Environment& environment, FinalStage::Database& database );
+    static const mega::reports::ReporterID ID;
+    mega::reports::Container               generate( const mega::reports::URL& url );
+};
+
+class ConcreteTypeIDReporter
+{
+    mega::io::Environment& m_environment;
+    FinalStage::Database&  m_database;
+
+public:
+    ConcreteTypeIDReporter( mega::io::Environment& environment, FinalStage::Database& database );
+    static const mega::reports::ReporterID ID;
+    mega::reports::Container               generate( const mega::reports::URL& url );
+};
+
+class InterfaceReporter
 {
     mega::io::Manifest&    m_manifest;
     mega::io::Environment& m_environment;
@@ -59,8 +81,21 @@ public:
                        mega::io::Environment& environment,
                        FinalStage::Database&  database );
 
-    mega::reports::ReporterID getID() override { return "interface"; }
-    mega::reports::Container  generate( const mega::reports::URL& url ) override;
+    static const mega::reports::ReporterID ID;
+    mega::reports::Container               generate( const mega::reports::URL& url );
+};
+
+class InheritanceReporter
+{
+    mega::io::Manifest&    m_manifest;
+    mega::io::Environment& m_environment;
+    FinalStage::Database&  m_database;
+
+public:
+    InheritanceReporter( mega::io::Manifest& manifest, mega::io::Environment& environment,
+                         FinalStage::Database& database );
+    static const mega::reports::ReporterID ID;
+    mega::reports::Container               generate( const mega::reports::URL& url );
 };
 
 } // namespace mega::reporters

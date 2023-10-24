@@ -459,6 +459,7 @@ stage FinalStage
     persource accessor ref< Interface::IContext >;
     persource accessor array< ref< Interface::State > >;
     persource accessor array< ref< Interface::Action > >;
+    persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::Component > >;
     persource accessor array< ref< Interface::InvocationContext > >;
     persource accessor ref< Concrete::Root >;
