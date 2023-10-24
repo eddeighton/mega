@@ -285,6 +285,21 @@ void parse( const std::string& str, Type::Vector& args )
     }
 }
 
+std::ostream& operator<<( std::ostream& os, const mega::Type& arg )
+{
+    return os << arg.get();
+}
+
+std::ostream& operator<<( std::ostream& os, const mega::TypeName& arg )
+{
+    os << arg.getType();
+    if( arg.getName().has_value() )
+    {
+        os << " " << arg.getName().value();
+    }
+    return os;
+}
+
 std::ostream& operator<<( std::ostream& os, const mega::TypeName::Vector& arguments )
 {
     bool bFirst = true;
@@ -294,11 +309,7 @@ std::ostream& operator<<( std::ostream& os, const mega::TypeName::Vector& argume
             bFirst = false;
         else
             os << ", ";
-        os << arg.getType();
-        if( arg.getName().has_value() )
-        {
-            os << " " << arg.getName().value();
-        }
+        os << arg;
     }
     return os;
 }
@@ -312,9 +323,17 @@ std::ostream& operator<<( std::ostream& os, const mega::Type::Vector& arguments 
             bFirst = false;
         else
             os << ", ";
-        os << arg.get();
+        os << arg;
     }
     return os;
+}
+
+std::string TypeName::str() const
+{
+    using ::           operator<<;
+    std::ostringstream os;
+    os << *this;
+    return os.str();
 }
 
 } // namespace mega

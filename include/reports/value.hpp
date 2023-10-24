@@ -60,6 +60,7 @@ using Value = boost::variant
 
     // Compilation Types
     TypeID, 
+    TypeIDSequence,
     InvocationID, 
     RelationID, 
     SizeAlignment,
@@ -70,7 +71,6 @@ using Value = boost::variant
     MP,
     MPO,
     reference,
-    AllocationID,
 
     // Service Types
     mega::network::LogicalThreadID,

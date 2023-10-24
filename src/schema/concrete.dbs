@@ -197,7 +197,7 @@ namespace Concrete
         ref< Automata::Enum >       automata_enum -> AutomataStage::AutomataAnalysis;
         value< mega::U64 >          total_index   -> AutomataStage::AutomataAnalysis;
     }
-
+    
     object MemoryMappedObject : Object -> GlobalMemoryStageRollout::GlobalMemoryRollout
     {
         ref< MemoryLayout::MemoryMap > memory_map;

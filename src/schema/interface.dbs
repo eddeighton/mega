@@ -223,5 +223,4 @@ namespace Interface
         late< opt< ref< InheritanceTrait > > >      inheritance_trait;
         late< opt< ref< SizeTrait > > >             size_trait;
     }
-
 }

@@ -95,20 +95,16 @@ private:
     static inline std::string verbToString( HTTPVerbType verbType )
     {
         using namespace std::string_literals;
-        static const std::array< std::string, TOTAL_HTTP_VERBS > g_verbNames =
-        {
-            "eClose"s,
-            "eError"s,
-            "eGet"s,
-            "eHead"s,
-            "ePost"s
-        };
+        static const std::array< std::string, TOTAL_HTTP_VERBS > g_verbNames
+            = { "eClose"s, "eError"s, "eGet"s, "eHead"s, "ePost"s };
         return g_verbNames[ verbType ];
     }
     using HTTPRequestMsg = network::report::MSG_HTTPRequest_Response;
-    void                                  spawnTCPStream();
-    boost::beast::http::message_generator handleHTTPRequest( const network::HTTPRequestData& msg,
-                                                             boost::asio::yield_context&     yield_ctx );
+    void                                        spawnTCPStream();
+    boost::beast::http::message_generator       handleHTTPRequest( const network::HTTPRequestData& msg,
+                                                                   boost::asio::yield_context&     yield_ctx );
+    boost::beast::http::string_body::value_type generateHTTPResponse( const mega::reports::URL&   url,
+                                                                      boost::asio::yield_context& yield_ctx );
 
 private:
     int m_queueStack = 0;

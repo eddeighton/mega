@@ -85,6 +85,8 @@ struct TypeName
 // EGDB_EXPORT
 void parse( const std::string& str, Type::Vector& args );
 void parse( const std::string& str, TypeName::Vector& args );
+std::ostream& operator<<( std::ostream& os, const mega::Type& arguments );
+std::ostream& operator<<( std::ostream& os, const mega::TypeName& arguments );
 std::ostream& operator<<( std::ostream& os, const mega::Type::Vector& arguments );
 std::ostream& operator<<( std::ostream& os, const mega::TypeName::Vector& arguments );
 

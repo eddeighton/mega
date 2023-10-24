@@ -150,14 +150,19 @@ void Leaf::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
         const network::JITStatus jitStatus = m_pJIT->getStatus();
 
         Table jitStatusTable;
+        
         // clang-format off
-        jitStatusTable.m_rows.push_back( { Line{ " Functions: "s }, Line{ std::to_string( jitStatus.m_functionPointers ) } } );
-        jitStatusTable.m_rows.push_back( { Line{ "Allocators: "s }, Line{ std::to_string( jitStatus.m_allocators ) } } );
-        jitStatusTable.m_rows.push_back( { Line{ "Relations:  "s }, Line{ std::to_string( jitStatus.m_relations ) } } );
-        jitStatusTable.m_rows.push_back( { Line{ "Invocations:"s }, Line{ std::to_string( jitStatus.m_invocations ) } } );
-        jitStatusTable.m_rows.push_back( { Line{ "Operators:  "s }, Line{ std::to_string( jitStatus.m_operators ) } } );
-        jitStatusTable.m_rows.push_back( { Line{ "Interfaces: "s }, Line{ std::to_string( jitStatus.m_componentManagerStatus.m_interfaceComponents  ) } } );
-        jitStatusTable.m_rows.push_back( { Line{ "Python:     "s }, Line{ std::to_string( jitStatus.m_componentManagerStatus.m_pythonComponents ) } } );
+        jitStatusTable.m_rows.push_back( { 
+            Line{ " Functions: "s }, Line{ std::to_string( jitStatus.m_functionPointers ) }, 
+            Line{ "Allocators: "s }, Line{ std::to_string( jitStatus.m_allocators ) } } );
+        jitStatusTable.m_rows.push_back( { 
+            Line{ "Relations:  "s }, Line{ std::to_string( jitStatus.m_relations ) }, 
+            Line{ "Invocations:"s }, Line{ std::to_string( jitStatus.m_invocations ) } } );
+        jitStatusTable.m_rows.push_back( { 
+            Line{ "Operators:  "s }, Line{ std::to_string( jitStatus.m_operators ) }, 
+            Line{ "Interfaces: "s }, Line{ std::to_string( jitStatus.m_componentManagerStatus.m_interfaceComponents  ) } } );
+        jitStatusTable.m_rows.push_back( { 
+            Line{ "Python:     "s }, Line{ std::to_string( jitStatus.m_componentManagerStatus.m_pythonComponents ) } } );
         // clang-format on
 
         tables.m_rows.back().push_back( jitStatusTable );

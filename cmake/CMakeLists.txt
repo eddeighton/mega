@@ -96,6 +96,7 @@ add_subdirectory(pipeline)
 add_subdirectory(compiler)
 
 add_subdirectory(reports)
+add_subdirectory(database_reporters)
 
 add_subdirectory(map)
 add_subdirectory(schematic)

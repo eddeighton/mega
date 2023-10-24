@@ -43,7 +43,7 @@ mega::reports::Container MemoryReporter::generate( const mega::reports::URL& url
     using namespace mega::reports;
 
     Table test{ { { "Type Name"s },
-                  //{ "Allocation ID" },
+                  { "Allocation ID"s },
                   { "Heap Address"s },
                   { "Network Address"s },
                   { "SizeAlignment"s },
@@ -62,7 +62,7 @@ mega::reports::Container MemoryReporter::generate( const mega::reports::URL& url
             ContainerVector
             {
                 Line( { m_database.getConcreteFullType( ref.getType() ) } ),
-                //Line( { RuntimeValue{ ref.getAllocationID() } } ),
+                Line( { std::to_string( ref.getAllocationID() ) } ),
                 Line( { ref } ),
                 Line( { ref.getNetworkAddress() } ),
                 Line( { pHeader->m_pAllocator->getSizeAlignment() } ),

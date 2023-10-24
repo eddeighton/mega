@@ -97,6 +97,7 @@ target_link_libraries( mega protocol )
 target_link_libraries( mega terminal )
 target_link_libraries( mega schematic )
 target_link_libraries( mega reports )
+target_link_libraries( mega database_reporters )
 
 set_target_properties( mega PROPERTIES FOLDER service )
 

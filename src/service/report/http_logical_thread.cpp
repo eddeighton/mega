@@ -22,6 +22,8 @@
 
 #include "reports/renderer_html.hpp"
 
+#include "database_reporters/factory.hpp"
+
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 #include "mega/printer.hpp"
@@ -399,59 +401,18 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
         return bad_request( "Unknown HTTP-method" );
     }
 
-    http::string_body::value_type body;
+    mega::reports::URL url;
     {
-        spdlog::stopwatch sw;
-
-        mega::reports::URL url;
-        std::ostringstream os;
-        {
-            using ::operator<<;
-            {
-                const auto httpEndpoint = m_report.getHTTPEndPoint();
-                url                     = boost::urls::parse_origin_form( httpRequest.request ).value();
-                url.set_encoded_host_address( httpEndpoint.address().to_string() );
-                url.set_port_number( httpEndpoint.port() );
-            }
-
-            mega::reports::Container reportContainer;
-            {
-                QueueStackDepth queueMsgs( m_queueStack );
-                {
-                    auto reportRequest = getRootRequest< network::report::Request_Encoder >( yield_ctx );
-                    reportContainer    = reportRequest.GetNetworkReport( url );
-                }
-            }
-
-            using namespace mega::reports;
-            mega::reports::HTMLRenderer renderer( m_report.getMegastructureInstallation().getRuntimeTemplateDir() );
-
-            struct Linker : public mega::reports::Linker
-            {
-                const mega::reports::URL& m_url;
-                Linker( const mega::reports::URL& url )
-                    : m_url( url )
-                {
-                }
-                std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
-                {
-                    if( auto pMPO = boost::get< mega::MPO >( &value ) )
-                    {
-                        URL url = m_url;
-                        url.set_fragment( mega::reports::toString( value ) );
-                        return url;
-                    }
-                    return {};
-                }
-            } linker( url );
-            renderer.render( reportContainer, linker, os );
-        }
-
-        body = os.str();
-
-        SPDLOG_INFO( "HTTP Request: {} took time: {}", url.c_str(),
-                     std::chrono::duration_cast< mega::network::LogTime >( sw.elapsed() ) );
+        const auto httpEndpoint = m_report.getHTTPEndPoint();
+        url                     = boost::urls::parse_origin_form( httpRequest.request ).value();
+        url.set_encoded_host_address( httpEndpoint.address().to_string() );
+        url.set_port_number( httpEndpoint.port() );
     }
+
+    spdlog::stopwatch             sw;
+    http::string_body::value_type body = generateHTTPResponse( url, yield_ctx );
+    SPDLOG_INFO( "HTTP Request: {} took time: {}", url.c_str(),
+                 std::chrono::duration_cast< mega::network::LogTime >( sw.elapsed() ) );
 
     // Cache the size since we need it after the move
     auto const size = body.size();
@@ -477,6 +438,75 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
         res.keep_alive( httpRequest.keep_alive );
         return res;
     }
+}
+
+boost::beast::http::string_body::value_type
+HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::asio::yield_context& yield_ctx )
+{
+    mega::reports::Container reportContainer;
+
+    // either service request or database
+    if( mega::reporters::isCompilationReportType( url ) )
+    {
+        auto projectOpt = m_report.getProject();
+        if( projectOpt.has_value() )
+        {
+            VERIFY_RTE_MSG(
+                boost::filesystem::exists( projectOpt.value().getProjectDatabase() ),
+                "Failed to locate project database at: " << projectOpt.value().getProjectDatabase().string() );
+
+            mega::io::ArchiveEnvironment environment( projectOpt.value().getProjectDatabase() );
+            mega::io::Manifest           manifest( environment, environment.project_manifest() );
+            FinalStage::Database         database( environment, environment.project_manifest() );
+
+            reportContainer = mega::reporters::generateCompilationReport(
+                url, mega::reporters::CompilationReportArgs{ manifest, environment, database } );
+        }
+        else
+        {
+            SPDLOG_ERROR( "Cannot generated report: {} when no active project", url.c_str() );
+        }
+    }
+    else
+    {
+        QueueStackDepth queueMsgs( m_queueStack );
+        {
+            auto reportRequest = getRootRequest< network::report::Request_Encoder >( yield_ctx );
+            reportContainer    = reportRequest.GetNetworkReport( url );
+        }
+    }
+
+    using namespace mega::reports;
+    mega::reports::HTMLRenderer renderer( m_report.getMegastructureInstallation().getRuntimeTemplateDir() );
+
+    struct Linker : public mega::reports::Linker
+    {
+        const mega::reports::URL& m_url;
+        Linker( const mega::reports::URL& url )
+            : m_url( url )
+        {
+        }
+        std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
+        {
+            if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
+            {
+                URL url = m_url;
+                url.set_fragment( mega::reports::toString( value ) );
+                return url;
+            }
+            else if( auto pMPO = boost::get< mega::MPO >( &value ) )
+            {
+                URL url = m_url;
+                url.set_fragment( mega::reports::toString( value ) );
+                return url;
+            }
+            return {};
+        }
+    } linker( url );
+
+    std::ostringstream os;
+    renderer.render( reportContainer, linker, os );
+    return os.str();
 }
 
 mega::network::HTTPRequestData HTTPLogicalThread::HTTPRequest( boost::asio::yield_context& )

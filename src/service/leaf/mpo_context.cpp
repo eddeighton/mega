@@ -26,6 +26,7 @@
 
 #include "service/mpo_context.hpp"
 #include "service/cycle.hpp"
+#include "service/reporters.hpp"
 
 #include "service/protocol/common/type_erase.hpp"
 
@@ -420,10 +421,12 @@ void MPOContest::getDump()
 
 void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::Table& table )
 {
-    SPDLOG_TRACE( "MPOContext::GetBasicReport: mpo: {}", m_mpo.value() );
+    SPDLOG_TRACE( "MPOContext::GetBasicReport: mpo: {} {}", m_mpo.value(), url.c_str() );
 
     using namespace mega::reports;
     using namespace std::string_literals;
+
+    // general stuff
 
     // clang-format off
     table.m_rows.push_back( { Line{ "         MPO: "s }, Line{ m_mpo.value() } } );
@@ -436,38 +439,55 @@ void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::T
         makeFileURL( url, getLog().getLogFolderPath().string() ) } } );
     // clang-format on
 
+    auto reportType     = getReportType( url );
+    bool bDoBasicReport = true;
+    
+    if( reportType.has_value() )
     {
-        Table                   logTable;
-        const log::IndexRecord& iter = getLog().getIterator();
-        for( auto i = 0; i != log::toInt( log::TrackID::TOTAL ); ++i )
+        if( reportType.value() == "memory" )
         {
-            if( auto amt = iter.get( log::TrackID( i ) ).get(); amt > 0 )
+            // do service request...
+            MemoryReporter memoryReporter( *m_pMemoryManager, *m_pDatabase );
+            table.m_rows.push_back( { Line{ "     Memory: "s }, memoryReporter.generate( url ) } );
+        }
+    }
+
+    if( bDoBasicReport )
+    {
+
+        {
+            Table                   logTable;
+            const log::IndexRecord& iter = getLog().getIterator();
+            for( auto i = 0; i != log::toInt( log::TrackID::TOTAL ); ++i )
             {
-                logTable.m_rows.push_back( { Line{ log::toName( log::TrackID( i ) ) },
-                                             Line{ std::to_string( iter.get( log::TrackID( i ) ).get() ) } } );
+                if( auto amt = iter.get( log::TrackID( i ) ).get(); amt > 0 )
+                {
+                    logTable.m_rows.push_back( { Line{ log::toName( log::TrackID( i ) ) },
+                                                 Line{ std::to_string( iter.get( log::TrackID( i ) ).get() ) } } );
+                }
             }
+            table.m_rows.push_back( { Line{ "         Log: "s }, logTable } );
         }
-        table.m_rows.push_back( { Line{ "         Log: "s }, logTable } );
-    }
 
-    {
-        Table locks{ { "Lock Type"s, "MPO"s, "Timestamp"s } };
-        for( auto& [ mpo, timestamp ] : m_lockTracker.getReads() )
         {
-            locks.m_rows.push_back( { Line{ "READ"s }, Line{ mpo }, Line{ std::to_string( timestamp ) } } );
+            Table locks{ { "Lock Type"s, "MPO"s, "Timestamp"s } };
+            for( auto& [ mpo, timestamp ] : m_lockTracker.getReads() )
+            {
+                locks.m_rows.push_back( { Line{ "READ"s }, Line{ mpo }, Line{ std::to_string( timestamp ) } } );
+            }
+            for( auto& [ mpo, timestamp ] : m_lockTracker.getWrites() )
+            {
+                locks.m_rows.push_back( { Line{ "WRITE"s }, Line{ mpo }, Line{ std::to_string( timestamp ) } } );
+            }
+            table.m_rows.push_back( { Line{ "    In Locks: "s }, locks } );
         }
-        for( auto& [ mpo, timestamp ] : m_lockTracker.getWrites() )
-        {
-            locks.m_rows.push_back( { Line{ "WRITE"s }, Line{ mpo }, Line{ std::to_string( timestamp ) } } );
-        }
-        table.m_rows.push_back( { Line{ "    In Locks: "s }, locks } );
-    }
 
-    if( m_pMemoryManager )
-    {
-        const network::MemoryStatus memStatus = m_pMemoryManager->getStatus();
-        table.m_rows.push_back( { Line{ "         Mem: "s }, Line{ std::to_string( memStatus.m_heap ) } } );
-        table.m_rows.push_back( { Line{ "         Obj: "s }, Line{ std::to_string( memStatus.m_object ) } } );
+        if( m_pMemoryManager )
+        {
+            const network::MemoryStatus memStatus = m_pMemoryManager->getStatus();
+            table.m_rows.push_back( { Line{ "         Mem: "s }, Line{ std::to_string( memStatus.m_heap ) } } );
+            table.m_rows.push_back( { Line{ "         Obj: "s }, Line{ std::to_string( memStatus.m_object ) } } );
+        }
     }
 }
 

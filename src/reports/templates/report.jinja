@@ -10,12 +10,12 @@ table
 }
 th
 {
-    border: 1px solid black;
+    border: 2px solid darkblue;
     border-collapse: collapse;
 }
 td 
 {
-    border: 1px solid black;
+    border: 1px solid darkblue;
     border-collapse: collapse;
 }
 .multiline_default
@@ -23,15 +23,13 @@ td
     white-space:pre;
     font-size:14px;
     font-family:monospace;
-    background-color:#bdcdcd;
-    color:#222222;
+    background-color:#b0c0c0;
 }
 .branch_default
 {
-    color:#222222;
     font-size:14px;
     font-family:monospace;
-    background-color:#e9efef;
+    background-color:#cfdfdf;
 }
 </style>
 </head>
@@ -51,6 +49,35 @@ td
         console.log( "Report Type is: " + currentReportType )
     }
 
+    /*
+    a 97
+    b 98
+    c 99
+    d 100
+    e 101
+    f 102
+    g 103
+    h 104
+    i 105
+    j 106
+    k 107
+    l 108
+    m 109
+    n 110
+    o 111
+    p 112
+    q 113
+    r 114
+    s 115
+    t 116
+    u 117
+    v 118
+    w 119
+    x 120
+    y 121
+    z 122
+    */
+
     document.onkeypress = function (e) 
     {
         e = e || window.event;
@@ -67,7 +94,11 @@ td
         }
         else if( lastKeyPressed == 115 ) // s
         {
-            currentReportType = "service"
+            currentReportType = "symbols"
+        }
+        else if( lastKeyPressed == 109 ) // m
+        {
+            currentReportType = "memory"
         }
         else if( lastKeyPressed == 104 ) // h
         {

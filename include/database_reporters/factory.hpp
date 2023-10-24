@@ -1,4 +1,3 @@
-
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -18,52 +17,26 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_October_19_url
-#define GUARD_2023_October_19_url
+#ifndef FACTORY_24_OCT_2023
+#define FACTORY_24_OCT_2023
 
-#include "common/serialisation.hpp"
-#include "common/assert_verify.hpp"
+#include "database/FinalStage.hxx"
+#include "environment/environment_archive.hpp"
+#include "reports/report.hpp"
+#include "mega/values/service/url.hpp"
 
-#include <boost/url.hpp>
-
-#include <vector>
-#include <string>
-#include <sstream>
-#include <ostream>
-#include <optional>
-
-namespace mega::reports
+namespace mega::reporters
 {
 
-using URL = boost::url;
-
-URL makeFileURL( const URL& url, const boost::filesystem::path& filePath );
-
-std::optional< std::string > getReportType( const URL& url );
-
-} // namespace mega::reports
-
-
-namespace boost::serialization
+bool isCompilationReportType( const mega::reports::URL& url );
+struct CompilationReportArgs
 {
+    mega::io::Manifest&    manifest;
+    mega::io::Environment& environment;
+    FinalStage::Database&  database;
+};
+mega::reports::Container generateCompilationReport( const mega::reports::URL& url, CompilationReportArgs args );
 
-template < class Archive >
-inline void serialize( Archive& ar, ::mega::reports::URL& url, const unsigned int version )
-{
-    if constexpr( Archive::is_saving::value )
-    {
-        std::string view = url.buffer();
-        ar & view;
-    }
+} // namespace mega::reporters
 
-    if constexpr( Archive::is_loading::value )
-    {
-        std::string str;
-        ar & str;
-        url = ::mega::reports::URL( str );
-    }
-}
-
-}
-
-#endif // GUARD_2023_October_19_url
+#endif // FACTORY_24_OCT_2023

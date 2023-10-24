@@ -64,6 +64,7 @@ target_link_libraries( report executorLib )
 target_link_libraries( report mega_mangle )
 target_link_libraries( report reports )
 target_link_libraries( report reporters )
+target_link_libraries( report database_reporters )
 
 set_target_properties( report PROPERTIES FOLDER service )
 

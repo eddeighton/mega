@@ -22,7 +22,7 @@
 
 namespace mega::reports
 {
-    
+
 URL makeFileURL( const URL& url, const boost::filesystem::path& filePath )
 {
     URL result = url;
@@ -30,4 +30,17 @@ URL makeFileURL( const URL& url, const boost::filesystem::path& filePath )
     return result;
 }
 
+std::optional< std::string > getReportType( const URL& url )
+{
+    auto iFind = url.params().find( "report" );
+    if( iFind != url.params().end() )
+    {
+        if( ( *iFind ).has_value )
+        {
+            return ( *iFind ).value;
+        }
+    }
+    return {};
 }
+
+} // namespace mega::reports

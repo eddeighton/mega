@@ -23,6 +23,8 @@
 #include "reports/renderer_html.hpp"
 #include "reports/reporter.hpp"
 
+#include "database_reporters/factory.hpp"
+
 #include "service/network/log.hpp"
 
 #include "mega/values/service/url.hpp"
@@ -53,7 +55,7 @@ namespace FinalStage
 
 namespace driver::report
 {
-
+/*
 class TestReporter : public mega::reports::Reporter
 {
 public:
@@ -74,54 +76,52 @@ public:
             table.m_rows.emplace_back
             (
                 ContainerVector
-                { 
-                    Line{ "Ed was here"s }, 
+                {
+                    Line{ "Ed was here"s },
                     Multiline
-                    { 
-                        { 
+                    {
+                        {
                             "MPO: "s,
-                            mega::MPO{ 1, 2, 3 }, 
+                            mega::MPO{ 1, 2, 3 },
                             " MP: "s,
-                            mega::MP{ 1, 2 } 
-                        } 
+                            mega::MP{ 1, 2 }
+                        }
                     },
                     Branch
                     {
                         { "BranchLabel"s },
                         ContainerVector
                         {
-                            Line{ "Branch Element 1"s }, 
+                            Line{ "Branch Element 1"s },
                             Branch
                             {
                                 { "NestedBranch"s },
                                 ContainerVector
                                 {
-                                    Line{ "Element 1"s }, 
-                                    Line{ "Element 2"s }, 
+                                    Line{ "Element 1"s },
+                                    Line{ "Element 2"s },
                                     Multiline
-                                    { 
-                                        { 
+                                    {
+                                        {
                                             "MPO: "s,
-                                            mega::MPO{ 1, 2, 3 }, 
+                                            mega::MPO{ 1, 2, 3 },
                                             " MP: "s,
-                                            mega::MP{ 1, 2 } 
-                                        } 
+                                            mega::MP{ 1, 2 }
+                                        }
                                     },
-                                    Line{ "Element 4"s }, 
+                                    Line{ "Element 4"s },
                                 }
                             },
-                            Line{ "Branch Element 3"s }, 
-                            Line{ "Branch Element 4"s }, 
+                            Line{ "Branch Element 3"s },
+                            Line{ "Branch Element 4"s },
                         }
                     },
                     Graph
                     {
                         {
-                            Graph::Node{ {{ "Node 1"s }, { "MPO"s, mega::MPO{ 3,2,1 } }, { "Type"s, mega::TypeID::make_context( 123,321 ) } } },
-                            Graph::Node{ {{ "Node 2"s }}, Colour::red },
-                            Graph::Node{ {{ "Node 3"s }}, Colour::blue },
-                            Graph::Node{ {{ "Node 4"s }}, Colour::green },
-                            Graph::Node{ {{ "Node 5"s }}, Colour::orange },
+                            Graph::Node{ {{ "Node 1"s }, { "MPO"s, mega::MPO{ 3,2,1 } }, { "Type"s,
+mega::TypeID::make_context( 123,321 ) } } }, Graph::Node{ {{ "Node 2"s }}, Colour::red }, Graph::Node{ {{ "Node 3"s }},
+Colour::blue }, Graph::Node{ {{ "Node 4"s }}, Colour::green }, Graph::Node{ {{ "Node 5"s }}, Colour::orange },
                             Graph::Node{ {{ "Node 6"s }}}
                         },
                         {
@@ -130,13 +130,13 @@ public:
                             Graph::Edge{ 2, 3 },
                             Graph::Edge{ 3, 4, Colour::green },
                             Graph::Edge{ 4, 5 },
-                           
+
                             Graph::Edge{ 2, 4 },
                             Graph::Edge{ 4, 1 },
                             Graph::Edge{ 3, 2 }
                         }
                     }
-                } 
+                }
             );
             // clang-format on
         }
@@ -144,276 +144,7 @@ public:
         return table;
     }
 };
-
-class SymbolsReporter : public mega::reports::Reporter
-{
-    mega::io::Environment& m_environment;
-    FinalStage::Database&  m_database;
-
-public:
-    using ID = std::string;
-
-    SymbolsReporter( mega::io::Environment& environment, FinalStage::Database& database )
-        : m_environment( environment )
-        , m_database( database )
-    {
-    }
-
-    mega::reports::ReporterID getID() override { return "symbols"; }
-
-    mega::reports::Container generate( const mega::reports::URL& url ) override
-    {
-        using namespace FinalStage;
-        using namespace std::string_literals;
-        using namespace mega::reports;
-
-        Branch branch{ { "Symbols"s } };
-
-        auto pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-
-        {
-            Table concrete{ { "Concrete Type ID"s, "Interface Type ID"s, "Full Type Name"s, "Component"s } };
-            for( auto [ typeID, pConcreteID ] : pSymbolTable->get_concrete_type_ids() )
-            {
-                auto pVertex = pConcreteID->get_vertex();
-
-                concrete.m_rows.push_back( ContainerVector{
-                    Line{ typeID }, Line{ Concrete::getConcreteInterfaceTypeID( pVertex ) },
-                    Line{ Concrete::printContextFullType( pVertex ) }, Line{ pVertex->get_component()->get_name() } }
-
-                );
-            }
-            branch.m_elements.push_back( std::move( concrete ) );
-        }
-        {
-            Table interface {
-                {
-                    "Interface Type ID"s, "Full Type Name"s, "Data Type"s, "Erased Type"s, "Mangle"s, "Simple"s,
-                        "Size"s, "Alignment"s
-                }
-            };
-            for( auto [ typeID, pInterfaceTypeID ] : pSymbolTable->get_interface_type_ids() )
-            {
-                if( pInterfaceTypeID->get_context().has_value() )
-                {
-                    interface.m_rows.push_back( ContainerVector{
-                        Line{ typeID },
-                        Line{ Interface::printIContextFullType( pInterfaceTypeID->get_context().value() ) } } );
-                }
-                else if( pInterfaceTypeID->get_dimension().has_value() )
-                {
-                    Interface::DimensionTrait* pDimension = pInterfaceTypeID->get_dimension().value();
-                    interface.m_rows.push_back( ContainerVector{
-                        Line{ typeID }, Line{ Interface::printDimensionTraitFullType( pDimension ) },
-                        Line{ pDimension->get_canonical_type() }, Line{ pDimension->get_erased_type() },
-                        Line{ pDimension->get_mangle()->get_mangle() },
-                        Line{ std::to_string( pDimension->get_simple() ) },
-                        Line{ std::to_string( pDimension->get_size() ) },
-                        Line{ std::to_string( pDimension->get_alignment() ) } } );
-                }
-                else if( pInterfaceTypeID->get_link().has_value() )
-                {
-                    Interface::LinkTrait* pLink = pInterfaceTypeID->get_link().value();
-                    interface.m_rows.push_back( ContainerVector{ Line{ typeID },
-                                                                 Line{ Interface::printLinkTraitFullType( pLink ) },
-                                                                 Line{ pLink->get_relation()->get_id() } } );
-                }
-                else
-                {
-                    THROW_RTE( "Interface TypeID: " << typeID << " has no context or dimension" );
-                }
-            }
-            branch.m_elements.push_back( std::move( interface ) );
-        }
-
-        return branch;
-    }
-};
-
-class InterfaceReporter : public mega::reports::Reporter
-{
-    std::string            m_strLinkTarget;
-    mega::io::Manifest&    m_manifest;
-    mega::io::Environment& m_environment;
-    FinalStage::Database&  m_database;
-
-public:
-    InterfaceReporter( const std::string&     strLinkTarget,
-                       mega::io::Manifest&    manifest,
-                       mega::io::Environment& environment,
-                       FinalStage::Database&  database )
-        : m_strLinkTarget( strLinkTarget )
-        , m_manifest( manifest )
-        , m_environment( environment )
-        , m_database( database )
-    {
-    }
-
-    mega::reports::ReporterID getID() override { return "interface"; }
-
-    void addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
-                        const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
-    {
-        using namespace FinalStage;
-        using namespace FinalStage::Interface;
-        using namespace std::string_literals;
-        using namespace mega::reports;
-
-        if( !dimensions.empty() )
-        {
-            Table table{ { "Dimension"s, "Identifier"s, "Canon"s } };
-            Table table2{ { "Data"s } };
-
-            for( DimensionTrait* pDimension : dimensions )
-            {
-                table2.m_rows.push_back( { Line{ pDimension->get_interface_id() } } );
-
-                if( auto pUser = db_cast< UserDimensionTrait >( pDimension ) )
-                {
-                    table.m_rows.push_back( { Line{ "User "s }, Line{ getIdentifier( pDimension ) },
-                                              Line{ pUser->get_canonical_type() } } );
-                }
-                else if( auto pCompiler = db_cast< CompilerDimensionTrait >( pDimension ) )
-                {
-                    table.m_rows.push_back( { Line{ "Comp "s }, Line{ getIdentifier( pDimension ) },
-                                              Line{ std::string{ mega::psz_bitset } } } );
-                }
-                else
-                {
-                    THROW_RTE( "Unknown dimension trait type" );
-                }
-            }
-            typeIDs.m_elements.push_back( std::move( table2 ) );
-            parentBranch.m_elements.emplace_back( std::move( table ) );
-        }
-    }
-
-    void recurse( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
-                  FinalStage::Interface::IContext* pContext )
-    {
-        using namespace FinalStage;
-        using namespace FinalStage::Interface;
-        using namespace std::string_literals;
-        using namespace mega::reports;
-
-        Branch branch;
-        branch.m_bookmark = pContext->get_interface_id();
-
-        typeIDs.m_elements.push_back( Line{ pContext->get_interface_id() } );
-
-        if( auto pNamespace = db_cast< Namespace >( pContext ) )
-        {
-            branch.m_label = { { "Namespace "s, Interface::getIdentifier( pContext ) } };
-            addProperties( typeIDs, branch, pNamespace->get_dimension_traits() );
-        }
-        else if( auto pAbstract = db_cast< Abstract >( pContext ) )
-        {
-            branch.m_label = { { "Interface "s, Interface::getIdentifier( pContext ) } };
-
-            // addInheritance( pAbstract->get_inheritance_trait(), node );
-        }
-        else if( auto pAction = db_cast< Action >( pContext ) )
-        {
-            branch.m_label = { { "Action "s, Interface::getIdentifier( pContext ) } };
-            addProperties( typeIDs, branch, pAction->get_dimension_traits() );
-
-            // addInheritance( pAction->get_inheritance_trait(), node );
-            // addTransition( pAction->get_transition_trait(), node );
-        }
-        else if( auto pComponent = db_cast< Component >( pContext ) )
-        {
-            branch.m_label = { { "Component "s, Interface::getIdentifier( pContext ) } };
-            addProperties( typeIDs, branch, pComponent->get_dimension_traits() );
-
-            // addInheritance( pComponent->get_inheritance_trait(), node );
-            // addTransition( pComponent->get_transition_trait(), node );
-        }
-        else if( auto pState = db_cast< State >( pContext ) )
-        {
-            branch.m_label = { { "State "s, Interface::getIdentifier( pContext ) } };
-            addProperties( typeIDs, branch, pState->get_dimension_traits() );
-
-            // addInheritance( pState->get_inheritance_trait(), node );
-            // addTransition( pState->get_transition_trait(), node );
-        }
-        else if( auto pEvent = db_cast< Event >( pContext ) )
-        {
-            branch.m_label = { { "Event "s, Interface::getIdentifier( pContext ) } };
-            addProperties( typeIDs, branch, pEvent->get_dimension_traits() );
-
-            // addInheritance( pEvent->get_inheritance_trait(), node );
-        }
-        else if( auto pInterupt = db_cast< Interupt >( pContext ) )
-        {
-            branch.m_label = { { "Interupt "s, Interface::getIdentifier( pContext ) } };
-
-            // addTransition( pInterupt->get_transition_trait(), node );
-            // addEvent( pInterupt->get_events_trait(), node );
-        }
-        else if( auto pFunction = db_cast< Function >( pContext ) )
-        {
-            branch.m_label = { { "Function "s, Interface::getIdentifier( pContext ) } };
-
-            // {
-            //     nlohmann::json     arguments;
-            //     std::ostringstream osArgs;
-            //     osArgs << pFunction->get_arguments_trait()->get_args();
-            //     PROP( arguments, "arguments", osArgs.str() );
-            //     node[ "properties" ].push_back( arguments );
-            // }
-            // {
-            //     nlohmann::json return_type;
-            //     PROP( return_type, "return type", pFunction->get_return_type_trait()->get_str() );
-            //     node[ "properties" ].push_back( return_type );
-            // }
-        }
-        else if( auto pObject = db_cast< Object >( pContext ) )
-        {
-            branch.m_label = { { "Object "s, Interface::getIdentifier( pContext ) } };
-            addProperties( typeIDs, branch, pObject->get_dimension_traits() );
-
-            // addInheritance( pObject->get_inheritance_trait(), node );
-        }
-        else
-        {
-            THROW_RTE( "Unknown context type" );
-        }
-
-        for( Interface::IContext* pChildContext : pContext->get_children() )
-        {
-            recurse( typeIDs, branch, pChildContext );
-        }
-
-        parentBranch.m_elements.emplace_back( std::move( branch ) );
-    }
-
-    mega::reports::Container generate( const mega::reports::URL& url ) override
-    {
-        using namespace FinalStage;
-        using namespace std::string_literals;
-        using namespace mega::reports;
-
-        Table root{ { "TypeID"s, "Tree"s } };
-
-        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
-        {
-            Database database( m_environment, sourceFilePath );
-
-            Branch typeIDs( { { sourceFilePath.path().string() } } );
-            Branch fileBranch( { { sourceFilePath.extension().string() } } );
-            for( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
-            {
-                for( Interface::IContext* pContext : pRoot->get_children() )
-                {
-                    recurse( typeIDs, fileBranch, pContext );
-                }
-            }
-            root.m_rows.push_back( { typeIDs, fileBranch } );
-        }
-
-        return root;
-    }
-};
+*/
 
 void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
@@ -445,57 +176,19 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     else
     {
         using namespace mega::reports;
+        using namespace mega::reporters;
 
         const mega::reports::URL url = boost::urls::parse_origin_form( reportURL ).value();
+        const mega::Project      project( projectPath );
+        VERIFY_RTE_MSG( boost::filesystem::exists( project.getProjectDatabase() ),
+                        "Failed to locate project database at: " << project.getProjectDatabase().string() );
 
-        std::string strReport;
-        {
-            auto iFind = url.params().find( "report" );
-            if( iFind != url.params().end() )
-            {
-                strReport = ( *iFind ).value;
-            }
-            else
-            {
-                SPDLOG_WARN( "No report type specified so using 'test'" );
-                strReport = "test";
-            }
-        }
+        mega::io::ArchiveEnvironment environment( project.getProjectDatabase() );
+        mega::io::Manifest           manifest( environment, environment.project_manifest() );
+        FinalStage::Database         database( environment, environment.project_manifest() );
 
-        Container result;
-
-        if( strReport == "test" )
-        {
-            TestReporter reporter;
-            result = reporter.generate( url );
-        }
-        else
-        {
-            const mega::Project project( projectPath );
-            VERIFY_RTE_MSG( boost::filesystem::exists( project.getProjectDatabase() ),
-                            "Failed to locate project database at: " << project.getProjectDatabase().string() );
-
-            mega::io::ArchiveEnvironment environment( project.getProjectDatabase() );
-            mega::io::Manifest           manifest( environment, environment.project_manifest() );
-
-            using namespace FinalStage;
-            Database database( environment, environment.project_manifest() );
-
-            if( strReport == "symbols" )
-            {
-                SymbolsReporter reporter( environment, database );
-                result = reporter.generate( url );
-            }
-            else if( strReport == "interface" )
-            {
-                InterfaceReporter reporter( outputFilePath.string(), manifest, environment, database );
-                result = reporter.generate( url );
-            }
-            else
-            {
-                THROW_RTE( "Unknown report type: " << strReport );
-            }
-        }
+        Container result = mega::reporters::generateCompilationReport(
+            url, CompilationReportArgs{ manifest, environment, database } );
 
         struct Linker : mega::reports::Linker
         {
