@@ -51,17 +51,6 @@ namespace FinalStage
 namespace mega::reporters
 {
 
-const mega::reports::ReporterID InterfaceReporter::ID = "interface";
-
-InterfaceReporter::InterfaceReporter( mega::io::Manifest&    manifest,
-                                      mega::io::Environment& environment,
-                                      FinalStage::Database&  database )
-    : m_manifest( manifest )
-    , m_environment( environment )
-    , m_database( database )
-{
-}
-
 void InterfaceReporter::addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
                                        const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
 {
@@ -229,11 +218,11 @@ mega::reports::Container InterfaceReporter::generate( const mega::reports::URL& 
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    Table root{ { "TypeID"s, "Tree"s } };
+    Table root{ { "TypeID"s, ID } };
 
-    for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+    for( const mega::io::megaFilePath& sourceFilePath : m_args.manifest.getMegaSourceFiles() )
     {
-        Database database( m_environment, sourceFilePath );
+        Database database( m_args.environment, sourceFilePath );
 
         Branch typeIDs( { { sourceFilePath.path().string() } } );
         Branch fileBranch( { { sourceFilePath.extension().string() } } );

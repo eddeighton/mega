@@ -181,6 +181,69 @@ std::string escapeHTML( std::string data )
     return data;
 }
 
+int javascriptKeyCode( char c )
+{
+    // clang-format off
+    switch( c )
+    {
+        case 'A': return 65;
+        case 'B': return 66;
+        case 'C': return 67;
+        case 'D': return 68;
+        case 'E': return 69;
+        case 'F': return 70;
+        case 'G': return 71;
+        case 'H': return 72;
+        case 'I': return 73;
+        case 'J': return 74;
+        case 'K': return 75;
+        case 'L': return 76;
+        case 'M': return 77;
+        case 'N': return 78;
+        case 'O': return 79;
+        case 'P': return 80;
+        case 'Q': return 81;
+        case 'R': return 82;
+        case 'S': return 83;
+        case 'T': return 84;
+        case 'U': return 85;
+        case 'V': return 86;
+        case 'W': return 87;
+        case 'X': return 88;
+        case 'Y': return 89;
+        case 'Z': return 90;
+        
+        case 'b': return 98;
+        case 'c': return 99;
+        case 'd': return 100;
+        case 'e': return 101;
+        case 'f': return 102;
+        case 'g': return 103;
+        case 'h': return 104;
+        case 'i': return 105;
+        case 'j': return 106;
+        case 'k': return 107;
+        case 'l': return 108;
+        case 'm': return 109;
+        case 'n': return 110;
+        case 'o': return 111;
+        case 'p': return 112;
+        case 'q': return 113;
+        case 'r': return 114;
+        case 's': return 115;
+        case 't': return 116;
+        case 'u': return 117;
+        case 'v': return 118;
+        case 'w': return 119;
+        case 'x': return 120;
+        case 'y': return 121;
+        case 'z': return 122;
+    default:
+        THROW_RTE( "Unknown javascript keycode: " << c );
+    }
+    // clang-format on
+}
+
 struct Args
 {
     Inja&   inja;
@@ -534,18 +597,35 @@ void renderContainer( Args& args, const Container& container, std::ostream& os )
     boost::apply_visitor( visitor, container );
 }
 
-void renderReport( Args& args, const Container& container, std::ostream& os )
+void renderReport( Args&                                    args,
+                   const Container&                         container,
+                   const HTMLRenderer::JavascriptShortcuts& shortcuts,
+                   std::ostream&                            os )
 {
     std::ostringstream osContainer;
     renderContainer( args, container, osContainer );
-    nlohmann::json report( { { "body", osContainer.str() } } );
+    nlohmann::json report( { { "body", osContainer.str() }, { "reports", nlohmann::json::array() } } );
+
+    for( const auto& reporterID : shortcuts.get() )
+    {
+        std::string strChar;
+        strChar.push_back( reporterID.key );
+        nlohmann::json reporterIDData( { { "key_char", strChar },
+                                         { "key_code", javascriptKeyCode( reporterID.key ) },
+                                         { "name", reporterID.strAction } } );
+        report[ "reports" ].push_back( reporterIDData );
+    }
+
     args.inja.renderReport( report, os );
 }
 
 } // namespace
 
-HTMLRenderer::HTMLRenderer( const boost::filesystem::path& templateDir, bool bClearTempFiles )
+HTMLRenderer::HTMLRenderer( const boost::filesystem::path& templateDir,
+                            JavascriptShortcuts            shortcuts,
+                            bool                           bClearTempFiles )
     : m_pInja( new Inja( templateDir, bClearTempFiles ) )
+    , m_shortcuts( std::move( shortcuts ) )
 {
 }
 HTMLRenderer::~HTMLRenderer()
@@ -556,13 +636,13 @@ HTMLRenderer::~HTMLRenderer()
 void HTMLRenderer::render( const Container& report, std::ostream& os )
 {
     Args args{ *reinterpret_cast< Inja* >( m_pInja ), nullptr };
-    renderReport( args, report, os );
+    renderReport( args, report, m_shortcuts, os );
 }
 
 void HTMLRenderer::render( const Container& report, Linker& linker, std::ostream& os )
 {
     Args args{ *reinterpret_cast< Inja* >( m_pInja ), &linker };
-    renderReport( args, report, os );
+    renderReport( args, report, m_shortcuts, os );
 }
 
 } // namespace mega::reports

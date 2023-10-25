@@ -52,7 +52,7 @@ namespace FinalStage
 namespace mega::reporters
 {
 
-mega::reports::Container InheritanceReporter::generate( const mega::reports::URL& url )
+mega::reports::Container AndOrTreeReporter::generate( const mega::reports::URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
@@ -60,11 +60,11 @@ mega::reports::Container InheritanceReporter::generate( const mega::reports::URL
 
     Graph graph;
 
-    std::map< TypeID, std::size_t >      objectIDs;
+    /*std::map< TypeID, std::size_t >      objectIDs;
     std::multimap< TypeID, std::size_t > objectGroups;
-    for( const mega::io::megaFilePath& sourceFilePath : m_args.manifest.getMegaSourceFiles() )
+    for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
     {
-        Database database( m_args.environment, sourceFilePath );
+        Database database( m_environment, sourceFilePath );
 
         for( Interface::IContext* pContext : database.many< Interface::IContext >( sourceFilePath ) )
         {
@@ -111,9 +111,9 @@ mega::reports::Container InheritanceReporter::generate( const mega::reports::URL
         graph.m_subgraphs.push_back( subgraph );
     }
 
-    for( const mega::io::megaFilePath& sourceFilePath : m_args.manifest.getMegaSourceFiles() )
+    for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
     {
-        Database database( m_args.environment, sourceFilePath );
+        Database database( m_environment, sourceFilePath );
 
         for( Interface::IContext* pContext : database.many< Interface::IContext >( sourceFilePath ) )
         {
@@ -156,7 +156,7 @@ mega::reports::Container InheritanceReporter::generate( const mega::reports::URL
                 graph.m_edges.push_back( Graph::Edge{ jFind->second, index, Colour::blue } );
             }
         }
-    }
+    }*/
 
     return graph;
 }

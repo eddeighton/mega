@@ -27,6 +27,8 @@
 
 #include "service/protocol/model/report.hxx"
 
+#include "reports/renderer_html.hpp"
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 
@@ -105,6 +107,7 @@ private:
                                                                    boost::asio::yield_context&     yield_ctx );
     boost::beast::http::string_body::value_type generateHTTPResponse( const mega::reports::URL&   url,
                                                                       boost::asio::yield_context& yield_ctx );
+    reports::HTMLRenderer::JavascriptShortcuts  getJavascriptShortcuts() const;
 
 private:
     int m_queueStack = 0;
@@ -119,11 +122,12 @@ private:
         ~QueueStackDepth() { --stackDepth; }
     };
 
-    bool                                    m_bRunning = false;
-    Report&                                 m_report;
-    boost::beast::tcp_stream                m_tcpStream;
-    std::vector< network::ReceivedMessage > m_messageQueue;
-    bool                                    m_bRunComplete = false;
+    bool                                           m_bRunning = false;
+    Report&                                        m_report;
+    boost::beast::tcp_stream                       m_tcpStream;
+    std::unique_ptr< mega::reports::HTMLRenderer > m_pRenderer;
+    std::vector< network::ReceivedMessage >        m_messageQueue;
+    bool                                           m_bRunComplete = false;
 };
 } // namespace mega::service::report
 

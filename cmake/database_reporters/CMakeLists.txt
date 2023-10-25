@@ -30,6 +30,7 @@ set( DATABASE_REPORTERS_SRC ${MEGA_SRC_DIR}/database_reporters )
 
 set( DATABASE_REPORTERS_HEADERS
     ${DATABASE_REPORTERS_API}/factory.hpp
+    ${DATABASE_REPORTERS_API}/compilation_reporter_args.hpp
 )
 
 set( DATABASE_REPORTERS_SRC 
@@ -38,6 +39,7 @@ set( DATABASE_REPORTERS_SRC
     ${DATABASE_REPORTERS_SRC}/symbols.cpp
     ${DATABASE_REPORTERS_SRC}/interface.cpp
     ${DATABASE_REPORTERS_SRC}/inheritance.cpp
+    ${DATABASE_REPORTERS_SRC}/and_or_tree.cpp
 )
 
 

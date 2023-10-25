@@ -20,6 +20,8 @@
 #ifndef REPORTERS_24_OCT_2023
 #define REPORTERS_24_OCT_2023
 
+#include "database_reporters/compilation_reporter_args.hpp"
+
 #include "database/FinalStage.hxx"
 #include "environment/environment_archive.hpp"
 #include "reports/report.hpp"
@@ -29,45 +31,29 @@
 namespace mega::reporters
 {
 
-class SymbolsReporter
+struct SymbolsReporter
 {
-    mega::io::Environment& m_environment;
-    FinalStage::Database&  m_database;
-
-public:
-    SymbolsReporter( mega::io::Environment& environment, FinalStage::Database& database );
+    CompilationReportArgs                  m_args;
     static const mega::reports::ReporterID ID;
     mega::reports::Container               generate( const mega::reports::URL& url );
 };
 
-class InterfaceTypeIDReporter
+struct InterfaceTypeIDReporter
 {
-    mega::io::Environment& m_environment;
-    FinalStage::Database&  m_database;
-
-public:
-    InterfaceTypeIDReporter( mega::io::Environment& environment, FinalStage::Database& database );
+    CompilationReportArgs                  m_args;
     static const mega::reports::ReporterID ID;
     mega::reports::Container               generate( const mega::reports::URL& url );
 };
 
-class ConcreteTypeIDReporter
+struct ConcreteTypeIDReporter
 {
-    mega::io::Environment& m_environment;
-    FinalStage::Database&  m_database;
-
-public:
-    ConcreteTypeIDReporter( mega::io::Environment& environment, FinalStage::Database& database );
+    CompilationReportArgs                  m_args;
     static const mega::reports::ReporterID ID;
     mega::reports::Container               generate( const mega::reports::URL& url );
 };
 
 class InterfaceReporter
 {
-    mega::io::Manifest&    m_manifest;
-    mega::io::Environment& m_environment;
-    FinalStage::Database&  m_database;
-
     void addInheritance( std::optional< FinalStage::Interface::InheritanceTrait* > inheritance,
                          mega::reports::Branch&                                    branch );
     void addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
@@ -77,23 +63,21 @@ class InterfaceReporter
                   FinalStage::Interface::IContext* pContext );
 
 public:
-    InterfaceReporter( mega::io::Manifest&    manifest,
-                       mega::io::Environment& environment,
-                       FinalStage::Database&  database );
-
+    CompilationReportArgs                  m_args;
     static const mega::reports::ReporterID ID;
     mega::reports::Container               generate( const mega::reports::URL& url );
 };
 
-class InheritanceReporter
+struct InheritanceReporter
 {
-    mega::io::Manifest&    m_manifest;
-    mega::io::Environment& m_environment;
-    FinalStage::Database&  m_database;
+    CompilationReportArgs                  m_args;
+    static const mega::reports::ReporterID ID;
+    mega::reports::Container               generate( const mega::reports::URL& url );
+};
 
-public:
-    InheritanceReporter( mega::io::Manifest& manifest, mega::io::Environment& environment,
-                         FinalStage::Database& database );
+struct AndOrTreeReporter
+{
+    CompilationReportArgs                  m_args;
     static const mega::reports::ReporterID ID;
     mega::reports::Container               generate( const mega::reports::URL& url );
 };

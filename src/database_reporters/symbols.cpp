@@ -52,35 +52,24 @@ namespace FinalStage
 namespace mega::reporters
 {
 
-const mega::reports::ReporterID SymbolsReporter::ID = "Symbols";
-
-SymbolsReporter::SymbolsReporter( mega::io::Environment& environment, FinalStage::Database& database )
-    : m_environment( environment )
-    , m_database( database )
-{
-}
-
 mega::reports::Container SymbolsReporter::generate( const mega::reports::URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    Branch branch{ { "(S)ymbols"s } };
+    Branch branch{ { ID } };
 
-    auto pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+    FinalStage::Database database( m_args.environment, m_args.environment.project_manifest() );
+
+    auto pSymbolTable = database.one< Symbols::SymbolTable >( m_args.environment.project_manifest() );
 
     {
-        Table symbols {
-            {
-                "Symbol ID"s, "Name"s
-            }
-        };
+        Table symbols{ { "Symbol ID"s, "Name"s } };
         for( auto [ symbolID, pSymbolID ] : pSymbolTable->get_symbol_type_ids() )
         {
             symbols.m_rows.push_back( ContainerVector{
-                Line{ symbolID, std::nullopt, symbolID }, 
-                Line{ pSymbolID->get_symbol() }
+                Line{ symbolID, std::nullopt, symbolID }, Line{ pSymbolID->get_symbol() }
 
             } );
         }
@@ -90,23 +79,17 @@ mega::reports::Container SymbolsReporter::generate( const mega::reports::URL& ur
     return branch;
 }
 
-const mega::reports::ReporterID InterfaceTypeIDReporter::ID = "Interface";
-
-InterfaceTypeIDReporter::InterfaceTypeIDReporter( mega::io::Environment& environment, FinalStage::Database& database )
-    : m_environment( environment )
-    , m_database( database )
-{
-}
-
 mega::reports::Container InterfaceTypeIDReporter::generate( const mega::reports::URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    Branch branch{ { "(I)nterface"s } };
+    FinalStage::Database database( m_args.environment, m_args.environment.project_manifest() );
 
-    auto pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+    Branch branch{ { ID } };
+
+    auto pSymbolTable = database.one< Symbols::SymbolTable >( m_args.environment.project_manifest() );
 
     {
         Table interface {
@@ -160,23 +143,17 @@ mega::reports::Container InterfaceTypeIDReporter::generate( const mega::reports:
     return branch;
 }
 
-const mega::reports::ReporterID ConcreteTypeIDReporter::ID = "Concrete";
-
-ConcreteTypeIDReporter::ConcreteTypeIDReporter( mega::io::Environment& environment, FinalStage::Database& database )
-    : m_environment( environment )
-    , m_database( database )
-{
-}
-
 mega::reports::Container ConcreteTypeIDReporter::generate( const mega::reports::URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    Branch branch{ { "(C)oncrete"s } };
+    Branch branch{ { ID } };
 
-    auto pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+    FinalStage::Database database( m_args.environment, m_args.environment.project_manifest() );
+
+    auto pSymbolTable = database.one< Symbols::SymbolTable >( m_args.environment.project_manifest() );
 
     {
         Table concrete{ { "Concrete Type ID"s, "Interface Type ID"s, "Full Type Name"s, "Component"s } };
@@ -196,7 +173,7 @@ mega::reports::Container ConcreteTypeIDReporter::generate( const mega::reports::
         }
         branch.m_elements.push_back( std::move( concrete ) );
     }
-    
+
     return branch;
 }
 } // namespace mega::reporters

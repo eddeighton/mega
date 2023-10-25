@@ -20,8 +20,6 @@
 
 #include "http_logical_thread.hpp"
 
-#include "reports/renderer_html.hpp"
-
 #include "database_reporters/factory.hpp"
 
 #include "mega/iterator.hpp"
@@ -41,7 +39,6 @@
 
 namespace mega::service::report
 {
-
 HTTPLogicalThread::HTTPLogicalThread( Report&                         report,
                                       const network::LogicalThreadID& logicalthreadID,
                                       boost::asio::ip::tcp::socket&   socket )
@@ -457,10 +454,9 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
 
             mega::io::ArchiveEnvironment environment( projectOpt.value().getProjectDatabase() );
             mega::io::Manifest           manifest( environment, environment.project_manifest() );
-            FinalStage::Database         database( environment, environment.project_manifest() );
 
             reportContainer = mega::reporters::generateCompilationReport(
-                url, mega::reporters::CompilationReportArgs{ manifest, environment, database } );
+                url, mega::reporters::CompilationReportArgs{ manifest, environment } );
         }
         else
         {
@@ -477,8 +473,6 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
     }
 
     using namespace mega::reports;
-    mega::reports::HTMLRenderer renderer( m_report.getMegastructureInstallation().getRuntimeTemplateDir(), true );
-
     struct Linker : public mega::reports::Linker
     {
         const mega::reports::URL& m_url;
@@ -504,9 +498,54 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
         }
     } linker( url );
 
+    if( !m_pRenderer )
+    {
+        m_pRenderer = std::make_unique< mega::reports::HTMLRenderer >(
+            m_report.getMegastructureInstallation().getRuntimeTemplateDir(), getJavascriptShortcuts(), true );
+    }
+
     std::ostringstream os;
-    renderer.render( reportContainer, linker, os );
+    m_pRenderer->render( reportContainer, linker, os );
     return os.str();
+}
+
+reports::HTMLRenderer::JavascriptShortcuts HTTPLogicalThread::getJavascriptShortcuts() const
+{
+    reports::HTMLRenderer::JavascriptShortcuts shortcuts;
+    {
+        mega::reports::HTMLRenderer::ReporterIDs reporterIDs;
+        mega::reporters::getDatabaseReporterIDs( reporterIDs );
+        mega::reports::getServiceReporters( reporterIDs );
+
+        std::set< char > used;
+        for( const auto& reportID : reporterIDs )
+        {
+            char key = '<';
+            for( char c : reportID )
+            {
+                if( !used.contains( c ) )
+                {
+                    key = c;
+                    break;
+                }
+                else if( !used.contains( std::toupper( c ) ) )
+                {
+                    key = std::toupper( c );
+                    break;
+                }
+                else if( !used.contains( std::tolower( c ) ) )
+                {
+                    key = std::tolower( c );
+                    break;
+                }
+            }
+
+            VERIFY_RTE_MSG( key != '<', "Could not find shortcut key for reportID: " << reportID );
+            shortcuts.add( { reportID, key } );
+            used.insert( key );
+        }
+    }
+    return shortcuts;
 }
 
 mega::network::HTTPRequestData HTTPLogicalThread::HTTPRequest( boost::asio::yield_context& )

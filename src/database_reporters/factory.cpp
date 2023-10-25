@@ -23,32 +23,37 @@
 
 namespace mega::reporters
 {
+
+// generate static ReporterID strings for each type
+#define REPORTER( reportname ) const mega::reports::ReporterID reportname##Reporter::ID = #reportname;
+#include "reporters.hxx"
+#undef REPORTER
+
 bool isCompilationReportType( const mega::reports::URL& url )
 {
-    static std::map< char, std::string > reportedIDMap;
+    static std::set< std::string > reportedIDMap;
     if( reportedIDMap.empty() )
     {
-        // clang-format off
-        VERIFY_RTE_MSG( reportedIDMap.insert( { SymbolsReporter::ID.front(), SymbolsReporter::ID } ).second, "Invalid reported first char" );
-        VERIFY_RTE_MSG( reportedIDMap.insert( { InterfaceTypeIDReporter::ID.front(), InterfaceTypeIDReporter::ID } ).second, "Invalid reported first char" );
-        VERIFY_RTE_MSG( reportedIDMap.insert( { ConcreteTypeIDReporter::ID.front(), ConcreteTypeIDReporter::ID } ).second, "Invalid reported first char" );
-        VERIFY_RTE_MSG( reportedIDMap.insert( { InterfaceReporter::ID.front(), InterfaceReporter::ID } ).second, "Invalid reported first char" );
-        VERIFY_RTE_MSG( reportedIDMap.insert( { InheritanceReporter::ID.front(), InheritanceReporter::ID } ).second, "Invalid reported first char" );
-
-        // clang-format on
+#define REPORTER( reportname ) \
+    VERIFY_RTE_MSG( reportedIDMap.insert( #reportname ).second, "Invalid reported first char" );
+#include "reporters.hxx"
+#undef REPORTER
     }
 
     auto reportType = mega::reports::getReportType( url );
 
     if( reportType.has_value() )
     {
-        auto iFind = reportedIDMap.find( reportType.value().front() );
-        if( iFind != reportedIDMap.end() )
-        {
-            return true;
-        }
+        return reportedIDMap.contains( reportType.value() );
     }
     return false;
+}
+
+void getDatabaseReporterIDs( std::vector< reports::ReporterID >& reportIDs )
+{
+#define REPORTER( reportname ) reportIDs.push_back( #reportname );
+#include "reporters.hxx"
+#undef REPORTER
 }
 
 mega::reports::Container generateCompilationReport( const mega::reports::URL& url, CompilationReportArgs args )
@@ -56,31 +61,18 @@ mega::reports::Container generateCompilationReport( const mega::reports::URL& ur
     if( mega::reporters::isCompilationReportType( url ) )
     {
         auto reportType = mega::reports::getReportType( url ).value();
-        if( reportType == SymbolsReporter::ID )
+        if( reportType.empty() )
         {
-            mega::reporters::SymbolsReporter reporter( args.environment, args.database );
-            return reporter.generate( url );
+            return {};
         }
-        else if( reportType == InterfaceTypeIDReporter::ID )
-        {
-            mega::reporters::InterfaceTypeIDReporter reporter( args.environment, args.database );
-            return reporter.generate( url );
-        }
-        else if( reportType == ConcreteTypeIDReporter::ID )
-        {
-            mega::reporters::ConcreteTypeIDReporter reporter( args.environment, args.database );
-            return reporter.generate( url );
-        }
-        else if( reportType == InterfaceReporter::ID )
-        {
-            mega::reporters::InterfaceReporter reporter( args.manifest, args.environment, args.database );
-            return reporter.generate( url );
-        }
-        else if( reportType == InheritanceReporter::ID )
-        {
-            mega::reporters::InheritanceReporter reporter( args.manifest, args.environment, args.database );
-            return reporter.generate( url );
-        }
+#define REPORTER( reportname )                           \
+    else if( reportType == #reportname )                 \
+    {                                                    \
+        mega::reporters::reportname##Reporter r{ args }; \
+        return r.generate( url );                        \
+    }
+#include "reporters.hxx"
+#undef REPORTER
     }
     return {};
 }

@@ -25,7 +25,13 @@
 
 namespace mega::reports
 {
-    using ReporterID = std::string;
-}
+using ReporterID = std::string;
 
-#endif //GUARD_2023_October_19_reporter_id
+struct ReporterIDKey
+{
+    ReporterID reporterID;
+    char       keycode;
+};
+} // namespace mega::reports
+
+#endif // GUARD_2023_October_19_reporter_id

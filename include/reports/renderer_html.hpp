@@ -21,19 +21,16 @@
 #ifndef GUARD_2023_October_19_renderer
 #define GUARD_2023_October_19_renderer
 
-#include "colours.hxx"
 #include "reporter_id.hpp"
 #include "linker.hpp"
 #include "report.hpp"
 
-#include "mega/values/service/url.hpp"
-
-#include <memory>
-#include <map>
-
-#include "common/assert_verify.hpp"
+#include "common/serialisation.hpp"
 
 #include <boost/filesystem/path.hpp>
+
+#include <ostream>
+#include <vector>
 
 namespace mega::reports
 {
@@ -41,14 +38,42 @@ namespace mega::reports
 class HTMLRenderer
 {
 public:
-    HTMLRenderer( const boost::filesystem::path& templateDir, bool bClearTempFiles );
+    struct JavascriptShortcuts
+    {
+        friend class boost::serialization::access;
+        template < class Archive >
+        inline void serialize( Archive& archive, const unsigned int version )
+        {
+            archive& boost::serialization::make_nvp( "shortcuts", m_shortcuts );
+        }
+
+    public:
+        struct Shortcut
+        {
+            std::string strAction;
+            char        key;
+
+            using Vector = std::vector< Shortcut >;
+        };
+
+        void add( Shortcut shortcut ) { m_shortcuts.emplace_back( std::move( shortcut ) ); }
+        const Shortcut::Vector& get() const { return m_shortcuts; }
+
+    private:
+        Shortcut::Vector m_shortcuts;
+    };
+
+    HTMLRenderer( const boost::filesystem::path& templateDir, JavascriptShortcuts shortcuts, bool bClearTempFiles );
     ~HTMLRenderer();
+
+    using ReporterIDs = std::vector< reports::ReporterID >;
 
     void render( const Container& report, std::ostream& os );
     void render( const Container& report, Linker& linker, std::ostream& os );
 
 private:
-    void* m_pInja;
+    void*               m_pInja;
+    JavascriptShortcuts m_shortcuts;
 };
 
 } // namespace mega::reports

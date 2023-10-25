@@ -41,6 +41,13 @@ public:
     mega::reports::Container               generate( const mega::reports::URL& url );
 };
 
+inline void getServiceReporters( std::vector< mega::reports::ReporterID >& reporterIDs )
+{
+    reporterIDs.push_back( "home" );
+
+    reporterIDs.push_back( MemoryReporter::ID );
+}
+
 } // namespace mega::reports
 
 #endif // GUARD_2023_October_19_reporters

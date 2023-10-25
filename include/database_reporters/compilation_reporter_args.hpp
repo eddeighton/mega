@@ -1,3 +1,6 @@
+
+
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,24 +20,20 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef FACTORY_24_OCT_2023
-#define FACTORY_24_OCT_2023
+#ifndef COMPILATION_REPORTER_ARGS_25_OCT_2023
+#define COMPILATION_REPORTER_ARGS_25_OCT_2023
 
-#include "compilation_reporter_args.hpp"
-
-#include "reports/report.hpp"
-#include "reports/reporter_id.hpp"
-
-#include "mega/values/service/url.hpp"
+#include "environment/environment_archive.hpp"
 
 namespace mega::reporters
 {
 
-bool isCompilationReportType( const mega::reports::URL& url );
-void getDatabaseReporterIDs( std::vector< reports::ReporterID >& reportIDs );
+struct CompilationReportArgs
+{
+    mega::io::Manifest&    manifest;
+    mega::io::Environment& environment;
+};
 
-mega::reports::Container generateCompilationReport( const mega::reports::URL& url, CompilationReportArgs args );
+}
 
-} // namespace mega::reporters
-
-#endif // FACTORY_24_OCT_2023
+#endif //COMPILATION_REPORTER_ARGS_25_OCT_2023

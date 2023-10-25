@@ -71,100 +71,30 @@ td
         }
     }
 
-    window.onrefresh = stateMachine
-    window.onload = stateMachine
+    window.onrefresh    = stateMachine
+    window.onload       = stateMachine
     
-    
-    /*
-    A 65
-    B 66
-    C 67
-    D 68
-    E 69
-    F 70
-    G 71
-    H 72
-    I 73
-    J 74
-    K 75
-    L 76
-    M 77
-    N 78
-    O 79
-    P 80
-    Q 81
-    R 82
-    S 83
-    T 84
-    U 85
-    V 86
-    W 87
-    X 88
-    Y 89
-    Z 90
-
-    a 97
-    b 98
-    c 99
-    d 100
-    e 101
-    f 102
-    g 103
-    h 104
-    i 105
-    j 106
-    k 107
-    l 108
-    m 109
-    n 110
-    o 111
-    p 112
-    q 113
-    r 114
-    s 115
-    t 116
-    u 117
-    v 118
-    w 119
-    x 120
-    y 121
-    z 122
-    */
+    function keyCodeToReportType( keyCode )
+    {
+        if( keyCode == 0 )
+        {
+            return ""
+        }
+{% for report in reports %}
+        else if( keyCode == {{ report.key_code }} )
+        {
+            return "{{ report.name }}";
+        }
+{% endfor %}
+        return ""
+    }
 
     document.onkeypress = function (e) 
     {
         e = e || window.event;
         lastKeyPressed = e.keyCode
         console.log( "onkeypress= " + lastKeyPressed )
-
-        if( lastKeyPressed == 83 ) // S
-        {
-            currentReportType = "Symbols"
-        }
-        if( lastKeyPressed == 73 ) // I
-        {
-            currentReportType = "Interface"
-        }
-        else if( lastKeyPressed == 67 ) // C
-        {
-            currentReportType = "Concrete"
-        }
-        else if( lastKeyPressed == 105 ) // i
-        {
-            currentReportType = "interface"
-        }
-        else if( lastKeyPressed == 109 ) // m
-        {
-            currentReportType = "memory"
-        }
-        else if( lastKeyPressed == 110 ) // n
-        {
-            currentReportType = "nheritance"
-        }
-        else if( lastKeyPressed == 104 ) // h
-        {
-            currentReportType = "home"
-        }
+        currentReportType = keyCodeToReportType( lastKeyPressed );
         console.log( "Report Type is: " + currentReportType )
     };
 
@@ -191,7 +121,16 @@ td
     }
 
 </script>
-<p>(S)ymbolsIDs (I)nterfaceIDs (C)oncreteIDs (i)interfaceTree (m)emory (h)ome</p>
+
+<div style="position:relative;min-width:960px">
+    <table style="position: absolute;right:0;top:0">
+        <tr><th>Report</th><th>Shortcut Key</th></tr>
+        {% for report in reports %}
+        <tr><td>{{ report.name }}</td><td>{{ report.key_char }}</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
 {{ body }}
 </body>
 

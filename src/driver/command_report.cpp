@@ -186,10 +186,9 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
         mega::io::ArchiveEnvironment environment( project.getProjectDatabase() );
         mega::io::Manifest           manifest( environment, environment.project_manifest() );
-        FinalStage::Database         database( environment, environment.project_manifest() );
 
         Container result = mega::reporters::generateCompilationReport(
-            url, CompilationReportArgs{ manifest, environment, database } );
+            url, CompilationReportArgs{ manifest, environment } );
 
         struct Linker : mega::reports::Linker
         {
@@ -210,9 +209,11 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             }
         } linker{ url };
 
-        std::ostringstream os;
 
-        HTMLRenderer renderer( templateDir, bClearTempFiles );
+        HTMLRenderer::JavascriptShortcuts shortcuts;
+        HTMLRenderer renderer( templateDir, shortcuts, bClearTempFiles );
+
+        std::ostringstream os;
         renderer.render( result, linker, os );
 
         try
