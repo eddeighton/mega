@@ -142,9 +142,46 @@ class Graph
     {
         archive& m_nodes;
         archive& m_edges;
+        archive& m_subgraphs;
+        archive& m_rankDirection;
     }
 
 public:
+    class RankDirection
+    {
+    public:
+        enum Type
+        {
+            LR,
+            RL,
+            TB,
+            BT,
+            TOTAL_TYPES
+        };
+
+        RankDirection() = default;
+
+        inline constexpr RankDirection( Type type )
+            : m_value( type )
+        {
+        }
+
+        inline const char* str() const
+        {
+            static const std::array< const char*, TOTAL_TYPES > g_types = { "LR", "RL", "TB", "BT" };
+            return g_types[ m_value ];
+        }
+
+        template < class Archive >
+        inline void serialize( Archive& archive, const unsigned int version )
+        {
+            archive& m_value;
+        }
+
+    private:
+        Type m_value = LR;
+    };
+
     class Node
     {
         friend class boost::serialization::access;
@@ -181,7 +218,7 @@ public:
 
     public:
         using Vector = std::vector< Subgraph >;
-        
+
         std::vector< ValueVector > m_rows;
         Colour                     m_colour = Colour::lightblue;
         std::optional< URL >       m_url;
@@ -249,6 +286,7 @@ public:
     Node::Vector     m_nodes;
     Edge::Vector     m_edges;
     Subgraph::Vector m_subgraphs;
+    RankDirection    m_rankDirection;
 };
 
 } // namespace mega::reports

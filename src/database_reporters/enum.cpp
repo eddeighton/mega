@@ -34,6 +34,7 @@
 #include "mega/common_strings.hpp"
 
 #include "common/assert_verify.hpp"
+#include "common/string.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
@@ -52,22 +53,22 @@ namespace FinalStage
 namespace mega::reporters
 {
 
-std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage::Automata::Vertex* pVertex,
-                                        std::vector< std::size_t >& nodes )
+std::size_t EnumReporter::recurse( mega::reports::Graph& graph, FinalStage::Automata::Enum* pEnum,
+                                   std::vector< std::size_t >& nodes )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
     std::string strType;
-    Colour colour = Colour::lightblue;
+    Colour      colour = Colour::lightblue;
     {
-        if( auto pAND = db_cast< Automata::And >( pVertex ) )
+        if( !pEnum->get_is_or() )
         {
             strType = "AND";
-            colour = Colour::lightgreen;
+            colour  = Colour::lightgreen;
         }
-        else if( auto pOR = db_cast< Automata::Or >( pVertex ) )
+        else if( pEnum->get_is_or() )
         {
             strType = "OR";
         }
@@ -77,18 +78,39 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
         }
     }
 
-    Graph::Node node{ { { strType, Concrete::getIdentifier( pVertex->get_context() ) },
-                        { "Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() },
-                        { "Relative Domain: "s, std::to_string( pVertex->get_relative_domain() ) },
-                        { "Total Domain: "s, std::to_string( pVertex->get_context()->get_total_size() ) },
-                        { "Base: "s, std::to_string( pVertex->get_index_base() ) } }, colour };
+    std::ostringstream osIndices;
+    auto               indices = pEnum->get_indices();
+    common::delimit( indices.begin(), indices.end(), ",", osIndices );
+
+    auto pVertex = pEnum->get_vertex();
+
+    // clang-format off
+    Graph::Node node{ {
+
+        { strType, Concrete::getIdentifier( pVertex->get_context() ) },
+        { "Vertex Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() },
+        { "Vertex Relative Domain: "s, std::to_string( pVertex->get_relative_domain() ) },
+        { "Vertex Total Domain: "s, std::to_string( pVertex->get_context()->get_total_size() ) },
+        { "Vertex Base: "s, std::to_string( pVertex->get_index_base() ) },
+            
+        { "Switch Index"s, std::to_string( pEnum->get_switch_index() ) },
+        { "Bitset Index"s, std::to_string( pEnum->get_bitset_index() ) },
+        { "Indices"s, osIndices.str() },
+
+        { "Is Or"s, std::to_string( pEnum->get_is_or() ) },
+        { "Has Action"s, std::to_string( pEnum->get_has_action() ) },
+        { "Sub Type Instance"s, pEnum->get_sub_type_instance() },
+
+        },
+        colour };
+    // clang-format on
 
     const std::size_t szNodeIndex = graph.m_nodes.size();
 
     nodes.push_back( szNodeIndex );
     graph.m_nodes.push_back( node );
 
-    for( auto pChildVert : pVertex->get_children() )
+    for( auto pChildVert : pEnum->get_children() )
     {
         const auto childNodeIndex = recurse( graph, pChildVert, nodes );
         graph.m_edges.push_back( Graph::Edge{ szNodeIndex, childNodeIndex } );
@@ -97,7 +119,7 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
     return szNodeIndex;
 }
 
-mega::reports::Container AndOrTreeReporter::generate( const mega::reports::URL& url )
+mega::reports::Container EnumReporter::generate( const mega::reports::URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
@@ -115,10 +137,9 @@ mega::reports::Container AndOrTreeReporter::generate( const mega::reports::URL& 
         {
             Graph graph;
             graph.m_rankDirection = Graph::RankDirection::TB;
-            
-            auto                       pRoot = pObject->get_automata_root();
+
             std::vector< std::size_t > nodes;
-            recurse( graph, pRoot, nodes );
+            recurse( graph, pObject->get_automata_enum(), nodes );
 
             Graph::Subgraph subgraph{ { { Concrete::printContextFullType( pObject ), pObject->get_concrete_id() } } };
             subgraph.m_nodes = nodes;
@@ -126,7 +147,7 @@ mega::reports::Container AndOrTreeReporter::generate( const mega::reports::URL& 
 
             sourceBranch.m_elements.push_back( graph );
         }
-        
+
         branch.m_elements.push_back( sourceBranch );
     }
 

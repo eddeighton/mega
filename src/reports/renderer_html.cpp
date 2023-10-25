@@ -460,7 +460,8 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
 {
     using namespace std::string_literals;
 
-    nlohmann::json data( { { "nodes", nlohmann::json::array() },
+    nlohmann::json data( { { "rank_direction", graph.m_rankDirection.str() },
+                           { "nodes", nlohmann::json::array() },
                            { "edges", nlohmann::json::array() },
                            { "subgraphs", nlohmann::json::array() } } );
 

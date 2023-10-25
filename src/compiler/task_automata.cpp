@@ -153,6 +153,7 @@ public:
                 const bool                  bHasAction = db_cast< Concrete::Action >( instance.pVertex->get_context() );
 
                 auto pEnum = database.construct< Automata::Enum >( Automata::Enum::Args{
+                    instance.pVertex,
                     instance.index,
                     instance.pVertex->get_index_base() + instance.instance,
                     {},
@@ -172,9 +173,9 @@ public:
 
     void collectIndices( AutomataStage::Automata::Enum* pEnum, std::vector< U32 >& indices )
     {
-        indices.push_back( pEnum->get_switch_index() );
         for( auto pChild : pEnum->get_children() )
         {
+            indices.push_back( pChild->get_switch_index() );
             collectIndices( pChild, indices );
         }
     }
@@ -184,7 +185,6 @@ public:
         {
             std::vector< U32 > indices;
             collectIndices( pEnum, indices );
-            VERIFY_RTE( !indices.empty() );
             pEnum->set_indices( indices );
         }
 
@@ -227,8 +227,8 @@ public:
             U32  subTypeInstanceIndex = 0U;
             recurse( rootNode, subTypeInstanceIndex );
 
-            auto pRootEnum = database.construct< Automata::Enum >(
-                Automata::Enum::Args{ 0, 0, {}, false, false, SubTypeInstance{}, {} } );
+            auto pRootEnum = database.construct< Automata::Enum >( 
+                Automata::Enum::Args{ pRoot, 0, 0, {}, false, false, SubTypeInstance{}, {} } );
 
             recurse( taskProgress, database, rootNode, pRootEnum );
             recurse( pRootEnum );

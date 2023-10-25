@@ -339,7 +339,6 @@ R"TEMPLATE(
 
                 } );
                 {
-                    VERIFY_RTE( !pEnum->get_indices().empty() );
                     for( auto i : pEnum->get_indices() )
                     {
                         enum_[ "cases" ].push_back( i );

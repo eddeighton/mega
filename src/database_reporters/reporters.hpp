@@ -75,8 +75,23 @@ struct InheritanceReporter
     mega::reports::Container               generate( const mega::reports::URL& url );
 };
 
-struct AndOrTreeReporter
+class AndOrTreeReporter
 {
+    std::size_t recurse( mega::reports::Graph& graph, FinalStage::Automata::Vertex* pVertex,
+                         std::vector< std::size_t >& nodes );
+
+public:
+    CompilationReportArgs                  m_args;
+    static const mega::reports::ReporterID ID;
+    mega::reports::Container               generate( const mega::reports::URL& url );
+};
+
+class EnumReporter
+{
+    std::size_t recurse( mega::reports::Graph& graph, FinalStage::Automata::Enum* pEnum,
+                         std::vector< std::size_t >& nodes );
+
+public:
     CompilationReportArgs                  m_args;
     static const mega::reports::ReporterID ID;
     mega::reports::Container               generate( const mega::reports::URL& url );

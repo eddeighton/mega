@@ -40,6 +40,7 @@ set( DATABASE_REPORTERS_SRC
     ${DATABASE_REPORTERS_SRC}/interface.cpp
     ${DATABASE_REPORTERS_SRC}/inheritance.cpp
     ${DATABASE_REPORTERS_SRC}/and_or_tree.cpp
+    ${DATABASE_REPORTERS_SRC}/enum.cpp
 )
 
 

@@ -39,6 +39,7 @@ namespace Automata
 
     object Enum  -> AutomataStage::AutomataAnalysis
     {
+        ref< Vertex >                   vertex;
         value< mega::U32 >              switch_index;
         value< mega::U32 >              bitset_index;
         array< value< mega::U32 > >     indices;
