@@ -53,24 +53,25 @@ namespace FinalStage
 namespace mega::reporters
 {
 
-std::size_t EnumReporter::recurse( mega::reports::Graph& graph, FinalStage::Automata::Enum* pEnum,
-                                   std::vector< std::size_t >& nodes )
+reports::Graph::Node::ID EnumReporter::recurse( mega::reports::Graph& graph, FinalStage::Automata::Enum* pEnum,
+                                                std::vector< reports::Graph::Node::ID >& nodes,
+                                                SwitchIDToNodeMap& switchIDToNodeMap, Edges& edges )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    std::string strType;
-    Colour      colour = Colour::lightblue;
+    auto pVertex = pEnum->get_vertex();
+
+    std::string strVertexType;
     {
         if( !pEnum->get_is_or() )
         {
-            strType = "AND";
-            colour  = Colour::lightgreen;
+            strVertexType = "AND";
         }
         else if( pEnum->get_is_or() )
         {
-            strType = "OR";
+            strVertexType = "OR";
         }
         else
         {
@@ -78,42 +79,74 @@ std::size_t EnumReporter::recurse( mega::reports::Graph& graph, FinalStage::Auto
         }
     }
 
-    std::ostringstream osIndices;
-    auto               indices = pEnum->get_indices();
-    common::delimit( indices.begin(), indices.end(), ",", osIndices );
+    std::string strEnumType;
+    Colour      colour;
+    {
+        if( auto pTest = db_cast< Automata::Test >( pEnum ) )
+        {
+            if( pEnum->get_action().has_value() )
+            {
+                strEnumType = "Test And Action";
+                colour      = Colour::lightyellow;
+            }
+            else
+            {
+                strEnumType = "Test";
+                colour      = Colour::lightgreen;
+            }
+        }
+        else
+        {
+            VERIFY_RTE( pEnum->get_action().has_value() );
+            strEnumType = "Action";
+            colour      = Colour::lightblue;
+        }
+    }
 
-    auto pVertex = pEnum->get_vertex();
+    std::ostringstream osChildSwitchIndices;
+    {
+        auto indices = pEnum->get_child_switch_indices();
+        common::delimit( indices.begin(), indices.end(), ",", osChildSwitchIndices );
+    }
+
+    const std::size_t szNodeIndex = graph.m_nodes.size();
+    nodes.push_back( szNodeIndex );
 
     // clang-format off
     Graph::Node node{ {
 
-        { strType, Concrete::getIdentifier( pVertex->get_context() ) },
-        { "Vertex Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() },
-        { "Vertex Relative Domain: "s, std::to_string( pVertex->get_relative_domain() ) },
-        { "Vertex Total Domain: "s, std::to_string( pVertex->get_context()->get_total_size() ) },
-        { "Vertex Base: "s, std::to_string( pVertex->get_index_base() ) },
-            
         { "Switch Index"s, std::to_string( pEnum->get_switch_index() ) },
-        { "Bitset Index"s, std::to_string( pEnum->get_bitset_index() ) },
-        { "Indices"s, osIndices.str() },
-
-        { "Is Or"s, std::to_string( pEnum->get_is_or() ) },
-        { "Has Action"s, std::to_string( pEnum->get_has_action() ) },
-        { "Sub Type Instance"s, pEnum->get_sub_type_instance() },
+        { "Next Switch Index"s, std::to_string( pEnum->get_next_switch_index() ) }
 
         },
         colour };
     // clang-format on
 
-    const std::size_t szNodeIndex = graph.m_nodes.size();
+    if( auto pTest = db_cast< Automata::Test >( pEnum ) )
+    {
+        node.m_rows.push_back( { "Failure Switch Index"s, std::to_string( pTest->get_failure_switch_index() ) } );
+        node.m_rows.push_back( { "Bitset Index"s, std::to_string( pTest->get_bitset_index() ) } );
 
-    nodes.push_back( szNodeIndex );
+        edges.failureEdges.insert( { pTest->get_switch_index(), pTest->get_failure_switch_index() } );
+    }
+
+    // general stuff
+    node.m_rows.push_back( { strEnumType, Concrete::getIdentifier( pVertex->get_context() ) } );
+    node.m_rows.push_back( { "Vertex Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() } );
+    node.m_rows.push_back( { "Vertex Interface TypeID: "s, pVertex->get_context()->get_interface()->get_interface_id() } );
+    node.m_rows.push_back( { "Sub Type Instance"s, pEnum->get_sub_type_instance() } );
+
+
+    edges.siblingEdges.insert( { pEnum->get_switch_index(), pEnum->get_next_switch_index() } );
+
     graph.m_nodes.push_back( node );
 
-    for( auto pChildVert : pEnum->get_children() )
+    VERIFY_RTE( switchIDToNodeMap.insert( { pEnum->get_switch_index(), szNodeIndex } ).second );
+
+    for( auto pChildEnum : pEnum->get_children() )
     {
-        const auto childNodeIndex = recurse( graph, pChildVert, nodes );
-        graph.m_edges.push_back( Graph::Edge{ szNodeIndex, childNodeIndex } );
+        const auto childNodeIndex = recurse( graph, pChildEnum, nodes, switchIDToNodeMap, edges );
+        edges.treeEdges.insert( { pEnum->get_switch_index(), pChildEnum->get_switch_index() } );
     }
 
     return szNodeIndex;
@@ -138,8 +171,84 @@ mega::reports::Container EnumReporter::generate( const mega::reports::URL& url )
             Graph graph;
             graph.m_rankDirection = Graph::RankDirection::TB;
 
-            std::vector< std::size_t > nodes;
-            recurse( graph, pObject->get_automata_enum(), nodes );
+            std::vector< reports::Graph::Node::ID > nodes;
+            std::vector< reports::Graph::Node::ID > rootNodes;
+            SwitchIDToNodeMap                       switchIDToNodeMap;
+            Edges                                   edges;
+            for( auto pEnum : pObject->get_automata_enums() )
+            {
+                reports::Graph::Node::ID rootNodeIndex = recurse( graph, pEnum, nodes, switchIDToNodeMap, edges );
+                rootNodes.push_back( rootNodeIndex );
+            }
+
+            // create a root node for tree
+            {
+                Graph::Node           node{ { { "Start"s } } };
+                const Graph::Node::ID szNodeIndex = graph.m_nodes.size();
+                nodes.push_back( szNodeIndex );
+                graph.m_nodes.push_back( node );
+
+                bool bFirst = true;
+                for( auto rootNodeIndex : rootNodes )
+                {
+                    if( bFirst )
+                    {
+                        bFirst = false;
+                        graph.m_edges.push_back(
+                            Graph::Edge{ szNodeIndex, rootNodeIndex, Colour::green, Graph::Edge::Style::solid } );
+                    }
+                    else
+                    {
+                        graph.m_edges.push_back(
+                            Graph::Edge{ szNodeIndex, rootNodeIndex, Colour{}, Graph::Edge::Style::invis } );
+                    }
+                }
+            }
+
+            // add node index for final state edge
+            switchIDToNodeMap.insert( { pObject->get_total_switch_index(), graph.m_nodes.size() } );
+
+            // NOTE: non-tree edges have m_bIgnoreInLayout == true
+            for( auto& edge : edges.siblingEdges )
+            {
+                VERIFY_RTE( switchIDToNodeMap.contains( edge.first ) );
+                VERIFY_RTE( switchIDToNodeMap.contains( edge.second ) );
+                graph.m_edges.push_back( Graph::Edge{ switchIDToNodeMap[ edge.first ], switchIDToNodeMap[ edge.second ],
+                                                      Colour::green, Graph::Edge::Style::solid, true } );
+            }
+
+            for( auto& edge : edges.failureEdges )
+            {
+                VERIFY_RTE( switchIDToNodeMap.contains( edge.first ) );
+                VERIFY_RTE( switchIDToNodeMap.contains( edge.second ) );
+                graph.m_edges.push_back( Graph::Edge{ switchIDToNodeMap[ edge.first ], switchIDToNodeMap[ edge.second ],
+                                                      Colour::red, Graph::Edge::Style::dashed, true } );
+            }
+
+            for( auto& edge : edges.treeEdges )
+            {
+                VERIFY_RTE( switchIDToNodeMap.contains( edge.first ) );
+                VERIFY_RTE( switchIDToNodeMap.contains( edge.second ) );
+                graph.m_edges.push_back( Graph::Edge{ switchIDToNodeMap[ edge.first ], switchIDToNodeMap[ edge.second ],
+                                                      Colour{}, Graph::Edge::Style::invis } );
+            }
+
+            // create a final state node - ensuring its invisible edges are added last
+            {
+                Graph::Node       node{ { { "Final State"s, std::to_string( pObject->get_total_switch_index() ) } } };
+                const Graph::Node::ID szNodeIndex = graph.m_nodes.size();
+                graph.m_nodes.push_back( node );
+
+                // attempt to make final state node on lowest rank
+                for( auto nodeIndex : nodes )
+                {
+                    graph.m_edges.push_back(
+                        Graph::Edge{ nodeIndex, szNodeIndex, Colour{}, Graph::Edge::Style::invis } );
+                }
+
+                // final switch index + 1 can be final state
+                nodes.push_back( szNodeIndex );
+            }
 
             Graph::Subgraph subgraph{ { { Concrete::printContextFullType( pObject ), pObject->get_concrete_id() } } };
             subgraph.m_nodes = nodes;

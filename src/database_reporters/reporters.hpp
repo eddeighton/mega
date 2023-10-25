@@ -33,68 +33,74 @@ namespace mega::reporters
 
 struct SymbolsReporter
 {
-    CompilationReportArgs                  m_args;
-    static const mega::reports::ReporterID ID;
-    mega::reports::Container               generate( const mega::reports::URL& url );
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
 };
 
 struct InterfaceTypeIDReporter
 {
-    CompilationReportArgs                  m_args;
-    static const mega::reports::ReporterID ID;
-    mega::reports::Container               generate( const mega::reports::URL& url );
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
 };
 
 struct ConcreteTypeIDReporter
 {
-    CompilationReportArgs                  m_args;
-    static const mega::reports::ReporterID ID;
-    mega::reports::Container               generate( const mega::reports::URL& url );
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
 };
 
 class InterfaceReporter
 {
     void addInheritance( std::optional< FinalStage::Interface::InheritanceTrait* > inheritance,
-                         mega::reports::Branch&                                    branch );
-    void addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
+                         reports::Branch&                                          branch );
+    void addProperties( reports::Branch& typeIDs, reports::Branch& parentBranch,
                         const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions );
 
-    void recurse( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
-                  FinalStage::Interface::IContext* pContext );
+    void recurse( reports::Branch& typeIDs, reports::Branch& parentBranch, FinalStage::Interface::IContext* pContext );
 
 public:
-    CompilationReportArgs                  m_args;
-    static const mega::reports::ReporterID ID;
-    mega::reports::Container               generate( const mega::reports::URL& url );
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
 };
 
 struct InheritanceReporter
 {
-    CompilationReportArgs                  m_args;
-    static const mega::reports::ReporterID ID;
-    mega::reports::Container               generate( const mega::reports::URL& url );
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
 };
 
 class AndOrTreeReporter
 {
-    std::size_t recurse( mega::reports::Graph& graph, FinalStage::Automata::Vertex* pVertex,
+    std::size_t recurse( reports::Graph& graph, FinalStage::Automata::Vertex* pVertex,
                          std::vector< std::size_t >& nodes );
 
 public:
-    CompilationReportArgs                  m_args;
-    static const mega::reports::ReporterID ID;
-    mega::reports::Container               generate( const mega::reports::URL& url );
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
 };
 
 class EnumReporter
 {
-    std::size_t recurse( mega::reports::Graph& graph, FinalStage::Automata::Enum* pEnum,
-                         std::vector< std::size_t >& nodes );
+    using SwitchIndex       = U32;
+    using SwitchIDToNodeMap = std::map< SwitchIndex, reports::Graph::Node::ID >;
+
+    struct Edges
+    {
+        std::multimap< SwitchIndex, SwitchIndex > treeEdges, siblingEdges, failureEdges;
+    };
+    std::size_t recurse( reports::Graph& graph, FinalStage::Automata::Enum* pEnum, std::vector< std::size_t >& nodes,
+                         SwitchIDToNodeMap& nodeMap, Edges& edges );
 
 public:
-    CompilationReportArgs                  m_args;
-    static const mega::reports::ReporterID ID;
-    mega::reports::Container               generate( const mega::reports::URL& url );
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
 };
 
 } // namespace mega::reporters

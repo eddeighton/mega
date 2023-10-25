@@ -81,7 +81,8 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
                         { "Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() },
                         { "Relative Domain: "s, std::to_string( pVertex->get_relative_domain() ) },
                         { "Total Domain: "s, std::to_string( pVertex->get_context()->get_total_size() ) },
-                        { "Base: "s, std::to_string( pVertex->get_index_base() ) } }, colour };
+                        
+                        }, colour };
 
     const std::size_t szNodeIndex = graph.m_nodes.size();
 

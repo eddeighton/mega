@@ -173,28 +173,28 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
 
-                        // for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
-                        //{
-                        //     mega::reference ref = i->first;
+                        for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
+                        {
+                            reference ref      = i->first;
+                            U32       iterator = 0;
+                            while( true )
+                            {
+                                SubTypeInstance subTypeInstance = funcEnumerate( ref, iterator );
+                                if( iterator == 0 )
+                                {
+                                    break;
+                                }
 
-                        //    mega::U32 iterator = 1;
-                        //    while( true )
-                        //    {
-                        //        SubTypeInstance subTypeInstance = funcEnumerate( ref, iterator );
-                        //        if( iterator == 0 )
-                        //        {
-                        //            break;
-                        //        }
-
-                        //        // auto actionContext = mega::reference::make( ref, subTypeInstance );
-                        //        // auto pAction = actionFunctionCache.getActionFunction( action.type );
-                        //        // mega::ActionCoroutine actionCoroutine = pAction( &actionContext );
-                        //        // while( !actionCoroutine.done() )
-                        //        // {
-                        //        //     actionCoroutine.resume();
-                        //        // }
-                        //    }
-                        //}
+                                auto actionContext = mega::reference::make(
+                                    ref, TypeInstance{ ref.getType().getObjectID(), subTypeInstance } );
+                                auto pAction = actionFunctionCache.getActionFunction( actionContext.getType() );
+                                mega::ActionCoroutine actionCoroutine = pAction( &actionContext );
+                                while( !actionCoroutine.done() )
+                                {
+                                    actionCoroutine.resume();
+                                }
+                            }
+                        }
                     }
 
                     cycleComplete();

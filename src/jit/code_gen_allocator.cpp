@@ -248,135 +248,81 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
     }
 }
 
-std::string generate_enum( Inja& inja, FinalStage::Automata::Enum* pParentEnum, std::string& strIndent,
-                           std::optional< mega::U32 > parentCondition = std::nullopt )
+void recurseEnums( FinalStage::Automata::Enum* pEnum, nlohmann::json& data )
 {
-    // clang-format off
-static const char* szTemplate =
-R"TEMPLATE(
-{% if has_switch %}
-{{ indent }}    switch( iterator )
-{{ indent }}    {
-{% endif %}
-{% for enum in enums %}
-{% for case in enum.cases %}
-{{ indent }}        case {{ case }}:
-{% endfor %}
-{% if enum.has_test %}
-{{ indent }}            if( mega::mangle::test_bitset( pBitset, {{ enum.test_index }} ) )
-{% endif %}
-{{ indent }}            {
-{% if enum.has_result %}
-{{ indent }}                iterator = {{ enum.result_iterator_next }};
-{{ indent }}                return mega::SubTypeInstance( {{ enum.result_value }} );
-{% endif %}
-{% if enum.has_nested %}
-{{ indent }}                {{ enum.nested }}
-{% endif %}
-{{ indent }}            }
-{% endfor %}
-{% if has_switch %}
-{{ indent }}    }
-{% endif %}
-)TEMPLATE";
+    nlohmann::json enumData( {
 
-    auto children = pParentEnum->get_children();
-
-    // clang-format on
-    nlohmann::json data( {
-
-        { "indent", strIndent }, { "enums", nlohmann::json::array() }, { "has_switch", !children.empty() }
+        { "switch_index", pEnum->get_switch_index() },
+        { "iterator_next", pEnum->get_next_switch_index() },
+        { "is_action", pEnum->get_action().has_value() },
+        { "result_value", printSubTypeInstance( pEnum->get_sub_type_instance() ) }
 
     } );
 
+    if( auto pTest = FinalStage::db_cast< FinalStage::Automata::Test >( pEnum ) )
     {
-        strIndent.push_back( ' ' );
-        strIndent.push_back( ' ' );
-
-        if( children.empty() )
-        {
-            nlohmann::json enum_( {
-
-                { "cases", nlohmann::json::array() },
-                { "has_test", false },
-                { "has_result", false },
-                { "has_nested", false },
-                { "cases", { pParentEnum->get_switch_index() } }
-
-            } );
-            {
-                if( parentCondition.has_value() )
-                {
-                    enum_[ "has_test" ]   = true;
-                    enum_[ "test_index" ] = parentCondition.value();
-                }
-
-                if( pParentEnum->get_has_action() )
-                {
-                    const SubTypeInstance subTypeInstance    = pParentEnum->get_sub_type_instance();
-                    const std::string     strSubTypeInstance = printSubTypeInstance( subTypeInstance );
-                    // {
-                    //     std::ostringstream os;
-                    //     using ::           operator<<;
-                    //     os << subTypeInstance;
-                    //     SPDLOG_TRACE( "Got sub type instance of: {} {}", strSubTypeInstance, os.str() );
-                    // }
-                    enum_[ "has_result" ]           = true;
-                    enum_[ "result_iterator_next" ] = pParentEnum->get_switch_index() + 1;
-                    enum_[ "result_value" ]         = strSubTypeInstance;
-                }
-            }
-
-            data[ "enums" ].push_back( enum_ );
-        }
-        else
-        {
-            for( auto pEnum : children )
-            {
-                nlohmann::json enum_( {
-
-                    { "cases", nlohmann::json::array() }, { "has_result", false }, { "has_test", false }
-
-                } );
-                {
-                    for( auto i : pEnum->get_indices() )
-                    {
-                        enum_[ "cases" ].push_back( i );
-                    }
-
-                    if( parentCondition.has_value() )
-                    {
-                        enum_[ "has_test" ]   = true;
-                        enum_[ "test_index" ] = parentCondition.value();
-                    }
-
-                    std::optional< mega::U32 > nestedCondition;
-                    if( pParentEnum->get_is_or() )
-                    {
-                        nestedCondition = pEnum->get_bitset_index();
-                    }
-                    else
-                    {
-                        nestedCondition = std::nullopt;
-                    }
-
-                    enum_[ "has_nested" ] = true;
-                    enum_[ "nested" ]     = generate_enum( inja, pEnum, strIndent, nestedCondition );
-                }
-
-                data[ "enums" ].push_back( enum_ );
-            }
-        }
-
-        strIndent.pop_back();
-        strIndent.pop_back();
+        enumData[ "is_test" ]          = true;
+        enumData[ "bit_index" ]        = pTest->get_bitset_index();
+        enumData[ "iterator_failure" ] = pTest->get_failure_switch_index();
+    }
+    else
+    {
+        enumData[ "is_test" ] = false;
     }
 
-    std::ostringstream os;
+    for( auto pChildEnum : pEnum->get_children() )
+    {
+        recurseEnums( pChildEnum, data );
+    }
 
-    os << inja.render( szTemplate, data );
+    data[ "enums" ].push_back( enumData );
+}
 
-    return os.str();
+std::string generate_enum( Inja& inja, FinalStage::Concrete::Object* pObject )
+{
+    static const char* szTemplate =
+        R"TEMPLATE(
+
+    switch( iterator )
+    {
+{% for enum in enums %}
+        case {{ enum.switch_index }}:
+        {
+{% if enum.is_test %}
+            if( mega::mangle::test_bitset( pBitset, {{ enum.bit_index }} ) )
+            {
+                iterator = {{ enum.iterator_next }};
+{% if enum.is_action %}
+                return mega::SubTypeInstance( {{ enum.result_value }} );
+{% endif %}
+            }
+            else
+            {
+                iterator = {{ enum.iterator_failure }};
+            }
+{% else %}
+            iterator = {{ enum.iterator_next }};
+            return mega::SubTypeInstance( {{ enum.result_value }} );
+{% endif %}
+        }
+        break;
+{% endfor %}
+        default:
+        {
+            iterator = 0;
+        }
+        break;
+    }
+
+)TEMPLATE";
+
+    nlohmann::json data( { { "enums", nlohmann::json::array() } } );
+    for( auto pEnum : pObject->get_automata_enums() )
+    {
+        recurseEnums( pEnum, data );
+    }
+
+    return inja.render( szTemplate, data );
 }
 
 } // namespace
@@ -420,8 +366,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
     // generate enumeration ranges
     {
-        std::string strIdent;
-        data[ "enumeration" ] = generate_enum( *m_pInja, pObject->get_automata_enum(), strIdent );
+        data[ "enumeration" ] = generate_enum( *m_pInja, pObject );
         data[ "bitset_offset" ]
             = pObject->get_activation()->get_part()->get_offset() + pObject->get_activation()->get_offset();
     }

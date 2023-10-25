@@ -466,12 +466,12 @@ public:
                         UserDimensionContext::Args{
                             Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
                                            pParentContextGroup,
-                                           pAction,
+                                           pState,
                                            {} },
                             {},
                             {},
                             {} },
-                        pAction } );
+                        pState } );
                 }
 
                 pParentContextGroup->push_back_children( pConcrete );

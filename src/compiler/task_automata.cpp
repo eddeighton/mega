@@ -32,6 +32,7 @@
 #include <common/stash.hpp>
 
 #include <vector>
+#include <algorithm>
 
 namespace AutomataStage
 {
@@ -52,11 +53,10 @@ public:
     {
     }
 
-    AutomataStage::Automata::Vertex* recurse( AutomataStage::Database&          database,
-                                              AutomataStage::Concrete::Context* pContext,
-                                              AutomataStage::Automata::Vertex*  pParent,
-                                              U32&                              indexBase,
-                                              U32                               relative_domain )
+    AutomataStage::Automata::Vertex* recurseAndOrTree( AutomataStage::Database&          database,
+                                                       AutomataStage::Concrete::Context* pContext,
+                                                       AutomataStage::Automata::Vertex*  pParent,
+                                                       U32                               relative_domain )
     {
         using namespace AutomataStage;
 
@@ -64,18 +64,23 @@ public:
 
         if( auto pState = db_cast< Concrete::State >( pContext ) )
         {
+            // is the parent vertex an OR?
+            bool bParentVertexIsOR = false;
+            if( db_cast< Automata::Or >( pParent ) )
+            {
+                bParentVertexIsOR = true;
+            }
+
             if( pState->get_interface_state()->get_is_or_state() )
             {
-                pResult = database.construct< Automata::Or >(
-                    { Automata::Or::Args{ Automata::Vertex::Args{ indexBase, relative_domain, pContext, {} } } } );
-                indexBase += pState->get_total_size();
+                pResult = database.construct< Automata::Or >( { Automata::Or::Args{
+                    Automata::Vertex::Args{ bParentVertexIsOR, relative_domain, pContext, {} } } } );
                 pParent->push_back_children( pResult );
             }
             else
             {
-                pResult = database.construct< Automata::And >(
-                    { Automata::And::Args{ Automata::Vertex::Args{ indexBase, relative_domain, pContext, {} } } } );
-                indexBase += pState->get_total_size();
+                pResult = database.construct< Automata::And >( { Automata::And::Args{
+                    Automata::Vertex::Args{ bParentVertexIsOR, relative_domain, pContext, {} } } } );
                 pParent->push_back_children( pResult );
             }
             relative_domain = 1;
@@ -83,7 +88,7 @@ public:
 
         for( auto pChildContext : pContext->get_children() )
         {
-            recurse( database, pChildContext, pResult, indexBase, relative_domain * pChildContext->get_local_size() );
+            recurseAndOrTree( database, pChildContext, pResult, relative_domain * pChildContext->get_local_size() );
         }
 
         return pResult;
@@ -100,17 +105,15 @@ public:
 
         Instance                         instance;
         AutomataStage::Automata::Vertex* pVertex = nullptr;
-        U32                              index;
         std::vector< SubTypeNode >       subTypes;
     };
 
-    void recurse( Node& node, U32& index )
+    void recurseNode( Node& node )
     {
         using namespace AutomataStage;
 
         for( auto pChildVertex : node.pVertex->get_children() )
         {
-            // node.instance
             auto       pContext    = pChildVertex->get_context();
             const auto localDomain = pChildVertex->get_relative_domain();
 
@@ -119,12 +122,8 @@ public:
             for( Instance i = 0; i != localDomain; ++i )
             {
                 const auto instance = static_cast< Instance >( i + ( localDomain * node.instance ) );
-
-                Node subTypeInstance{ instance, pChildVertex, index, {} };
-                ++index;
-
-                recurse( subTypeInstance, index );
-
+                Node       subTypeInstance{ instance, pChildVertex, {} };
+                recurseNode( subTypeInstance );
                 subTypeNode.instances.push_back( subTypeInstance );
             }
 
@@ -132,8 +131,9 @@ public:
         }
     }
 
-    void recurse( mega::pipeline::Progress& taskProgress, AutomataStage::Database& database, const Node& node,
-                  AutomataStage::Automata::Enum* pParentEnum )
+    void recurseEnum( mega::pipeline::Progress& taskProgress, AutomataStage::Database& database, const Node& node,
+                      std::vector< AutomataStage::Automata::Enum* >& enums, AutomataStage::Automata::Enum* pParentEnum,
+                      U32& bitsetIndex, U32& switchIndex )
     {
         using namespace AutomataStage;
 
@@ -141,57 +141,85 @@ public:
         {
             for( const auto& instance : subType.instances )
             {
-                bool bIsOr = false;
+                const bool                         bIsOr = db_cast< Automata::Or >( instance.pVertex );
+                const mega::SubTypeInstance        subTypeInstance( subType.subtype, instance.instance );
+                std::optional< Concrete::Action* > pActionOpt;
+                if( auto pAction = db_cast< Concrete::Action >( instance.pVertex->get_context() ) )
                 {
-                    if( auto pOr = db_cast< Automata::Or >( instance.pVertex ) )
+                    pActionOpt = pAction;
+                }
+
+                Automata::Enum* pEnum = pParentEnum;
+                Automata::Test* pTest = nullptr;
+
+                if( instance.pVertex->get_is_parent_or() || pActionOpt.has_value() )
+                {
+                    if( instance.pVertex->get_is_parent_or() )
                     {
-                        bIsOr = true;
+                        pEnum = pTest = database.construct< Automata::Test >(
+
+                            Automata::Test::Args{
+
+                                Automata::Enum::Args{
+
+                                    instance.pVertex,
+                                    switchIndex,
+                                    switchIndex + 1,
+                                    {},
+                                    bIsOr,
+                                    pActionOpt,
+                                    subTypeInstance,
+                                    {} },
+
+                                bitsetIndex } );
+                        ++bitsetIndex;
+                    }
+                    else
+                    {
+                        pEnum = database.construct< Automata::Enum >( Automata::Enum::Args{
+
+                            instance.pVertex,
+                            switchIndex,
+                            switchIndex + 1,
+                            {},
+                            bIsOr,
+                            pActionOpt,
+                            subTypeInstance,
+                            {} } );
+                    }
+
+                    ++switchIndex;
+
+                    if( pParentEnum )
+                    {
+                        pParentEnum->push_back_children( pEnum );
+                    }
+                    else
+                    {
+                        enums.push_back( pEnum );
                     }
                 }
 
-                const mega::SubTypeInstance subTypeInstance( subType.subtype, instance.instance );
-                const bool                  bHasAction = db_cast< Concrete::Action >( instance.pVertex->get_context() );
+                recurseEnum( taskProgress, database, instance, enums, pEnum, bitsetIndex, switchIndex );
 
-                auto pEnum = database.construct< Automata::Enum >( Automata::Enum::Args{
-                    instance.pVertex,
-                    instance.index,
-                    instance.pVertex->get_index_base() + instance.instance,
-                    {},
-                    bIsOr,
-                    bHasAction,
-                    subTypeInstance,
-                    {}
-
-                } );
-
-                pParentEnum->push_back_children( pEnum );
-
-                recurse( taskProgress, database, instance, pEnum );
+                if( pTest )
+                {
+                    pTest->set_failure_switch_index( switchIndex );
+                }
             }
         }
     }
 
-    void collectIndices( AutomataStage::Automata::Enum* pEnum, std::vector< U32 >& indices )
+    void recurseCollectIndices( AutomataStage::Automata::Enum* pEnum, std::vector< U32 >& indices )
     {
+        std::vector< U32 > indicesSubTree;
         for( auto pChild : pEnum->get_children() )
         {
-            indices.push_back( pChild->get_switch_index() );
-            collectIndices( pChild, indices );
+            recurseCollectIndices( pChild, indicesSubTree );
         }
-    }
-
-    void recurse( AutomataStage::Automata::Enum* pEnum )
-    {
-        {
-            std::vector< U32 > indices;
-            collectIndices( pEnum, indices );
-            pEnum->set_indices( indices );
-        }
-
-        for( auto pChild : pEnum->get_children() )
-        {
-            recurse( pChild );
-        }
+        pEnum->set_child_switch_indices( indicesSubTree );
+        indices.push_back( pEnum->get_switch_index() );
+        std::copy( indicesSubTree.begin(), indicesSubTree.end(), std::back_inserter( indices ) );
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
@@ -219,21 +247,31 @@ public:
         for( auto pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
         {
             AutomataStage::Automata::And* pRoot = database.construct< Automata::And >(
-                { Automata::And::Args{ Automata::Vertex::Args{ 0, 1, pObject, {} } } } );
-            U32 index = 0U;
-            recurse( database, pObject, pRoot, index, 1 );
+                { Automata::And::Args{ Automata::Vertex::Args{ false, 1, pObject, {} } } } );
 
-            Node rootNode{ 0, pRoot, 0 };
-            U32  subTypeInstanceIndex = 0U;
-            recurse( rootNode, subTypeInstanceIndex );
+            recurseAndOrTree( database, pObject, pRoot, 1 );
 
-            auto pRootEnum = database.construct< Automata::Enum >( 
-                Automata::Enum::Args{ pRoot, 0, 0, {}, false, false, SubTypeInstance{}, {} } );
+            std::vector< Automata::Enum* > enums;
 
-            recurse( taskProgress, database, rootNode, pRootEnum );
-            recurse( pRootEnum );
+            U32 bitsetIndex = 0;
+            U32 switchIndex = 0;
+            {
+                Node rootNode{ 0, pRoot };
+                recurseNode( rootNode );
+                recurseEnum( taskProgress, database, rootNode, enums, nullptr, bitsetIndex, switchIndex );
+            }
 
-            database.construct< Concrete::Object >( { Concrete::Object::Args{ pObject, pRoot, pRootEnum, index } } );
+            // set the child switch indices
+            {
+                std::vector< U32 > switchIndices;
+                for( auto pEnum : enums )
+                {
+                    recurseCollectIndices( pEnum, switchIndices );
+                }
+            }
+
+            database.construct< Concrete::Object >(
+                { Concrete::Object::Args{ pObject, pRoot, enums, bitsetIndex, switchIndex } } );
         }
 
         const task::FileHash fileHashCode = database.save_AutomataAnalysis_to_temp();

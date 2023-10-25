@@ -567,7 +567,8 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             { "from", nodeNames[ edge.m_source ] },
             { "to", nodeNames[ edge.m_target ] },
             { "colour", edge.m_colour.str() },
-            { "style", edge.m_style.str() }
+            { "style", edge.m_style.str() },
+            { "constraint", edge.m_bIgnoreInLayout ? "false" : "true" }
 
         } );
 

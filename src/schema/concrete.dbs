@@ -193,9 +193,10 @@ namespace Concrete
 
         array< ref< UserDimensionContext > > link_contexts -> HyperGraphAnalysisRollout::PerSourceModel;
 
-        ref< Automata::Vertex >     automata_root -> AutomataStage::AutomataAnalysis;
-        ref< Automata::Enum >       automata_enum -> AutomataStage::AutomataAnalysis;
-        value< mega::U64 >          total_index   -> AutomataStage::AutomataAnalysis;
+        ref< Automata::Vertex >         automata_root       -> AutomataStage::AutomataAnalysis;
+        array< ref< Automata::Enum > >  automata_enums      -> AutomataStage::AutomataAnalysis;
+        value< mega::U32 >              total_bitset_index  -> AutomataStage::AutomataAnalysis;
+        value< mega::U32 >              total_switch_index  -> AutomataStage::AutomataAnalysis;
     }
     
     object MemoryMappedObject : Object -> GlobalMemoryStageRollout::GlobalMemoryRollout

@@ -234,6 +234,11 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
             *ppFunction = ( void* )m_pProgram->getWriteAny();
         }
         break;
+        case program::eEnumerate:
+        {
+            *ppFunction = ( void* )m_pProgram->getEnumerate();
+        }
+        break;
         default:
         case program::TOTAL_FUNCTION_TYPES:
         {
@@ -561,6 +566,12 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
         {
             auto pAllocator = getAllocator( compiler, typeID );
             *ppFunction     = ( void* )pAllocator->getWriteAny();
+        }
+        break;
+        case object::eEnumerate:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction     = ( void* )pAllocator->getEnumerate();
         }
         break;
         default:

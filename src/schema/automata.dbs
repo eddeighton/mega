@@ -21,7 +21,7 @@ namespace Automata
 {
     object Vertex -> AutomataStage::AutomataAnalysis
     {
-        value< mega::U32 >          index_base;
+        value< bool >               is_parent_or;
         value< mega::U32 >          relative_domain;
         ref< Concrete::Context >    context;
         array< ref< Vertex > >      children;
@@ -41,11 +41,18 @@ namespace Automata
     {
         ref< Vertex >                   vertex;
         value< mega::U32 >              switch_index;
-        value< mega::U32 >              bitset_index;
-        array< value< mega::U32 > >     indices;
+        value< mega::U32 >              next_switch_index;
+        array< value< mega::U32 > >     child_switch_indices;
         value< bool >                   is_or;
-        value< bool >                   has_action;
+        opt< ref< Concrete::Action > >  action;
         value< mega::SubTypeInstance >  sub_type_instance;
         array< ref< Enum > >            children;
     }
+
+    object Test : Enum -> AutomataStage::AutomataAnalysis
+    {
+        value< mega::U32 >          bitset_index;
+        late< value< mega::U32 > >  failure_switch_index;
+    }
+
 }
