@@ -211,7 +211,7 @@ TimeStamp MPOLogicalThread::PythonCycle( boost::asio::yield_context& )
 void MPOLogicalThread::PythonFunctor( const mega::runtime::Functor& functor, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "MPOLogicalThread::PythonFunctor" );
-    functor();
+    functor( *this );
 }
 
 void MPOLogicalThread::PythonShutdown( boost::asio::yield_context& yield_ctx )

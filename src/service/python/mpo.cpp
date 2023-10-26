@@ -22,6 +22,10 @@
 
 #include "module.hpp"
 
+
+#include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/sim.hxx"
+
 namespace mega::service::python
 {
 
@@ -34,6 +38,15 @@ PythonMPO::PythonMPO( PythonModule& module, mega::MPO mpo )
 mega::reference PythonMPO::getRoot() const
 {
     return reference::make_root( m_mpo );
+}
+
+mega::reference PythonMPO::new_( mega::SubType interfaceTypeID ) const
+{
+    return m_module.operatorRemoteNew( interfaceTypeID, m_mpo );
+}
+void PythonMPO::destroy() const
+{
+    m_module.mpoRequest< network::sim::Request_Encoder >( m_mpo ).SimDestroy();
 }
 
 } // namespace mega::service::python

@@ -9,6 +9,17 @@
             "return" : "value"
         },
         {
+            "name" : "RemoteNew",
+            "arguments" : [
+                {
+                    "name" : "mpo",
+                    "type" : "mega::MPO"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
             "name" : "Delete",
             "arguments" : [
                 {

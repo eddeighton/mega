@@ -694,6 +694,12 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
                 = ( void* )pModule->get< operators::New::FunctionPtr >( Symbol( "mega_new_", target, Symbol::None ) );
         }
         break;
+        case operators::eRemoteNew:
+        {
+            *ppFunction = ( void* )pModule->get< operators::RemoteNew::FunctionPtr >(
+                Symbol( "mega_remote_new_", target, Symbol::Mpo ) );
+        }
+        break;
         case operators::eDelete:
         {
             *ppFunction = ( void* )pModule->get< operators::Delete::FunctionPtr >(

@@ -52,7 +52,7 @@ public:
     virtual ~PythonRequestLogicalThread();
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
 
     network::python_leaf::Request_Sender getPythonRequest( boost::asio::yield_context& yield_ctx );
 
@@ -88,6 +88,8 @@ public:
                                      boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message MPUp( const network::Message& request, const mega::MP& mp,
                                    boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPOUp( const network::Message& request, const mega::MPO& mpo,
+                                    boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message MPDown( const network::Message& request, const mega::MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message MPODown( const network::Message& request, const mega::MPO& mpo,
@@ -102,7 +104,7 @@ public:
     virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
                                                 const std::vector< mega::reports::Container >& report,
                                                 boost::asio::yield_context&                    yield_ctx ) override;
-                                                
+
     // network::project::Impl
     virtual void SetProject( const mega::Project& project, boost::asio::yield_context& yield_ctx ) override;
 };

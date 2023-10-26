@@ -28,7 +28,12 @@
 
 #include <functional>
 
-namespace mega::runtime
+namespace mega
+{
+
+class MPOContext;
+
+namespace runtime
 {
 
 class JITBase
@@ -54,8 +59,8 @@ public:
                                       int functionType, void** ppFunction )
         = 0;
 
-    virtual void getActionFunction( mega::TypeID concreteTypeID, void** ppFunction ) = 0;
-    virtual void getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction, void* pPythonCaster )   = 0;
+    virtual void getActionFunction( mega::TypeID concreteTypeID, void** ppFunction )                       = 0;
+    virtual void getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction, void* pPythonCaster ) = 0;
 
     virtual void getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int functionType,
                                       void** ppFunction )
@@ -89,7 +94,7 @@ private:
 class Functor
 {
 public:
-    using ExecutionFPtr = std::function< void() >;
+    using ExecutionFPtr = std::function< void( MPOContext& ) >;
 
     Functor() { UNREACHABLE; }
 
@@ -98,7 +103,7 @@ public:
     {
     }
 
-    inline void operator()() const { m_functor(); }
+    inline void operator()( MPOContext& context ) const { m_functor( context ); }
 
     template < class Archive >
     inline void serialize( Archive&, const unsigned int )
@@ -110,6 +115,7 @@ private:
     ExecutionFPtr m_functor;
 };
 
-} // namespace mega::runtime
+} // namespace runtime
+} // namespace mega
 
 #endif // GUARD_2023_January_11_jit_base

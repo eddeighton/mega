@@ -73,13 +73,13 @@ PYBIND11_MODULE( megastructure, pythonModule )
 {
     using namespace mega::service::python;
 
-    // pybind11::set_shared_data( "megastructure_shared", &g_casterImpl );
-
     mega::service::python::PythonModule::Ptr pMegaModule = getModule();
-    const TypeSystem&                        typeSystem  = pMegaModule->getTypeSystem();
 
+    /////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////
     // add ALL object interface type IDs
-    auto pTypesModule = pythonModule.def_submodule( "Type" );
+    const TypeSystem& typeSystem   = pMegaModule->getTypeSystem();
+    auto              pTypesModule = pythonModule.def_submodule( "Type" );
     for( const auto& [ strName, id ] : typeSystem.getObjectTypes() )
     {
         pTypesModule.attr( strName.c_str() ) = id;
@@ -87,46 +87,75 @@ PYBIND11_MODULE( megastructure, pythonModule )
 
     pythonModule.doc() = "Python Module for Megastructure";
 
-    // operators
+    /////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////
+    // Operators
     pythonModule.def(
-        "new", []( int interfaceTypeID ) { return getModule()->operatorNew( interfaceTypeID ); },
+        "new", []( mega::SubType interfaceTypeID ) { return getModule()->operatorNew( interfaceTypeID ); },
         "Allocate a Megastructure Object" );
     pythonModule.def(
         "delete", []( mega::reference ref ) { getModule()->operatorDelete( ref ); },
         "Disconnect a Megastructure Object" );
     pythonModule.def(
         "cast",
-        []( mega::reference ref, int interfaceTypeID ) { return getModule()->operatorCast( ref, interfaceTypeID ); },
+        []( mega::reference ref, mega::SubType interfaceTypeID ) { return getModule()->operatorCast( ref, interfaceTypeID ); },
         "Attempt to case a Megastructure reference" );
 
-    // service
+    /////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////
+    // Root
     pybind11::class_< PythonRoot >( pythonModule, "Root" )
-        .def( "getMachines", &PythonRoot::getMachines, "Get all machines connected to the Root" );
+        .def( "machines", &PythonRoot::getMachines, "Get all machines connected to the Root" )
+        
+        ;
 
+    /////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////
+    // Machine
     pybind11::class_< PythonMachine >( pythonModule, "Machine" )
-        .def( "getProcesses", &PythonMachine::getProcesses, "Get all processes for this machine" );
+        .def( "processes", &PythonMachine::getProcesses, "Get all processes for this machine" )
+        .def( "createExecutor", &PythonMachine::createExecutor, "Create a new executor" )
+        
+        ;
 
+    /////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////
+    // Process
     pybind11::class_< PythonProcess >( pythonModule, "Process" )
-        .def( "getMPOs", &PythonProcess::getMPOs, "Get all MPOs for this process" )
-        .def( "createMPO", &PythonProcess::createMPO, "Create new MPO on this process" );
+        .def( "mpos", &PythonProcess::getMPOs, "Get all MPOs for this process" )
+        .def( "createMPO", &PythonProcess::createMPO, "Create new MPO on this process" )
+        .def( "destroy", &PythonProcess::destroy, "Shutdown the process" )
+        
+        ;
 
+    /////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////
+    // MPO
     pybind11::class_< PythonMPO >( pythonModule, "MPO" )
-        .def( "getRoot", &PythonMPO::getRoot, "Get the MPO Root object" );
+        .def( "root", &PythonMPO::getRoot, "Get the MPO Root object" )
+        .def( "new", &PythonMPO::new_, "Allocate object on the mpo" )
+        .def( "destroy", &PythonMPO::destroy, "Destroy the mpo" )
 
-    pythonModule
-        .def(
-            "getRoot", [] { return getModule()->getRoot(); }, "Get the Megastructure Root" )
-        .def(
-            "getMachine", []( std::string strID ) { return getModule()->getMachine( strID ); },
-            "Get Megastructure Machine", pybind11::arg( "strID" ) = "" )
-        .def(
-            "getProcess", []( std::string strID ) { return getModule()->getProcess( strID ); },
-            "Get Megastructure Process", pybind11::arg( "strID" ) = "" )
-        .def(
-            "getMPO", []( std::string strID ) { return getModule()->getMPO( strID ); }, "Get Megastructure MPO",
-            pybind11::arg( "strID" ) = "" )
-        .def(
-            "getThisMPO", []() { return getModule()->getMPO(); }, "Get the active MPO" );
+        ;
+
+    /////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////
+    // Free Functions
+    pythonModule.def(
+        "root", [] { return getModule()->getRoot(); }, "Get the Megastructure Root" );
+
+    pythonModule.def(
+        "machine", []( std::string strID ) { return getModule()->getMachine( strID ); }, "Get Megastructure Machine",
+        pybind11::arg( "strID" ) = "" )
+        ;
+
+    pythonModule.def(
+        "process", []( std::string strID ) { return getModule()->getProcess( strID ); }, "Get Megastructure Process",
+        pybind11::arg( "strID" ) = "" );
+
+    pythonModule.def(
+        "mpo", []( std::string strID ) { return getModule()->getMPO( strID ); }, "Get Megastructure MPO",
+        pybind11::arg( "strID" ) = "" );
 
     // execution
     pythonModule.def(
@@ -138,128 +167,7 @@ PYBIND11_MODULE( megastructure, pythonModule )
 
     // boost dynamic_bitset
 
-    // maths
-    using namespace boost::qvm;
-    // clang-format off
-#define QVM_PYBIND11_OPERATORS( T ) \
-        .def( "__add__",      []( const T& v, const T& o )      { using namespace boost::qvm; return v + o; },      pybind11::is_operator() ) \
-        .def( "__sub__",      []( const T& v, const T& o )      { using namespace boost::qvm; return v - o; },      pybind11::is_operator() ) \
-        .def( "__mul__",      []( const T& v, const float& f )  { using namespace boost::qvm; return v * f; },      pybind11::is_operator() ) \
-        .def( "__truediv__",  []( const T& v, const float& f )  { using namespace boost::qvm; return v / f; },      pybind11::is_operator() ) \
-        .def( "__iadd__",     []( T& v, const T& o )            { using namespace boost::qvm; v += o; return v; },  pybind11::is_operator() ) \
-        .def( "__isub__",     []( T& v, const T& o )            { using namespace boost::qvm; v -= o; return v; },  pybind11::is_operator() ) \
-        .def( "__imul__",     []( T& v, const float& f )        { using namespace boost::qvm; v *= f; return v; },  pybind11::is_operator() ) \
-        .def( "__itruediv__", []( T& v, const float& f )        { using namespace boost::qvm; v /= f; return v; },  pybind11::is_operator() ) \
-        .def( "__repr__",     []( const T& v ) { return boost::qvm::to_string( v ); } )
-
-#define QVM_PYBIND11_FUNCTIONS( T ) \
-        .def( "norm",   []( T& v )          { boost::qvm::normalize( v ); },            "Normalize" )       \
-        .def( "mag",    []( const T& v )    { return boost::qvm::mag( v ); },           "Magnitude" )       \
-        .def( "dot",    []( T& v1, T& v2 )  { return boost::qvm::dot( v1, v2 ); },      "Dot Product" )
-
-    // clang-format on
-    pybind11::class_< F2 >( pythonModule, "F2" )
-        .def( pybind11::init<>() )
-        .def( pybind11::init< float, float >() )
-
-        .def_property(
-            "x", []( F2& v ) { return v.x(); }, []( F2& v, float f ) { return v.x( f ); }, "X coordinate" )
-        .def_property(
-            "y", []( F2& v ) { return v.y(); }, []( F2& v, float f ) { return v.y( f ); }, "Y coordinate" )
-
-            QVM_PYBIND11_OPERATORS( F2 ) QVM_PYBIND11_FUNCTIONS( F2 );
-
-    pybind11::class_< F3 >( pythonModule, "F3" )
-        .def( pybind11::init<>() )
-        .def( pybind11::init< float, float, float >() )
-        .def_property(
-            "x", []( F3& v ) { return v.x(); }, []( F3& v, float f ) { return v.x( f ); }, "X coordinate" )
-        .def_property(
-            "y", []( F3& v ) { return v.y(); }, []( F3& v, float f ) { return v.y( f ); }, "Y coordinate" )
-        .def_property(
-            "z", []( F3& v ) { return v.z(); }, []( F3& v, float f ) { return v.z( f ); }, "Z coordinate" )
-
-        .def(
-            "cross", []( F3& v1, F3& v2 ) { return boost::qvm::cross( v1, v2 ); }, "Cross Product" )
-
-            QVM_PYBIND11_OPERATORS( F3 ) QVM_PYBIND11_FUNCTIONS( F3 );
-
-    pybind11::class_< F4 >( pythonModule, "F4" )
-        .def( pybind11::init<>() )
-        .def( pybind11::init< float, float, float, float >() )
-        .def_property(
-            "x", []( F4& v ) { return v.x(); }, []( F4& v, float f ) { return v.x( f ); }, "X coordinate" )
-        .def_property(
-            "y", []( F4& v ) { return v.y(); }, []( F4& v, float f ) { return v.y( f ); }, "Y coordinate" )
-        .def_property(
-            "z", []( F4& v ) { return v.z(); }, []( F4& v, float f ) { return v.z( f ); }, "Z coordinate" )
-        .def_property(
-            "w", []( F4& v ) { return v.w(); }, []( F4& v, float f ) { return v.w( f ); }, "W coordinate" )
-
-            QVM_PYBIND11_OPERATORS( F4 ) QVM_PYBIND11_FUNCTIONS( F4 );
-
-    pybind11::class_< Quat >( pythonModule, "Quat" ).def( pybind11::init<>() )
-        /*.def( pybind11::init< float, float, float, float >() )
-        .def( pybind11::init( []( const F3& axis, float angle ) { return boost::qvm::rot_quat( axis, angle ); } ) )
-        .def_property(
-            "x", []( Quat& v ) { return v.x(); }, []( Quat& v, float f ) { return v.x( f ); }, "X coordinate" )
-        .def_property(
-            "y", []( Quat& v ) { return v.y(); }, []( Quat& v, float f ) { return v.y( f ); }, "Y coordinate" )
-        .def_property(
-            "z", []( Quat& v ) { return v.z(); }, []( Quat& v, float f ) { return v.z( f ); }, "Z coordinate" )
-        .def_property(
-            "w", []( Quat& v ) { return v.w(); }, []( Quat& v, float f ) { return v.w( f ); }, "W coordinate" )
-
-        .def(
-            "conjugate", []( Quat& v ) { return boost::qvm::conjugate( v ); }, "Conjugate" )
-        .def(
-            "inverse", []( Quat& v ) { return boost::qvm::inverse( v ); }, "Inverse" )
-        .def(
-            "slerp", []( Quat& v1, Quat& v2, float t ) { return boost::qvm::slerp( v1, v2, t ); }, "Slerp" )
-        .def(
-            "identity", []( Quat& v ) { return boost::qvm::set_identity( v ); }, "Set to indentity" )
-        .def(
-            "set_rot", []( Quat& v, const F3& axis, float angle ) { boost::qvm::set_rot( v, axis, angle ); },
-            "Set rotation" )
-        .def(
-            "rotate", []( Quat& v, const F3& axis, float angle ) { boost::qvm::rotate( v, axis, angle ); },
-            "Rotate" )
-        .def(
-            "set_rotx", []( Quat& v, float angle ) { boost::qvm::set_rotx( v, angle ); },
-            "Set rotation in x axis" )
-        .def(
-            "set_roty", []( Quat& v, float angle ) { boost::qvm::set_roty( v, angle ); },
-            "Set rotation in y axis" )
-        .def(
-            "set_rotz", []( Quat& v, float angle ) { boost::qvm::set_rotz( v, angle ); },
-            "Set rotation in z axis" )
-        .def(
-            "rotate_x", []( Quat& v, float angle ) { boost::qvm::rotate_x( v, angle ); },
-            "Rotate in x axis" )
-        .def(
-            "rotate_y", []( Quat& v, float angle ) { boost::qvm::rotate_y( v, angle ); },
-            "Rotate in y axis" )
-        .def(
-            "rotate_z", []( Quat& v, float angle ) { boost::qvm::rotate_z( v, angle ); },
-            "Rotate in z axis" )
-
-            QVM_PYBIND11_OPERATORS( Quat ) QVM_PYBIND11_FUNCTIONS( Quat )*/
-        ;
-
-    pybind11::class_< F33 >( pythonModule, "F33", pybind11::buffer_protocol() )
-        .def( pybind11::init<>() )
-        .def_buffer(
-            []( F33& m ) -> pybind11::buffer_info
-            {
-                return pybind11::buffer_info(
-                    m.data.data(),                                  /* Pointer to buffer */
-                    sizeof( float ),                                /* Size of one scalar */
-                    pybind11::format_descriptor< float >::format(), /* Python struct-style format descriptor */
-                    2,                                              /* Number of dimensions */
-                    { 3, 3 },                                       /* Buffer dimensions */
-                    { sizeof( float ) * 3,                          /* Strides (in bytes) for each index */
-                      sizeof( float ) } );
-            } );
+#include "qvm_bindings.hpp"
 }
 
 namespace mega::service::python
@@ -318,7 +226,7 @@ mega::TypeID PythonModule::getInterfaceTypeID( const mega::TypeID concreteTypeID
     return pythonRequest().PythonGetInterfaceTypeID( concreteTypeID );
 }
 
-mega::reference PythonModule::operatorNew( int interfaceTypeID )
+mega::reference PythonModule::operatorNew( mega::SubType interfaceTypeID )
 {
     SPDLOG_TRACE( "PythonModule::operatorNew: {}", interfaceTypeID );
 
@@ -326,7 +234,19 @@ mega::reference PythonModule::operatorNew( int interfaceTypeID )
         OperatorFunction{ mega::runtime::operators::eNew, TypeID::make_object_from_objectID( interfaceTypeID ) } );
 
     mega::reference result;
-    invoke( [ &pNewFunction, &result ]() { result = pNewFunction(); } );
+    invoke( [ &pNewFunction, &result ]( MPOContext& ) { result = pNewFunction(); } );
+    return result;
+}
+
+mega::reference PythonModule::operatorRemoteNew( mega::SubType interfaceTypeID, MPO mpo )
+{
+    SPDLOG_TRACE( "PythonModule::operatorRemoteNew: {} {}", interfaceTypeID, mpo );
+    
+    auto pNewFunction = ( mega::runtime::operators::RemoteNew::FunctionPtr )getOperator(
+        OperatorFunction{ mega::runtime::operators::eRemoteNew, TypeID::make_object_from_objectID( interfaceTypeID ) } );
+
+    mega::reference result;
+    invoke( [ &pNewFunction, &result, mpo ]( MPOContext& ) { result = pNewFunction( mpo ); } );
     return result;
 }
 
@@ -339,10 +259,10 @@ void PythonModule::operatorDelete( mega::reference ref )
     auto pDeleteFunction = ( mega::runtime::operators::Delete::FunctionPtr )getOperator(
         OperatorFunction{ mega::runtime::operators::eDelete, TypeID::make_object_from_typeID( interfaceTypeID ) } );
 
-    invoke( [ &pDeleteFunction, &ref ]() { pDeleteFunction( ref ); } );
+    invoke( [ &pDeleteFunction, &ref ]( MPOContext& ) { pDeleteFunction( ref ); } );
 }
 
-mega::reference PythonModule::operatorCast( mega::reference ref, int interfaceTypeID )
+mega::reference PythonModule::operatorCast( mega::reference ref, mega::SubType interfaceTypeID )
 {
     SPDLOG_TRACE( "PythonModule::operatorCast: {} {}", ref, interfaceTypeID );
 
@@ -350,7 +270,7 @@ mega::reference PythonModule::operatorCast( mega::reference ref, int interfaceTy
         OperatorFunction{ mega::runtime::operators::eCast, TypeID::make_object_from_objectID( interfaceTypeID ) } );
 
     mega::reference result;
-    invoke( [ &pCastFunction, &ref, &result ]() { result = pCastFunction( ref ); } );
+    invoke( [ &pCastFunction, &ref, &result ]( MPOContext& ) { result = pCastFunction( ref ); } );
     return result;
 }
 

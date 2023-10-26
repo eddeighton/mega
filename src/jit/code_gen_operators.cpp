@@ -71,6 +71,49 @@ mega::reference mega_new_{{ interface_type }}()
     compiler.compileToLLVMIR( osModule.str(), osCPPCode.str(), os, std::nullopt );
 }
 
+void gen_remote_new( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database,
+              TypeID interfaceTypeID, std::ostream& os )
+{
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+
+#include "mega/values/native_types.hpp"
+#include "mega/values/runtime/reference.hpp"
+#include "service/protocol/common/mpo_context_interface.hpp" 
+
+mega::reference mega_remote_new_{{ interface_type }}( mega::MPO mpo )
+{
+    return ::mega::runtime::allocateRemote( mpo, mega::TypeID{ {{ concrete_type }} } );
+}
+
+)TEMPLATE";
+    // clang-format on
+
+    const auto concreteID = database.getSingularConcreteTypeID( interfaceTypeID );
+
+    std::ostringstream osCPPCode;
+    try
+    {
+        nlohmann::json templateData( {
+
+            { "interface_type", printTypeID( interfaceTypeID ) }, 
+            { "concrete_type", printTypeID( concreteID ) }
+
+        } );
+
+        osCPPCode << inja.render( szTemplate, templateData );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::gen_remote_new: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::gen_remote_new: " << ex.what() );
+    }
+    std::ostringstream osModule;
+    osModule << "mega_remote_new_" << printTypeID( interfaceTypeID );
+    compiler.compileToLLVMIR( osModule.str(), osCPPCode.str(), os, std::nullopt );
+}
+
 void gen_delete( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database,
                  TypeID interfaceTypeID, std::ostream& os )
 {
@@ -173,6 +216,11 @@ void CodeGenerator::generate_operator( const LLVMCompiler& compiler, const JITDa
         case operators::eNew:
         {
             gen_new( compiler, *m_pInja, database, interfaceTypeID, os );
+        }
+        break;
+        case operators::eRemoteNew:
+        {
+            gen_remote_new( compiler, *m_pInja, database, interfaceTypeID, os );
         }
         break;
         case operators::eDelete:

@@ -40,6 +40,8 @@ public:
     std::vector< PythonMPO > getMPOs() const;
 
     PythonMPO createMPO() const;
+    void      destroy() const;
+
 private:
     PythonModule& m_module;
     mega::MP      m_mp;

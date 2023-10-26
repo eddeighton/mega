@@ -35,6 +35,8 @@ public:
     PythonMPO( PythonModule& module, mega::MPO mpo );
 
     mega::reference getRoot() const;
+    mega::reference new_( mega::SubType interfaceTypeID ) const;
+    void            destroy() const;
 
 private:
     PythonModule& m_module;

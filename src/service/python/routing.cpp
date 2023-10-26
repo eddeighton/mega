@@ -27,7 +27,8 @@
 namespace mega::service::python
 {
 
-PythonRequestLogicalThread::PythonRequestLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID )
+PythonRequestLogicalThread::PythonRequestLogicalThread( Python&                         python,
+                                                        const network::LogicalThreadID& logicalthreadID )
     : InThreadLogicalThread( python, logicalthreadID )
     , m_python( python )
 {
@@ -37,7 +38,7 @@ PythonRequestLogicalThread::~PythonRequestLogicalThread()
 }
 
 network::Message PythonRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
-                                                             boost::asio::yield_context& yield_ctx )
+                                                                     boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
     if( result = network::leaf_python::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
@@ -62,9 +63,8 @@ PythonRequestLogicalThread::getPythonRequest( boost::asio::yield_context& yield_
 }
 
 network::Message PythonRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
-                                                              boost::asio::yield_context& yield_ctx )
+                                                               boost::asio::yield_context& yield_ctx )
 {
-
     // dispatch to the python MPO conversation
     SPDLOG_TRACE( "PythonRequestLogicalThread::RootAllBroadcast" );
     std::vector< network::Message > responses;
@@ -79,11 +79,11 @@ network::Message PythonRequestLogicalThread::RootAllBroadcast( const network::Me
                     {
                         case network::status::MSG_GetStatus_Request::ID:
                         {
-                            SPDLOG_TRACE(
-                                "PythonRequestLogicalThread::RootAllBroadcast to logical thread: {}", pThread->getID() );
-                            auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
+                            SPDLOG_TRACE( "PythonRequestLogicalThread::RootAllBroadcast to logical thread: {}",
+                                          pThread->getID() );
+                            auto& msg = network::status::MSG_GetStatus_Request::get( request );
                             network::status::Request_Sender rq( *this, pThread, yield_ctx );
-                            const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
+                            const network::Message responseWrapper = network::status::MSG_GetStatus_Response::make(
                                 request.getLogicalThreadID(),
                                 network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) } );
                             responses.push_back( responseWrapper );
@@ -91,11 +91,11 @@ network::Message PythonRequestLogicalThread::RootAllBroadcast( const network::Me
                         break;
                         case network::report::MSG_GetReport_Request::ID:
                         {
-                            SPDLOG_TRACE(
-                                "PythonRequestLogicalThread::RootAllBroadcast to logical thread: {}", pThread->getID() );
-                            auto&                           msg = network::report::MSG_GetReport_Request::get( request );
+                            SPDLOG_TRACE( "PythonRequestLogicalThread::RootAllBroadcast to logical thread: {}",
+                                          pThread->getID() );
+                            auto& msg = network::report::MSG_GetReport_Request::get( request );
                             network::report::Request_Sender rq( *this, pThread, yield_ctx );
-                            const network::Message          responseWrapper = network::report::MSG_GetReport_Response::make(
+                            const network::Message responseWrapper = network::report::MSG_GetReport_Response::make(
                                 request.getLogicalThreadID(),
                                 network::report::MSG_GetReport_Response{ rq.GetReport( msg.url, msg.report ) } );
                             responses.push_back( responseWrapper );
@@ -120,39 +120,46 @@ network::Message PythonRequestLogicalThread::RootAllBroadcast( const network::Me
 }
 
 network::Message PythonRequestLogicalThread::PythonRoot( const network::Message&     request,
-                                                        boost::asio::yield_context& yield_ctx )
+                                                         boost::asio::yield_context& yield_ctx )
 {
     return getPythonRequest( yield_ctx ).PythonRoot( request );
 }
 network::Message PythonRequestLogicalThread::PythonDaemon( const network::Message&     request,
-                                                          boost::asio::yield_context& yield_ctx )
+                                                           boost::asio::yield_context& yield_ctx )
 {
     return getPythonRequest( yield_ctx ).PythonDaemon( request );
 }
 
 network::Message PythonRequestLogicalThread::MPRoot( const network::Message& request, const mega::MP& mp,
-                                                    boost::asio::yield_context& yield_ctx )
+                                                     boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
     return rq.MPRoot( request, mp );
 }
 
 network::Message PythonRequestLogicalThread::MPUp( const network::Message& request, const mega::MP& mp,
-                                                    boost::asio::yield_context& yield_ctx )
+                                                   boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
     return rq.MPUp( request, mp );
 }
 
-network::Message PythonRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message PythonRequestLogicalThread::MPOUp( const network::Message& request, const mega::MPO& mpo,
                                                     boost::asio::yield_context& yield_ctx )
+{
+    network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
+    return rq.MPOUp( request, mpo );
+}
+
+network::Message PythonRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
+                                                     boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( mega::MP( m_python.getMPO() ) == mp );
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message PythonRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
-                                                     boost::asio::yield_context& yield_ctx )
+                                                      boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( mega::MPO( m_python.getMPO() ) == mpo );
     return dispatchInBoundRequest( request, yield_ctx );

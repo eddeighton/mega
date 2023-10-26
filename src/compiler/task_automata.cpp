@@ -272,6 +272,12 @@ public:
 
             database.construct< Concrete::Object >(
                 { Concrete::Object::Args{ pObject, pRoot, enums, bitsetIndex, switchIndex } } );
+
+            for( auto pBitset : pObject->get_bitsets() )
+            {
+                database.construct< Concrete::Dimensions::Bitset >(
+                    Concrete::Dimensions::Bitset::Args{ pBitset, bitsetIndex } );
+            }
         }
 
         const task::FileHash fileHashCode = database.save_AutomataAnalysis_to_temp();

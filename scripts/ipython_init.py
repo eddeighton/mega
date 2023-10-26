@@ -56,25 +56,7 @@ async def run_megastructure():
 def dump( ref ):
     print( ref.dump() )
 
-
 asyncio.create_task( run_megastructure() )
 
 print( "CFG_TUPLE: {}".format( CFG_TUPLE ) )
 print( "cwd: {}".format( os.getcwd() ) )
-
-def createMPOOnProcess( process ):
-    p = mega.getProcess( process )
-    m = p.createMPO()
-    return m
-
-def test():
-    
-    r = mega.getMPO().getRoot()
-    t = mega.new( Type.Toaster )
-    dump( r )
-    dump( t )
-    
-def test2():
-    b = mega.new( Type.Brick )
-    print( b.test( 123 ) )
-    

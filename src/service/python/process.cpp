@@ -22,6 +22,8 @@
 
 #include "module.hpp"
 
+#include "service/mpo_context.hpp"
+
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/sim.hxx"
 
@@ -55,4 +57,8 @@ PythonMPO PythonProcess::createMPO() const
     return PythonMPO{ m_module, newMPO };
 }
 
+void PythonProcess::destroy() const
+{
+    m_module.invoke( [ mp = m_mp ]( mega::MPOContext& mpoContext ) { mpoContext.destroyExecutor( mp ); } );
+}
 } // namespace mega::service::python

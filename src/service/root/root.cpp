@@ -47,7 +47,6 @@
 #include <boost/process/environment.hpp>
 #include <boost/system/detail/error_code.hpp>
 #include <boost/asio/experimental/concurrent_channel.hpp>
-#include <boost/asio/ip/host_name.hpp>
 
 #include <iostream>
 #include <limits>
@@ -93,7 +92,6 @@ void Root::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
     table.m_rows.push_back( { Line{ "       Build: "s }, Line{ strOrNone( network::MegaBuildPath() ) } } );
     table.m_rows.push_back( { Line{ "        Type: "s }, Line{ strOrNone( network::MegaType() ) } } );
     table.m_rows.push_back( { Line{ "       Tuple: "s }, Line{ strOrNone( network::MegaTuple() ) } } );
-    table.m_rows.push_back( { Line{ "    Hostname: "s }, Line{ boost::asio::ip::host_name() } } );
     table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
     table.m_rows.push_back( { Line{ "          IP: "s }, Line{ m_server.getEndPoint().address().to_string() } } );
     table.m_rows.push_back( { Line{ "        PORT: "s }, Line{ std::to_string( m_server.getEndPoint().port() ) } } );

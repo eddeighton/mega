@@ -62,6 +62,11 @@ void log( const char* pszMsg )
     log.record( mega::log::Log::Write( mega::log::Log::eTrace, pszMsg ) );
 }
 
+void new_bitset_( void* pData, U64 bits )
+{
+    new( pData ) BitSet{ bits };
+}
+
 void structure_make( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_make passed network address in source " );

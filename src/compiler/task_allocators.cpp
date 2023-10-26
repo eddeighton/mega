@@ -86,21 +86,13 @@ public:
 
     using DomainMap = std::multimap< U64, Element >;
 
-    U64 collateElementsAndSetDomainSizes( Database& database, Concrete::Context* pContext, DomainMap& elements,
+    void collateElementsAndSetDomainSizes( Database& database, Concrete::Context* pContext, DomainMap& elements,
                                           U64 localDomain, U64 totalDomain )
     {
         using namespace MemoryStage;
 
-        U64 totalStates = 0;
-
         Concrete::Context* pReconstruct = database.construct< Concrete::Context >( Concrete::Context::Args{
             pContext, static_cast< Instance >( localDomain ), static_cast< Instance >( totalDomain ) } );
-
-        if( auto pState = db_cast< Concrete::State >( pReconstruct ) )
-        {
-            // add each total domain for each state
-            totalStates += totalDomain;
-        }
 
         if( auto pDimensionContext = db_cast< Concrete::UserDimensionContext >( pReconstruct ) )
         {
@@ -125,21 +117,16 @@ public:
             {
                 const U64 localDomainSize = getLocalDomainSize( pChildContext );
 
-                totalStates += collateElementsAndSetDomainSizes(
+                collateElementsAndSetDomainSizes(
                     database, pChildContext, elements, localDomainSize, totalDomain * localDomainSize );
             }
         }
-
-        return totalStates;
     }
 
     void calculateMemoryLayout( Database& database, Concrete::Object* pObject )
     {
         DomainMap elements;
-        U64       totalStates = collateElementsAndSetDomainSizes( database, pObject, elements, 1, 1 );
-
-        // calculate bitset size for the object padded up to 64 byte boundaries
-        totalStates = padToAlignment( 64, totalStates );
+        collateElementsAndSetDomainSizes( database, pObject, elements, 1, 1 );
 
         std::vector< MemoryLayout::Part* > parts;
         for( auto i = elements.begin(), iEnd = elements.end(); i != iEnd; )
@@ -151,7 +138,6 @@ public:
             {
                 Database&           database;
                 MemoryLayout::Part* pContextPart;
-                U64                 totalStates;
 
                 mega::SizeAlignment                            sizeAlignment;
                 std::vector< Concrete::Dimensions::User* >     userDimensions;
@@ -232,12 +218,12 @@ public:
                     sizeAlignment.alignment = std::max( sizeAlignment.alignment, szAlign );
                     sizeAlignment.size      = padToAlignment( szAlign, sizeAlignment.size );
                     auto pBitset2           = database.construct< Concrete::Dimensions::Bitset >(
-                        Concrete::Dimensions::Bitset::Args{ pBitset, totalStates, pContextPart, sizeAlignment.size } );
+                        Concrete::Dimensions::Bitset::Args{ pBitset, pContextPart, sizeAlignment.size } );
                     sizeAlignment.size += szSize;
                     bitsets.push_back( pBitset2 );
                 }
 
-            } visitor( database, pContextPart, totalStates );
+            } visitor( database, pContextPart );
 
             auto iUpper = elements.upper_bound( i->first );
             for( ; i != iUpper; ++i )

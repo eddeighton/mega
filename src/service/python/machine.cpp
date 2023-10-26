@@ -21,6 +21,8 @@
 #include "machine.hpp"
 #include "module.hpp"
 
+#include "service/mpo_context.hpp"
+
 #include "service/protocol/model/enrole.hxx"
 
 namespace mega::service::python
@@ -47,4 +49,11 @@ std::vector< PythonProcess > PythonMachine::getProcesses() const
     return result;
 }
 
+PythonProcess PythonMachine::createExecutor() const
+{
+    MP newExecutor;
+    m_module.invoke( [ machineID = m_machineID, &newExecutor ]( mega::MPOContext& mpoContext )
+                     { newExecutor = mpoContext.constructExecutor( machineID ); } );
+    return PythonProcess{ m_module, newExecutor };
+}
 } // namespace mega::service::python

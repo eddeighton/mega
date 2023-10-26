@@ -44,6 +44,7 @@ public:
         None,
         VStar,
         VStar_VStar,
+        Mpo,
         Ref,
         Ref_Ref,
         Ref_Ref_U64,

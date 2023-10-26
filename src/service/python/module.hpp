@@ -93,9 +93,10 @@ public:
     PythonModule& operator=( PythonModule&& )      = delete;
 
     // operators
-    mega::reference operatorNew( int typeID );
+    mega::reference operatorNew( mega::SubType typeID );
+    mega::reference operatorRemoteNew( mega::SubType typeID, MPO mpo );
     void            operatorDelete( mega::reference ref );
-    mega::reference operatorCast( mega::reference ref, int typeID );
+    mega::reference operatorCast( mega::reference ref, mega::SubType typeID );
 
     // Python Dynamic Invocations
     mega::TypeID                           getInterfaceTypeID( const mega::TypeID concreteTypeID );
@@ -108,11 +109,11 @@ public:
     {
         std::optional< std::exception_ptr > exceptionPtrOpt;
 
-        auto lambda = [ functor = std::move( functor ), &exceptionPtrOpt ]()
+        auto lambda = [ functor = std::move( functor ), &exceptionPtrOpt ]( mega::MPOContext& mpoContext )
         {
             try
             {
-                functor();
+                functor( mpoContext );
             }
             catch( std::exception& )
             {
@@ -164,6 +165,19 @@ public:
             {
                 network::mpo::External_Request_Sender sender( *mpoCon, *extCon );
                 return sender.MPUp( msg, mp );
+            },
+            m_pExternalLogicalThread->getID() );
+    }
+
+    template < typename Request >
+    Request mpoRequest( MPO mpo )
+    {
+        return Request(
+            [ mpoCon = m_mpoLogicalThread, extCon = m_pExternalLogicalThread, mpo ](
+                const network::Message& msg ) mutable -> network::Message
+            {
+                network::mpo::External_Request_Sender sender( *mpoCon, *extCon );
+                return sender.MPOUp( msg, mpo );
             },
             m_pExternalLogicalThread->getID() );
     }

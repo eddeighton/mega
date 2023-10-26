@@ -93,9 +93,9 @@ namespace Concrete
             ref< Concrete::Object > parent_object;
             ref< Interface::CompilerDimensionTrait > interface_compiler_dimension;
 
-            value< mega::U64 >          size    -> MemoryStage::MemoryLayout;
-            ref< MemoryLayout::Part >   part    -> MemoryStage::MemoryLayout;
-            value< mega::U64 >          offset  -> MemoryStage::MemoryLayout;
+            ref< MemoryLayout::Part >   part            -> MemoryStage::MemoryLayout;
+            value< mega::U64 >          offset          -> MemoryStage::MemoryLayout;
+            value< mega::U64 >          number_of_bits  -> AutomataStage::AutomataAnalysis;
         }
 
         object Configuration : Bitset -> ConcreteStage::Concrete

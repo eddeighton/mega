@@ -38,6 +38,7 @@ public:
     PythonMachine( PythonModule& module, mega::MachineID machineID );
 
     std::vector< PythonProcess > getProcesses() const;
+    PythonProcess createExecutor() const;
 private:
     PythonModule&   m_module;
     mega::MachineID m_machineID;

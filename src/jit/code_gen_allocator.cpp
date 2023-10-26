@@ -347,12 +347,15 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
     std::ostringstream osObjectTypeID;
     osObjectTypeID << printTypeID( objectTypeID );
-    nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
-                           { "objectName", strFullTypeName },
-                           { "parts", nlohmann::json::array() },
-                           { "mangled_data_types", nlohmann::json::array() },
-                           { "states", nlohmann::json::array() },
-                           { "enumeration", nlohmann::json::array() }
+    nlohmann::json data( {
+
+        { "component", pObject->get_component()->get_name() },
+        { "objectTypeID", osObjectTypeID.str() },
+        { "objectName", strFullTypeName },
+        { "parts", nlohmann::json::array() },
+        { "mangled_data_types", nlohmann::json::array() },
+        { "states", nlohmann::json::array() },
+        { "enumeration", nlohmann::json::array() }
 
     } );
 
@@ -400,6 +403,27 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
                     } );
 
+                    for( auto pBitsetDim : pPart->get_bitset_dimensions() )
+                    {
+                        // determine the correct initialisation for the bitset size
+                        const auto numberOfBits = pBitsetDim->get_number_of_bits();
+
+                        const std::string strMangle
+                            = megaMangle( pBitsetDim->get_interface_compiler_dimension()->get_erased_type() );
+                        nlohmann::json member(
+                            { { "type", pBitsetDim->get_interface_compiler_dimension()->get_canonical_type() },
+                              { "type_id", printTypeID( pBitsetDim->get_concrete_id() ) },
+                              { "mangle", strMangle },
+                              { "name", Concrete::getIdentifier( pBitsetDim ) },
+                              { "offset", pBitsetDim->get_offset() },
+                              { "is_bitset", true },
+                              { "number_of_bits", numberOfBits }
+
+                            } );
+                        part[ "members" ].push_back( member );
+                        mangledDataTypes.insert( strMangle );
+                    }
+
                     for( auto pUserDim : pPart->get_user_dimensions() )
                     {
                         const std::string strMangle
@@ -408,7 +432,10 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                                                  { "type_id", printTypeID( pUserDim->get_concrete_id() ) },
                                                  { "mangle", strMangle },
                                                  { "name", Concrete::getIdentifier( pUserDim ) },
-                                                 { "offset", pUserDim->get_offset() } } );
+                                                 { "offset", pUserDim->get_offset() },
+                                                 { "is_bitset", false }
+
+                        } );
                         part[ "members" ].push_back( member );
                         mangledDataTypes.insert( strMangle );
                     }

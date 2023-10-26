@@ -17,6 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+// Component: {{ component }}
+// Object:    {{ objectName }}
 
 #include "mega/values/native_types.hpp"
 #include "mega/values/runtime/reference.hpp"
@@ -38,6 +40,7 @@ namespace mega::mangle
     Any read_any_{{type}}(void*);
     void write_any_{{type}}(void*,Any);
 {% endfor %}
+    void new_bitset_(void*,U64);
 
     mega::TypeID iterator_state( void* );
     void iterator_object_start( void*, const char* pszType, mega::TypeID );
@@ -68,7 +71,11 @@ void ctor_{{ objectTypeID }}( void* pBuffer )
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
+{% if member.is_bitset %}
+        mega::mangle::new_bitset_( pIter + {{ member.offset }}, {{ member.number_of_bits }} );
+{% else %}
         mega::mangle::new_{{member.mangle}}( pIter + {{ member.offset }} );
+{% endif %}
 {% endfor %}
 {% for member in part.links %}
         mega::mangle::new_{{member.mangle}}( pIter + {{ member.offset }} );

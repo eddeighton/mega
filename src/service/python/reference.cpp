@@ -90,7 +90,7 @@ PyObject* PythonReference::dump() const
     std::ostringstream os;
 
     m_module.invoke(
-        [ &m_reference = m_reference, &os ]()
+        [ &m_reference = m_reference, &os ]( MPOContext& )
         {
             MPORealToLogicalVisitor mpoRealInstantiation( m_reference );
             LogicalTreePrinter      printer( os );
@@ -135,7 +135,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 {
                     void* pResult = nullptr;
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &pResult ]()
+                        [ &functionInfo, &m_reference = m_reference, &pResult ]( MPOContext& )
                         {
                             auto pFunction = reinterpret_cast< mega::runtime::invocation::Read::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
@@ -156,7 +156,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 
                     mega::reference result;
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &pArg, &result ]()
+                        [ &functionInfo, &m_reference = m_reference, &pArg, &result ]( MPOContext& )
                         {
                             auto pWriteFunction = reinterpret_cast< mega::runtime::invocation::Write::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
@@ -169,7 +169,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 {
                     void* pResult = nullptr;
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &pResult ]()
+                        [ &functionInfo, &m_reference = m_reference, &pResult ]( MPOContext& )
                         {
                             auto pFunction = reinterpret_cast< mega::runtime::invocation::LinkRead::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
@@ -192,7 +192,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     mega::reference result;
 
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &refArg, &result ]()
+                        [ &functionInfo, &m_reference = m_reference, &refArg, &result ]( MPOContext& )
                         {
                             auto pFunction = reinterpret_cast< mega::runtime::invocation::LinkAdd::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
@@ -213,7 +213,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     mega::reference result;
 
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &refArg, &result ]()
+                        [ &functionInfo, &m_reference = m_reference, &refArg, &result ]( MPOContext& )
                         {
                             auto pFunction = reinterpret_cast< mega::runtime::invocation::LinkRemove::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
@@ -227,7 +227,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 {
                     mega::reference result;
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &result ]()
+                        [ &functionInfo, &m_reference = m_reference, &result ]( MPOContext& )
                         {
                             auto pFunction = reinterpret_cast< mega::runtime::invocation::LinkClear::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
@@ -248,7 +248,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 
                     // obtain the CallResult from the invocation function - executing in the MPO context
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &m_module = m_module, &result ]()
+                        [ &functionInfo, &m_reference = m_reference, &m_module = m_module, &result ]( MPOContext& )
                         {
                             auto pCall = reinterpret_cast< runtime::invocation::Call::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
@@ -256,12 +256,11 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                         } );
 
                     // given the result can now obtain the corresponding python wrapper function
-                    auto pPythonWrapperFunction
-                        = m_module.getPythonFunctionWrapper( result.interfaceTypeID );
+                    auto pPythonWrapperFunction = m_module.getPythonFunctionWrapper( result.interfaceTypeID );
 
                     // execute the wrapper function in the MPO context passing in the CallResult and args
                     PyObject* pPyObject = nullptr;
-                    m_module.invoke( [ &pPythonWrapperFunction, &result, &pyArgs, &pPyObject ]()
+                    m_module.invoke( [ &pPythonWrapperFunction, &result, &pyArgs, &pPyObject ]( MPOContext& )
                                      { pPyObject = pPythonWrapperFunction( result, pyArgs ); } );
 
                     if( pPyObject )
@@ -274,7 +273,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 {
                     mega::reference result;
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &m_module = m_module, &result ]()
+                        [ &functionInfo, &m_reference = m_reference, &m_module = m_module, &result ]( MPOContext& )
                         {
                             auto pStartFunction = reinterpret_cast< mega::runtime::invocation::Start::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
@@ -287,7 +286,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 {
                     mega::reference result;
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &result ]()
+                        [ &functionInfo, &m_reference = m_reference, &result ]( MPOContext& )
                         {
                             auto pGetFunction = reinterpret_cast< mega::runtime::invocation::Get::FunctionPtr >(
                                 functionInfo.pFunctionPtr );

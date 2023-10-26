@@ -29,6 +29,7 @@
 #include "service/network/log.hpp"
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/asio/ip/host_name.hpp>
 
 #include <iostream>
 
@@ -91,6 +92,7 @@ void Daemon::getGeneralStatusReport( const mega::reports::URL& url, mega::report
 
     Table table;
     // clang-format off
+    table.m_rows.push_back( { Line{ "    Hostname: "s }, Line{ boost::asio::ip::host_name() } } );
     table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
     table.m_rows.push_back( { Line{ "          IP: "s }, Line{ m_server.getEndPoint().address().to_string() } } );
     table.m_rows.push_back( { Line{ "        PORT: "s }, Line{ std::to_string( m_server.getEndPoint().port() ) } } );
