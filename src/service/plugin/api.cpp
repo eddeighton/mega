@@ -20,6 +20,7 @@
 
 #include "service/plugin/api.hpp"
 #include "service/plugin/plugin.hpp"
+#include "service/network/network.hpp"
 
 #include "common/requireSemicolon.hpp"
 
@@ -47,11 +48,10 @@ public:
         {
             boost::filesystem::path logFolder;
             {
-                const char* pszCFG_TYPE = std::getenv( network::ENV_CFG_TYPE );
-                if( pszCFG_TYPE != nullptr )
+                if( auto cfgType = network::MegaType(); cfgType.has_value() )
                 {
                     std::ostringstream os;
-                    os << "/home/foobar/test_" << pszCFG_TYPE << "/log";
+                    os << "/home/foobar/test_" << cfgType.value() << "/log";
                     logFolder = os.str();
                 }
                 else

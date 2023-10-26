@@ -18,34 +18,30 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "python_machine.hpp"
+#ifndef GUARD_2023_March_12_MACHINE
+#define GUARD_2023_March_12_MACHINE
 
-#include "module.hpp"
+#include "process.hpp"
 
-#include "service/protocol/model/enrole.hxx"
+#include "mega/values/runtime/mpo.hpp"
+
+#include <vector>
 
 namespace mega::service::python
 {
 
-PythonMachine::PythonMachine( PythonModule& module, mega::MachineID machineID )
-    : m_module( module )
-    , m_machineID( machineID )
+class PythonModule;
+
+class PythonMachine
 {
-}
+public:
+    PythonMachine( PythonModule& module, mega::MachineID machineID );
 
-std::vector< PythonProcess > PythonMachine::getProcesses() const
-{
-    SPDLOG_TRACE( "PythonMachine::getMPOs" );
-
-    std::vector< PythonProcess > result;
-    {
-        auto processes = m_module.rootRequest< network::enrole::Request_Encoder >().EnroleGetProcesses( m_machineID );
-        for( mega::MP mp : processes )
-        {
-            result.emplace_back( PythonProcess( m_module, mp ) );
-        }
-    }
-    return result;
-}
-
+    std::vector< PythonProcess > getProcesses() const;
+private:
+    PythonModule&   m_module;
+    mega::MachineID m_machineID;
+};
 } // namespace mega::service::python
+
+#endif // GUARD_2023_March_12_MACHINE

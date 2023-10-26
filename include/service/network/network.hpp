@@ -27,14 +27,18 @@
 namespace mega::network
 {
 
-short MegaDaemonPort();
-short MegaRootPort();
+short                        MegaDaemonPort();
+short                        MegaRootPort();
+std::optional< std::string > MegaWorkspaceRootPath();
+std::optional< std::string > MegaBuildPath();
+std::optional< std::string > MegaType();
+std::optional< std::string > MegaTuple();
 
 // For systems not supporting segmented stacks - need a stack size of coroutines
 //                                                    0x0FFFFF; // 1M bytes
 //                                                    0x200000; // 2,097,152
-//static const mega::U64 NON_SEGMENTED_STACK_SIZE     = 0x400000; // 4,194,304
-static const mega::U64 NON_SEGMENTED_STACK_SIZE     = 0x800000; // 8 MB
+// static const mega::U64 NON_SEGMENTED_STACK_SIZE     = 0x400000; // 4,194,304
+static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x800000; // 8 MB
 //                                                    0xAFFFFF; // 11,534,335
 
 struct Traits

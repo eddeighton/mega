@@ -248,34 +248,13 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
     }
 }
 
-void recurseEnums( FinalStage::Automata::Enum* pEnum, nlohmann::json& data )
+void collectEnums( FinalStage::Automata::Enum* pEnum, std::map< U32, FinalStage::Automata::Enum* >& enums )
 {
-    nlohmann::json enumData( {
-
-        { "switch_index", pEnum->get_switch_index() },
-        { "iterator_next", pEnum->get_next_switch_index() },
-        { "is_action", pEnum->get_action().has_value() },
-        { "result_value", printSubTypeInstance( pEnum->get_sub_type_instance() ) }
-
-    } );
-
-    if( auto pTest = FinalStage::db_cast< FinalStage::Automata::Test >( pEnum ) )
-    {
-        enumData[ "is_test" ]          = true;
-        enumData[ "bit_index" ]        = pTest->get_bitset_index();
-        enumData[ "iterator_failure" ] = pTest->get_failure_switch_index();
-    }
-    else
-    {
-        enumData[ "is_test" ] = false;
-    }
-
+    enums.insert( { pEnum->get_switch_index(), pEnum } );
     for( auto pChildEnum : pEnum->get_children() )
     {
-        recurseEnums( pChildEnum, data );
+        collectEnums( pChildEnum, enums );
     }
-
-    data[ "enums" ].push_back( enumData );
 }
 
 std::string generate_enum( Inja& inja, FinalStage::Concrete::Object* pObject )
@@ -316,10 +295,39 @@ std::string generate_enum( Inja& inja, FinalStage::Concrete::Object* pObject )
 
 )TEMPLATE";
 
-    nlohmann::json data( { { "enums", nlohmann::json::array() } } );
-    for( auto pEnum : pObject->get_automata_enums() )
+    std::map< U32, FinalStage::Automata::Enum* > enums;
     {
-        recurseEnums( pEnum, data );
+        for( auto pEnum : pObject->get_automata_enums() )
+        {
+            collectEnums( pEnum, enums );
+        }
+    }
+
+    nlohmann::json data( { { "enums", nlohmann::json::array() } } );
+
+    for( auto [ _, pEnum ] : enums )
+    {
+        nlohmann::json enumData( {
+
+            { "switch_index", pEnum->get_switch_index() },
+            { "iterator_next", pEnum->get_next_switch_index() },
+            { "is_action", pEnum->get_action().has_value() },
+            { "result_value", printSubTypeInstance( pEnum->get_sub_type_instance() ) }
+
+        } );
+
+        if( auto pTest = FinalStage::db_cast< FinalStage::Automata::Test >( pEnum ) )
+        {
+            enumData[ "is_test" ]          = true;
+            enumData[ "bit_index" ]        = pTest->get_bitset_index();
+            enumData[ "iterator_failure" ] = pTest->get_failure_switch_index();
+        }
+        else
+        {
+            enumData[ "is_test" ] = false;
+        }
+
+        data[ "enums" ].push_back( enumData );
     }
 
     return inja.render( szTemplate, data );

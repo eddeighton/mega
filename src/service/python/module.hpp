@@ -21,13 +21,13 @@
 #ifndef GUARD_2023_March_12_module
 #define GUARD_2023_March_12_module
 
-#include "python_reference.hpp"
+#include "reference.hpp"
 #include "python.hpp"
-#include "python_root.hpp"
-#include "python_machine.hpp"
-#include "python_process.hpp"
-#include "python_mpo.hpp"
-#include "python_type_system.hpp"
+#include "root.hpp"
+#include "machine.hpp"
+#include "process.hpp"
+#include "mpo.hpp"
+#include "type_system.hpp"
 
 #include "mega/values/compilation/invocation_id.hpp"
 #include "mega/mangle/python_mangle.hpp"

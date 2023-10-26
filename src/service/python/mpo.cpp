@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "python_mpo.hpp"
+#include "mpo.hpp"
 
 #include "module.hpp"
 

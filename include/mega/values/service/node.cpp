@@ -30,7 +30,6 @@
 namespace mega::network
 {
 const char* ENV_PROCESS_UUID = "MEGA_PROCESS_UUID";
-const char* ENV_CFG_TYPE     = "CFG_TYPE";
 
 namespace
 {

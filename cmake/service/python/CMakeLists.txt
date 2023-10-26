@@ -46,8 +46,8 @@ set( MEGA_PYTHON_SRC_DIR ${MEGA_SRC_DIR}/service/python )
 ####################################################################
 
 set( MEGA_PYTHON_API
-    ${MEGA_PYTHON_SRC_DIR}/python_cast.hpp
-    ${MEGA_PYTHON_SRC_DIR}/python_reference.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/cast.hpp
+    ${MEGA_PYTHON_SRC_DIR}/reference.hpp 
 )
 
 set( MEGA_PYTHON_SOURCE 
@@ -56,19 +56,19 @@ set( MEGA_PYTHON_SOURCE
     ${MEGA_PYTHON_SRC_DIR}/mpo_logical_thread.cpp
     ${MEGA_PYTHON_SRC_DIR}/mpo_logical_thread.hpp
     ${MEGA_PYTHON_SRC_DIR}/project.cpp
-    ${MEGA_PYTHON_SRC_DIR}/python_machine.cpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_machine.hpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_mpo.cpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_mpo.hpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_process.cpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_process.hpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_reference.cpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_root.cpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_root.hpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_type_system.cpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_type_system.hpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_type.cpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_type.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/machine.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/machine.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/mpo.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/mpo.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/process.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/process.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/reference.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/root.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/root.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/type_system.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/type_system.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/type.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/type.hpp 
     ${MEGA_PYTHON_SRC_DIR}/python.cpp
     ${MEGA_PYTHON_SRC_DIR}/python.hpp
     ${MEGA_PYTHON_SRC_DIR}/request.hpp

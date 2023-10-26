@@ -74,8 +74,7 @@ network::Message ExecutorRequestLogicalThread::RootAllBroadcast( const network::
     {
         std::vector< Simulation::Ptr > simulations;
         m_executor.getSimulations( simulations );
-        for( Simulation::Ptr pThread : simulations )
-        //for( auto pThread : m_executor.getLogicalThreads() )
+        for( Simulation::Ptr pThread : simulations ) // Not m_executor.getLogicalThreads()
         {
             if( pThread->getID() != getID() )
             {

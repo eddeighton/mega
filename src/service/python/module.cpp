@@ -22,8 +22,8 @@
 
 #include "mpo_logical_thread.hpp"
 
-#include "python_reference.hpp"
-#include "python_cast.hpp"
+#include "reference.hpp"
+#include "cast.hpp"
 
 #include "service/network/log.hpp"
 

@@ -80,7 +80,6 @@ inline std::ostream& operator<<( std::ostream& os, const Node& node )
 }
 
 extern const char* ENV_PROCESS_UUID;
-extern const char* ENV_CFG_TYPE;
 
 } // namespace mega::network
 

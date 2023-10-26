@@ -18,10 +18,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_March_12_MACHINE
-#define GUARD_2023_March_12_MACHINE
+#ifndef GUARD_2023_March_12_PROCESS
+#define GUARD_2023_March_12_PROCESS
 
-#include "python_process.hpp"
+#include "mpo.hpp"
 
 #include "mega/values/runtime/mpo.hpp"
 
@@ -32,16 +32,18 @@ namespace mega::service::python
 
 class PythonModule;
 
-class PythonMachine
+class PythonProcess
 {
 public:
-    PythonMachine( PythonModule& module, mega::MachineID machineID );
+    PythonProcess( PythonModule& module, mega::MP mp );
 
-    std::vector< PythonProcess > getProcesses() const;
+    std::vector< PythonMPO > getMPOs() const;
+
+    PythonMPO createMPO() const;
 private:
-    PythonModule&   m_module;
-    mega::MachineID m_machineID;
+    PythonModule& m_module;
+    mega::MP      m_mp;
 };
 } // namespace mega::service::python
 
-#endif // GUARD_2023_March_12_MACHINE
+#endif // GUARD_2023_March_12_PROCESS

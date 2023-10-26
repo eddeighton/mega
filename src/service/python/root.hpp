@@ -18,41 +18,34 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "python_process.hpp"
+#ifndef GUARD_2023_March_12_root
+#define GUARD_2023_March_12_root
 
-#include "module.hpp"
+#include "machine.hpp"
+#include "mpo.hpp"
 
-#include "service/protocol/model/enrole.hxx"
-#include "service/protocol/model/sim.hxx"
+#include "mega/values/runtime/mpo.hpp"
+
+#include <vector>
+#include <string>
 
 namespace mega::service::python
 {
 
-PythonProcess::PythonProcess( PythonModule& module, mega::MP mp )
-    : m_module( module )
-    , m_mp( mp )
+class PythonModule;
+
+class PythonRoot
 {
-}
+public:
+    PythonRoot( PythonModule& module );
+    PythonRoot( PythonRoot& )  = default;
+    PythonRoot( PythonRoot&& ) = default;
 
-std::vector< PythonMPO > PythonProcess::getMPOs() const
-{
-    SPDLOG_TRACE( "PythonProcess::getMPOs" );
+    std::vector< PythonMachine > getMachines() const;
 
-    std::vector< PythonMPO > result;
-    {
-        auto mpos = m_module.rootRequest< network::enrole::Request_Encoder >().EnroleGetMPO( m_mp );
-        for( mega::MPO mpo : mpos )
-        {
-            result.emplace_back( PythonMPO( m_module, mpo ) );
-        }
-    }
-    return result;
-}
-
-PythonMPO PythonProcess::createMPO() const
-{
-    MPO newMPO = m_module.mpRequest< network::sim::Request_Encoder >( m_mp ).SimCreate();
-    return PythonMPO{ m_module, newMPO };
-}
-
+private:
+    PythonModule& m_module;
+};
 } // namespace mega::service::python
+
+#endif // GUARD_2023_March_12_root

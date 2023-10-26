@@ -27,6 +27,7 @@
 #include "service/mpo_context.hpp"
 #include "service/cycle.hpp"
 #include "service/reporters.hpp"
+#include "service/network/network.hpp"
 
 #include "service/protocol/common/type_erase.hpp"
 
@@ -226,11 +227,10 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     {
         boost::filesystem::path logFolder;
         {
-            const char* pszCFG_TYPE = std::getenv( network::ENV_CFG_TYPE );
-            if( pszCFG_TYPE != nullptr )
+            if( auto cfgType = network::MegaType(); cfgType.has_value() )
             {
                 std::ostringstream os;
-                os << "/home/foobar/test_" << pszCFG_TYPE;
+                os << "/home/foobar/test_" << cfgType.value();
                 logFolder = os.str();
             }
             else

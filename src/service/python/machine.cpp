@@ -18,34 +18,33 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_March_12_root
-#define GUARD_2023_March_12_root
+#include "machine.hpp"
+#include "module.hpp"
 
-#include "python_machine.hpp"
-#include "python_mpo.hpp"
-
-#include "mega/values/runtime/mpo.hpp"
-
-#include <vector>
-#include <string>
+#include "service/protocol/model/enrole.hxx"
 
 namespace mega::service::python
 {
 
-class PythonModule;
-
-class PythonRoot
+PythonMachine::PythonMachine( PythonModule& module, mega::MachineID machineID )
+    : m_module( module )
+    , m_machineID( machineID )
 {
-public:
-    PythonRoot( PythonModule& module );
-    PythonRoot( PythonRoot& )  = default;
-    PythonRoot( PythonRoot&& ) = default;
+}
 
-    std::vector< PythonMachine > getMachines() const;
+std::vector< PythonProcess > PythonMachine::getProcesses() const
+{
+    SPDLOG_TRACE( "PythonMachine::getMPOs" );
 
-private:
-    PythonModule& m_module;
-};
+    std::vector< PythonProcess > result;
+    {
+        auto processes = m_module.rootRequest< network::enrole::Request_Encoder >().EnroleGetProcesses( m_machineID );
+        for( mega::MP mp : processes )
+        {
+            result.emplace_back( PythonProcess( m_module, mp ) );
+        }
+    }
+    return result;
+}
+
 } // namespace mega::service::python
-
-#endif // GUARD_2023_March_12_root

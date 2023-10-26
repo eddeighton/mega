@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "python_root.hpp"
+#include "root.hpp"
 
 #include "module.hpp"
 

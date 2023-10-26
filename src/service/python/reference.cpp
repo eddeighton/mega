@@ -18,9 +18,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "python_reference.hpp"
-#include "python_type_system.hpp"
-#include "python_cast.hpp"
+#include "reference.hpp"
+#include "type_system.hpp"
+#include "cast.hpp"
 
 #include "module.hpp"
 

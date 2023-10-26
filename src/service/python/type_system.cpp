@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_September_14_python_type_system
 #define GUARD_2023_September_14_python_type_system
 
-#include "service/python/python_type_system.hpp"
+#include "service/python/type_system.hpp"
 
 namespace mega::service::python
 {

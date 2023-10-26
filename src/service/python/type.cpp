@@ -18,10 +18,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/python/python_reference.hpp"
-#include "service/python/python_cast.hpp"
-#include "service/python/python_type.hpp"
-#include "service/python/python_type_system.hpp"
+#include "service/python/reference.hpp"
+#include "service/python/cast.hpp"
+#include "service/python/type.hpp"
+#include "service/python/type_system.hpp"
 
 #include "service/network/log.hpp"
 

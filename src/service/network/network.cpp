@@ -19,6 +19,8 @@
 
 #include "service/network/network.hpp"
 
+#include "common/assert_verify.hpp"
+
 #include <cstdlib>
 #include <string>
 #include <sstream>
@@ -57,6 +59,59 @@ short MegaRootPort()
     else
     {
         return 4238;
+    }
+}
+
+std::optional< std::string > MegaWorkspaceRootPath()
+{
+    static const char* CFG = "WORKSPACE_ROOT_PATH";
+
+    if( const char* pEnvValue = std::getenv( CFG ); pEnvValue )
+    {
+        return std::string{ pEnvValue };
+    }
+    else
+    {
+        return {};
+    }
+}
+
+std::optional< std::string > MegaBuildPath()
+{
+    static const char* CFG = "BUILD_PATH";
+    if( const char* pEnvValue = std::getenv( CFG ); pEnvValue )
+    {
+        return std::string{ pEnvValue };
+    }
+    else
+    {
+        return {};
+    }
+}
+
+std::optional< std::string > MegaType()
+{
+    static const char* CFG = "CFG_TYPE";
+    if( const char* pEnvValue = std::getenv( CFG ); pEnvValue )
+    {
+        return std::string{ pEnvValue };
+    }
+    else
+    {
+        return {};
+    }
+}
+
+std::optional< std::string > MegaTuple()
+{
+    static const char* CFG = "CFG_TUPLE";
+    if( const char* pEnvValue = std::getenv( CFG ); pEnvValue )
+    {
+        return std::string{ pEnvValue };
+    }
+    else
+    {
+        return {};
     }
 }
 

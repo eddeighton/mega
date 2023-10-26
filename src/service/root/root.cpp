@@ -47,6 +47,7 @@
 #include <boost/process/environment.hpp>
 #include <boost/system/detail/error_code.hpp>
 #include <boost/asio/experimental/concurrent_channel.hpp>
+#include <boost/asio/ip/host_name.hpp>
 
 #include <iostream>
 #include <limits>
@@ -55,7 +56,8 @@
 namespace mega::service
 {
 
-Root::Root( boost::asio::io_context& ioContext, network::Log log, const boost::filesystem::path& stashFolder, short portNumber )
+Root::Root( boost::asio::io_context& ioContext, network::Log log, const boost::filesystem::path& stashFolder,
+            short portNumber )
     : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Root ), ioContext )
     , m_log( log )
     , m_stashFolder( stashFolder )
@@ -79,10 +81,19 @@ void Root::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
 
     const auto megaInstall = getMegastructureInstallation();
 
-    //spdlog::logger
+    auto strOrNone = []( std::optional< std::string >&& strOpt ) -> std::string
+    {
+        using namespace std::string_literals;
+        return strOpt.has_value() ? strOpt.value() : "none"s;
+    };
 
     Table table;
     // clang-format off
+    table.m_rows.push_back( { Line{ "   Workspace: "s }, Line{ strOrNone( network::MegaWorkspaceRootPath() ) } } );
+    table.m_rows.push_back( { Line{ "       Build: "s }, Line{ strOrNone( network::MegaBuildPath() ) } } );
+    table.m_rows.push_back( { Line{ "        Type: "s }, Line{ strOrNone( network::MegaType() ) } } );
+    table.m_rows.push_back( { Line{ "       Tuple: "s }, Line{ strOrNone( network::MegaTuple() ) } } );
+    table.m_rows.push_back( { Line{ "    Hostname: "s }, Line{ boost::asio::ip::host_name() } } );
     table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
     table.m_rows.push_back( { Line{ "          IP: "s }, Line{ m_server.getEndPoint().address().to_string() } } );
     table.m_rows.push_back( { Line{ "        PORT: "s }, Line{ std::to_string( m_server.getEndPoint().port() ) } } );
@@ -91,7 +102,7 @@ void Root::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
     table.m_rows.push_back( { Line{ "Stash Folder: "s }, Line{ m_stashFolder, makeFileURL( url, m_stashFolder ) } } );
     table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, makeFileURL( url, m_log.logFile ) } } );
     // clang-format on
-    
+
     report.m_elements.push_back( table );
 }
 
