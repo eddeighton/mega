@@ -39,6 +39,7 @@
 namespace HyperGraphAnalysis
 {
 #include "compiler/interface.hpp"
+#include "compiler/concrete.hpp"
 #include "compiler/interface_link_printer.hpp"
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"

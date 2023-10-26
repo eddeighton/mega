@@ -36,9 +36,6 @@ digraph
     [
         color       = "black"
         fillcolor   = "{{ node.colour }}"
-{% if node.has_bookmark %}
-        id          = "{{ node.bookmark }}"
-{% endif %}
 {% if node.has_url %}
         URL         = "{{ node.url }}"
 {% endif %}
@@ -69,9 +66,6 @@ digraph
         penwidth    = 2
 {% if subgraph.has_url %}
         URL         = "{{ subgraph.url }}"
-{% endif %}
-{% if subgraph.has_bookmark %}
-        id          = "{{ subgraph.bookmark }}"
 {% endif %}
 {% if subgraph.has_label %}
         label       = 

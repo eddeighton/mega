@@ -18,6 +18,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+namespace Interface
+{
+
 template < typename TContext >
 static inline mega::U64 getSizeTraitSize( const TContext* pInterfaceContext )
 {
@@ -31,29 +34,33 @@ static inline mega::U64 getSizeTraitSize( const TContext* pInterfaceContext )
     return allocationSize;
 }
 
-static mega::U64 getLocalDomainSize( Concrete::Context* pContext )
+static mega::U64 getLocalDomainSize( Interface::IContext* pContext )
 {
-    if( auto pNamespace = db_cast< Concrete::Namespace >( pContext ) )
+    if( auto pNamespace = db_cast< Interface::Namespace >( pContext ) )
     {
         return 1;
     }
-    else if( auto pState = db_cast< Concrete::State >( pContext ) )
+    else if( auto pAbstract = db_cast< Interface::Abstract >( pContext ) )
     {
-        return getSizeTraitSize( pState->get_interface_state() );
+        return getSizeTraitSize( pAbstract );
     }
-    else if( auto pEvent = db_cast< Concrete::Event >( pContext ) )
+    else if( auto pState = db_cast< Interface::State >( pContext ) )
     {
-        return getSizeTraitSize( pEvent->get_interface_event() );
+        return getSizeTraitSize( pState );
     }
-    else if( auto pInterupt = db_cast< Concrete::Interupt >( pContext ) )
+    else if( auto pEvent = db_cast< Interface::Event >( pContext ) )
+    {
+        return getSizeTraitSize( pEvent );
+    }
+    else if( auto pInterupt = db_cast< Interface::Interupt >( pContext ) )
     {
         return 1;
     }
-    else if( auto pFunction = db_cast< Concrete::Function >( pContext ) )
+    else if( auto pFunction = db_cast< Interface::Function >( pContext ) )
     {
         return 1;
     }
-    else if( auto pObject = db_cast< Concrete::Object >( pContext ) )
+    else if( auto pObject = db_cast< Interface::Object >( pContext ) )
     {
         return 1;
     }
@@ -62,3 +69,5 @@ static mega::U64 getLocalDomainSize( Concrete::Context* pContext )
         THROW_RTE( "Unknown context type" );
     }
 }
+
+} // namespace Interface

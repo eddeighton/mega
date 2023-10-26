@@ -42,6 +42,8 @@
 #include "boost/filesystem.hpp"
 #include <boost/algorithm/string.hpp>
 
+#include <algorithm>
+
 namespace mega::reports
 {
 namespace
@@ -154,7 +156,50 @@ public:
         VERIFY_RTE_MSG( strError.empty(), "Graphviz failed with error: " << strError );
         VERIFY_RTE_MSG( strOutput.empty(), "Graphviz failed with output: " << strOutput );
 
-        boost::filesystem::loadAsciiFile( tempSVGFile, os );
+        // deal with annoying graphviz behaviour with how id is generated where it doesnt work as bookmark
+
+        std::string str;
+        {
+            boost::filesystem::loadAsciiFile( tempSVGFile, str );
+
+            static const std::string strSearch  = "<g id=\"a_";
+            static const std::string strReplace = "<text ";
+
+            using Iter = std::string::iterator;
+
+            for( Iter i = str.begin(), iEnd = str.end(); i != iEnd;
+                 i = std::search( i, iEnd, strSearch.begin(), strSearch.end() ) )
+            {
+                Iter r = std::search( i, iEnd, strReplace.begin(), strReplace.end() );
+                if( r != iEnd )
+                {
+                    Iter idStart    = i + 2; // NOTE: include the space before the id=
+                    int  quoteCount = 0;
+
+                    // find the end of the id="something" by counting the quotes
+                    Iter idEnd = idStart;
+                    for( ; ( idEnd != iEnd ) && ( quoteCount != 2 ); )
+                    {
+                        if( *idEnd == '\"' )
+                        {
+                            ++quoteCount;
+                        }
+                        ++idEnd;
+                    }
+
+                    // want to move the id string to 5 chars after r ( ignore the space )
+                    Iter newID = r + 6;
+
+                    // move ( idStart to idEnd ) to newID
+                    std::string strTemp( idStart, idEnd );
+                    boost::replace_all( strTemp, "\"a_", "  \"" );
+
+                    auto iNewIDStart = std::copy( idEnd, newID, idStart );
+                    std::copy( strTemp.begin(), strTemp.end(), iNewIDStart );
+                }
+            }
+        }
+        os << str;
     }
 
     std::string render( const std::string& strTemplate, const nlohmann::json& data )
@@ -317,23 +362,38 @@ void valueToJSON( Args& args, const Value& value, nlohmann::json& data )
     data.push_back( os.str() );
 }
 
-void graphValueToJSON( Args& args, const Value& value, nlohmann::json& data )
+void graphValueToJSON( Args& args, const Value& value, const std::optional< Value >& bookmarkOpt, nlohmann::json& data )
 {
+    std::ostringstream os;
+
+    os << "<td";
+
     std::optional< URL > urlOpt;
     if( args.pLinker )
     {
         urlOpt = args.pLinker->link( value );
     }
 
-    std::ostringstream os;
+    if( bookmarkOpt.has_value() )
+    {
+        os << " ID=\"" << escapeHTML( toString( bookmarkOpt.value() ) ) << "\"";
+        if( !urlOpt.has_value() )
+        {
+            // ensure href because graphviz will NOT generate ID if no href present in <td>
+            URL url;
+            url.set_fragment( toString( bookmarkOpt.value() ) );
+            os << " href=\"" << javascriptHREF( url ) << "\"";
+        }
+    }
+
     if( urlOpt.has_value() )
     {
-        os << "<td href=\"" << javascriptHREF( urlOpt.value() ) << "\"><U>" << escapeHTML( toString( value ) )
+        os << " href=\"" << javascriptHREF( urlOpt.value() ) << "\"><U>" << escapeHTML( toString( value ) )
            << "</U></td>";
     }
     else
     {
-        os << "<td>" << escapeHTML( toString( value ) ) << "</td>";
+        os << ">" << escapeHTML( toString( value ) ) << "</td>";
     }
 
     data.push_back( os.str() );
@@ -477,9 +537,7 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             { "name", osNodeName.str() },
             { "colour", node.m_colour.str() },
             { "rows", nlohmann::json::array() },
-            { "has_url", false },
-            { "has_bookmark", false },
-            { "bookmark", "" }
+            { "has_url", false }
 
         } );
 
@@ -489,15 +547,24 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             nodeData[ "url" ]     = javascriptHREF( node.m_url.value() );
         }
 
-        addOptionalBookmark( args, node, nodeData );
+        // addOptionalBookmark( args, node, nodeData );
 
+        bool bFirst = true;
         for( const ValueVector& row : node.m_rows )
         {
             nlohmann::json rowData( { { "values", nlohmann::json::array() } } );
             for( const Value& value : row )
             {
-                // NOTE graph value generates <td>value</td> so can generate href in graphviz
-                graphValueToJSON( args, value, rowData[ "values" ] );
+                // NOTE graph value generates <td id="bookmark">value</td> so can generate href in graphviz
+                if( bFirst )
+                {
+                    bFirst = false;
+                    graphValueToJSON( args, value, node.m_bookmark, rowData[ "values" ] );
+                }
+                else
+                {
+                    graphValueToJSON( args, value, std::nullopt, rowData[ "values" ] );
+                }
             }
             nodeData[ "rows" ].push_back( rowData );
         }
@@ -520,9 +587,7 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             { "rows", nlohmann::json::array() },
             { "nodes", nlohmann::json::array() },
             { "has_url", false },
-            { "has_bookmark", false },
-            { "has_label", false },
-            { "bookmark", "" }
+            { "has_label", false }
 
         } );
 
@@ -532,7 +597,8 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             subgraphData[ "url" ]     = javascriptHREF( subgraph.m_url.value() );
         }
 
-        addOptionalBookmark( args, subgraph, subgraphData );
+        VERIFY_RTE_MSG( !subgraph.m_bookmark.has_value(), "Subgraph bookmark deprecated" );
+        // addOptionalBookmark( args, subgraph, subgraphData );
 
         for( const ValueVector& row : subgraph.m_rows )
         {
@@ -540,7 +606,7 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             for( const Value& value : row )
             {
                 // NOTE graph value generates <td>value</td> so can generate href in graphviz
-                graphValueToJSON( args, value, rowData[ "values" ] );
+                graphValueToJSON( args, value, std::nullopt, rowData[ "values" ] );
                 subgraphData[ "has_label" ] = true;
             }
             subgraphData[ "rows" ].push_back( rowData );

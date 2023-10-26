@@ -45,7 +45,7 @@ td
         const queryString = window.location.search
         const urlParams = new URLSearchParams(queryString);
 
-        /*if( window.location.hash.length === 0 )
+        if( window.location.hash.length === 0 )
         {
             // no fragment - nothing to do
             console.log( "No fragment nothing to do" )
@@ -56,14 +56,15 @@ td
             const element = document.getElementById( hash );
             if( element )
             {
-                element.scrollIntoView();
+                element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
                 console.log( "Scrolled to element: " + hash )
             }
             else
             {
                 console.log( "Could not locate element: " + hash )
             }
-        }*/
+        }
+
         if( urlParams.has( "report" ) )
         {
             currentReportType = urlParams.get( "report" )
@@ -98,7 +99,6 @@ td
         console.log( "Report Type is: " + currentReportType )
     };
 
-    // your handler
     function navigateTo( path, params, fragment ) 
     {
         if( params )

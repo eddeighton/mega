@@ -46,6 +46,7 @@ namespace FinalStage
 {
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
+#include "compiler/interface.hpp"
 #include "compiler/concrete.hpp"
 } // namespace FinalStage
 
@@ -60,12 +61,12 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
     using namespace mega::reports;
 
     std::string strType;
-    Colour colour = Colour::lightblue;
+    Colour      colour = Colour::lightblue;
     {
         if( auto pAND = db_cast< Automata::And >( pVertex ) )
         {
             strType = "AND";
-            colour = Colour::lightgreen;
+            colour  = Colour::lightgreen;
         }
         else if( auto pOR = db_cast< Automata::Or >( pVertex ) )
         {
@@ -77,12 +78,16 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
         }
     }
 
-    Graph::Node node{ { { strType, Concrete::getIdentifier( pVertex->get_context() ) },
-                        { "Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() },
-                        { "Relative Domain: "s, std::to_string( pVertex->get_relative_domain() ) },
-                        { "Total Domain: "s, std::to_string( pVertex->get_context()->get_total_size() ) },
-                        
-                        }, colour };
+    Graph::Node node{ {
+                          { strType, Concrete::getIdentifier( pVertex->get_context() ) },
+                          { "Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() },
+                          { "Relative Domain: "s, std::to_string( pVertex->get_relative_domain() ) },
+                          { "Total Domain: "s, std::to_string( pVertex->get_context()->get_total_size() ) },
+
+                      },
+                      colour,
+                      std::nullopt,
+                      pVertex->get_context()->get_concrete_id() };
 
     const std::size_t szNodeIndex = graph.m_nodes.size();
 
@@ -116,7 +121,7 @@ mega::reports::Container AndOrTreeReporter::generate( const mega::reports::URL& 
         {
             Graph graph;
             graph.m_rankDirection = Graph::RankDirection::TB;
-            
+
             auto                       pRoot = pObject->get_automata_root();
             std::vector< std::size_t > nodes;
             recurse( graph, pRoot, nodes );
@@ -127,7 +132,7 @@ mega::reports::Container AndOrTreeReporter::generate( const mega::reports::URL& 
 
             sourceBranch.m_elements.push_back( graph );
         }
-        
+
         branch.m_elements.push_back( sourceBranch );
     }
 

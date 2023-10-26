@@ -47,6 +47,7 @@ namespace FinalStage
 {
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
+#include "compiler/interface.hpp"
 #include "compiler/concrete.hpp"
 } // namespace FinalStage
 
@@ -119,7 +120,7 @@ reports::Graph::Node::ID EnumReporter::recurse( mega::reports::Graph& graph, Fin
         { "Next Switch Index"s, std::to_string( pEnum->get_next_switch_index() ) }
 
         },
-        colour };
+        colour, std::nullopt, pVertex->get_context()->get_concrete_id() };
     // clang-format on
 
     if( auto pTest = db_cast< Automata::Test >( pEnum ) )
@@ -133,9 +134,9 @@ reports::Graph::Node::ID EnumReporter::recurse( mega::reports::Graph& graph, Fin
     // general stuff
     node.m_rows.push_back( { strEnumType, Concrete::getIdentifier( pVertex->get_context() ) } );
     node.m_rows.push_back( { "Vertex Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() } );
-    node.m_rows.push_back( { "Vertex Interface TypeID: "s, pVertex->get_context()->get_interface()->get_interface_id() } );
+    node.m_rows.push_back(
+        { "Vertex Interface TypeID: "s, pVertex->get_context()->get_interface()->get_interface_id() } );
     node.m_rows.push_back( { "Sub Type Instance"s, pEnum->get_sub_type_instance() } );
-
 
     edges.siblingEdges.insert( { pEnum->get_switch_index(), pEnum->get_next_switch_index() } );
 
@@ -235,7 +236,7 @@ mega::reports::Container EnumReporter::generate( const mega::reports::URL& url )
 
             // create a final state node - ensuring its invisible edges are added last
             {
-                Graph::Node       node{ { { "Final State"s, std::to_string( pObject->get_total_switch_index() ) } } };
+                Graph::Node node{ { { "Final State"s, std::to_string( pObject->get_total_switch_index() ) } } };
                 const Graph::Node::ID szNodeIndex = graph.m_nodes.size();
                 graph.m_nodes.push_back( node );
 

@@ -56,10 +56,11 @@ class InterfaceReporter
 {
     void addInheritance( std::optional< FinalStage::Interface::InheritanceTrait* > inheritance,
                          reports::Branch&                                          branch );
-    void addProperties( reports::Branch& typeIDs, reports::Branch& parentBranch,
+    void addProperties( reports::Branch& typeIDs, reports::Branch& parentBranch, reports::Branch& concreteTypeIDs,
                         const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions );
 
-    void recurse( reports::Branch& typeIDs, reports::Branch& parentBranch, FinalStage::Interface::IContext* pContext );
+    void recurse( reports::Branch& typeIDs, reports::Branch& parentBranch, reports::Branch& concreteTypeIDs,
+                  FinalStage::Interface::IContext* pContext );
 
 public:
     CompilationReportArgs            m_args;

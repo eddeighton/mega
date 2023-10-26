@@ -47,4 +47,37 @@ namespace Concrete
             THROW_RTE( "Unknown vertex type" );
         }
     }
+
+    static mega::U64 getLocalDomainSize( Concrete::Context* pContext )
+    {
+        if( auto pNamespace = db_cast< Concrete::Namespace >( pContext ) )
+        {
+            return 1;
+        }
+        else if( auto pState = db_cast< Concrete::State >( pContext ) )
+        {
+            return getSizeTraitSize( pState->get_interface_state() );
+        }
+        else if( auto pEvent = db_cast< Concrete::Event >( pContext ) )
+        {
+            return getSizeTraitSize( pEvent->get_interface_event() );
+        }
+        else if( auto pInterupt = db_cast< Concrete::Interupt >( pContext ) )
+        {
+            return 1;
+        }
+        else if( auto pFunction = db_cast< Concrete::Function >( pContext ) )
+        {
+            return 1;
+        }
+        else if( auto pObject = db_cast< Concrete::Object >( pContext ) )
+        {
+            return 1;
+        }
+        else
+        {
+            THROW_RTE( "Unknown context type" );
+        }
+    }
+
 }

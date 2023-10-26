@@ -43,6 +43,7 @@
 
 namespace FinalStage
 {
+#include "compiler/interface.hpp"
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 #include "compiler/concrete.hpp"
@@ -51,7 +52,20 @@ namespace FinalStage
 namespace mega::reporters
 {
 
+template < typename T >
+reports::ValueVector fromConcrete( std::vector< T* > concrete )
+{
+    using namespace std::string_literals;
+    reports::ValueVector result{ { "Concrete: "s } };
+    for( auto pContext : concrete )
+    {
+        result.push_back( pContext->get_concrete_id() );
+    }
+    return result;
+}
+
 void InterfaceReporter::addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
+                                       reports::Branch&                                             concreteTypeIDs,
                                        const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
 {
     using namespace FinalStage;
@@ -61,12 +75,14 @@ void InterfaceReporter::addProperties( mega::reports::Branch& typeIDs, mega::rep
 
     if( !dimensions.empty() )
     {
+        Table tableInterfaceTypeIDs{ { "Data"s } };
         Table table{ { "Dimension"s, "Identifier"s, "Canon"s } };
-        Table table2{ { "Data"s } };
+        Table tableConcreteTypeIDs{ { "Data"s } };
 
         for( DimensionTrait* pDimension : dimensions )
         {
-            table2.m_rows.push_back( { Line{ pDimension->get_interface_id() } } );
+            tableInterfaceTypeIDs.m_rows.push_back( { Line{ pDimension->get_interface_id() } } );
+            tableConcreteTypeIDs.m_rows.push_back( { Multiline{ fromConcrete( pDimension->get_concrete() ) } } );
 
             if( auto pUser = db_cast< UserDimensionTrait >( pDimension ) )
             {
@@ -83,8 +99,9 @@ void InterfaceReporter::addProperties( mega::reports::Branch& typeIDs, mega::rep
                 THROW_RTE( "Unknown dimension trait type" );
             }
         }
-        typeIDs.m_elements.push_back( std::move( table2 ) );
+        typeIDs.m_elements.push_back( std::move( tableInterfaceTypeIDs ) );
         parentBranch.m_elements.emplace_back( std::move( table ) );
+        concreteTypeIDs.m_elements.push_back( std::move( tableConcreteTypeIDs ) );
     }
 }
 
@@ -114,56 +131,67 @@ void InterfaceReporter::addInheritance( std::optional< FinalStage::Interface::In
     }
 }
 
-void InterfaceReporter::recurse( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
-                                 FinalStage::Interface::IContext* pContext )
+void InterfaceReporter::recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch,
+                                 reports::Branch& concreteTypeIDs, FinalStage::Interface::IContext* pContext )
 {
     using namespace FinalStage;
     using namespace FinalStage::Interface;
     using namespace std::string_literals;
-    using namespace mega::reports;
+    using namespace reports;
 
     Branch branch;
     branch.m_bookmark = pContext->get_interface_id();
 
-    typeIDs.m_elements.push_back( Line{ pContext->get_interface_id() } );
+    interfaceTypeIDs.m_elements.push_back( Line{ pContext->get_interface_id() } );
+    concreteTypeIDs.m_elements.push_back( Multiline{ fromConcrete( pContext->get_concrete() ) } );
 
     if( auto pNamespace = db_cast< Namespace >( pContext ) )
     {
         branch.m_label = { { "Namespace "s, Interface::getIdentifier( pContext ) } };
-        addProperties( typeIDs, branch, pNamespace->get_dimension_traits() );
+        addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pNamespace->get_dimension_traits() );
     }
     else if( auto pAbstract = db_cast< Abstract >( pContext ) )
     {
-        branch.m_label = { { "Interface "s, Interface::getIdentifier( pContext ) } };
+        branch.m_label
+            = { { "Interface "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
         addInheritance( pAbstract->get_inheritance_trait(), branch );
+
+        addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pAbstract->get_dimension_traits() );
+
+        // pAbstract->get_concrete()
+        // pAbstract->get_link_traits()
     }
     else if( auto pAction = db_cast< Action >( pContext ) )
     {
-        branch.m_label = { { "Action "s, Interface::getIdentifier( pContext ) } };
-        addProperties( typeIDs, branch, pAction->get_dimension_traits() );
+        branch.m_label
+            = { { "Action "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
+        addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pAction->get_dimension_traits() );
         addInheritance( pAction->get_inheritance_trait(), branch );
 
         // addTransition( pAction->get_transition_trait(), node );
     }
     else if( auto pComponent = db_cast< Component >( pContext ) )
     {
-        branch.m_label = { { "Component "s, Interface::getIdentifier( pContext ) } };
-        addProperties( typeIDs, branch, pComponent->get_dimension_traits() );
+        branch.m_label
+            = { { "Component "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
+        addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pComponent->get_dimension_traits() );
         addInheritance( pComponent->get_inheritance_trait(), branch );
         // addTransition( pComponent->get_transition_trait(), node );
     }
     else if( auto pState = db_cast< State >( pContext ) )
     {
-        branch.m_label = { { "State "s, Interface::getIdentifier( pContext ) } };
-        addProperties( typeIDs, branch, pState->get_dimension_traits() );
+        branch.m_label
+            = { { "State "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
+        addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pState->get_dimension_traits() );
         addInheritance( pState->get_inheritance_trait(), branch );
 
         // addTransition( pState->get_transition_trait(), node );
     }
     else if( auto pEvent = db_cast< Event >( pContext ) )
     {
-        branch.m_label = { { "Event "s, Interface::getIdentifier( pContext ) } };
-        addProperties( typeIDs, branch, pEvent->get_dimension_traits() );
+        branch.m_label
+            = { { "Event "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
+        addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pEvent->get_dimension_traits() );
         addInheritance( pEvent->get_inheritance_trait(), branch );
     }
     else if( auto pInterupt = db_cast< Interupt >( pContext ) )
@@ -195,8 +223,9 @@ void InterfaceReporter::recurse( mega::reports::Branch& typeIDs, mega::reports::
     }
     else if( auto pObject = db_cast< Object >( pContext ) )
     {
-        branch.m_label = { { "Object "s, Interface::getIdentifier( pContext ) } };
-        addProperties( typeIDs, branch, pObject->get_dimension_traits() );
+        branch.m_label
+            = { { "Object "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
+        addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pObject->get_dimension_traits() );
         addInheritance( pObject->get_inheritance_trait(), branch );
     }
     else
@@ -206,7 +235,7 @@ void InterfaceReporter::recurse( mega::reports::Branch& typeIDs, mega::reports::
 
     for( Interface::IContext* pChildContext : pContext->get_children() )
     {
-        recurse( typeIDs, branch, pChildContext );
+        recurse( interfaceTypeIDs, branch, concreteTypeIDs, pChildContext );
     }
 
     parentBranch.m_elements.emplace_back( std::move( branch ) );
@@ -218,22 +247,23 @@ mega::reports::Container InterfaceReporter::generate( const mega::reports::URL& 
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    Table root{ { "TypeID"s, ID } };
+    Table root{ { "Interface TypeID"s, ID, "Concrete TypeIDs"s } };
 
     for( const mega::io::megaFilePath& sourceFilePath : m_args.manifest.getMegaSourceFiles() )
     {
         Database database( m_args.environment, sourceFilePath );
 
-        Branch typeIDs( { { sourceFilePath.path().string() } } );
-        Branch fileBranch( { { sourceFilePath.extension().string() } } );
+        Branch interfaceTypeIDs( { { sourceFilePath.path() } } );
+        Branch fileBranch( { { sourceFilePath.path() } } );
+        Branch concreteTypeIDs( { { sourceFilePath.path() } } );
         for( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
         {
             for( Interface::IContext* pContext : pRoot->get_children() )
             {
-                recurse( typeIDs, fileBranch, pContext );
+                recurse( interfaceTypeIDs, fileBranch, concreteTypeIDs, pContext );
             }
         }
-        root.m_rows.push_back( { typeIDs, fileBranch } );
+        root.m_rows.push_back( { interfaceTypeIDs, fileBranch, concreteTypeIDs } );
     }
 
     return root;
