@@ -666,7 +666,7 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
     const CodeGenerator::LLVMCompiler& compiler
         = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
 
-    const OperatorID operatorID = { target, fType };
+    const OperatorID operatorID = { static_cast< OperatorID::Type >( fType ), target };
 
     JITCompiler::Module::Ptr pModule;
     {
@@ -731,5 +731,7 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
         }
         break;
     }
+    static_assert( static_cast< U64 >( mega::OperatorID::HIGHEST_OPERATOR_TYPE ) == operators::TOTAL_FUNCTION_TYPES,
+                   "Missing operator type" );
 }
 } // namespace mega::runtime

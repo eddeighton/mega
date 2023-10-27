@@ -73,6 +73,8 @@ private:
     static void recurse( IContext* pContext, nlohmann::json& data, CleverUtility::IDList& namespaces,
                          CleverUtility::IDList& types )
     {
+        using namespace std::string_literals;
+
         if( auto pNamespace = db_cast< Namespace >( pContext ) )
         {
             /*if ( pNamespace->get_is_global() )
@@ -104,18 +106,16 @@ private:
         {
             CleverUtility c( types, pState->get_identifier() );
 
-            if( db_cast< Interface::Action >( pState ) )
+            if( auto pAction = db_cast< Interface::Action >( pState ) )
             {
-                std::ostringstream osBody;
+                std::optional< Parser::Body* > bodyOpt = pAction->get_body_opt();
+                std::ostringstream             osBody;
                 {
-                    for( auto pDef : pState->get_state_defs() )
+                    if( bodyOpt.has_value() )
                     {
-                        if( !pDef->get_body().empty() )
-                        {
-                            osBody << pDef->get_body();
-                            break;
-                        }
+                        osBody << bodyOpt.value()->get_text();
                     }
+
                     osBody << "\nco_return mega::done();";
                 }
 
@@ -123,6 +123,8 @@ private:
 
                     { "return_type", "mega::ActionCoroutine" },
                     { "body", osBody.str() },
+                    { "line", 0 },
+                    { "file", "" },
                     { "hash", common::Hash{ osBody.str() }.toHexString() },
                     { "typeID", pState->get_interface_id().getSymbolID() },
                     { "has_namespaces", !namespaces.empty() },
@@ -133,6 +135,12 @@ private:
                     { "requires_extern", true }
 
                 } );
+
+                if( bodyOpt.has_value() )
+                {
+                    operation[ "line" ] = bodyOpt.value()->get_line_number();
+                    operation[ "file" ] = bodyOpt.value()->get_file();
+                }
 
                 data[ "operations" ].push_back( operation );
             }
@@ -161,27 +169,27 @@ private:
                 }
             }
 
+            std::optional< Parser::Body* > bodyOpt = pInterupt->get_body_opt();
+
             std::string strBody;
             {
-                for( auto pDef : pInterupt->get_interupt_defs() )
+                if( bodyOpt.has_value() )
                 {
-                    if( !pDef->get_body().empty() )
-                    {
-                        strBody = pDef->get_body();
-                        break;
-                    }
+                    strBody = bodyOpt.value()->get_text();
                 }
-            }
-
-            if( strBody.empty() )
-            {
-                // auto generate interupt handler body...
+                else
+                {
+                    // auto generate interupt handler body...
+                    strBody = "// TODO generate interupt handler...";
+                }
             }
 
             nlohmann::json operation( {
 
                 { "return_type", "void" },
                 { "body", strBody },
+                { "line", 0 },
+                { "file", ""s },
                 { "hash", common::Hash{ strBody }.toHexString() },
                 { "typeID", pInterupt->get_interface_id().getSymbolID() },
                 { "has_namespaces", !namespaces.empty() },
@@ -192,6 +200,13 @@ private:
                 { "requires_extern", false }
 
             } );
+
+            if( bodyOpt.has_value() )
+            {
+                operation[ "line" ] = bodyOpt.value()->get_line_number();
+                operation[ "file" ] = bodyOpt.value()->get_file();
+            }
+
             /*{
                 int iParamCounter = 1;
                 for( const std::string& strParamType : pInterupt->get_arguments_trait()->get_canonical_types() )
@@ -209,26 +224,16 @@ private:
         {
             CleverUtility c( types, pFunction->get_identifier() );
 
-            std::string strBody;
-            {
-                for( auto pDef : pFunction->get_function_defs() )
-                {
-                    if( !pDef->get_body().empty() )
-                    {
-                        strBody = pDef->get_body();
-                        break;
-                    }
-                }
-            }
-
             std::ostringstream osArgs;
             osArgs << pFunction->get_arguments_trait()->get_args();
 
             nlohmann::json operation( {
 
                 { "return_type", pFunction->get_return_type_trait()->get_str() },
-                { "body", strBody },
-                { "hash", common::Hash{ strBody }.toHexString() },
+                { "body", pFunction->get_body()->get_text() },
+                { "line", pFunction->get_body()->get_line_number() },
+                { "file", pFunction->get_body()->get_file() },
+                { "hash", common::Hash{ pFunction->get_body()->get_text() }.toHexString() },
                 { "typeID", pFunction->get_interface_id().getSymbolID() },
                 { "has_namespaces", !namespaces.empty() },
                 { "namespaces", namespaces },

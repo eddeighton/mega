@@ -33,6 +33,7 @@
 #include "environment/jit_database.hpp"
 #include "database/OperationsStage.hxx"
 
+#include "mega/values/compilation/operator_id.hpp"
 #include "mega/values/service/project.hpp"
 #include "mega/values/service/status.hpp"
 #include "service/protocol/common/jit_base.hpp"
@@ -115,7 +116,6 @@ private:
 
     Program::Ptr m_pProgram;
 
-    using OperatorID   = std::pair< TypeID, int >;
     using OperatorsMap = std::map< OperatorID, JITCompiler::Module::Ptr >;
     OperatorsMap m_operators;
 };

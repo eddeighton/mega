@@ -58,7 +58,7 @@
 
 namespace OperationsStage
 {
-    #include "compiler/interface_printer.hpp"
+#include "compiler/interface_printer.hpp"
 }
 
 namespace clang
@@ -182,8 +182,9 @@ public:
 
         DeclLocType declLocType = locateInterfaceContext( pTargetDimension->get_parent() );
 
-        DeclLocType dimensionResult = getNestedDeclContext(
-            pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, Interface::getIdentifier( pTargetDimension ) );
+        DeclLocType dimensionResult
+            = getNestedDeclContext( pASTContext, pSema, declLocType.pDeclContext, declLocType.loc,
+                                    Interface::getIdentifier( pTargetDimension ) );
         if( dimensionResult.pDeclContext )
         {
             clang::QualType type
@@ -615,18 +616,10 @@ public:
         using namespace OperationsStage;
         std::map< mega::OperatorID, Operations::Operator* > operators;
 
-        using namespace std::string_literals;
-        static const std::array< std::pair< mega::Operator, std::string >, mega::HIGHEST_OPERATOR_TYPE > operatorNames
-            = { std::pair< mega::Operator, std::string >{ mega::op_new, "mega_new"s },
-                std::pair< mega::Operator, std::string >{ mega::op_delete, "mega_delete"s },
-                std::pair< mega::Operator, std::string >{ mega::op_cast, "mega_cast"s },
-                std::pair< mega::Operator, std::string >{ mega::op_active, "mega_active"s },
-                std::pair< mega::Operator, std::string >{ mega::op_enabled, "mega_enabled"s } };
-
         using namespace clang;
         using namespace clang::ast_matchers;
 
-        for( const auto& [ operatorType, strOpName ] : operatorNames )
+        for( const auto& [ operatorType, strOpName ] : mega::OperatorID::names )
         {
             for( auto de : pASTContext->getTranslationUnitDecl()->noload_decls() )
             {
@@ -693,35 +686,42 @@ public:
                                                     Operations::Operator* pOperator = nullptr;
                                                     switch( operatorType )
                                                     {
-                                                        case mega::op_new:
+                                                        case mega::OperatorID::op_new:
                                                         {
                                                             pOperator = m_database.construct< Operations::New >(
                                                                 Operations::New::Args{
                                                                     Operations::Operator::Args{ operatorID } } );
                                                         }
                                                         break;
-                                                        case mega::op_delete:
+                                                        case mega::OperatorID::op_remote_new:
+                                                        {
+                                                            pOperator = m_database.construct< Operations::RemoteNew >(
+                                                                Operations::RemoteNew::Args{
+                                                                    Operations::Operator::Args{ operatorID } } );
+                                                        }
+                                                        break;
+                                                        case mega::OperatorID::op_delete:
                                                         {
                                                             pOperator = m_database.construct< Operations::Delete >(
                                                                 Operations::Delete::Args{
                                                                     Operations::Operator::Args{ operatorID } } );
                                                         }
                                                         break;
-                                                        case mega::op_cast:
+                                                        case mega::OperatorID::op_cast:
                                                         {
                                                             pOperator = m_database.construct< Operations::Cast >(
                                                                 Operations::Cast::Args{
                                                                     Operations::Operator::Args{ operatorID } } );
                                                         }
                                                         break;
-                                                        case mega::op_active:
+                                                        case mega::OperatorID::op_active:
                                                         {
                                                             pOperator = m_database.construct< Operations::Active >(
                                                                 Operations::Active::Args{
                                                                     Operations::Operator::Args{ operatorID } } );
                                                         }
                                                         break;
-                                                        case mega::op_enabled:
+                                                        case mega::OperatorID::op_enabled:
                                                         {
                                                             pOperator = m_database.construct< Operations::Enabled >(
                                                                 Operations::Enabled::Args{
@@ -729,7 +729,8 @@ public:
                                                         }
                                                         break;
                                                         default:
-                                                        case mega::HIGHEST_OPERATOR_TYPE:
+                                                        case mega::OperatorID::HIGHEST_OPERATOR_TYPE:
+                                                            THROW_RTE( "Unknown operator type" );
                                                             break;
                                                     }
                                                     VERIFY_RTE( pOperator );
@@ -780,6 +781,8 @@ public:
                 }
 
                 auto operators = detectOperatorInstantiations();
+
+                
 
                 m_database.construct< Operations::Invocations >(
                     Operations::Invocations::Args{ m_invocationsMap, operators } );

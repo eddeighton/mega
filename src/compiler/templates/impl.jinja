@@ -192,12 +192,18 @@ static ResultType invoke_impl( Context& context, Args... args )
     return __invoke_impl< ResultType, Context, TypePath, Operation >()( context, args... );
 }
 
-
 template< typename TObject >
 static TObject mega_new()
 {
     static thread_local mega::runtime::operators::New function( g_unit_name, TObject::ID );
     return function();
+}
+
+template< typename TObject >
+static TObject mega_remote_new( mega::MPO mpo )
+{
+    static thread_local mega::runtime::operators::RemoteNew function( g_unit_name, TObject::ID );
+    return function( mpo );
 }
 
 template< typename TObject >

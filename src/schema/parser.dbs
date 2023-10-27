@@ -160,6 +160,13 @@ namespace Parser
         value< std::string > str;
     }
 
+    object Body -> ParserStage::Body
+    {
+        value< std::string >    text;
+        value< std::string >    file;
+        value< mega::U64 >      line_number;
+    }
+
     object ContextDef -> ParserStage::AST
     {
         ref< ScopedIdentifier > id;
@@ -169,7 +176,7 @@ namespace Parser
         array< ref< Include > > includes;
         array< ref< Dependency > > dependencies;
         array< ref< Part > > parts;
-        value< std::string > body -> ParserStage::Body;
+        opt< ref< Body > > body;
     }
 
     object NamespaceDef : ContextDef -> ParserStage::AST

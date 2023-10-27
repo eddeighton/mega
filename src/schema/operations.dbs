@@ -125,6 +125,10 @@ namespace Operations
     {
     }
 
+    object RemoteNew : Operator -> OperationsStage::Operations
+    {
+    }
+
     object Delete : Operator -> OperationsStage::Operations
     {
     }

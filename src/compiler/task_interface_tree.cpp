@@ -453,7 +453,7 @@ public:
                     collectDimensionTraits( database, pNamespace, pDef, dimensions );
                 }
 
-                VERIFY_PARSER( pDef->get_body().empty(), "Namespace has body", pDef->get_id() );
+                VERIFY_PARSER( !pDef->get_body().has_value(), "Namespace has body", pDef->get_id() );
             }
         }
 
@@ -496,6 +496,8 @@ public:
         std::vector< InterfaceStage::Interface::PartTrait* >      parts;
         // std::vector< Interface::RequirementTrait* >               requirements;
 
+        Parser::Body* pBody = nullptr;
+
         for( Parser::StateDef* pDef : pState->get_state_defs() )
         {
             collectDimensionTraits( database, pState, pDef, dimensions );
@@ -506,17 +508,10 @@ public:
             collectPartTraits( database, pState, pDef, parts );
             // collectRequirements( database, pState, pDef, requirements );
 
-            // ensure only Action has body
-            if( db_cast< Interface::Component >( pState ) )
+            if( pDef->get_body().has_value() )
             {
-                VERIFY_PARSER( pDef->get_body().empty(), "Component has body", pDef->get_id() );
-            }
-            else if( db_cast< Interface::Action >( pState ) )
-            {
-            }
-            else
-            {
-                VERIFY_PARSER( pDef->get_body().empty(), "State has body", pDef->get_id() );
+                VERIFY_PARSER( pBody == nullptr, "State has duplicate bodies", pDef->get_id() );
+                pBody = pDef->get_body().value();
             }
         }
 
@@ -526,6 +521,21 @@ public:
         pState->set_size_trait( size );
         pState->set_transition_trait( transition );
         pState->set_part_traits( parts );
+
+        // ensure only Action has body
+        if( db_cast< Interface::Component >( pState ) )
+        {
+            VERIFY_PARSER( pBody == nullptr, "Component has body", pState->get_state_defs().front()->get_id() );
+        }
+        else if( auto pAction = db_cast< Interface::Action >( pState ) )
+        {
+            pAction->set_body_opt( pBody ? std::optional< Parser::Body* >( pBody ) : std::optional< Parser::Body* >{} );
+        }
+        else
+        {
+            VERIFY_PARSER( pBody == nullptr, "State has body", pState->get_state_defs().front()->get_id() );
+        }
+
         // pState->set_requirement_traits( requirements );
     }
     void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent )
@@ -553,8 +563,15 @@ public:
         std::optional< Interface::TransitionTypeTrait* > transition;
 
         mega::TypeName::Vector args;
+        Parser::Body*          pBody = nullptr;
         for( Parser::InteruptDef* pDef : pInterupt->get_interupt_defs() )
         {
+            if( pDef->get_body().has_value() )
+            {
+                VERIFY_PARSER( pBody == nullptr, "Interupt has duplicate bodies", pDef->get_id() );
+                pBody = pDef->get_body().value();
+            }
+
             Parser::ArgumentList* pArguments = pDef->get_argumentList();
             {
                 if( !pEventsTrait )
@@ -575,6 +592,7 @@ public:
 
         pInterupt->set_events_trait( pEventsTrait );
         pInterupt->set_transition_trait( transition );
+        pInterupt->set_body_opt( pBody ? std::optional< Parser::Body* >( pBody ) : std::optional< Parser::Body* >{} );
     }
     void onFunction( InterfaceStage::Database& database, InterfaceStage::Interface::Function* pFunction )
     {
@@ -585,9 +603,16 @@ public:
 
         mega::TypeName::Vector args;
         std::string            strReturnType;
+        Parser::Body*          pBody = nullptr;
         for( Parser::FunctionDef* pDef : pFunction->get_function_defs() )
         {
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
+
+            if( pDef->get_body().has_value() )
+            {
+                VERIFY_PARSER( pBody == nullptr, "Function has duplicate bodies", pDef->get_id() );
+                pBody = pDef->get_body().value();
+            }
 
             Parser::ArgumentList* pArguments = pDef->get_argumentList();
             {
@@ -623,9 +648,11 @@ public:
             pArgumentListTrait, "Function missing argument list", pFunction->get_function_defs().front()->get_id() );
         VERIFY_PARSER(
             pReturnTypeTrait, "Function missing return type", pFunction->get_function_defs().front()->get_id() );
+        VERIFY_PARSER( pBody, "Function missing body", pFunction->get_function_defs().front()->get_id() );
 
         pFunction->set_arguments_trait( pArgumentListTrait );
         pFunction->set_return_type_trait( pReturnTypeTrait );
+        pFunction->set_body( pBody );
     }
     void onObject( InterfaceStage::Database& database, InterfaceStage::Interface::Object* pObject )
     {
@@ -640,7 +667,8 @@ public:
             collectLinkTraits( database, pObject, pDef, links );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
-            VERIFY_PARSER( pDef->get_body().empty(), "Object has body: " << pObject->get_identifier(), pDef->get_id() );
+            VERIFY_PARSER(
+                !pDef->get_body().has_value(), "Object has body: " << pObject->get_identifier(), pDef->get_id() );
         }
 
         // add compiler generated elements

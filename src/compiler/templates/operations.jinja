@@ -8,6 +8,7 @@
 {{ operation.return_type }} {% for type in operation.types %}{{type}}::{% endfor %}operator()({{ operation.params_string }}) const
 {
 //_MEGAOPERATIONBEGIN{{ operation.typeID }}
+#line {{ operation.line }} "{{ operation.file }}"
     {{ operation.body }}
 //_MEGAOPERATIONEND{{ operation.typeID }}
 }

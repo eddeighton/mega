@@ -27,24 +27,26 @@
 #include <array>
 #include <string>
 
-namespace
+namespace mega
 {
-
-using OperatortringArray = std::array< std::string, mega::HIGHEST_OPERATOR_TYPE >;
-
-static const OperatortringArray g_pszOperatorStrings = {
-    std::string( "New" ),
-    std::string( "Delete" ),
-    std::string( "Cast" ),
-    std::string( "Active" ),
-    std::string( "Enabled" )
+// clang-format off
+const OperatorID::Array OperatorID::names =
+{
+    OperatorID::OperatorIDTypeName{ OperatorID::op_new,         std::string( "mega_new" ) },
+    OperatorID::OperatorIDTypeName{ OperatorID::op_remote_new,  std::string( "mega_remote_new" ) },
+    OperatorID::OperatorIDTypeName{ OperatorID::op_delete,      std::string( "mega_delete" ) },
+    OperatorID::OperatorIDTypeName{ OperatorID::op_cast,        std::string( "mega_cast" ) },
+    OperatorID::OperatorIDTypeName{ OperatorID::op_active,      std::string( "mega_active" ) },
+    OperatorID::OperatorIDTypeName{ OperatorID::op_enabled,     std::string( "mega_enabled" ) }
 };
+// clang-format om
 
 }
 
 std::ostream& operator<<( std::ostream& os, const mega::OperatorID& operatorID )
 {
-    return os << g_pszOperatorStrings[ operatorID.m_operator ] << '.' << operatorID.m_typeID;
+    using ::operator<<;
+    return os << mega::OperatorID::names[ operatorID.m_operator ].second << '.' << operatorID.m_typeID;
 }
 
 #endif //GUARD_2023_October_03_operator_io

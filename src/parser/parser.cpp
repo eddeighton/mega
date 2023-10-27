@@ -840,7 +840,7 @@ public:
                                std::vector< Include* >{},
                                std::vector< Dependency* >{},
                                std::vector< Part* >{},
-                               std::string{} );
+                               std::nullopt );
         return body;
     }
 
@@ -1030,8 +1030,6 @@ public:
                 MEGA_PARSER_ERROR( "Expected semicolon" );
             }
         }
-
-        
 
         return database.construct< ObjectDef >( ObjectDef::Args{ body, pSize, pInheritance } );
     }
@@ -1303,7 +1301,8 @@ public:
                     // capture body if allowed
                     if( !strBodyPart.empty() && bIsBodyDefinition )
                     {
-                        bodyArgs.body = strBodyPart;
+                        bodyArgs.body = database.construct< Body >( Body::Args{
+                            strBodyPart, sm.getFilename( startLoc ).str(), sm.getSpellingLineNumber( startLoc ) } );
                     }
                 }
             }

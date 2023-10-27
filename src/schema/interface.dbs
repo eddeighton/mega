@@ -182,6 +182,7 @@ namespace Interface
 
     object Action : State -> InterfaceStage::Tree
     {
+        late< opt< ref< Parser::Body > > >          body_opt;
     }
 
     object Component : State -> InterfaceStage::Tree
@@ -201,6 +202,7 @@ namespace Interface
         array< ref< Parser::InteruptDef > >         interupt_defs;
         late< ref< EventTypeTrait > >               events_trait;
         late< opt< ref< TransitionTypeTrait > > >   transition_trait;
+        late< opt< ref< Parser::Body > > >          body_opt;
     }
 
     object Requirement : Interupt -> InterfaceStage::Tree
@@ -213,6 +215,7 @@ namespace Interface
         array< ref< Parser::FunctionDef > >     function_defs;
         late< ref< ReturnTypeTrait > >          return_type_trait;
         late< ref< ArgumentListTrait > >        arguments_trait;
+        late< ref< Parser::Body > >             body;
     }
 
     object Object : IContext -> InterfaceStage::Tree
