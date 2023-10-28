@@ -408,7 +408,8 @@ public:
     }
 
     template < typename TParserType >
-    void collectTransitionTrait( InterfaceStage::Database& database, TParserType* pContextDef,
+    void collectTransitionTrait( InterfaceStage::Database&                     database,
+                                 InterfaceStage::Interface::InvocationContext* pContext, TParserType* pContextDef,
                                  std::optional< InterfaceStage::Interface::TransitionTypeTrait* >& transition )
     {
         using namespace InterfaceStage;
@@ -418,7 +419,7 @@ public:
         {
             VERIFY_PARSER( !transition.has_value(), "Duplicate transition specified", pContextDef->get_id() );
             transition = database.construct< Interface::TransitionTypeTrait >(
-                Interface::TransitionTypeTrait::Args{ pTransition } );
+                Interface::TransitionTypeTrait::Args{ pTransition, pContext } );
         }
     }
 
@@ -504,7 +505,7 @@ public:
             collectLinkTraits( database, pState, pDef, links );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
-            collectTransitionTrait( database, pDef, transition );
+            collectTransitionTrait( database, pState, pDef, transition );
             collectPartTraits( database, pState, pDef, parts );
             // collectRequirements( database, pState, pDef, requirements );
 
@@ -585,7 +586,7 @@ public:
                     VERIFY_PARSER( args == pArguments->get_args(), "Function arguments mismatch", pDef->get_id() );
                 }
             }
-            collectTransitionTrait( database, pDef, transition );
+            collectTransitionTrait( database, pInterupt, pDef, transition );
         }
 
         VERIFY_PARSER( pEventsTrait, "Interupt missing events list", pInterupt->get_interupt_defs().front()->get_id() );

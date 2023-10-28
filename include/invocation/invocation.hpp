@@ -58,6 +58,8 @@ OperationsStage::Operations::Invocation* compileInvocation( OperationsStage::Dat
                                                             const SymbolTables&        symbolTables,
                                                             const mega::InvocationID&  id );
 
+void compileSuccessors( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
+
 } // namespace mega::invocation
 
 #endif // INVOCATION_6_JUNE_2022

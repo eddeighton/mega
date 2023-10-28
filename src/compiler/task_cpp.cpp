@@ -19,9 +19,35 @@
 
 #include "base_task.hpp"
 
-#include "database/InheritanceAnalysisView.hxx"
-#include "database/OperationsStage.hxx"
+#include "database/AliasAnalysisRollout.hxx"
+#include "database/AutomataStage.hxx"
+#include "database/ComponentListing.hxx"
+#include "database/ComponentListingView.hxx"
+#include "database/ConcreteStage.hxx"
+#include "database/ConcreteTypeAnalysis.hxx"
+#include "database/ConcreteTypeAnalysisView.hxx"
+#include "database/ConcreteTypeRollout.hxx"
+#include "database/DependencyAnalysis.hxx"
+#include "database/DependencyAnalysisView.hxx"
 #include "database/FinalStage.hxx"
+#include "database/GlobalMemoryStageRollout.hxx"
+#include "database/HyperGraphAnalysis.hxx"
+#include "database/HyperGraphAnalysisRollout.hxx"
+#include "database/HyperGraphAnalysisView.hxx"
+#include "database/InheritanceAnalysis.hxx"
+#include "database/InheritanceAnalysisRollout.hxx"
+#include "database/InheritanceAnalysisView.hxx"
+#include "database/InterfaceAnalysisStage.hxx"
+#include "database/InterfaceStage.hxx"
+#include "database/MemoryStage.hxx"
+#include "database/MetaStage.hxx"
+#include "database/OperationsLocs.hxx"
+#include "database/OperationsStage.hxx"
+#include "database/ParserStage.hxx"
+#include "database/SymbolAnalysis.hxx"
+#include "database/SymbolAnalysisView.hxx"
+#include "database/SymbolRollout.hxx"
+#include "database/ValueSpaceStage.hxx"
 
 #include "compiler/clang_compilation.hpp"
 
@@ -58,6 +84,67 @@ namespace FinalStage
 
 namespace mega::compiler
 {
+
+#define CPP_DUMB_STAGE( Stage, File )                                                                           \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                                            \
+        const mega::io::CompilationFilePath compilationFile = m_environment.Stage##_##File( m_sourceFilePath ); \
+                                                                                                                \
+        const task::DeterminantHash determinant = { m_toolChain.toolChainHash };                                \
+                                                                                                                \
+        if( m_environment.restore( compilationFile, determinant ) ) {                                           \
+            m_environment.setBuildHashCode( compilationFile );                                                  \
+            cached( taskProgress );                                                                             \
+            return;                                                                                             \
+        }                                                                                                       \
+                                                                                                                \
+        using namespace Stage;                                                                                  \
+                                                                                                                \
+        Database database( m_environment, m_sourceFilePath );                                                   \
+                                                                                                                \
+        const task::FileHash fileHashCode = database.save_##File##_to_temp();                                   \
+        m_environment.setBuildHashCode( compilationFile, fileHashCode );                                        \
+        m_environment.temp_to_real( compilationFile );                                                          \
+        m_environment.stash( compilationFile, determinant ); )
+
+class Task_CPPStages : public BaseTask
+{
+    const mega::io::cppFilePath& m_sourceFilePath;
+
+public:
+    Task_CPPStages( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
+        : BaseTask( taskArguments )
+        , m_sourceFilePath( sourceFilePath )
+    {
+    }
+
+    virtual void run( mega::pipeline::Progress& taskProgress )
+    {
+        start( taskProgress, "Task_CPPStages", m_sourceFilePath.path(), m_sourceFilePath.path() );
+        CPP_DUMB_STAGE( ParserStage, AST );
+        CPP_DUMB_STAGE( ParserStage, Body );
+        CPP_DUMB_STAGE( InterfaceStage, Tree );
+        CPP_DUMB_STAGE( SymbolRollout, PerSourceSymbols );
+        CPP_DUMB_STAGE( MetaStage, MetaAnalysis );
+        CPP_DUMB_STAGE( InterfaceAnalysisStage, Clang );
+        CPP_DUMB_STAGE( ConcreteStage, Concrete );
+        CPP_DUMB_STAGE( InheritanceAnalysisRollout, PerSourceDerivations );
+        CPP_DUMB_STAGE( HyperGraphAnalysisRollout, PerSourceModel );
+        CPP_DUMB_STAGE( AliasAnalysisRollout, PerSourceModel );
+        CPP_DUMB_STAGE( ConcreteTypeRollout, PerSourceConcreteTable );
+        CPP_DUMB_STAGE( MemoryStage, MemoryLayout );
+        CPP_DUMB_STAGE( GlobalMemoryStageRollout, GlobalMemoryRollout );
+        CPP_DUMB_STAGE( AutomataStage, AutomataAnalysis );
+        CPP_DUMB_STAGE( OperationsStage, Operations );
+        CPP_DUMB_STAGE( OperationsLocs, Locations );
+        CPP_DUMB_STAGE( ValueSpaceStage, ValueSpace );
+        succeeded( taskProgress );
+    }
+};
+
+BaseTask::Ptr create_Task_CPPStages( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_CPPStages >( taskArguments, sourceFilePath );
+}
 
 class Task_CPPInterfaceGeneration : public BaseTask
 {

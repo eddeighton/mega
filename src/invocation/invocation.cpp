@@ -28,8 +28,6 @@
 #include "mega/common_strings.hpp"
 #include "mega/make_unique_without_reorder.hpp"
 
-// #include "mega/mangle/traits.hpp"
-
 #include "common/unreachable.hpp"
 
 #include <optional>
@@ -106,111 +104,6 @@ struct InvocationPolicy
     bool   isLinkDimension( GraphVertex* pVertex ) const { return db_cast< Concrete::Dimensions::Link >( pVertex ); }
     AndPtr isAndStep( StepPtr pStep ) const { return db_cast< OperationsStage::Derivation::And >( pStep ); }
     void   backtrack( EdgePtr pEdge ) const { pEdge->set_backtracked( true ); }
-
-    // the link context MAY contain MULTIPLE links.  Each individual link is either deriving or not.
-    // The Link context is considered to be deriving if ANY of its links are deriving
-    /*GraphVertexVector enumerateLinkContexts( GraphVertex* pVertex ) const
-    {
-        Concrete::Context* pContext = nullptr;
-        {
-            if( auto pVertexContext = db_cast< Concrete::Context >( pVertex ) )
-            {
-                pContext = pVertexContext;
-            }
-            else if( auto pUserDim = db_cast< Concrete::Dimensions::User >( pVertex ) )
-            {
-                pContext = pUserDim->get_parent_context();
-            }
-            else if( auto pLinkDim = db_cast< Concrete::Dimensions::Link >( pVertex ) )
-            {
-                pContext = pLinkDim->get_parent_context();
-            }
-            else
-            {
-                THROW_RTE( "Unknown vertex type" );
-            }
-        }
-
-        VERIFY_RTE( pContext );
-        auto optionalObject = pContext->get_concrete_object();
-        VERIFY_RTE( optionalObject.has_value() );
-        GraphVertexVector result;
-        for( auto pLinkContext : optionalObject.value()->get_link_contexts() )
-        {
-            result.push_back( pLinkContext );
-        }
-        return result;
-    }
-
-    // enumerate actual polymorphic branches of a given link
-    GraphEdgeVector enumerateLink( GraphVertex* pLink ) const
-    {
-        GraphEdgeVector result;
-        for( auto pEdge : pLink->get_out_edges() )
-        {
-            switch( pEdge->get_type().get() )
-            {
-                case EdgeType::eMonoSingularMandatory:
-                case EdgeType::ePolySingularMandatory:
-                case EdgeType::eMonoNonSingularMandatory:
-                case EdgeType::ePolyNonSingularMandatory:
-                case EdgeType::eMonoSingularOptional:
-                case EdgeType::ePolySingularOptional:
-                case EdgeType::eMonoNonSingularOptional:
-                case EdgeType::ePolyNonSingularOptional:
-                case EdgeType::ePolyParent:
-                {
-                    result.push_back( pEdge );
-                }
-                break;
-
-                case EdgeType::eParent:
-                case EdgeType::eChildSingular:
-                case EdgeType::eChildNonSingular:
-                case EdgeType::eDim:
-                case EdgeType::eLink:
-                case EdgeType::TOTAL_EDGE_TYPES:
-                    break;
-            }
-        }
-        return result;
-    }
-    // enumerate the dimension links within the parent vertex
-    GraphEdgeVector enumerateLinks( GraphVertex* pParentVertex ) const
-    {
-        GraphEdgeVector result;
-
-        for( auto pEdge : pParentVertex->get_out_edges() )
-        {
-            switch( pEdge->get_type().get() )
-            {
-                case EdgeType::eLink:
-                {
-                    result.push_back( pEdge );
-                }
-                break;
-                case EdgeType::ePolyParent:
-
-                case EdgeType::eMonoSingularMandatory:
-                case EdgeType::ePolySingularMandatory:
-                case EdgeType::eMonoNonSingularMandatory:
-                case EdgeType::ePolyNonSingularMandatory:
-                case EdgeType::eMonoSingularOptional:
-                case EdgeType::ePolySingularOptional:
-                case EdgeType::eMonoNonSingularOptional:
-                case EdgeType::ePolyNonSingularOptional:
-
-                case EdgeType::eParent:
-                case EdgeType::eChildSingular:
-                case EdgeType::eChildNonSingular:
-                case EdgeType::eDim:
-                case EdgeType::TOTAL_EDGE_TYPES:
-                    break;
-            }
-        }
-
-        return result;
-    }*/
 
     OrPtrVector expandLink( OrPtr pOr ) const
     {

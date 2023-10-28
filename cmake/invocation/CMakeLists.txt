@@ -36,6 +36,7 @@ set( INVOCATION_HEADERS
 
 set( INVOCATION_SOURCE
     ${MEGA_SRC_DIR}/invocation/invocation.cpp
+    ${MEGA_SRC_DIR}/invocation/successors.cpp
 )
 
 add_library( invocation

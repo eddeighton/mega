@@ -97,12 +97,15 @@ namespace Interface
     object PartTrait : Parser::Part -> InterfaceStage::Tree
     {
         ref< IContext > parent;
-
     }
 
     object TransitionTypeTrait : Parser::Transition -> InterfaceStage::Tree
     {
-        array< ref< TypePathVariant > > tuple  -> InterfaceAnalysisStage::Clang;
+        ref< InvocationContext > parent_invocation_context;
+        
+        array< ref< TypePathVariant > > tuple -> InterfaceAnalysisStage::Clang;
+
+        array< ref< Derivation::Root > > derivation -> OperationsStage::Operations;
     }
 
     object EventTypeTrait : Parser::ArgumentList -> InterfaceStage::Tree

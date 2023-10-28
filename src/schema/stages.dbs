@@ -37,7 +37,9 @@ stage ComponentListingView
 
 stage ParserStage
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency ComponentListing;
 
     file AST;
@@ -49,7 +51,9 @@ stage ParserStage
 
 stage InterfaceStage
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency ParserStage;
 
     file Tree;
@@ -122,7 +126,9 @@ stage SymbolAnalysisView
 
 stage SymbolRollout
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency SymbolAnalysis;
 
     file PerSourceSymbols;
@@ -135,7 +141,9 @@ stage SymbolRollout
 
 stage MetaStage
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency SymbolRollout;
 
     file MetaAnalysis;
@@ -153,7 +161,9 @@ stage MetaStage
 
 stage InterfaceAnalysisStage
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency MetaStage;
 
     file Clang;
@@ -170,7 +180,9 @@ stage InterfaceAnalysisStage
 
 stage ConcreteStage
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency InterfaceAnalysisStage;
 
     file Concrete;
@@ -197,8 +209,6 @@ stage InheritanceAnalysis
 
 stage InheritanceAnalysisView
 {
-    // used by Task_CPPInterfaceGeneration - just because earliest
-
     source .manifest;
     dependency InheritanceAnalysis;
 
@@ -211,7 +221,9 @@ stage InheritanceAnalysisView
 
 stage InheritanceAnalysisRollout
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency InheritanceAnalysis;
 
     file PerSourceDerivations;
@@ -247,7 +259,9 @@ stage HyperGraphAnalysisView
 
 stage HyperGraphAnalysisRollout
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency HyperGraphAnalysis;
 
     file PerSourceModel;
@@ -285,7 +299,9 @@ stage AliasAnalysisView
 
 stage AliasAnalysisRollout
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency AliasAnalysis;
 
     file PerSourceModel;
@@ -320,7 +336,9 @@ stage ConcreteTypeAnalysisView
 
 stage ConcreteTypeRollout
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency ConcreteTypeAnalysis;
 
     file PerSourceConcreteTable;
@@ -332,7 +350,9 @@ stage ConcreteTypeRollout
 
 stage MemoryStage
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency ConcreteTypeRollout;
 
     file MemoryLayout;
@@ -354,7 +374,9 @@ stage GlobalMemoryStage
 
 stage GlobalMemoryStageRollout
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency GlobalMemoryStage;
 
     file GlobalMemoryRollout;
@@ -365,7 +387,9 @@ stage GlobalMemoryStageRollout
 
 stage AutomataStage
 {
+    source .manifest;
     source .mega;
+    source .cpp;
     dependency GlobalMemoryStageRollout;
 
     file AutomataAnalysis;
@@ -388,11 +412,15 @@ stage OperationsStage
     global accessor ref< Inheritance::Mapping >;
 
     persource accessor ref< Interface::Root >;
+    persource accessor ref< Interface::TransitionTypeTrait >;
+    persource accessor ref< Interface::EventTypeTrait >;
 }
 
 stage OperationsLocs
 {
+    source .manifest;
     source .mega;
+    source .cpp;
 
     dependency OperationsStage;
 
@@ -404,7 +432,9 @@ stage OperationsLocs
 
 stage ValueSpaceStage
 {
+    source .manifest;
     source .mega;
+    source .cpp;
 
     dependency OperationsLocs;
 

@@ -235,8 +235,6 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     }
     mega::io::Manifest manifest( environment, manifestFilePath );
 
-    TskDescVec interfaceTreeTasks;
-
     pipeline::Dependencies dependencies;
 
     using namespace ComponentListingView;
@@ -244,7 +242,28 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     std::vector< ComponentListingView::Components::Component* > components
         = database.template many< Components::Component >( environment.project_manifest() );
 
+    TskDescVec interfaceTreeTasks;
     {
+        // special case for python so that later stages work
+        {
+            const TskDesc pythonDumbTasks = encode( Task{ eTask_PythonStages, manifestFilePath } );
+            dependencies.add( pythonDumbTasks, TskDescVec{} );
+            interfaceTreeTasks.push_back( pythonDumbTasks );
+        }
+
+        for( ComponentListingView::Components::Component* pComponent : components )
+        {
+            if( pComponent->get_type().get() == mega::ComponentType::eLibrary )
+            {
+                for( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
+                {
+                    const TskDesc cppDumpTasks = encode( Task{ eTask_CPPStages, sourceFile } );
+                    dependencies.add( cppDumpTasks, TskDescVec{} );
+                    interfaceTreeTasks.push_back( cppDumpTasks );
+                }
+            }
+        }
+
         for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc parseAst      = encode( Task{ eTask_ParseAST, sourceFilePath } );
@@ -257,13 +276,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    const TskDesc pythonOperations   = encode( Task{ eTask_PythonOperations, manifestFilePath } );
     const TskDesc dependencyAnalysis = encode( Task{ eTask_DependencyAnalysis, manifestFilePath } );
     const TskDesc symbolAnalysis     = encode( Task{ eTask_SymbolAnalysis, manifestFilePath } );
 
-    dependencies.add( pythonOperations, interfaceTreeTasks );
     dependencies.add( dependencyAnalysis, interfaceTreeTasks );
-    dependencies.add( symbolAnalysis, TskDescVec{ pythonOperations, dependencyAnalysis } );
+    dependencies.add( symbolAnalysis, TskDescVec{ dependencyAnalysis } );
 
     TskDescVec symbolRolloutTasks;
     {

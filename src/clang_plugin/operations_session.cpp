@@ -782,7 +782,7 @@ public:
 
                 auto operators = detectOperatorInstantiations();
 
-                
+                mega::invocation::compileSuccessors( m_database, m_sourceFile );
 
                 m_database.construct< Operations::Invocations >(
                     Operations::Invocations::Args{ m_invocationsMap, operators } );

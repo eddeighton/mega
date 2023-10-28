@@ -30,6 +30,7 @@ set( CMAKE_CXX_STANDARD 20 )
 
 # add_link_options("-fuse-ld=gold;LINKER:--threads,--thread-count=12,--split-stack-adjust-size=1048510")
 
+set( CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE true )
 
 ######################################
 #win32 specific settings
