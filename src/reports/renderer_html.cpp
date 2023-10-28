@@ -435,6 +435,8 @@ void renderLine( Args& args, const Line& line, std::ostream& os )
                            { "elements", nlohmann::json::array() },
                            { "has_bookmark", false },
                            { "has_link", false },
+                           { "colour", line.m_colour.str() },
+                           { "background_colour", line.m_background_colour.str() },
                            { "bookmark", "" } } );
     addOptionalBookmark( args, line, data );
     if( addOptionalLink( args, line, data ) )
@@ -455,6 +457,8 @@ void renderMultiline( Args& args, const Multiline& multiline, std::ostream& os )
                            { "elements", nlohmann::json::array() },
                            { "has_bookmark", false },
                            { "has_link", false },
+                           { "colour", multiline.m_colour.str() },
+                           { "background_colour", multiline.m_background_colour.str() },
                            { "bookmark", "" } } );
     addOptionalBookmark( args, multiline, data );
     if( addOptionalLink( args, multiline, data ) )

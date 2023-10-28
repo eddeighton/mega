@@ -104,6 +104,18 @@ public:
     reports::Container               generate( const reports::URL& url );
 };
 
+class DerivationReporter
+{
+public:
+    void generateVertices( FinalStage::Derivation::Step* pStep, reports::Graph& graph );
+    void generateDerivationGraph( FinalStage::Derivation::Root* pRoot, reports::Graph& graph );
+
+public:
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
+};
+
 } // namespace mega::reporters
 
 #endif // REPORTERS_24_OCT_2023

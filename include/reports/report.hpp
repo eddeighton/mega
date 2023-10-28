@@ -64,6 +64,8 @@ public:
     Value                  m_element;
     std::optional< URL >   m_url;
     std::optional< Value > m_bookmark;
+    Colour                 m_colour = Colour::black;
+    Colour                 m_background_colour = Colour::white;
 };
 
 /***
@@ -84,6 +86,8 @@ public:
     ValueVector            m_elements;
     std::optional< URL >   m_url;
     std::optional< Value > m_bookmark;
+    Colour                 m_colour = Colour::black;
+    Colour                 m_background_colour = Colour::white;
 };
 
 /***
