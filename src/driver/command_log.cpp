@@ -38,11 +38,12 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 {
     boost::filesystem::path logFolderPath;
 
-    bool bShowLogRecords        = false;
-    bool bShowStructureRecords  = false;
-    bool bShowSchedulingRecords = false;
-    bool bShowMemoryRecords     = false;
-    bool bShowAll               = false;
+    bool bShowLogRecords       = false;
+    bool bShowStructureRecords = false;
+    bool bShowEvents           = false;
+    bool bShowTransitions      = false;
+    bool bShowMemoryRecords    = false;
+    bool bShowAll              = false;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Simulation Commands" );
@@ -51,11 +52,12 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         commandOptions.add_options()
             ( "folder",     po::value( &logFolderPath ),                "Log folder path. ( Default argumnet )" )
             
-            ( "msgs",       po::bool_switch( &bShowLogRecords )->default_value( true ),     "Show log message records." )
-            ( "structure",  po::bool_switch( &bShowStructureRecords ),                      "Show structure records." )
-            ( "scheduling", po::bool_switch( &bShowSchedulingRecords ),                     "Show scheduling records." )
-            ( "memory",     po::bool_switch( &bShowMemoryRecords ),                         "Show memory records." )
-            ( "all",        po::bool_switch( &bShowAll ),                                   "Show all records." )
+            ( "msgs",       po::bool_switch( &bShowLogRecords ),        "Show log message records." )
+            ( "structure",  po::bool_switch( &bShowStructureRecords ),  "Show structure records." )
+            ( "event",      po::bool_switch( &bShowEvents ),            "Show event records." )
+            ( "transition", po::bool_switch( &bShowTransitions ),       "Show transition records." )
+            ( "memory",     po::bool_switch( &bShowMemoryRecords ),     "Show memory records." )
+            ( "all",        po::bool_switch( &bShowAll ),               "Show all records." )
             ;
         // clang-format on
     }
@@ -69,13 +71,14 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
     if( bShowAll )
     {
-        bShowLogRecords        = true;
-        bShowStructureRecords  = true;
-        bShowSchedulingRecords = true;
-        bShowMemoryRecords     = true;
+        bShowLogRecords       = true;
+        bShowStructureRecords = true;
+        bShowEvents           = true;
+        bShowTransitions      = true;
+        bShowMemoryRecords    = true;
     }
     // if nothing then show log messages
-    else if( !bShowStructureRecords && !bShowSchedulingRecords && !bShowMemoryRecords )
+    else if( !bShowStructureRecords && !bShowEvents && !bShowTransitions && !bShowMemoryRecords )
     {
         bShowLogRecords = true;
     }
@@ -137,15 +140,27 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                     SPDLOG_INFO( os.str() );
                 }
             }
-            if( bShowSchedulingRecords )
+            if( bShowEvents )
             {
-                using namespace mega::log::Scheduling;
+                using namespace mega::log::Event;
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
-                    const Read&        schedulingRecord = *i;
+                    const Read&        eventRecord = *i;
                     std::ostringstream os;
-                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( schedulingRecord.getType() ) << ": "
-                       << schedulingRecord.getRef();
+                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( eventRecord.getType() ) << ": "
+                       << eventRecord.getRef();
+                    SPDLOG_INFO( os.str() );
+                }
+            }
+            if( bShowTransitions )
+            {
+                using namespace mega::log::Transition;
+                for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
+                {
+                    const Read&        transitionRecord = *i;
+                    std::ostringstream os;
+                    os << std::setw( 15 ) << std::setfill( ' ' ) << transitionRecord.getRef() << ": "
+                       << transitionRecord.getTransition();
                     SPDLOG_INFO( os.str() );
                 }
             }
@@ -163,8 +178,9 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                     int x = 0;
                     for( auto i = data.begin(), iEnd = data.end(); i != iEnd; ++i, ++x )
                     {
-                        if( x % 4 == 0 ) osMem << ' ';
-                        osMem << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<unsigned>( *i );
+                        if( x % 4 == 0 )
+                            osMem << ' ';
+                        osMem << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast< unsigned >( *i );
                     }
 
                     SPDLOG_INFO( osMem.str() );

@@ -124,6 +124,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
         m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
 
+        log::FileIterator< log::Event::Read >      m_iter_events      = m_pLog->begin< log::Event::Read >();
+        log::FileIterator< log::Transition::Read > m_iter_transitions = m_pLog->begin< log::Transition::Read >();
+        log::FileIterator< log::Structure::Read >  m_iter_structure   = m_pLog->begin< log::Structure::Read >();
+
         ActionFunctionCache actionFunctionCache;
 
         TimeStamp cycle     = getLog().getTimeStamp();
@@ -170,6 +174,41 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 break;
                 case SM::eRunCycle:
                 {
+                    // process all events
+                    {
+                        for( ; m_iter_events != m_pLog->end< log::Event::Read >(); ++m_iter_events )
+                        {
+                            const auto& event = *m_iter_events;
+
+                            switch( event.getType() )
+                            {
+                                case log::Event::eComplete:
+                                    SPDLOG_INFO( "Got completion event: {}", event.getRef() );
+                                    break;
+                                case log::Event::eStart:
+                                    SPDLOG_INFO( "Got start event: {}", event.getRef() );
+                                    break;
+                                case log::Event::eSignal:
+                                    SPDLOG_INFO( "Got signal event: {}", event.getRef() );
+                                    break;
+                                default:
+                                {
+                                    THROW_RTE( "Unknown event type" );
+                                }
+                            }
+                        }
+                    }
+
+                    // process all transitions
+                    {
+                        for( ; m_iter_transitions != m_pLog->end< log::Transition::Read >(); ++m_iter_transitions )
+                        {
+                            const auto& transition = *m_iter_transitions;
+                            //SPDLOG_INFO( "Got transition: {}", transition );
+                        }
+                    }
+
+                    // run all active actions
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
 
@@ -194,6 +233,22 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                     actionCoroutine.resume();
                                 }
                             }
+                        }
+                    }
+
+                    // process all structure records
+                    {
+                        for( ; m_iter_structure != m_pLog->end< log::Structure::Read >(); ++m_iter_structure )
+                        {
+                            const auto& structure = *m_iter_structure;
+
+                            SPDLOG_INFO( "Got structure: {} {} {}", structure.getSource(), structure.getTarget(), structure.getRelation() );
+
+                            // structure.getSource();
+                            // structure.getTarget();
+                            // structure.getRelation();
+
+                            
                         }
                     }
 
@@ -469,6 +524,7 @@ void Simulation::RootSimRun( const Project& project, const MPO& mpo, boost::asio
     m_pYieldContext = &yield_ctx;
 
     createRoot( project, mpo );
+
     runSimulation( yield_ctx );
 
     resetMPOContext();

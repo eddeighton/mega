@@ -95,7 +95,7 @@ void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< FinalStage
         {
             graph.m_nodes.push_back( Graph::Node{
                 { { "OR:"s, Concrete::printContextFullType( pVertex ) }, { "TypeID:"s, pVertex->get_concrete_id() } },
-                Colour::lightblue,
+                Colour::lightgreen,
                 std::nullopt,
                 pVertex->get_concrete_id() } );
         }

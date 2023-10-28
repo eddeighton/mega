@@ -18,54 +18,54 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_March_21_range
-#define GUARD_2023_March_21_range
+#ifndef GUARD_2023_October_28_transition_id
+#define GUARD_2023_October_28_transition_id
 
 #include "mega/values/native_types.hpp"
-namespace mega::log
+
+#ifndef MEGAJIT
+
+#include "common/serialisation.hpp"
+#include <limits>
+#include <ostream>
+#endif
+
+namespace mega
 {
 
-struct TrackRange
+class TransitionID
 {
-    using RawPtr   = U64;
-    RawPtr m_begin = {}, m_end = {}, m_begin2 = {}, m_end2 = {};
+public:
 
-    TrackRange() = default;
-    TrackRange( const TrackRange& ) = default;
-    TrackRange( TrackRange&& ) = default;
-    TrackRange& operator=( const TrackRange& ) = default;
-
-    TrackRange( const void* pBegin, const void* pEnd, const void* pBegin2, const void* pEnd2 )
-        : m_begin( reinterpret_cast< RawPtr >( pBegin ) )
-        , m_end( reinterpret_cast< RawPtr >( pEnd ) )
-        , m_begin2( reinterpret_cast< RawPtr >( pBegin2 ) )
-        , m_end2( reinterpret_cast< RawPtr >( pEnd2 ) )
-
+    struct Hash
     {
-    }
+        inline U64 operator()( const TransitionID& ref ) const noexcept { return 0; }
+    };
 
+#ifndef MEGAJIT
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int )
+    inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& m_begin;
-        archive& m_end;
-        archive& m_begin2;
-        archive& m_end2;
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            archive& boost::serialization::make_nvp( "transitionID", m_value );
+        }
+        else
+        {
+            archive& m_value;
+        }
     }
+#endif
+
+private:
+    U64 m_value;
 };
 
-struct Range
-{
-    TrackRange m_structure, m_memory;
+}
 
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int )
-    {
-        archive& m_structure;
-        archive& m_memory;
-    }
-};
+#ifndef MEGAJIT
+std::ostream& operator<<( std::ostream& os, const mega::TransitionID& transitionID );
+std::istream& operator>>( std::istream& is, mega::TransitionID& transitionID );
+#endif
 
-} // namespace mega::log
-
-#endif // GUARD_2023_March_21_range
+#endif //GUARD_2023_October_28_transition_id

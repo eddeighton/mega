@@ -202,8 +202,7 @@ void gen( Args args, const FinalStage::Operations::Call* pCall,
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ interface_type_id }}
-);
+{{ indent }}    static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ interface_type_id }} );
 {{ indent }}    return mega::runtime::CallResult{ function(), {{ instance }}, mega::TypeID( {{ interface_type_id }} ) };
 {{ indent }}}
 )TEMPLATE";
@@ -241,6 +240,14 @@ void gen( Args args, const FinalStage::Operations::Signal* pSignal,
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::writeLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
 {{ indent }}    mega::mangle::event_signal( {{ instance }} );
 {{ indent }}    return {{ instance }};
 {{ indent }}}
@@ -277,6 +284,14 @@ void gen( Args args, const FinalStage::Operations::Start* pStart,
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::writeLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
 {{ indent }}    mega::mangle::action_start( {{ instance }} );
 {{ indent }}    return {{ instance }};
 {{ indent }}}

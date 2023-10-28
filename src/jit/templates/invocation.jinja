@@ -37,6 +37,9 @@ namespace mega::mangle
     void save_record_{{event}}(const reference&,const void*);
 {% endfor %}
     void log( const char* );
+    void action_start( const mega::reference& source );
+    void action_complete( const mega::reference& source );
+    void event_signal( const mega::reference& source );
 }
 
 {{ return_type }} {{ name }}( mega::reference& context {% if has_parameter_context %}, mega::reference& target{% endif %}{% if has_parameter_data %}, const void* pData{% endif%} )

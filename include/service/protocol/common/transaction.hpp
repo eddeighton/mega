@@ -46,15 +46,17 @@ public:
     struct Out
     {
         std::vector< log::Structure::DataIO >  m_structure;
-        std::vector< log::Scheduling::DataIO > m_scheduling;
         std::vector< log::Memory::DataIO >     m_memory;
+        std::vector< log::Event::DataIO >      m_event;
+        std::vector< log::Transition::DataIO > m_transition;
 
         template < typename Archive >
         inline void serialize( Archive& ar, const unsigned int )
         {
             ar& m_structure;
-            ar& m_scheduling;
             ar& m_memory;
+            ar& m_event;
+            ar& m_transition;
         }
 
         inline void push_back( const log::Structure::Read& read )
@@ -63,15 +65,20 @@ public:
                                              read.getRelation(), read.getType() } };
             m_structure.emplace_back( record );
         }
-        inline void push_back( const log::Scheduling::Read& read )
-        {
-            log::Scheduling::DataIO record{ { read.getRef().getNetworkAddress(), read.getType() } };
-            m_scheduling.emplace_back( record );
-        }
         inline void push_back( const log::Memory::Read& read )
         {
             log::Memory::DataIO record{ { read.getRef().getNetworkAddress() }, std::string{ read.getData() } };
             m_memory.emplace_back( record );
+        }
+        inline void push_back( const log::Event::Read& read )
+        {
+            log::Event::DataIO record{ { read.getRef().getNetworkAddress(), read.getType() } };
+            m_event.emplace_back( record );
+        }
+        inline void push_back( const log::Transition::Read& read )
+        {
+            log::Transition::DataIO record{ { read.getRef().getNetworkAddress(), read.getTransition() } };
+            m_transition.emplace_back( record );
         }
     };
 
@@ -80,15 +87,17 @@ public:
     struct In
     {
         std::vector< log::Structure::DataIO >  m_structure;
-        std::vector< log::Scheduling::DataIO > m_scheduling;
         std::vector< log::Memory::DataIO >     m_memory;
+        std::vector< log::Event::DataIO >      m_event;
+        std::vector< log::Transition::DataIO > m_transition;
 
         template < typename Archive >
         inline void serialize( Archive& ar, const unsigned int )
         {
             ar& m_structure;
-            ar& m_scheduling;
             ar& m_memory;
+            ar& m_event;
+            ar& m_transition;
         }
     };
 
@@ -139,6 +148,8 @@ public:
 
     void generateStructure( MPOTransactions& transactions, UnparentedSet& unparented, MovedObjects& movedObjects );
     void generateScheduling( MPOTransactions& transactions );
+    void generateEvent( MPOTransactions& transactions );
+    void generateTransition( MPOTransactions& transactions );
     void generateMemory( MPOTransactions& transactions );
     void generate( MPOTransactions& transactions, UnparentedSet& unparented, MovedObjects& movedObjects );
 

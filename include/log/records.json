@@ -61,29 +61,6 @@
             "buffers": []
         },
         {
-            "type": "Scheduling",
-            "padding": 15,
-            "align": 16,
-            "has_enum": true,
-            "has_buffer": false,
-            "enums": [
-                {
-                    "name": "Type",
-                    "values": [
-                        "Start",
-                        "Signal"
-                    ]
-                }
-            ],
-            "fields": [
-                {
-                    "type": "mega::reference",
-                    "name": "Ref"
-                }
-            ],
-            "buffers": []
-        },
-        {
             "type": "Memory",
             "padding": 0,
             "align": 1,
@@ -103,13 +80,47 @@
             ]
         },
         {
-            "type": "Automation",
-            "padding": 0,
-            "align": 1,
+            "type": "Event",
+            "padding": 15,
+            "align": 16,
+            "has_enum": true,
+            "has_buffer": false,
+            "enums": [
+                {
+                    "name": "Type",
+                    "values": [
+                        "Start",
+                        "Complete",
+                        "Signal"
+                    ]
+                }
+            ],
+            "fields": [
+                {
+                    "type": "mega::reference",
+                    "name": "Ref"
+                }
+            ],
+            "buffers": []
+        },
+        {
+            "type": "Transition",
+            "padding": 8,
+            "align": 16,
             "has_enum": false,
             "has_buffer": false,
-            "enums": [],
-            "fields": [],
+            "enums": [
+            ],
+            "fields": [
+                {
+                    "type": "mega::reference",
+                    "name": "Ref"
+                },
+                {
+                    "type": "mega::TransitionID",
+                    "name": "Transition"
+                }
+            ],
             "buffers": []
         },
         {

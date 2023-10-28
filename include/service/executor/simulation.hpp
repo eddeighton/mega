@@ -127,6 +127,7 @@ private:
     std::optional< network::ReceivedMessage > m_simCreateMsgOpt;
     bool                                      m_bShuttingDown = false;
     std::optional< MsgTraits::Msg >           m_blockDestroyMsgOpt;
+
 };
 
 } // namespace mega::service

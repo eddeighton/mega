@@ -101,7 +101,6 @@ public:
             const IndexRecord* pEnd   = getIndexRecord( BufferFactory::m_timestamp );
 
             return Range{ getTrackRange< Structure::Read >( pStart, pEnd ),
-                          getTrackRange< Scheduling::Read >( pStart, pEnd ),
                           getTrackRange< Memory::Read >( pStart, pEnd ) };
         }
         else

@@ -336,11 +336,19 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
         }
     }
     {
-        for( const log::Scheduling::DataIO& scheduling : data.m_scheduling )
+        for( const log::Event::DataIO& event : data.m_event )
         {
-            SPDLOG_TRACE( "SIM::SimLockRelease Got scheduling record: {} {}", scheduling.m_data.m_Ref,
-                          log::Scheduling::toString( scheduling.m_data.m_Type ) );
-            m_pLog->record( log::Scheduling::Write( scheduling.m_data.m_Ref, scheduling.m_data.m_Type ) );
+            SPDLOG_TRACE( "SIM::SimLockRelease Got event record: {} {}", event.m_data.m_Ref,
+                          log::Event::toString( event.m_data.m_Type ) );
+            m_pLog->record( log::Event::Write( event.m_data.m_Ref, event.m_data.m_Type ) );
+        }
+    }
+    {
+        for( const log::Transition::DataIO& transition : data.m_transition )
+        {
+            //SPDLOG_TRACE( "SIM::SimLockRelease Got transition record: {} {}", transition.m_data.m_Ref,
+            //    transition.m_data.m_Transition );
+            m_pLog->record( log::Transition::Write( transition.m_data.m_Ref, transition.m_data.m_Transition ) );
         }
     }
     {

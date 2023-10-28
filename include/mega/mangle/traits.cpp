@@ -74,6 +74,7 @@ void structure_make( const mega::reference& source, const mega::reference& targe
     mega::log::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eMake ) );
 }
+
 void structure_break( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_break passed network address in source " );
@@ -81,6 +82,7 @@ void structure_break( const mega::reference& source, const mega::reference& targ
     mega::log::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eBreak ) );
 }
+
 void structure_move( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_move passed network address in source" );
@@ -93,13 +95,21 @@ void action_start( const mega::reference& source )
 {
     VERIFY_RTE_MSG( source.isHeapAddress(), "action_start passed network address " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Scheduling::Write( source, mega::log::Scheduling::eStart ) );
+    log.record( mega::log::Event::Write( source, mega::log::Event::eStart ) );
 }
+
+void action_complete( const mega::reference& source )
+{
+    VERIFY_RTE_MSG( source.isHeapAddress(), "action_start passed network address " );
+    mega::log::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Event::Write( source, mega::log::Event::eComplete ) );
+}
+
 void event_signal( const mega::reference& event )
 {
     VERIFY_RTE_MSG( event.isHeapAddress(), "event_signal passed network address " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Scheduling::Write( event, mega::log::Scheduling::eSignal ) );
+    log.record( mega::log::Event::Write( event, mega::log::Event::eSignal ) );
 }
 
 // const reference vector

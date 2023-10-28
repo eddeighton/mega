@@ -64,6 +64,7 @@ set( MEGA_VALUES_COMPILATION_HEADERS
     ${MEGA_VALUES_COMPILATION_DIR}/source_location.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/sub_type_instance.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/tool_chain_hash.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/transition_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/type_id_sequence.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/type_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/type_instance.hpp
@@ -83,6 +84,7 @@ set( MEGA_VALUES_COMPILATION_SRC
     ${MEGA_VALUES_COMPILATION_DIR}/relation_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/sub_type_instance.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/tool_chain_hash.cpp
+    ${MEGA_VALUES_COMPILATION_DIR}/transition_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/type_id_sequence.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/type_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/type_instance.cpp

@@ -20,6 +20,8 @@
 
 #include "service/protocol/common/transaction.hpp"
 
+#include "service/network/log.hpp"
+
 namespace mega::network
 {
 
@@ -90,9 +92,20 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
         }
     }
 }
-void TransactionProducer::generateScheduling( MPOTransactions& transactions )
+void TransactionProducer::generateEvent( MPOTransactions& transactions )
 {
-    using RecordType                        = log::Scheduling::Read;
+    using RecordType                        = log::Event::Read;
+    log::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
+    log::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
+    for( ; iter != iterEnd; ++iter )
+    {
+        const RecordType r = *iter;
+        transactions[ r.getRef().getMPO() ].push_back( r );
+    }
+}
+void TransactionProducer::generateTransition( MPOTransactions& transactions )
+{
+    using RecordType                        = log::Transition::Read;
     log::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
     log::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
     for( ; iter != iterEnd; ++iter )
@@ -117,7 +130,8 @@ void TransactionProducer::generate( MPOTransactions& transactions, UnparentedSet
                                     MovedObjects& movedObjects )
 {
     generateStructure( transactions, unparented, movedObjects );
-    generateScheduling( transactions );
+    generateEvent( transactions );
+    generateTransition( transactions );
     generateMemory( transactions );
     m_iterator = m_iteratorEnd;
 }
