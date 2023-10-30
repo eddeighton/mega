@@ -36,6 +36,7 @@
 
 #include "mega/mangle/traits.hpp"
 
+#include "mega/decider.hpp"
 #include "mega/clock.hpp"
 #include "mega/iterators.hpp" // has array and vector and defines __mega_vector std::vector type alias
 #include "mega/coroutine.hpp" // has stl dependencies

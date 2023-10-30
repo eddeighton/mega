@@ -33,53 +33,6 @@
 
 namespace mega::compiler
 {
-namespace
-{
-inline bool isNewLine( std::string::const_iterator i )
-{
-    if( *i == '\n' )
-        return true;
-    if( ( *i == '\r' ) && ( *( i + 1 ) == '\n' ) )
-        return true;
-    return false;
-}
-
-template < typename KeyType, typename ResultType, typename KeyParserFunctor >
-void parseRanges( const std::string& str, const std::string& strBegin, const std::string& strEnd,
-                  KeyParserFunctor&& parser, ResultType& ranges )
-{
-    for( auto i = str.cbegin(), iBegin = str.cbegin(), iEnd = str.cend(); i != iEnd; )
-    {
-        i = std::search( i, iEnd, strBegin.cbegin(), strBegin.cend() );
-        if( i != iEnd )
-        {
-            const std::string::const_iterator iStart = i;
-            i += strBegin.size();
-
-            // get key from the line
-            KeyType key;
-            {
-                auto iLineEnd = i + 1;
-                while( !isNewLine( iLineEnd ) )
-                {
-                    ++iLineEnd;
-                }
-                key = parser( i, iLineEnd );
-                i   = iLineEnd;
-            }
-
-            i = std::search( i, iEnd, strEnd.cbegin(), strEnd.cend() );
-            VERIFY_RTE_MSG( i != iEnd, "Failed to locate block end" );
-            i += strEnd.size();
-
-            const U64 distToStart = static_cast< U64 >( std::distance( iBegin, iStart ) );
-            const U64 distToEnd   = static_cast< U64 >( std::distance( iBegin, i ) );
-
-            VERIFY_RTE( ranges.insert( { key, SourceLocation{ distToStart, distToEnd } } ).second );
-        }
-    }
-}
-} // namespace
 
 class Task_ValueSpace : public BaseTask
 {
