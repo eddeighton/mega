@@ -540,6 +540,8 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
 
             { "name", osNodeName.str() },
             { "colour", node.m_colour.str() },
+            { "bgcolour", node.m_background_colour.str() },
+            { "border_width", node.m_border_width },
             { "rows", nlohmann::json::array() },
             { "has_url", false }
 
@@ -638,7 +640,8 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             { "to", nodeNames[ edge.m_target ] },
             { "colour", edge.m_colour.str() },
             { "style", edge.m_style.str() },
-            { "constraint", edge.m_bIgnoreInLayout ? "false" : "true" }
+            { "constraint", edge.m_bIgnoreInLayout ? "false" : "true" },
+            { "line_width", edge.line_width }
 
         } );
 

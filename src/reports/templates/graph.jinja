@@ -19,7 +19,6 @@ digraph
 
     edge 
     [ 
-        penwidth  = 1
         fontname  = monospace
         fontsize  = 10
         fontcolor = black
@@ -34,18 +33,18 @@ digraph
 {% for node in nodes %}
     "{{ node.name }}" 
     [
-        color       = "black"
-        fillcolor   = "{{ node.colour }}"
 {% if node.has_url %}
         URL         = "{{ node.url }}"
 {% endif %}
         label       = 
         <
             <table 
-                border      = "1" 
-                cellborder  = "1" 
-                cellpadding = "0"
-                bgcolor     = "{{ node.colour }}"
+                border      = "{{ node.border_width }}" 
+                color       = "{{ node.colour }}" 
+                cellborder  = "1"
+                cellpadding = "1"
+                cellspacing = "0"
+                bgcolor     = "{{ node.bgcolour }}"
             >
             {% for row in node.rows %}
             <tr>
@@ -96,6 +95,7 @@ digraph
 {% for edge in edges %}
     {{ edge.from }} -> {{ edge.to }}
     [
+        penwidth    = "{{ edge.line_width }}"
         color       = "{{ edge.colour }}"
         style       = "{{ edge.style }}"
         constraint  = {{ edge.constraint }}

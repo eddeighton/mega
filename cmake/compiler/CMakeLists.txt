@@ -151,9 +151,7 @@ set( COMPILER_SOURCE
     ${COMPILER_TASKS}
     ${MEGA_SRC_DIR}/compiler/compiler.cpp
 
-    ${MEGA_SRC_DIR}/compiler/automata.cpp
     ${MEGA_SRC_DIR}/compiler/glob.cpp
-    ${MEGA_SRC_DIR}/compiler/automata.hpp
     ${MEGA_SRC_DIR}/compiler/clang_compilation.cpp
 
     # generate file from mega mangle

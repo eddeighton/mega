@@ -20,8 +20,6 @@
 
 #include "base_task.hpp"
 
-#include "automata.hpp"
-
 #include "mega/common_strings.hpp"
 
 #include "database/AutomataStage.hxx"
@@ -42,6 +40,8 @@ namespace AutomataStage
 namespace mega::compiler
 {
 
+using namespace AutomataStage;
+
 class Task_Automata : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
@@ -53,11 +53,13 @@ public:
     {
     }
 
-    AutomataStage::Automata::Vertex* recurseAndOrTree( AutomataStage::Database&                         database,
-                                                       AutomataStage::Concrete::Context*                pContext,
-                                                       AutomataStage::Automata::Vertex*                 pParent,
-                                                       U32                                              relative_domain,
-                                                       std::vector< AutomataStage::Automata::Vertex* >& tests )
+    Automata::Vertex* recurseAndOrTree( Database&          database,
+                                        Concrete::Context* pContext,
+                                        Automata::Vertex*  pParent,
+                                        std::optional< Automata::Vertex* >
+                                                                          testAncestor,
+                                        U32                               relative_domain,
+                                        std::vector< Automata::Vertex* >& tests )
     {
         using namespace AutomataStage;
 
@@ -66,37 +68,44 @@ public:
         if( auto pState = db_cast< Concrete::State >( pContext ) )
         {
             // is the parent vertex an OR?
-            bool bParentVertexIsOR = false;
+            bool bIsConditional = false;
             if( db_cast< Automata::Or >( pParent ) )
             {
-                bParentVertexIsOR = true;
+                bIsConditional = true;
+            }
+            if( !pState->get_requirements().empty() )
+            {
+                bIsConditional = true;
             }
 
             if( pState->get_interface_state()->get_is_or_state() )
             {
-                pResult = database.construct< Automata::Or >( { Automata::Or::Args{
-                    Automata::Vertex::Args{ bParentVertexIsOR, relative_domain, pContext, {} } } } );
+                pResult = database.construct< Automata::Or >(
+                    { Automata::Or::Args{ Automata::Vertex::Args{ bIsConditional, relative_domain, pContext, {} } } } );
                 pParent->push_back_children( pResult );
             }
             else
             {
                 pResult = database.construct< Automata::And >( { Automata::And::Args{
-                    Automata::Vertex::Args{ bParentVertexIsOR, relative_domain, pContext, {} } } } );
+                    Automata::Vertex::Args{ bIsConditional, relative_domain, pContext, {} } } } );
                 pParent->push_back_children( pResult );
             }
 
-            if( bParentVertexIsOR )
+            if( bIsConditional )
             {
                 tests.push_back( pResult );
+                testAncestor = pResult;
             }
+
+            pResult->set_test_ancestor( testAncestor );
 
             relative_domain = 1;
         }
 
         for( auto pChildContext : pContext->get_children() )
         {
-            recurseAndOrTree(
-                database, pChildContext, pResult, relative_domain * pChildContext->get_local_size(), tests );
+            recurseAndOrTree( database, pChildContext, pResult, testAncestor,
+                              relative_domain * pChildContext->get_local_size(), tests );
         }
 
         return pResult;
@@ -111,9 +120,9 @@ public:
             Node::Vector instances;
         };
 
-        Instance                         instance;
-        AutomataStage::Automata::Vertex* pVertex = nullptr;
-        std::vector< SubTypeNode >       subTypes;
+        Instance                   instance;
+        Automata::Vertex*          pVertex = nullptr;
+        std::vector< SubTypeNode > subTypes;
     };
 
     void recurseNode( Node& node )
@@ -139,9 +148,9 @@ public:
         }
     }
 
-    void recurseEnum( mega::pipeline::Progress& taskProgress, AutomataStage::Database& database, const Node& node,
-                      std::vector< AutomataStage::Automata::Enum* >& enums, AutomataStage::Automata::Enum* pParentEnum,
-                      U32& bitsetIndex, U32& switchIndex )
+    void recurseEnum( mega::pipeline::Progress& taskProgress, Database& database, const Node& node,
+                      std::vector< Automata::Enum* >& enums, Automata::Enum* pParentEnum, U32& bitsetIndex,
+                      U32& switchIndex )
     {
         using namespace AutomataStage;
 
@@ -160,9 +169,9 @@ public:
                 Automata::Enum* pEnum = pParentEnum;
                 Automata::Test* pTest = nullptr;
 
-                if( instance.pVertex->get_is_parent_or() || pActionOpt.has_value() )
+                if( instance.pVertex->get_is_conditional() || pActionOpt.has_value() )
                 {
-                    if( instance.pVertex->get_is_parent_or() )
+                    if( instance.pVertex->get_is_conditional() )
                     {
                         pEnum = pTest = database.construct< Automata::Test >(
 
@@ -218,7 +227,7 @@ public:
         }
     }
 
-    void recurseCollectIndices( AutomataStage::Automata::Enum* pEnum, std::vector< U32 >& indices )
+    void recurseCollectIndices( Automata::Enum* pEnum, std::vector< U32 >& indices )
     {
         std::vector< U32 > indicesSubTree;
         for( auto pChild : pEnum->get_children() )
@@ -254,11 +263,12 @@ public:
 
         for( auto pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
         {
-            AutomataStage::Automata::And* pRoot = database.construct< Automata::And >(
+            Automata::And* pRoot = database.construct< Automata::And >(
                 { Automata::And::Args{ Automata::Vertex::Args{ false, 1, pObject, {} } } } );
+            pRoot->set_test_ancestor( std::nullopt );
 
             std::vector< Automata::Vertex* > tests;
-            recurseAndOrTree( database, pObject, pRoot, 1, tests );
+            recurseAndOrTree( database, pObject, pRoot, std::nullopt, 1, tests );
 
             std::vector< Automata::Enum* > enums;
 

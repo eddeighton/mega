@@ -21,10 +21,11 @@ namespace Automata
 {
     object Vertex -> AutomataStage::AutomataAnalysis
     {
-        value< bool >               is_parent_or;
-        value< mega::U32 >          relative_domain;
-        ref< Concrete::Context >    context;
-        array< ref< Vertex > >      children;
+        value< bool >                   is_conditional;
+        value< mega::U32 >              relative_domain;
+        ref< Concrete::Context >        context;
+        late< opt< ref< Vertex > > >    test_ancestor;
+        array< ref< Vertex > >          children;
     }
 
     object And : Vertex  -> AutomataStage::AutomataAnalysis
@@ -55,4 +56,42 @@ namespace Automata
         late< value< mega::U32 > >  failure_switch_index;
     }
 
+}
+
+namespace Decision
+{
+    object DeciderSequence -> ValueSpaceStage::ValueSpace
+    {
+        ref< Concrete::State >              state;
+        array< ref< Concrete::Decider > >   deciders;
+    }
+
+    object BDDVertex -> ValueSpaceStage::ValueSpace
+    {
+        ref< Automata::Vertex > test;
+        opt< ref< BDDVertex > > true_vertex;
+        opt< ref< BDDVertex > > false_vertex;
+    }
+
+    object Eliminated : BDDVertex -> ValueSpaceStage::ValueSpace
+    {
+    }
+
+    object True : BDDVertex -> ValueSpaceStage::ValueSpace
+    {
+    }
+
+    object False : BDDVertex -> ValueSpaceStage::ValueSpace
+    {
+    }
+
+    object Decideable : BDDVertex -> ValueSpaceStage::ValueSpace
+    {
+    }
+
+    object DecisionProcedure -> ValueSpaceStage::ValueSpace
+    {
+        array< ref< Automata::Vertex > >    test_sequence;
+        ref< BDDVertex >                    root;
+    }
 }

@@ -137,6 +137,8 @@ namespace Concrete
 
         array< ref< Derivation::Root > > transition         -> OperationsStage::Operations;
         late< array< ref< Derivation::Root > > > events     -> OperationsStage::Operations;
+
+        opt< ref< Decision::DecisionProcedure > > transition_decision -> ValueSpaceStage::ValueSpace;
     }
 
     object Requirement : Interupt -> ConcreteStage::Concrete
@@ -169,11 +171,14 @@ namespace Concrete
 
     object State : UserDimensionContext -> ConcreteStage::Concrete
     {
-        ref< Interface::State > interface_state;
+        ref< Interface::State >     interface_state;
+        array< ref< Requirement > > requirements;
 
         ref< Automata::Vertex > automata_vertex -> AutomataStage::AutomataAnalysis;
 
         array< ref< Derivation::Root > > transition -> OperationsStage::Operations;
+
+        opt< ref< Decision::DecisionProcedure > > transition_decision -> ValueSpaceStage::ValueSpace;
     }
 
     object Action : State -> ConcreteStage::Concrete
@@ -210,6 +215,8 @@ namespace Concrete
         array< ref< Automata::Enum > >      automata_enums      -> AutomataStage::AutomataAnalysis;
         value< mega::U32 >                  total_bitset_index  -> AutomataStage::AutomataAnalysis;
         value< mega::U32 >                  total_switch_index  -> AutomataStage::AutomataAnalysis;
+
+        array< ref< Decision::DeciderSequence > > decider_sequences -> ValueSpaceStage::ValueSpace;
     }
     
     object MemoryMappedObject : Object -> GlobalMemoryStageRollout::GlobalMemoryRollout

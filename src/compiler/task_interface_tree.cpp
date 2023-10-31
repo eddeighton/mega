@@ -280,6 +280,21 @@ public:
                     },
                     []( Event* pEvent, Parser::EventDef* pEventDef ) { pEvent->push_back_event_defs( pEventDef ); } );
             }
+            else if( auto pRequirementDef = db_cast< Parser::RequirementDef >( pChildContext ) )
+            {
+                constructOrAggregate< Parser::RequirementDef, Requirement >(
+                    database, pComponent, pRoot, pRequirementDef, currentName, namedContexts,
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::RequirementDef* pRequirementDef ) -> Requirement*
+                    {
+                        return database.construct< Requirement >( Requirement::Args{ Interupt::Args{
+                            InvocationContext::Args( IContext::Args(
+                                ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ) ),
+                            { pRequirementDef } } } );
+                    },
+                    []( Requirement* pBuffer, Parser::RequirementDef* pRequirementDef )
+                    { pBuffer->push_back_interupt_defs( pRequirementDef ); } );
+            }
             else if( auto pInteruptDef = db_cast< Parser::InteruptDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::InteruptDef, Interupt >(
@@ -592,7 +607,7 @@ public:
             {
                 if( !pEventsTrait )
                 {
-                    pEventsTrait = database.construct< Interface::EventTypeTrait >(
+                    pEventsTrait = database.construct< Interface::EventTypeTrait >(E
                         Interface::EventTypeTrait::Args{ pArguments, pInterupt } );
                     args = pArguments->get_args();
                 }

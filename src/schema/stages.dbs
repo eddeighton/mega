@@ -447,6 +447,9 @@ stage ValueSpaceStage
 
     persource accessor array< ref< Interface::InvocationContext > >;
     persource accessor ref< Operations::Invocations >;
+    persource accessor array< ref< Concrete::Object > >;
+    persource accessor array< ref< Concrete::Interupt > >;
+    persource accessor array< ref< Concrete::State > >;
 }
 
 stage UnityStage

@@ -64,7 +64,7 @@ public:
     Value                  m_element;
     std::optional< URL >   m_url;
     std::optional< Value > m_bookmark;
-    Colour                 m_colour = Colour::black;
+    Colour                 m_colour            = Colour::black;
     Colour                 m_background_colour = Colour::white;
 };
 
@@ -86,7 +86,7 @@ public:
     ValueVector            m_elements;
     std::optional< URL >   m_url;
     std::optional< Value > m_bookmark;
-    Colour                 m_colour = Colour::black;
+    Colour                 m_colour            = Colour::black;
     Colour                 m_background_colour = Colour::white;
 };
 
@@ -196,6 +196,8 @@ public:
             archive& m_colour;
             archive& m_url;
             archive& m_bookmark;
+            archive& m_background_colour;
+            archive& m_border_width;
         }
 
     public:
@@ -203,9 +205,11 @@ public:
         using Vector = std::vector< Node >;
 
         std::vector< ValueVector > m_rows;
-        Colour                     m_colour = Colour::lightblue;
+        Colour                     m_colour = Colour::blue;
         std::optional< URL >       m_url;
         std::optional< Value >     m_bookmark;
+        Colour                     m_background_colour = Colour::lightblue;
+        int                        m_border_width      = 1;
     };
 
     class Subgraph
@@ -241,6 +245,8 @@ public:
             archive& m_target;
             archive& m_colour;
             archive& m_style;
+            archive& m_bIgnoreInLayout;
+            archive& line_width;
         }
 
     public:
@@ -287,6 +293,7 @@ public:
         Colour   m_colour          = Colour::black;
         Style    m_style           = Style::solid;
         bool     m_bIgnoreInLayout = false;
+        int      line_width        = 1;
     };
 
     Node::Vector     m_nodes;

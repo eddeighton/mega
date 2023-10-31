@@ -61,7 +61,8 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
     using namespace mega::reports;
 
     std::string strType;
-    Colour      colour = Colour::lightblue;
+    Colour      colour      = Colour::lightblue;
+    int         borderWidth = 1;
     {
         if( auto pAND = db_cast< Automata::And >( pVertex ) )
         {
@@ -71,6 +72,7 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
         else if( auto pOR = db_cast< Automata::Or >( pVertex ) )
         {
             strType = "OR";
+            colour  = Colour::lightblue;
         }
         else
         {
@@ -82,12 +84,17 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
                           { strType, Concrete::getIdentifier( pVertex->get_context() ) },
                           { "Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() },
                           { "Relative Domain: "s, std::to_string( pVertex->get_relative_domain() ) },
+                          { "Conditional: "s, pVertex->get_is_conditional() ? "true"s : "false"s },
                           { "Total Domain: "s, std::to_string( pVertex->get_context()->get_total_size() ) },
 
                       },
-                      colour,
+                      pVertex->get_is_conditional() ? Colour::green : Colour::blue,
                       std::nullopt,
-                      pVertex->get_context()->get_concrete_id() };
+                      pVertex->get_context()->get_concrete_id(),
+                      colour,
+                      pVertex->get_is_conditional() ? 4 : 1
+
+    };
 
     const std::size_t szNodeIndex = graph.m_nodes.size();
 

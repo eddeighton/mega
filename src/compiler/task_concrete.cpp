@@ -35,6 +35,8 @@ namespace ConcreteStage
 namespace mega::compiler
 {
 
+using namespace ConcreteStage;
+
 class Task_ConcreteTree : public BaseTask
 {
 public:
@@ -47,37 +49,37 @@ public:
     struct IdentifierMap
     {
         std::set< std::string > identifiers;
-        using ContextVector = std::vector< ConcreteStage::Interface::IContext* >;
+        using ContextVector = std::vector< Interface::IContext* >;
         ContextVector inherited;
         ContextVector contexts;
 
-        using DimensionVector = std::vector< ConcreteStage::Interface::DimensionTrait* >;
+        using DimensionVector = std::vector< Interface::DimensionTrait* >;
         DimensionVector dimensions;
 
-        using LinkVector = std::vector< ConcreteStage::Interface::LinkTrait* >;
+        using LinkVector = std::vector< Interface::LinkTrait* >;
         LinkVector links;
 
-        void addContext( ConcreteStage::Interface::IContext* pContext )
+        void addContext( Interface::IContext* pContext )
         {
-            const std::string& strIdentifier = ConcreteStage::Interface::getIdentifier( pContext );
+            const std::string& strIdentifier = Interface::getIdentifier( pContext );
             if( !identifiers.count( strIdentifier ) )
             {
                 contexts.push_back( pContext );
                 identifiers.insert( strIdentifier );
             }
         }
-        void addDimension( ConcreteStage::Interface::DimensionTrait* pDimension )
+        void addDimension( Interface::DimensionTrait* pDimension )
         {
-            const std::string& strIdentifier = ConcreteStage::Interface::getIdentifier( pDimension );
+            const std::string& strIdentifier = Interface::getIdentifier( pDimension );
             if( !identifiers.count( strIdentifier ) )
             {
                 dimensions.push_back( pDimension );
                 identifiers.insert( strIdentifier );
             }
         }
-        void addLink( ConcreteStage::Interface::LinkTrait* pLink )
+        void addLink( Interface::LinkTrait* pLink )
         {
-            const std::string& strIdentifier = ConcreteStage::Interface::getIdentifier( pLink );
+            const std::string& strIdentifier = Interface::getIdentifier( pLink );
             if( !identifiers.count( strIdentifier ) )
             {
                 links.push_back( pLink );
@@ -87,10 +89,8 @@ public:
     };
 
     template < typename TContextType >
-    void collectDimensions( ConcreteStage::Database& database, TContextType* pInterfaceContext,
-                            IdentifierMap& identifierMap )
+    void collectDimensions( Database& database, TContextType* pInterfaceContext, IdentifierMap& identifierMap )
     {
-        using namespace ConcreteStage;
         VERIFY_RTE( pInterfaceContext );
         for( Interface::DimensionTrait* pDimension : pInterfaceContext->get_dimension_traits() )
         {
@@ -99,10 +99,8 @@ public:
     }
 
     template < typename TContextType >
-    void collectLinks( ConcreteStage::Database& database, TContextType* pInterfaceContext,
-                       IdentifierMap& identifierMap )
+    void collectLinks( Database& database, TContextType* pInterfaceContext, IdentifierMap& identifierMap )
     {
-        using namespace ConcreteStage;
         VERIFY_RTE( pInterfaceContext );
         for( Interface::LinkTrait* pLink : pInterfaceContext->get_link_traits() )
         {
@@ -113,7 +111,6 @@ public:
     template < typename TContextType >
     void collectContexts( TContextType* pInterfaceContext, IdentifierMap& identifierMap )
     {
-        using namespace ConcreteStage;
         VERIFY_RTE( pInterfaceContext );
         for( Interface::IContext* pContext : pInterfaceContext->get_children() )
         {
@@ -121,11 +118,10 @@ public:
         }
     }
 
-    void recurseInheritance( ConcreteStage::Database& database, ConcreteStage::Concrete::Context* pConcreteRoot,
-                             ConcreteStage::Interface::IContext* pContext, IdentifierMap& identifierMap )
+    void recurseInheritance( Database& database, Concrete::Context* pConcreteRoot, Interface::IContext* pContext,
+                             IdentifierMap& identifierMap )
     {
-        using namespace ConcreteStage;
-        using namespace ConcreteStage::Concrete;
+        using namespace Concrete;
 
         identifierMap.inherited.push_back( pContext );
 
@@ -203,28 +199,27 @@ public:
 
     struct ContextElements
     {
-        std::vector< ConcreteStage::Concrete::Context* >            childContexts;
-        std::vector< ConcreteStage::Concrete::Dimensions::User* >   dimensions;
-        std::vector< ConcreteStage::Concrete::Dimensions::Link* >   links;
-        std::vector< ConcreteStage::Concrete::Dimensions::Bitset* > bitsets;
+        std::vector< Concrete::Context* >            childContexts;
+        std::vector< Concrete::Dimensions::User* >   dimensions;
+        std::vector< Concrete::Dimensions::Link* >   links;
+        std::vector< Concrete::Dimensions::Bitset* > bitsets;
+        std::vector< Concrete::Requirement* >        requirements;
 
         // object only
-        ConcreteStage::Concrete::Dimensions::OwnershipLink* pOwnershipLink = nullptr;
-
-        ConcreteStage::Concrete::Dimensions::Configuration* pConfiguration = nullptr;
-        ConcreteStage::Concrete::Dimensions::Activation*    pActivation    = nullptr;
-        ConcreteStage::Concrete::Dimensions::Enablement*    pEnablement    = nullptr;
-        ConcreteStage::Concrete::Dimensions::History*       pHistory       = nullptr;
+        Concrete::Dimensions::OwnershipLink* pOwnershipLink = nullptr;
+        Concrete::Dimensions::Configuration* pConfiguration = nullptr;
+        Concrete::Dimensions::Activation*    pActivation    = nullptr;
+        Concrete::Dimensions::Enablement*    pEnablement    = nullptr;
+        Concrete::Dimensions::History*       pHistory       = nullptr;
     };
 
-    ContextElements constructElements( ConcreteStage::Database&                           database,
-                                       ConcreteStage::Concrete::ContextGroup*             parentConcreteContextGroup,
-                                       const IdentifierMap&                               inheritedContexts,
-                                       std::optional< ConcreteStage::Concrete::Object* >& concreteObjectOpt,
-                                       ConcreteStage::Components::Component*              pComponent )
+    ContextElements constructElements( Database&                           database,
+                                       Concrete::ContextGroup*             parentConcreteContextGroup,
+                                       const IdentifierMap&                inheritedContexts,
+                                       std::optional< Concrete::Object* >& concreteObjectOpt,
+                                       Components::Component*              pComponent )
     {
-        using namespace ConcreteStage;
-        using namespace ConcreteStage::Concrete;
+        using namespace Concrete;
 
         VERIFY_RTE( pComponent );
 
@@ -238,6 +233,11 @@ public:
                     = recurse( database, parentConcreteContextGroup, pChildContext, concreteObjectOpt, pComponent ) )
                 {
                     elements.childContexts.push_back( pContext );
+
+                    if( auto pRequirement = db_cast< Requirement >( pContext ) )
+                    {
+                        elements.requirements.push_back( pRequirement );
+                    }
                 }
             }
         }
@@ -353,14 +353,13 @@ public:
         return elements;
     }
 
-    ConcreteStage::Concrete::Context* recurse( ConcreteStage::Database&                           database,
-                                               ConcreteStage::Concrete::ContextGroup*             pParentContextGroup,
-                                               ConcreteStage::Interface::IContext*                pContext,
-                                               std::optional< ConcreteStage::Concrete::Object* >& concreteObjectOpt,
-                                               ConcreteStage::Components::Component*              pComponent )
+    Concrete::Context* recurse( Database&                           database,
+                                Concrete::ContextGroup*             pParentContextGroup,
+                                Interface::IContext*                pContext,
+                                std::optional< Concrete::Object* >& concreteObjectOpt,
+                                Components::Component*              pComponent )
     {
-        using namespace ConcreteStage;
-        using namespace ConcreteStage::Concrete;
+        using namespace Concrete;
 
         VERIFY_RTE( pComponent );
 
@@ -389,6 +388,10 @@ public:
                 = constructElements( database, pConcrete, inheritedContexts, concreteObjectOpt, pComponent );
 
             VERIFY_RTE( elements.links.empty() );
+            VERIFY_RTE_MSG( elements.links.empty(),
+                            "Namespace cannot have links: " << Interface::printIContextFullType( pNamespace ) );
+            VERIFY_RTE_MSG( elements.requirements.empty(),
+                            "Namespace cannot have requirements: " << Interface::printIContextFullType( pNamespace ) );
 
             pConcrete->set_dimensions( elements.dimensions );
             pConcrete->set_children( elements.childContexts );
@@ -408,61 +411,35 @@ public:
 
                 if( auto pAction = db_cast< Interface::Action >( pState ) )
                 {
-                    // clang-format off
-                    pConcrete = database.construct< Action >
-                    (
-                        Action::Args
-                        { 
-                            State::Args
-                            {
-                                UserDimensionContext::Args
-                                {
-                                    Context::Args
-                                    { 
-                                        ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
-                                        pParentContextGroup, 
-                                        pAction, 
-                                        {} 
-                                    },
-                                    {},
-                                    {},
-                                    {}
-                                },
-                                pState
-                            },
-                            pAction 
-                        } 
-                    );
-                    // clang-format on
+                    pConcrete = database.construct< Action >( Action::Args{
+                        State::Args{
+                            UserDimensionContext::Args{
+                                Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                               pParentContextGroup,
+                                               pAction,
+                                               {} },
+                                {},
+                                {},
+                                {} },
+                            pState,
+                            {} },
+                        pAction } );
                 }
                 else if( auto pInterfaceComponent = db_cast< Interface::Component >( pState ) )
                 {
-                    // clang-format off
-                    pConcrete = database.construct< Component >
-                    ( 
-                        Component::Args
-                        {
-                            State::Args
-                            {
-                                UserDimensionContext::Args
-                                {
-                                    Context::Args
-                                    {
-                                        ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
-                                        pParentContextGroup,
-                                        pInterfaceComponent,
-                                        {} 
-                                    },
-                                    {},
-                                    {},
-                                    {}  
-                                },
-                                pState 
-                            },
-                            pInterfaceComponent 
-                        }
-                    );
-                    // clang-format on
+                    pConcrete = database.construct< Component >( Component::Args{
+                        State::Args{
+                            UserDimensionContext::Args{
+                                Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                               pParentContextGroup,
+                                               pInterfaceComponent,
+                                               {} },
+                                {},
+                                {},
+                                {} },
+                            pState,
+                            {} },
+                        pInterfaceComponent } );
                 }
                 else
                 {
@@ -475,7 +452,8 @@ public:
                             {},
                             {},
                             {} },
-                        pState } );
+                        pState,
+                        {} } );
                 }
 
                 pParentContextGroup->push_back_children( pConcrete );
@@ -493,6 +471,7 @@ public:
                 pConcrete->set_dimensions( elements.dimensions );
                 pConcrete->set_links( elements.links );
                 pConcrete->set_children( elements.childContexts );
+                pConcrete->set_requirements( elements.requirements );
 
                 return pConcrete;
             }
@@ -527,7 +506,10 @@ public:
                 ContextElements elements
                     = constructElements( database, pConcrete, inheritedContexts, concreteObjectOpt, pComponent );
 
-                VERIFY_RTE( elements.links.empty() );
+                VERIFY_RTE_MSG(
+                    elements.links.empty(), "Event cannot have links: " << Interface::printIContextFullType( pEvent ) );
+                VERIFY_RTE_MSG( elements.requirements.empty(),
+                                "Event cannot have requirements: " << Interface::printIContextFullType( pEvent ) );
 
                 pConcrete->set_dimensions( elements.dimensions );
                 pConcrete->set_children( elements.childContexts );
@@ -575,8 +557,13 @@ public:
 
                 ContextElements elements
                     = constructElements( database, pConcrete, inheritedContexts, concreteObjectOpt, pComponent );
-                VERIFY_RTE( elements.dimensions.empty() );
-                VERIFY_RTE( elements.links.empty() );
+                VERIFY_RTE_MSG( elements.dimensions.empty(),
+                                "Interupt cannot have dimensions: " << Interface::printIContextFullType( pInterupt ) );
+                VERIFY_RTE_MSG( elements.links.empty(),
+                                "Interupt cannot have links: " << Interface::printIContextFullType( pInterupt ) );
+                VERIFY_RTE_MSG(
+                    elements.requirements.empty(),
+                    "Interupt cannot have requirements: " << Interface::printIContextFullType( pInterupt ) );
 
                 pConcrete->set_children( elements.childContexts );
 
@@ -609,8 +596,13 @@ public:
 
                 ContextElements elements
                     = constructElements( database, pConcrete, inheritedContexts, concreteObjectOpt, pComponent );
-                VERIFY_RTE( elements.dimensions.empty() );
-                VERIFY_RTE( elements.links.empty() );
+                VERIFY_RTE_MSG( elements.dimensions.empty(),
+                                "Function cannot have dimensions: " << Interface::printIContextFullType( pFunction ) );
+                VERIFY_RTE_MSG( elements.links.empty(),
+                                "Function cannot have links: " << Interface::printIContextFullType( pFunction ) );
+                VERIFY_RTE_MSG(
+                    elements.requirements.empty(),
+                    "Function cannot have requirements: " << Interface::printIContextFullType( pFunction ) );
 
                 pConcrete->set_children( elements.childContexts );
 
@@ -643,8 +635,12 @@ public:
 
                 ContextElements elements
                     = constructElements( database, pConcrete, inheritedContexts, concreteObjectOpt, pComponent );
-                VERIFY_RTE( elements.dimensions.empty() );
-                VERIFY_RTE( elements.links.empty() );
+                VERIFY_RTE_MSG( elements.dimensions.empty(),
+                                "Decider cannot have dimensions: " << Interface::printIContextFullType( pDecider ) );
+                VERIFY_RTE_MSG( elements.links.empty(),
+                                "Decider cannot have links: " << Interface::printIContextFullType( pDecider ) );
+                VERIFY_RTE_MSG( elements.requirements.empty(),
+                                "Decider cannot have requirements: " << Interface::printIContextFullType( pDecider ) );
 
                 pConcrete->set_children( elements.childContexts );
 
@@ -681,6 +677,8 @@ public:
 
             ContextElements elements
                 = constructElements( database, pConcrete, inheritedContexts, concreteObjectOpt, pComponent );
+            VERIFY_RTE_MSG( elements.requirements.empty(),
+                            "Object cannot have requirements: " << Interface::printIContextFullType( pObject ) );
 
             pConcrete->set_dimensions( elements.dimensions );
             pConcrete->set_children( elements.childContexts );
@@ -721,8 +719,7 @@ public:
             return;
         }
 
-        using namespace ConcreteStage;
-        using namespace ConcreteStage::Concrete;
+        using namespace Concrete;
 
         Database database( m_environment, m_sourceFilePath );
 
