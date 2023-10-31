@@ -226,6 +226,10 @@ namespace Parser
         ref< ReturnType > returnType;
     }
 
+    object DeciderDef : FunctionDef -> ParserStage::AST
+    {
+    }
+
     object ObjectDef : ContextDef -> ParserStage::AST
     {
         ref< Size > size;

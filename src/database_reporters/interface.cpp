@@ -201,6 +201,13 @@ void InterfaceReporter::recurse( reports::Branch& interfaceTypeIDs, reports::Bra
         // addTransition( pInterupt->get_transition_trait(), node );
         // addEvent( pInterupt->get_events_trait(), node );
     }
+    else if( auto pDecider = db_cast< Decider >( pContext ) )
+    {
+        branch.m_label = { { "Decider "s, Interface::getIdentifier( pContext ) } };
+
+        // addTransition( pInterupt->get_transition_trait(), node );
+        // addEvent( pInterupt->get_events_trait(), node );
+    }
     else if( auto pFunction = db_cast< Function >( pContext ) )
     {
         branch.m_label = { { "Function "s, Interface::getIdentifier( pContext ) } };

@@ -53,10 +53,11 @@ public:
     {
     }
 
-    AutomataStage::Automata::Vertex* recurseAndOrTree( AutomataStage::Database&          database,
-                                                       AutomataStage::Concrete::Context* pContext,
-                                                       AutomataStage::Automata::Vertex*  pParent,
-                                                       U32                               relative_domain )
+    AutomataStage::Automata::Vertex* recurseAndOrTree( AutomataStage::Database&                         database,
+                                                       AutomataStage::Concrete::Context*                pContext,
+                                                       AutomataStage::Automata::Vertex*                 pParent,
+                                                       U32                                              relative_domain,
+                                                       std::vector< AutomataStage::Automata::Vertex* >& tests )
     {
         using namespace AutomataStage;
 
@@ -83,12 +84,19 @@ public:
                     Automata::Vertex::Args{ bParentVertexIsOR, relative_domain, pContext, {} } } } );
                 pParent->push_back_children( pResult );
             }
+
+            if( bParentVertexIsOR )
+            {
+                tests.push_back( pResult );
+            }
+
             relative_domain = 1;
         }
 
         for( auto pChildContext : pContext->get_children() )
         {
-            recurseAndOrTree( database, pChildContext, pResult, relative_domain * pChildContext->get_local_size() );
+            recurseAndOrTree(
+                database, pChildContext, pResult, relative_domain * pChildContext->get_local_size(), tests );
         }
 
         return pResult;
@@ -249,7 +257,8 @@ public:
             AutomataStage::Automata::And* pRoot = database.construct< Automata::And >(
                 { Automata::And::Args{ Automata::Vertex::Args{ false, 1, pObject, {} } } } );
 
-            recurseAndOrTree( database, pObject, pRoot, 1 );
+            std::vector< Automata::Vertex* > tests;
+            recurseAndOrTree( database, pObject, pRoot, 1, tests );
 
             std::vector< Automata::Enum* > enums;
 
@@ -271,7 +280,7 @@ public:
             }
 
             database.construct< Concrete::Object >(
-                { Concrete::Object::Args{ pObject, pRoot, enums, bitsetIndex, switchIndex } } );
+                { Concrete::Object::Args{ pObject, pRoot, tests, enums, bitsetIndex, switchIndex } } );
 
             for( auto pBitset : pObject->get_bitsets() )
             {

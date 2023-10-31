@@ -609,7 +609,34 @@ public:
                 }
             }
             {
-                if( Function* pFunction = db_cast< Function >( pContext ) )
+                if( Decider* pDecider = db_cast< Decider >( pContext ) )
+                {
+                    VERIFY_RTE( !bFoundType );
+                    bFoundType                             = true;
+                    contextData[ "has_operation" ]         = true;
+                    contextData[ "operation_return_type" ] = "bool";
+
+                    auto pEvents = pDecider->get_events_trait();
+                    {
+                        const auto&        args = pEvents->get_args();
+                        std::ostringstream osParameters;
+                        for( int i = 0; i != args.size(); ++i )
+                        {
+                            if( i > 0 )
+                                osParameters << ", ";
+                            osParameters << "const mega::reference& _p" << i;
+                        }
+                        contextData[ "operation_parameters" ] = osParameters.str();
+
+                        const nlohmann::json& trait = getEventsTrait( typenames, pDecider );
+                        contextData[ "trait_structs" ].push_back( trait );
+                        structs.push_back( trait );
+                    }
+
+                    templateEngine.renderContext( contextData, os );
+
+                }
+                else if( Function* pFunction = db_cast< Function >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType                             = true;

@@ -295,6 +295,21 @@ public:
                     []( Interupt* pBuffer, Parser::InteruptDef* pInteruptDef )
                     { pBuffer->push_back_interupt_defs( pInteruptDef ); } );
             }
+            else if( auto pDeciderDef = db_cast< Parser::DeciderDef >( pChildContext ) )
+            {
+                constructOrAggregate< Parser::DeciderDef, Decider >(
+                    database, pComponent, pRoot, pDeciderDef, currentName, namedContexts,
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::DeciderDef* pDeciderDef ) -> Decider*
+                    {
+                        return database.construct< Decider >( Decider::Args{ Body::Args{
+                            InvocationContext::Args{ IContext::Args{
+                                ContextGroup::Args{ std::vector< IContext* >{} }, name, pParent, pComponent } },
+                            { pDeciderDef } } } );
+                    },
+                    []( Decider* pFunction, Parser::DeciderDef* pDeciderDef )
+                    { pFunction->push_back_function_defs( pDeciderDef ); } );
+            }
             else if( auto pFunctionDef = db_cast< Parser::FunctionDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::FunctionDef, Function >(
@@ -302,10 +317,10 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Components::Component* pComponent, Parser::FunctionDef* pFunctionDef ) -> Function*
                     {
-                        return database.construct< Function >( Function::Args(
-                            InvocationContext::Args( IContext::Args(
-                                ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ) ),
-                            { pFunctionDef } ) );
+                        return database.construct< Function >( Function::Args{ Body::Args{
+                            InvocationContext::Args( IContext::Args{
+                                ContextGroup::Args{ std::vector< IContext* >{} }, name, pParent, pComponent } ),
+                            { pFunctionDef } } } );
                     },
                     []( Function* pFunction, Parser::FunctionDef* pFunctionDef )
                     { pFunction->push_back_function_defs( pFunctionDef ); } );
@@ -578,7 +593,7 @@ public:
                 if( !pEventsTrait )
                 {
                     pEventsTrait = database.construct< Interface::EventTypeTrait >(
-                        Interface::EventTypeTrait::Args{ pArguments } );
+                        Interface::EventTypeTrait::Args{ pArguments, pInterupt } );
                     args = pArguments->get_args();
                 }
                 else
@@ -654,6 +669,47 @@ public:
         pFunction->set_arguments_trait( pArgumentListTrait );
         pFunction->set_return_type_trait( pReturnTypeTrait );
         pFunction->set_body( pBody );
+    }
+
+    void onDecider( InterfaceStage::Database& database, InterfaceStage::Interface::Decider* pDecider )
+    {
+        using namespace InterfaceStage;
+
+        Interface::EventTypeTrait* pEventsTrait = nullptr;
+
+        mega::TypeName::Vector args;
+        std::string            strReturnType;
+        Parser::Body*          pBody = nullptr;
+        for( Parser::FunctionDef* pDef : pDecider->get_function_defs() )
+        {
+            VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
+
+            if( pDef->get_body().has_value() )
+            {
+                VERIFY_PARSER( pBody == nullptr, "Decider has duplicate bodies", pDef->get_id() );
+                pBody = pDef->get_body().value();
+            }
+
+            Parser::ArgumentList* pArguments = pDef->get_argumentList();
+            {
+                if( !pEventsTrait )
+                {
+                    pEventsTrait = database.construct< Interface::EventTypeTrait >(
+                        Interface::EventTypeTrait::Args{ pArguments, pDecider } );
+                    args = pArguments->get_args();
+                }
+                else
+                {
+                    VERIFY_PARSER( args == pArguments->get_args(), "Decider arguments mismatch", pDef->get_id() );
+                }
+            }
+        }
+
+        VERIFY_PARSER( pEventsTrait, "Decider missing argument list", pDecider->get_function_defs().front()->get_id() );
+        VERIFY_PARSER( pBody, "Decider missing body", pDecider->get_function_defs().front()->get_id() );
+
+        pDecider->set_events_trait( pEventsTrait );
+        pDecider->set_body( pBody );
     }
     void onObject( InterfaceStage::Database& database, InterfaceStage::Interface::Object* pObject )
     {
@@ -766,6 +822,10 @@ public:
         for( Interface::Function* pFunction : database.many< Interface::Function >( m_sourceFilePath ) )
         {
             onFunction( database, pFunction );
+        }
+        for( Interface::Decider* pDecider : database.many< Interface::Decider >( m_sourceFilePath ) )
+        {
+            onDecider( database, pDecider );
         }
         for( Interface::Object* pObject : database.many< Interface::Object >( m_sourceFilePath ) )
         {

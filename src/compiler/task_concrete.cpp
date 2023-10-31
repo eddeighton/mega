@@ -175,6 +175,10 @@ public:
         {
             // do nothing
         }
+        else if( auto pDecider = db_cast< Interface::Decider >( pContext ) )
+        {
+            // do nothing
+        }
         else if( auto pFunction = db_cast< Interface::Function >( pContext ) )
         {
             // do nothing
@@ -539,12 +543,27 @@ public:
         {
             if( concreteObjectOpt.has_value() )
             {
-                Interupt* pConcrete = database.construct< Interupt >( Interupt::Args{
-                    Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
-                                   pParentContextGroup,
-                                   pInterupt,
-                                   {} },
-                    pInterupt } );
+                Interupt* pConcrete = nullptr;
+
+                if( auto pInterfaceRequirement = db_cast< Interface::Requirement >( pInterupt ) )
+                {
+                    pConcrete = database.construct< Requirement >( Requirement::Args{ Interupt::Args{
+                        Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                       pParentContextGroup,
+                                       pInterupt,
+                                       {} },
+                        pInterupt } } );
+                }
+                else
+                {
+                    pConcrete = database.construct< Interupt >( Interupt::Args{
+                        Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                       pParentContextGroup,
+                                       pInterupt,
+                                       {} },
+                        pInterupt } );
+                }
+
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
 
@@ -578,12 +597,47 @@ public:
                                    pFunction,
                                    {} },
                     pFunction } );
+
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
 
                 IdentifierMap inheritedContexts;
                 {
                     recurseInheritance( database, pConcrete, pFunction, inheritedContexts );
+                    pConcrete->set_inheritance( inheritedContexts.inherited );
+                }
+
+                ContextElements elements
+                    = constructElements( database, pConcrete, inheritedContexts, concreteObjectOpt, pComponent );
+                VERIFY_RTE( elements.dimensions.empty() );
+                VERIFY_RTE( elements.links.empty() );
+
+                pConcrete->set_children( elements.childContexts );
+
+                return pConcrete;
+            }
+            else
+            {
+                return nullptr;
+            }
+        }
+        else if( auto pDecider = db_cast< Interface::Decider >( pContext ) )
+        {
+            if( concreteObjectOpt.has_value() )
+            {
+                Decider* pConcrete = database.construct< Decider >(
+                    Decider::Args{ Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                                  pParentContextGroup,
+                                                  pDecider,
+                                                  {} },
+                                   pDecider } );
+
+                pParentContextGroup->push_back_children( pConcrete );
+                pConcrete->set_concrete_object( concreteObjectOpt );
+
+                IdentifierMap inheritedContexts;
+                {
+                    recurseInheritance( database, pConcrete, pDecider, inheritedContexts );
                     pConcrete->set_inheritance( inheritedContexts.inherited );
                 }
 

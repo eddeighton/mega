@@ -972,10 +972,28 @@ public:
         }
     }
 
-    FunctionDef* parse_function( Database& database )
+    FunctionDef* parse_function( Database& database, bool bIsDecider )
     {
-        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
+        ScopedIdentifier* pScopedIdentifier = nullptr;
+
+        if( bIsDecider )
+        {
+            if( Tok.is( clang::tok::identifier ) )
+            {
+                pScopedIdentifier = parse_scopedIdentifier( database );
+            }
+            else
+            {
+                pScopedIdentifier = generate_unamedScopeIdentifier( database );
+            }
+        }
+        else
+        {
+            pScopedIdentifier = parse_scopedIdentifier( database );
+        }
+
         parse_comment();
+
         ArgumentList* pArgumentList = parse_argumentList( database );
         parse_comment();
         ReturnType* pReturnType = parse_returnType( database );
@@ -1000,7 +1018,15 @@ public:
             }
         }
 
-        return database.construct< FunctionDef >( FunctionDef::Args{ body, pArgumentList, pReturnType } );
+        if( bIsDecider )
+        {
+            return database.construct< DeciderDef >(
+                DeciderDef::Args{ FunctionDef::Args{ body, pArgumentList, pReturnType } } );
+        }
+        else
+        {
+            return database.construct< FunctionDef >( FunctionDef::Args{ body, pArgumentList, pReturnType } );
+        }
     }
 
     ObjectDef* parse_object( Database& database )
@@ -1173,7 +1199,12 @@ public:
             else if( Tok.is( clang::tok::kw_function ) )
             {
                 ConsumeToken();
-                bodyArgs.children.value().push_back( parse_function( database ) );
+                bodyArgs.children.value().push_back( parse_function( database, false ) );
+            }
+            else if( Tok.is( clang::tok::kw_decider ) )
+            {
+                ConsumeToken();
+                bodyArgs.children.value().push_back( parse_function( database, true ) );
             }
             else if( Tok.is( clang::tok::kw_action ) )
             {
@@ -1263,6 +1294,7 @@ public:
                             clang::tok::kw_action,
                             clang::tok::kw_object,
                             clang::tok::kw_function,
+                            clang::tok::kw_decider,
                             clang::tok::kw_event,
                             clang::tok::kw_interface,
                             clang::tok::kw_interupt,

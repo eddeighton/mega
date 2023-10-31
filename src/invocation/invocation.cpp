@@ -798,6 +798,7 @@ class OperationBuilder
         eObjects,
         eComponents,
         eStates,
+        eDeciders,
         eFunctions,
         eEvents,
         eUserDimensions,
@@ -810,6 +811,7 @@ class OperationBuilder
     std::vector< Concrete::Object*              > objects;
     std::vector< Concrete::Component*           > components;
     std::vector< Concrete::State*               > states;
+    std::vector< Concrete::Decider*             > deciders;
     std::vector< Concrete::Function*            > functions;
     std::vector< Concrete::Namespace*           > namespaces;
     std::vector< Concrete::Event*               > events;
@@ -850,6 +852,13 @@ class OperationBuilder
                 VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eStates ),
                                 "Conflicting target types for invocation: " << m_pInvocation->get_id() );
                 m_targetType = eStates;
+            }
+            else if( auto p = db_cast< Concrete::Decider >( pVert ) )
+            {
+                deciders.push_back( p );
+                VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eDeciders ),
+                                "Conflicting target types for invocation: " << m_pInvocation->get_id() );
+                m_targetType = eDeciders;
             }
             else if( auto p = db_cast< Concrete::Function >( pVert ) )
             {
@@ -929,6 +938,18 @@ class OperationBuilder
 
                 m_database.construct< Start >( Start::Args{ m_pInvocation } );
                 m_pInvocation->set_explicit_operation( id_exp_Start );
+            }
+            break;
+            case eDeciders:
+            {
+                // return type is the function return type
+                {
+                    m_pInvocation->set_return_type( m_database.construct< ReturnTypes::Bool >(
+                        ReturnTypes::Bool::Args{ ReturnTypes::ReturnType::Args{} } ) );
+                }
+
+                m_database.construct< Call >( Call::Args{ m_pInvocation } );
+                m_pInvocation->set_explicit_operation( id_exp_Call );
             }
             break;
             case eFunctions:
@@ -1082,6 +1103,9 @@ class OperationBuilder
             case eStates:
                 THROW_RTE( "Start operation cannot have parameters" );
                 break;
+            case eDeciders:
+                THROW_RTE( "Decider cannot be invoked" );
+                break;
             case eFunctions:
             {
                 // return type is the function return type
@@ -1228,6 +1252,11 @@ class OperationBuilder
                 m_pInvocation->set_explicit_operation( id_exp_GetContext );
             }
             break;
+            case eDeciders:
+            {
+                THROW_RTE( "Cannot get a decider" );
+            }
+            break;
             case eFunctions:
             {
                 // reference context of function
@@ -1291,6 +1320,9 @@ class OperationBuilder
                 break;
             case eStates:
                 THROW_RTE( "Cannot remove a state" );
+                break;
+            case eDeciders:
+                THROW_RTE( "Cannot remove a decider" );
                 break;
             case eFunctions:
                 THROW_RTE( "Cannot remove a function" );
@@ -1356,6 +1388,9 @@ class OperationBuilder
             case eStates:
                 THROW_RTE( "Cannot clear a state" );
                 break;
+            case eDeciders:
+                THROW_RTE( "Cannot clear a decider" );
+                break;
             case eFunctions:
                 THROW_RTE( "Cannot clear a function" );
                 break;
@@ -1399,6 +1434,7 @@ class OperationBuilder
             case eObjects:
             case eComponents:
             case eStates:
+            case eDeciders:
             case eFunctions:
             case eEvents:
             case eUserDimensions:
@@ -1421,6 +1457,7 @@ class OperationBuilder
             case eObjects:
             case eComponents:
             case eStates:
+            case eDeciders:
             case eFunctions:
             case eEvents:
             case eUserDimensions:

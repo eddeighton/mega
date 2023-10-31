@@ -58,7 +58,8 @@ OperationsStage::Operations::Invocation* compileInvocation( OperationsStage::Dat
                                                             const SymbolTables&        symbolTables,
                                                             const mega::InvocationID&  id );
 
-void compileSuccessors( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
+void compileTransitions( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
+void compileEvents( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
 
 } // namespace mega::invocation
 

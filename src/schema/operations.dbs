@@ -93,6 +93,10 @@ namespace Operations
         {
         }
 
+        object Bool : ReturnType -> OperationsStage::Operations
+        {
+        }
+
         object Dimension : ReturnType -> OperationsStage::Operations
         {
             array< ref< Interface::DimensionTrait > >   dimensions;

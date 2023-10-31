@@ -446,7 +446,7 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
     if( mega::reporters::isCompilationReportType( url ) )
     {
         auto projectOpt = m_report.getProject();
-        if( projectOpt.has_value() )
+        if( projectOpt.has_value() && boost::filesystem::exists( projectOpt.value().getProjectDatabase() ) )
         {
             VERIFY_RTE_MSG(
                 boost::filesystem::exists( projectOpt.value().getProjectDatabase() ),

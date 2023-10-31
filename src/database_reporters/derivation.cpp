@@ -250,41 +250,70 @@ mega::reports::Container DerivationReporter::generate( const mega::reports::URL&
                 contextBranch.m_elements.push_back( invocationBranch );
             }
 
-            if( auto pState = db_cast< Interface::State >( pContext ) )
-            {
-                auto optTransition = pState->get_transition_trait();
-                if( optTransition.has_value() )
-                {
-                    auto   pDerivation = optTransition.value()->get_derivation();
-                    Branch successor{ { "State Successor"s } };
+            fileBranch.m_elements.push_back( contextBranch );
+        }
 
-                    for( auto pRoot : pDerivation )
+        for( Concrete::Context* pContext : database.many< Concrete::Context >( sourceFilePath ) )
+        {
+            Branch contextBranch{ { Concrete::printContextFullType( pContext ), " "s, pContext->get_concrete_id() },
+                                  {},
+                                  pContext->get_concrete_id() };
+
+            if( auto pState = db_cast< Concrete::State >( pContext ) )
+            {
+                auto transitions = pState->get_transition();
+                if( !transitions.empty() )
+                {
+                    Branch transition{ { "State Transition"s } };
+                    for( auto pRoot : transitions )
                     {
                         Graph graph;
                         generateDerivationGraph( pRoot, graph );
-                        successor.m_elements.push_back( graph );
+                        transition.m_elements.push_back( graph );
                     }
-
-                    contextBranch.m_elements.push_back( successor );
+                    contextBranch.m_elements.push_back( transition );
                 }
             }
-            else if( auto pInterupt = db_cast< Interface::Interupt >( pContext ) )
+            else if( auto pInterupt = db_cast< Concrete::Interupt >( pContext ) )
             {
-                auto optTransition = pInterupt->get_transition_trait();
-                if( optTransition.has_value() )
                 {
-                    auto   pDerivation = optTransition.value()->get_derivation();
-                    Branch successor{ { "Interupt Successor"s } };
+                    auto transitions = pState->get_transition();
+                    if( !transitions.empty() )
+                    {
+                        Branch transition{ { "Interupt Transition"s } };
+                        for( auto pRoot : transitions )
+                        {
+                            Graph graph;
+                            generateDerivationGraph( pRoot, graph );
+                            transition.m_elements.push_back( graph );
+                        }
+                        contextBranch.m_elements.push_back( transition );
+                    }
+                }
 
-                    for( auto pRoot : pDerivation )
+                {
+                    auto   events = pInterupt->get_events();
+                    Branch event{ { "Interupt Event"s } };
+                    for( auto pRoot : events )
                     {
                         Graph graph;
                         generateDerivationGraph( pRoot, graph );
-                        successor.m_elements.push_back( graph );
+                        event.m_elements.push_back( graph );
                     }
-
-                    contextBranch.m_elements.push_back( successor );
+                    contextBranch.m_elements.push_back( event );
                 }
+            }
+            else if( auto pDecider = db_cast< Concrete::Decider >( pContext ) )
+            {
+                auto   variables = pDecider->get_variables();
+                Branch event{ { "Decider Variables"s } };
+                for( auto pRoot : variables )
+                {
+                    Graph graph;
+                    generateDerivationGraph( pRoot, graph );
+                    event.m_elements.push_back( graph );
+                }
+                contextBranch.m_elements.push_back( event );
             }
 
             fileBranch.m_elements.push_back( contextBranch );

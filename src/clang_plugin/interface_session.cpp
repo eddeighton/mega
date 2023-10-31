@@ -782,7 +782,22 @@ public:
             }
         }
         {
-            if( auto pFunction = db_cast< Function >( pContext ) )
+            if( auto pDecider = db_cast< Decider >( pContext ) )
+            {
+                auto pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
+                if( !pCXXRecordDecl )
+                {
+                    REPORT_ERROR( "Invalid decider context type: " << pContext->get_identifier() << "("
+                                                                    << pContext->get_interface_id() << ")" );
+                    return false;
+                }
+                if( !eventAnalysis( pDecider, pDecider->get_events_trait(), result.loc, pCXXRecordDecl ) )
+                {
+                    return false;
+                }
+                bProcess = true;
+            }
+            else if( auto pFunction = db_cast< Function >( pContext ) )
             {
                 auto pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
                 if( !pCXXRecordDecl )

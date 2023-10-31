@@ -70,6 +70,10 @@ namespace Concrete
         {
             return 1;
         }
+        else if( auto pDecider = db_cast< Concrete::Decider >( pContext ) )
+        {
+            return 1;
+        }
         else if( auto pObject = db_cast< Concrete::Object >( pContext ) )
         {
             return 1;

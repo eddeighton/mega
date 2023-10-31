@@ -74,6 +74,7 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor array< ref< Interface::Interupt > >;
+    persource accessor array< ref< Interface::Decider > >;
 }
 
 stage DependencyAnalysis
@@ -411,9 +412,13 @@ stage OperationsStage
     global accessor ref< Symbols::SymbolTable >;
     global accessor ref< Inheritance::Mapping >;
 
+    persource accessor array< ref< Concrete::Context > >;
+    persource accessor array< ref< Concrete::State > >;
+    persource accessor array< ref< Concrete::Interupt > >;
     persource accessor ref< Interface::Root >;
     persource accessor ref< Interface::TransitionTypeTrait >;
     persource accessor ref< Interface::EventTypeTrait >;
+    persource accessor ref< Interface::InvocationContext >;
 }
 
 stage OperationsLocs
@@ -492,6 +497,7 @@ stage FinalStage
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::Component > >;
     persource accessor array< ref< Interface::InvocationContext > >;
+    persource accessor array< ref< Concrete::Context > >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Operations::Invocations >;
     persource accessor array< ref< Concrete::Object > >;

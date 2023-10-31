@@ -134,6 +134,9 @@ namespace Concrete
     object Interupt : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Interupt > interface_interupt;
+
+        array< ref< Derivation::Root > > transition         -> OperationsStage::Operations;
+        late< array< ref< Derivation::Root > > > events     -> OperationsStage::Operations;
     }
 
     object Requirement : Interupt -> ConcreteStage::Concrete
@@ -143,6 +146,13 @@ namespace Concrete
     object Function : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Function > interface_function;
+    }
+
+    object Decider : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Decider > interface_decider;
+
+        array< ref< Derivation::Root > > variables -> OperationsStage::Operations;
     }
 
     object UserDimensionContext : Context  -> ConcreteStage::Concrete
@@ -162,6 +172,8 @@ namespace Concrete
         ref< Interface::State > interface_state;
 
         ref< Automata::Vertex > automata_vertex -> AutomataStage::AutomataAnalysis;
+
+        array< ref< Derivation::Root > > transition -> OperationsStage::Operations;
     }
 
     object Action : State -> ConcreteStage::Concrete
@@ -193,10 +205,11 @@ namespace Concrete
 
         array< ref< UserDimensionContext > > link_contexts -> HyperGraphAnalysisRollout::PerSourceModel;
 
-        ref< Automata::Vertex >         automata_root       -> AutomataStage::AutomataAnalysis;
-        array< ref< Automata::Enum > >  automata_enums      -> AutomataStage::AutomataAnalysis;
-        value< mega::U32 >              total_bitset_index  -> AutomataStage::AutomataAnalysis;
-        value< mega::U32 >              total_switch_index  -> AutomataStage::AutomataAnalysis;
+        ref< Automata::Vertex >             automata_root       -> AutomataStage::AutomataAnalysis;
+        array< ref< Automata::Vertex > >    automata_tests      -> AutomataStage::AutomataAnalysis;
+        array< ref< Automata::Enum > >      automata_enums      -> AutomataStage::AutomataAnalysis;
+        value< mega::U32 >                  total_bitset_index  -> AutomataStage::AutomataAnalysis;
+        value< mega::U32 >                  total_switch_index  -> AutomataStage::AutomataAnalysis;
     }
     
     object MemoryMappedObject : Object -> GlobalMemoryStageRollout::GlobalMemoryRollout

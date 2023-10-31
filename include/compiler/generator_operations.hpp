@@ -220,21 +220,40 @@ private:
 
             data[ "operations" ].push_back( operation );
         }
-        else if( auto pFunction = db_cast< Function >( pContext ) )
+        else if( auto pBody = db_cast< Body >( pContext ) )
         {
-            CleverUtility c( types, pFunction->get_identifier() );
+            CleverUtility c( types, pBody->get_identifier() );
 
             std::ostringstream osArgs;
-            osArgs << pFunction->get_arguments_trait()->get_args();
+            std::ostringstream osReturnType;
+            if( auto pFunction = db_cast< Function >( pBody ) )
+            {
+                osArgs << pFunction->get_arguments_trait()->get_args();
+                osReturnType << pFunction->get_return_type_trait()->get_str();
+            }
+            else if( auto pDecider = db_cast< Decider >( pBody ) )
+            {
+                osReturnType << "bool";
+                auto        pEvents = pDecider->get_events_trait();
+                const auto& args    = pEvents->get_args();
+                {
+                    for( int i = 0; i != args.size(); ++i )
+                    {
+                        if( i > 0 )
+                            osArgs << ", ";
+                        osArgs << "const mega::reference& _p" << i;
+                    }
+                }
+            }
 
             nlohmann::json operation( {
 
-                { "return_type", pFunction->get_return_type_trait()->get_str() },
-                { "body", pFunction->get_body()->get_text() },
-                { "line", pFunction->get_body()->get_line_number() },
-                { "file", pFunction->get_body()->get_file() },
-                { "hash", common::Hash{ pFunction->get_body()->get_text() }.toHexString() },
-                { "typeID", pFunction->get_interface_id().getSymbolID() },
+                { "return_type", osReturnType.str() },
+                { "body", pBody->get_body()->get_text() },
+                { "line", pBody->get_body()->get_line_number() },
+                { "file", pBody->get_body()->get_file() },
+                { "hash", common::Hash{ pBody->get_body()->get_text() }.toHexString() },
+                { "typeID", pBody->get_interface_id().getSymbolID() },
                 { "has_namespaces", !namespaces.empty() },
                 { "namespaces", namespaces },
                 { "types", types },
@@ -243,6 +262,8 @@ private:
                 { "requires_extern", true }
 
             } );
+
+            if( auto pFunction = db_cast< Function >( pBody ) )
             {
                 int iParamCounter = 1;
                 for( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )
@@ -252,6 +273,20 @@ private:
                     nlohmann::json param( { { "type", strParamType }, { "name", osParamName.str() } } );
                     operation[ "params" ].push_back( param );
                 }
+            }
+            else if( auto pDecider = db_cast< Decider >( pBody ) )
+            {
+                auto        pEvents = pDecider->get_events_trait();
+                const auto& args    = pEvents->get_args();
+                {
+                    for( int i = 0; i != args.size(); ++i )
+                    {
+                        std::ostringstream osParamName;
+                        osParamName << "p_" << i;
+                        nlohmann::json param( { { "type", "const mega::reference&" }, { "name", osParamName.str() } } );
+                        operation[ "params" ].push_back( param );
+                    }
+                } 
             }
 
             data[ "operations" ].push_back( operation );

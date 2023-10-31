@@ -322,6 +322,9 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
         addTransition( pInterupt->get_transition_trait(), node );
         addEvent( pInterupt->get_events_trait(), node );
     }
+    else if( auto pDecider = db_cast< Decider >( pContext ) )
+    {
+    }
     else if( auto pFunction = db_cast< Function >( pContext ) )
     {
         os << "Function: " << Interface::getIdentifier( pContext ) << " " << getNodeInfo( pContext );
@@ -686,6 +689,9 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
     {
     }
     else if( Interupt* pInterupt = db_cast< Interupt >( pContext ) )
+    {
+    }
+    else if( Decider* pDecider = db_cast< Decider >( pContext ) )
     {
     }
     else if( Function* pFunction = db_cast< Function >( pContext ) )
