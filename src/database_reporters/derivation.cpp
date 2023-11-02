@@ -53,6 +53,8 @@ namespace FinalStage
 namespace mega::reporters
 {
 
+using namespace FinalStage;
+
 mega::reports::Table legend()
 {
     using namespace std::string_literals;
@@ -78,10 +80,9 @@ mega::reports::Table legend()
     return legend;
 }
 
-void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< FinalStage::Derivation::Edge* > edges,
+void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges,
                reports::Graph& graph )
 {
-    using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
@@ -188,9 +189,8 @@ void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< FinalStage
     }
 }
 
-void DerivationReporter::generateDerivationGraph( FinalStage::Derivation::Root* pRoot, reports::Graph& graph )
+void generateDerivationGraph( FinalStage::Derivation::Root* pRoot, reports::Graph& graph )
 {
-    using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
@@ -201,7 +201,6 @@ void DerivationReporter::generateDerivationGraph( FinalStage::Derivation::Root* 
 
 mega::reports::Container DerivationReporter::generate( const mega::reports::URL& url )
 {
-    using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
@@ -277,7 +276,7 @@ mega::reports::Container DerivationReporter::generate( const mega::reports::URL&
             else if( auto pInterupt = db_cast< Concrete::Interupt >( pContext ) )
             {
                 {
-                    auto transitions = pState->get_transition();
+                    auto transitions = pInterupt->get_transition();
                     if( !transitions.empty() )
                     {
                         Branch transition{ { "Interupt Transition"s } };

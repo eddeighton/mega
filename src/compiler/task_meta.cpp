@@ -62,42 +62,29 @@ public:
         Database database( m_environment, m_sourceFilePath );
 
         using namespace std::string_literals;
-        static const std::vector< std::string > metaTypes = { "OR"s };
+        static const U64                                       TotalMetaTypes = 2;
+        static const std::array< std::string, TotalMetaTypes > metaTypes      = { "OR"s, "Historical"s };
 
         for( Interface::State* pState : database.many< Interface::State >( m_sourceFilePath ) )
         {
-            auto iMetaTypeIter = metaTypes.end();
-            {
-                if( pState->get_inheritance_trait().has_value() )
-                {
-                    auto inheritance = pState->get_inheritance_trait().value();
+            std::array< bool, TotalMetaTypes > metaValues{ false, false };
 
-                    for( const std::string& strIdentifier : inheritance->get_strings() )
+            if( pState->get_inheritance_trait().has_value() )
+            {
+                auto inheritance = pState->get_inheritance_trait().value();
+                for( const std::string& strIdentifier : inheritance->get_strings() )
+                {
+                    auto iFind = std::find( metaTypes.begin(), metaTypes.end(), strIdentifier );
+                    if( iFind != metaTypes.end() )
                     {
-                        auto iFind = std::find( metaTypes.begin(), metaTypes.end(), strIdentifier );
-                        if( iFind != metaTypes.end() )
-                        {
-                            VERIFY_RTE_MSG( iMetaTypeIter == metaTypes.end(),
-                                            "Duplicate meta types detected for action: " << pState->get_identifier() );
-                            iMetaTypeIter = iFind;
-                        }
+                        auto index          = std::distance( metaTypes.begin(), iFind );
+                        metaValues[ index ] = true;
                     }
                 }
             }
 
-            if( iMetaTypeIter == metaTypes.end() )
-            {
-                // default to AND state
-                database.construct< Interface::State >( Interface::State::Args{ pState, false } );
-            }
-            else if( std::distance( metaTypes.begin(), iMetaTypeIter ) == 0 )
-            {
-                database.construct< Interface::State >( Interface::State::Args{ pState, true } );
-            }
-            else
-            {
-                THROW_RTE( "Unreachable" );
-            }
+            database.construct< Interface::State >(
+                Interface::State::Args{ pState, metaValues[ 0 ], metaValues[ 1 ] } );
         }
 
         const task::FileHash fileHashCode = database.save_MetaAnalysis_to_temp();

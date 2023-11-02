@@ -43,6 +43,7 @@ set( DATABASE_REPORTERS_SRC
     ${DATABASE_REPORTERS_SRC}/inheritance.cpp
     ${DATABASE_REPORTERS_SRC}/interface.cpp
     ${DATABASE_REPORTERS_SRC}/symbols.cpp
+    ${DATABASE_REPORTERS_SRC}/bdd.cpp
 )
 
 

@@ -107,9 +107,14 @@ public:
 class DerivationReporter
 {
 public:
-    void generateVertices( FinalStage::Derivation::Step* pStep, reports::Graph& graph );
-    void generateDerivationGraph( FinalStage::Derivation::Root* pRoot, reports::Graph& graph );
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
+};
 
+class BDDReporter
+{
+    mega::reports::Graph makeBDDGraph( FinalStage::Decision::DecisionProcedure* pProcedure );
 public:
     CompilationReportArgs            m_args;
     static const reports::ReporterID ID;

@@ -510,5 +510,7 @@ stage FinalStage
     persource accessor array< ref< Concrete::Dimensions::Link > >;
     persource accessor array< ref< Concrete::Graph::Vertex > >;
     persource accessor array< ref< Concrete::Graph::Edge > >;
+    persource accessor array< ref< Concrete::Interupt > >;
+    persource accessor array< ref< Concrete::State > >;
     
 }

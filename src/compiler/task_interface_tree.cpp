@@ -607,7 +607,7 @@ public:
             {
                 if( !pEventsTrait )
                 {
-                    pEventsTrait = database.construct< Interface::EventTypeTrait >(E
+                    pEventsTrait = database.construct< Interface::EventTypeTrait >(
                         Interface::EventTypeTrait::Args{ pArguments, pInterupt } );
                     args = pArguments->get_args();
                 }

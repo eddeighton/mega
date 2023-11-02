@@ -68,6 +68,7 @@ namespace Decision
 
     object BDDVertex -> ValueSpaceStage::ValueSpace
     {
+        value< bool >           ignored;
         ref< Automata::Vertex > test;
         opt< ref< BDDVertex > > true_vertex;
         opt< ref< BDDVertex > > false_vertex;
@@ -91,7 +92,7 @@ namespace Decision
 
     object DecisionProcedure -> ValueSpaceStage::ValueSpace
     {
-        array< ref< Automata::Vertex > >    test_sequence;
-        ref< BDDVertex >                    root;
+        ref< Concrete::State >  common_ancestor;
+        ref< BDDVertex >        root;
     }
 }

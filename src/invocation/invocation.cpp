@@ -24,6 +24,7 @@
 #include "compiler/derivation.hpp"
 
 #include "mega/values/compilation/operation_id.hpp"
+#include "mega/values/compilation/hyper_graph.hpp"
 
 #include "mega/common_strings.hpp"
 #include "mega/make_unique_without_reorder.hpp"
@@ -37,6 +38,7 @@ namespace OperationsStage
 {
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
+#include "compiler/common_ancestor.hpp"
 namespace Derivation
 {
 #include "compiler/derivation_printer.hpp"
@@ -187,104 +189,9 @@ struct InvocationPolicy
         return result;
     }
 
-    GraphVertex* pathToObjectRoot( GraphVertex* pVertex, GraphEdgeVector& path ) const
+    GraphVertex* commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const
     {
-        while( !db_cast< Concrete::Object >( pVertex ) )
-        {
-            bool bFound = false;
-            for( auto pEdge : pVertex->get_out_edges() )
-            {
-                if( pEdge->get_type().get() == EdgeType::eParent )
-                {
-                    path.push_back( pEdge );
-                    pVertex = pEdge->get_target();
-                    VERIFY_RTE( !bFound );
-                    bFound = true;
-                }
-            }
-            if( !bFound )
-            {
-                THROW_RTE( "Failed to find path to object root from vertex" );
-                return nullptr;
-            }
-        }
-        return pVertex;
-    }
-
-    bool invertObjectRootPath( const GraphEdgeVector& path, GraphEdgeVector& descendingPath ) const
-    {
-        for( auto pEdge : path )
-        {
-            bool bFound = false;
-            for( auto pInverseEdge : pEdge->get_target()->get_out_edges() )
-            {
-                VERIFY_RTE( pEdge->get_target() == pInverseEdge->get_source() );
-                if( pEdge->get_source() == pInverseEdge->get_target() )
-                {
-                    switch( pInverseEdge->get_type().get() )
-                    {
-                        case EdgeType::eChildSingular:
-                        case EdgeType::eLink:
-                        case EdgeType::eDim:
-                        {
-                            descendingPath.push_back( pInverseEdge );
-                            VERIFY_RTE( !bFound );
-                            bFound = true;
-                        }
-                        break;
-                        case EdgeType::eChildNonSingular:
-                            // do no allow non-singular
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-            if( !bFound )
-            {
-                return false;
-            }
-        }
-        std::reverse( descendingPath.begin(), descendingPath.end() );
-        return true;
-    }
-
-    bool commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const
-    {
-        if( pSource == pTarget )
-            return true;
-
-        GraphEdgeVector sourcePath, targetPath;
-        auto            pSourceObject = pathToObjectRoot( pSource, sourcePath );
-        auto            pTargetObject = pathToObjectRoot( pTarget, targetPath );
-
-        // if not the same object then fail
-        if( pSourceObject != pTargetObject )
-            return false;
-
-        // while both paths contain edges then if the edge is the same there is a lower common root
-        while( !sourcePath.empty() && !targetPath.empty() && ( sourcePath.back() == targetPath.back() ) )
-        {
-            sourcePath.pop_back();
-            targetPath.pop_back();
-        }
-
-        GraphEdgeVector descendingPath;
-        if( invertObjectRootPath( targetPath, descendingPath ) )
-        {
-            if( !sourcePath.empty() && !descendingPath.empty() )
-            {
-                VERIFY_RTE( descendingPath.front()->get_source() == sourcePath.back()->get_target() );
-            }
-
-            std::copy( sourcePath.begin(), sourcePath.end(), std::back_inserter( edges ) );
-            std::copy( descendingPath.begin(), descendingPath.end(), std::back_inserter( edges ) );
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return CommonAncestor::commonRootDerivation( pSource, pTarget, edges );
     }
 
     InvocationPolicy( Database& database )

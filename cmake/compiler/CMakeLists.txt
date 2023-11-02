@@ -68,6 +68,7 @@ set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/generator_implementation.hpp
 
     # reusable
+    ${MEGA_API_DIR}/compiler/common_ancestor.hpp
     ${MEGA_API_DIR}/compiler/derivation.hpp
     ${MEGA_API_DIR}/compiler/interface.hpp
     ${MEGA_API_DIR}/compiler/concrete.hpp

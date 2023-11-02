@@ -310,113 +310,11 @@ public:
 
                     return results;
                 }
-
-                using EdgeVector = std::vector< Concrete::Graph::Edge* >;
-                Concrete::Graph::Vertex* pathToObjectRoot( Concrete::Graph::Vertex* pVertex, EdgeVector& path ) const
-                {
-                    while( !db_cast< Concrete::Object >( pVertex ) )
-                    {
-                        bool bFound = false;
-                        for( auto i = edges.lower_bound( pVertex ), iEnd = edges.upper_bound( pVertex ); i != iEnd;
-                             ++i )
-                        {
-                            auto pEdge = i->second;
-                            if( pEdge->get_type().get() == EdgeType::eParent )
-                            {
-                                path.push_back( pEdge );
-                                pVertex = pEdge->get_target();
-                                bFound  = true;
-                                break;
-                            }
-                        }
-                        if( !bFound )
-                        {
-                            THROW_RTE( "Failed to find path to object root from vertex" );
-                            return nullptr;
-                        }
-                    }
-                    return pVertex;
-                }
-
-                bool invertObjectRootPath( const EdgeVector& path, EdgeVector& descendingPath ) const
-                {
-                    for( auto pEdge : path )
-                    {
-                        bool bFound = false;
-                        for( auto i    = edges.lower_bound( pEdge->get_target() ),
-                                  iEnd = edges.upper_bound( pEdge->get_target() );
-                             i != iEnd;
-                             ++i )
-                        {
-                            auto pInverseEdge = i->second;
-                            if( pEdge->get_target() == pInverseEdge->get_source() )
-                            {
-                                switch( pInverseEdge->get_type().get() )
-                                {
-                                    case EdgeType::eChildSingular:
-                                    case EdgeType::eLink:
-                                    case EdgeType::eDim:
-                                    {
-                                        descendingPath.push_back( pInverseEdge );
-                                        bFound = true;
-                                        break;
-                                    }
-                                    case EdgeType::eParent:
-                                    case EdgeType::eChildNonSingular:
-                                    
-                                    case EdgeType::eMonoSingularMandatory:
-                                    case EdgeType::ePolySingularMandatory:
-                                    case EdgeType::eMonoNonSingularMandatory:
-                                    case EdgeType::ePolyNonSingularMandatory:
-                                    case EdgeType::eMonoSingularOptional:
-                                    case EdgeType::ePolySingularOptional:
-                                    case EdgeType::eMonoNonSingularOptional:
-                                    case EdgeType::ePolyNonSingularOptional:
-
-                                    case EdgeType::ePolyParent:
-                                    case EdgeType::TOTAL_EDGE_TYPES:
-                                        break;
-                                }
-                            }
-                        }
-                        if( !bFound )
-                        {
-                            return false;
-                        }
-                    }
-                    std::reverse( descendingPath.begin(), descendingPath.end() );
-                    return true;
-                }
-
-                bool commonRootDerivation( Concrete::Graph::Vertex* pSource, Concrete::Graph::Vertex* pTarget,
+                
+                GraphVertex* commonRootDerivation( Concrete::Graph::Vertex* pSource, Concrete::Graph::Vertex* pTarget,
                                            std::vector< Concrete::Graph::Edge* >& edges ) const
                 {
-                    EdgeVector sourcePath, targetPath;
-                    auto       pSourceObject = pathToObjectRoot( pSource, sourcePath );
-                    auto       pTargetObject = pathToObjectRoot( pTarget, targetPath );
-
-                    // if not the same object then fail
-                    if( pSourceObject != pTargetObject )
-                        return false;
-
-                    // while both paths contain edges then if the edge is the same there is a lower common root
-                    while( !sourcePath.empty() && !targetPath.empty() && ( sourcePath.back() == targetPath.back() ) )
-                    {
-                        sourcePath.pop_back();
-                        targetPath.pop_back();
-                    }
-
-                    std::copy( sourcePath.begin(), sourcePath.end(), std::back_inserter( edges ) );
-                    EdgeVector descendingPath;
-                    if( invertObjectRootPath( targetPath, descendingPath ) )
-                    {
-                        std::copy( targetPath.begin(), targetPath.end(), std::back_inserter( edges ) );
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return CommonAncestor::commonRootDerivation( pSource, pTarget, edges );
                 }
 
             } objectLinkDerivationPolicy{ relations, edges, linkContexts };

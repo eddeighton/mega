@@ -54,7 +54,7 @@ struct ExamplePolicy
     using LinkDimension = std::pair< GraphVertex*, Concrete::Graph::Edge* >;
     GraphEdgeVector     enumerateLinks( GraphVertex* pParentVertex ) const;
     GraphVertexVector   enumerateLinkContexts( GraphVertex* pVertex ) const;
-    bool commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const;
+    GraphVertex* commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const;
 };*/
 
 template < typename TPolicy >

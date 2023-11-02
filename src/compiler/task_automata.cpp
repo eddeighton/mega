@@ -100,6 +100,8 @@ public:
             pResult->set_test_ancestor( testAncestor );
 
             relative_domain = 1;
+
+            database.construct< Concrete::State >( Concrete::State::Args{ pState, pResult } );
         }
 
         for( auto pChildContext : pContext->get_children() )
@@ -247,7 +249,8 @@ public:
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash,
-              m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( m_environment.MetaStage_MetaAnalysis( m_sourceFilePath ) ) } );
 
         if( m_environment.restore( compilationFile, determinant ) )
