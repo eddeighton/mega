@@ -23,9 +23,10 @@
 
 struct CommonAncestor
 {
-    using GraphVertex             = Concrete::Graph::Vertex;
-    using GraphEdge               = Concrete::Graph::Edge;
-    using GraphEdgeVector         = std::vector< GraphEdge* >;
+    using GraphVertex     = Concrete::Graph::Vertex;
+    using GraphEdge       = Concrete::Graph::Edge;
+    using GraphEdgeVector = std::vector< GraphEdge* >;
+
 private:
     static inline GraphVertex* pathToObjectRoot( GraphVertex* pVertex, GraphEdgeVector& path )
     {
@@ -51,7 +52,8 @@ private:
         return pVertex;
     }
 
-    static inline bool invertObjectRootPath( const GraphEdgeVector& path, GraphEdgeVector& descendingPath )
+    static inline bool invertObjectRootPath( const GraphEdgeVector& path, GraphEdgeVector& descendingPath,
+                                             bool bAllowNonSingular )
     {
         for( auto pEdge : path )
         {
@@ -73,7 +75,12 @@ private:
                         }
                         break;
                         case mega::EdgeType::eChildNonSingular:
-                            // do no allow non-singular
+                            if( bAllowNonSingular )
+                            {
+                                descendingPath.push_back( pInverseEdge );
+                                VERIFY_RTE( !bFound );
+                                bFound = true;
+                            }
                             break;
                         default:
                             break;
@@ -88,8 +95,10 @@ private:
         std::reverse( descendingPath.begin(), descendingPath.end() );
         return true;
     }
+
 public:
-    static inline GraphVertex* commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges )
+    static inline GraphVertex* commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges,
+                                                     bool bAllowNonSingular = false )
     {
         if( pSource == pTarget )
         {
@@ -107,17 +116,14 @@ public:
         }
 
         // while both paths contain edges then if the edge is the same there is a lower common root
-        GraphVertex* pCommonAncestor = pSourceObject;
-
         while( !sourcePath.empty() && !targetPath.empty() && ( sourcePath.back() == targetPath.back() ) )
         {
-            pCommonAncestor = sourcePath.back()->get_source();
             sourcePath.pop_back();
             targetPath.pop_back();
         }
 
         GraphEdgeVector descendingPath;
-        if( invertObjectRootPath( targetPath, descendingPath ) )
+        if( invertObjectRootPath( targetPath, descendingPath, bAllowNonSingular ) )
         {
             if( !sourcePath.empty() && !descendingPath.empty() )
             {
@@ -127,14 +133,20 @@ public:
             std::copy( sourcePath.begin(), sourcePath.end(), std::back_inserter( edges ) );
             std::copy( descendingPath.begin(), descendingPath.end(), std::back_inserter( edges ) );
 
-            return pCommonAncestor;
+            if( sourcePath.empty() )
+            {
+                return pSource;
+            }
+            else
+            {
+                return sourcePath.back()->get_target();
+            }
         }
         else
         {
             return nullptr;
         }
     }
-
 };
 
-#endif //GUARD_2023_November_01_common_ancestor
+#endif // GUARD_2023_November_01_common_ancestor

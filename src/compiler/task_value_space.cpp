@@ -197,25 +197,23 @@ private:
 
     Concrete::State* findCommonAncestor( Concrete::State* pState, Concrete::State* pAncestor )
     {
-        if( pAncestor == nullptr )
-        {
-            return pState;
-        }
-        else
-        {
-            CommonAncestor::GraphEdgeVector edges;
-            auto pAncestorVertex = CommonAncestor::commonRootDerivation( pState, pAncestor, edges );
-            pAncestor            = db_cast< Concrete::State >( pAncestorVertex );
-            VERIFY_RTE_MSG( pAncestor,
-                            "Failed to find common ancestor state between: " << Concrete::printContextFullType(
-                                pState ) << " and: " << Concrete::printContextFullType( pAncestor ) );
-            return pAncestor;
-        }
+        VERIFY_RTE( pState && pAncestor );
+
+        CommonAncestor::GraphEdgeVector edges;
+        auto pAncestorVertex = CommonAncestor::commonRootDerivation( pState, pAncestor, edges, true );
+        VERIFY_RTE_MSG( pAncestorVertex,
+                        "Failed to find common ancestor between: " << Concrete::printContextFullType(
+                            pState ) << " and: " << Concrete::printContextFullType( pAncestor ) );
+        pAncestor = db_cast< Concrete::State >( pAncestorVertex );
+        VERIFY_RTE_MSG( pAncestor,
+                        "Failed to find common ancestor state between: " << Concrete::printContextFullType(
+                            pState ) << " and: " << Concrete::printContextFullType( pAncestor ) );
+        return pAncestor;
     }
 
-    Concrete::State* findCommonAncestor( const StateSet& transitionStatesSet )
+    Concrete::State* findCommonAncestor( Concrete::State* pContext, const StateSet& transitionStatesSet )
     {
-        Concrete::State* pCommonAncestor = nullptr;
+        Concrete::State* pCommonAncestor = pContext;
 
         for( auto pState : transitionStatesSet )
         {
@@ -799,7 +797,20 @@ private:
     {
         StateSet transitionStatesSet = fromStateVectorVector( transitionStates );
 
-        Concrete::State* pCommonAncestor = findCommonAncestor( transitionStatesSet );
+        Concrete::State* pContextState = nullptr;
+        {
+            for( auto pIter = pContext; pIter; pIter = db_cast< Concrete::Context >( pIter->get_parent() ) )
+            {
+                if( ( pContextState = db_cast< Concrete::State >( pIter ) ) )
+                {
+                    break;
+                }
+            }
+            VERIFY_RTE_MSG( pContextState, "Failed to determine state assocaited with transition context : "
+                                               << Concrete::printContextFullType( pContext ) );
+        }
+
+        Concrete::State* pCommonAncestor = findCommonAncestor( pContextState, transitionStatesSet );
         VERIFY_RTE_MSG( pCommonAncestor && db_cast< Automata::Or >( pCommonAncestor->get_automata_vertex() ),
                         "Common ancestor should be OR vertex for transition: " << Concrete::printContextFullType(
                             pContext ) << " ancestor: " << Concrete::printContextFullType( pCommonAncestor ) );
