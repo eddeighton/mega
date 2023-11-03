@@ -54,16 +54,17 @@ namespace mega::reporters
 {
 using namespace FinalStage;
 
-mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decision::BDDVertex* pVertex )
+mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decision::Step* pStep )
 {
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    auto pTest    = pVertex->get_test();
-    auto pContext = pTest->get_context();
 
     const mega::reports::Graph::Node::ID nodeID = graph.m_nodes.size();
  
+/*
+    auto pTest    = pVertex->get_test();
+    auto pContext = pTest->get_context();
     Colour bkColour = pVertex->get_ignored() ? Colour::lightgrey : Colour::lightblue;
 
     if( db_cast< Decision::Eliminated >( pVertex ) )
@@ -119,7 +120,7 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
         auto nestedID = recurseNodes( graph, optTrue.value() );
         graph.m_edges.push_back( Graph::Edge{ nodeID, nestedID, Colour::green } );
     }
-
+*/
     return nodeID;
 }
 
@@ -131,7 +132,7 @@ mega::reports::Graph BDDReporter::makeBDDGraph( Decision::DecisionProcedure* pPr
     Graph graph;
     graph.m_rankDirection = Graph::RankDirection::TB;
 
-    recurseNodes( graph, pProcedure->get_root() );
+    // recurseNodes( graph, pProcedure->get_root() );
 
     return graph;
 }

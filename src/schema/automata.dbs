@@ -22,6 +22,7 @@ namespace Automata
     object Vertex -> AutomataStage::AutomataAnalysis
     {
         value< bool >                   is_conditional;
+        value< bool >                   has_requirement;
         value< mega::U32 >              relative_domain;
         ref< Concrete::Context >        context;
         late< opt< ref< Vertex > > >    test_ancestor;
@@ -64,33 +65,31 @@ namespace Automata
 
 namespace Decision
 {
-    object BDDVertex -> ValueSpaceStage::ValueSpace
+    object VariableSet -> ValueSpaceStage::ValueSpace
     {
-        value< bool >           ignored;
-        ref< Automata::Vertex > test;
-        opt< ref< BDDVertex > > true_vertex;
-        opt< ref< BDDVertex > > false_vertex;
+        array< ref< Automata::Vertex > > variables;
     }
 
-    object Eliminated : BDDVertex -> ValueSpaceStage::ValueSpace
+    object Step -> ValueSpaceStage::ValueSpace
     {
+        ref< Concrete::Decider >    decider;
+        array< ref< Step > >        children;
     }
 
-    object True : BDDVertex -> ValueSpaceStage::ValueSpace
+    object Boolean : Step -> ValueSpaceStage::ValueSpace
     {
+        ref< VariableSet > variables;
     }
 
-    object False : BDDVertex -> ValueSpaceStage::ValueSpace
+    object Selection : Step -> ValueSpaceStage::ValueSpace
     {
-    }
-
-    object Decideable : BDDVertex -> ValueSpaceStage::ValueSpace
-    {
+        array< ref< VariableSet > > variable_alternatives;
+        array< value< mega::U32 > > variable_ordering;
     }
 
     object DecisionProcedure -> ValueSpaceStage::ValueSpace
     {
         ref< Concrete::State >  common_ancestor;
-        ref< BDDVertex >        root;
+        ref< Step >             root;
     }
 }

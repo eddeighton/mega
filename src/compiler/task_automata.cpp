@@ -73,21 +73,23 @@ public:
             {
                 bIsConditional = true;
             }
+
+            bool bHasRequirement = false;
             if( !pState->get_requirements().empty() )
             {
-                bIsConditional = true;
+                bHasRequirement = true;
             }
 
             if( pState->get_interface_state()->get_is_or_state() )
             {
-                pResult = database.construct< Automata::Or >(
-                    { Automata::Or::Args{ Automata::Vertex::Args{ bIsConditional, relative_domain, pContext, {} } } } );
+                pResult = database.construct< Automata::Or >( { Automata::Or::Args{
+                    Automata::Vertex::Args{ bIsConditional, bHasRequirement, relative_domain, pContext, {} } } } );
                 pParent->push_back_children( pResult );
             }
             else
             {
                 pResult = database.construct< Automata::And >( { Automata::And::Args{
-                    Automata::Vertex::Args{ bIsConditional, relative_domain, pContext, {} } } } );
+                    Automata::Vertex::Args{ bIsConditional, bHasRequirement, relative_domain, pContext, {} } } } );
                 pParent->push_back_children( pResult );
             }
 
@@ -171,9 +173,11 @@ public:
                 Automata::Enum* pEnum = pParentEnum;
                 Automata::Test* pTest = nullptr;
 
-                if( instance.pVertex->get_is_conditional() || pActionOpt.has_value() )
+                const bool bHasBit = instance.pVertex->get_is_conditional() || instance.pVertex->get_has_requirement();
+
+                if( bHasBit || pActionOpt.has_value() )
                 {
-                    if( instance.pVertex->get_is_conditional() )
+                    if( bHasBit )
                     {
                         pEnum = pTest = database.construct< Automata::Test >(
 
@@ -267,7 +271,7 @@ public:
         for( auto pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
         {
             Automata::And* pRoot = database.construct< Automata::And >(
-                { Automata::And::Args{ Automata::Vertex::Args{ false, 1, pObject, {} } } } );
+                { Automata::And::Args{ Automata::Vertex::Args{ false, false, 1, pObject, {} } } } );
             pRoot->set_test_ancestor( std::nullopt );
 
             std::vector< Automata::Vertex* > tests;

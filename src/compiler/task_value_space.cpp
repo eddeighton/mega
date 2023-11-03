@@ -77,6 +77,50 @@ private:
         }
     }
 
+    using StateVector       = std::vector< Concrete::State* >;
+    using StateVectorVector = std::vector< StateVector >;
+    using StateSet          = std::unordered_set< Concrete::State* >;
+
+    Concrete::State* findCommonAncestor( Concrete::State* pState, Concrete::State* pAncestor )
+    {
+        VERIFY_RTE( pState && pAncestor );
+
+        CommonAncestor::GraphEdgeVector edges;
+        auto pAncestorVertex = CommonAncestor::commonRootDerivation( pState, pAncestor, edges, true );
+        VERIFY_RTE_MSG( pAncestorVertex,
+                        "Failed to find common ancestor between: " << Concrete::printContextFullType(
+                            pState ) << " and: " << Concrete::printContextFullType( pAncestorVertex ) );
+        pAncestor = db_cast< Concrete::State >( pAncestorVertex );
+        VERIFY_RTE_MSG( pAncestor,
+                        "Failed to find common ancestor state between: " << Concrete::printContextFullType(
+                            pState ) << " and: " << Concrete::printContextFullType( pAncestor ) );
+        return pAncestor;
+    }
+
+    Concrete::State* findCommonAncestor( Concrete::State* pContext, const StateVectorVector& transitionStatesSet )
+    {
+        Concrete::State* pCommonAncestor = pContext;
+
+        for( const auto& states : transitionStatesSet )
+        {
+            for( auto pState : states )
+            {
+                pCommonAncestor = findCommonAncestor( pState, pCommonAncestor );
+            }
+        }
+
+        while( pCommonAncestor )
+        {
+            if( db_cast< Automata::Or >( pCommonAncestor->get_automata_vertex() ) )
+            {
+                break;
+            }
+            pCommonAncestor = db_cast< Concrete::State >( pCommonAncestor->get_parent() );
+        }
+
+        return pCommonAncestor;
+    }
+
     struct TruthAssignment
     {
         using Vector       = std::vector< Automata::Vertex* >;
@@ -190,6 +234,291 @@ private:
         }
     }
 
+    void collectTargets( Derivation::Step* pStep, std::vector< Concrete::Graph::Vertex* >& targets )
+    {
+        auto edges = pStep->get_edges();
+        if( edges.empty() )
+        {
+            targets.push_back( pStep->get_vertex() );
+        }
+        else
+        {
+            for( auto pEdge : edges )
+            {
+                if( !pEdge->get_eliminated() )
+                {
+                    collectTargets( pEdge->get_next(), targets );
+                }
+            }
+        }
+    }
+
+    std::vector< Concrete::State* > collectTargetStates( Concrete::Context* pContext, Derivation::Root* pDerivation )
+    {
+        std::vector< Concrete::State* > states;
+        {
+            std::vector< Concrete::Graph::Vertex* > targets;
+            for( auto pEdge : pDerivation->get_edges() )
+            {
+                if( !pEdge->get_eliminated() )
+                {
+                    collectTargets( pEdge->get_next(), targets );
+                }
+            }
+            VERIFY_RTE_MSG( !targets.empty(),
+                            "No derivation targets for derivation: " << Concrete::printContextFullType( pContext ) );
+            for( auto pVertex : targets )
+            {
+                if( auto pState = db_cast< Concrete::State >( pVertex ) )
+                {
+                    states.push_back( pState );
+                }
+                else
+                {
+                    THROW_RTE( "Transition to non-state context: " << Concrete::printContextFullType( pContext ) );
+                }
+            }
+            states = make_unique_without_reorder( states );
+        }
+        return states;
+    }
+
+    StateVectorVector collectDerivationStates( Concrete::Context*                      pContext,
+                                               const std::vector< Derivation::Root* >& transitions )
+    {
+        StateVectorVector transitionStates;
+
+        for( auto pDerivation : transitions )
+        {
+            std::vector< Concrete::State* > states = collectTargetStates( pContext, pDerivation );
+            VERIFY_RTE_MSG(
+                !states.empty(), "Derivation has empty target: " << Concrete::printContextFullType( pContext ) );
+            transitionStates.push_back( states );
+        }
+
+        VERIFY_RTE_MSG(
+            !transitionStates.empty(), "Derivation has no successors: " << Concrete::printContextFullType( pContext ) );
+
+        return transitionStates;
+    }
+
+    using VariableVector = std::vector< Automata::Vertex* >;
+    using TruthTable     = std::vector< Automata::TruthAssignment* >;
+
+    using VarSet = std::unordered_set< Automata::Vertex* >;
+    struct State
+    {
+        // sorted vectors using memory address
+        VariableVector true_vars, false_vars;
+        using Vector = std::vector< State >;
+
+        bool match( const VariableVector& trueVerts, const VariableVector& falseVerts ) const
+        {
+            if( std::includes( true_vars.begin(), true_vars.end(), trueVerts.begin(), trueVerts.end() )
+                && std::includes( false_vars.begin(), false_vars.end(), falseVerts.begin(), falseVerts.end() ) )
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    };
+    State::Vector fromTruthTable( const TruthAssignment::VectorVector& truthTable,
+                                  const VariableVector&                variablesSorted )
+    {
+        State::Vector result;
+        for( const auto& row : truthTable )
+        {
+            State state{ row, {} };
+            std::sort( state.true_vars.begin(), state.true_vars.end() );
+            std::set_difference( variablesSorted.begin(), variablesSorted.end(), state.true_vars.begin(),
+                                 state.true_vars.end(), std::back_inserter( state.false_vars ) );
+            result.push_back( state );
+        }
+        return result;
+    }
+
+    Decision::Step* buildDecisionProcedure( Database& database, Concrete::Context* pContext,
+                                            Concrete::State*                     pCommonAncestor,
+                                            const std::vector< VariableVector >& transitionVariables )
+    {
+        VariableVector variablesSorted;
+        {
+            collectVariables( pCommonAncestor->get_automata_vertex(), variablesSorted );
+            std::sort( variablesSorted.begin(), variablesSorted.end() );
+        }
+
+        State::Vector truthTable
+            = fromTruthTable( solveSatisfiability( pCommonAncestor->get_automata_vertex() ), variablesSorted );
+
+        // std::vector< Decision::BDDVertex* > frontier;
+        std::vector< Decision::VariableSet* > transitionSelectionVariables;
+        VariableVector                        transitionVarsSorted;
+        {
+            for( const VariableVector& vars : transitionVariables )
+            {
+                auto pVariableSet = database.construct< Decision::VariableSet >( Decision::VariableSet::Args{ vars } );
+                transitionSelectionVariables.push_back( pVariableSet );
+                std::copy( vars.begin(), vars.end(), std::back_inserter( transitionVarsSorted ) );
+            }
+            std::sort( transitionVarsSorted.begin(), transitionVarsSorted.end() );
+        }
+
+        VariableVector remainingVarsSorted;
+        {
+            std::set_difference( variablesSorted.begin(), variablesSorted.end(), transitionVarsSorted.begin(),
+                                 transitionVarsSorted.end(), std::back_inserter( remainingVarsSorted ) );
+        }
+
+        Concrete::Decider* pDecider = nullptr;
+
+        std::vector< U32 > variableOrdering;
+
+        Decision::Selection* pSelection = database.construct< Decision::Selection >( Decision::Selection::Args{
+            Decision::Step::Args{ pDecider, {} }, transitionSelectionVariables, variableOrdering } );
+
+        // enumerate variable assignments for each selection
+        for( int i = 0; i != transitionVariables.size(); ++i )
+        {
+            VariableVector trueVerts, falseVerts;
+            {
+                for( int j = 0; j != transitionVariables.size(); ++j )
+                {
+                    const auto& verts = transitionVariables[ j ];
+                    if( i == j )
+                    {
+                        trueVerts = verts;
+                    }
+                    else
+                    {
+                        std::copy( verts.begin(), verts.end(), std::back_inserter( falseVerts ) );
+                    }
+                }
+                std::sort( trueVerts.begin(), trueVerts.end() );
+                std::sort( falseVerts.begin(), falseVerts.end() );
+            }
+
+            std::vector< State::Vector::const_iterator > compatibleStates;
+            for( auto i = truthTable.begin(), iEnd = truthTable.end(); i != iEnd; ++i )
+            {
+                const State& state = *i;
+                if( state.match( trueVerts, falseVerts ) )
+                {
+                    compatibleStates.push_back( i );
+                }
+            }
+
+            VERIFY_RTE_MSG( !compatibleStates.empty(),
+                            "Failed to find compatible truth table states for transition: "
+                                << Concrete::printContextFullType( pContext ) );
+
+            // determine all remaining variables that CAN be both true AND false
+            VariableVector remainingDecideableVars;
+            {
+                VariableVector canBeTrueVars, canBeFalseVars;
+
+                for( auto iter : compatibleStates )
+                {
+                    const State& state = *iter;
+                    {
+                        VariableVector canBeTrueVarsTemp;
+                        std::set_intersection( state.true_vars.begin(), state.true_vars.end(),
+                                               remainingVarsSorted.begin(), remainingVarsSorted.end(),
+                                               std::back_inserter( canBeTrueVarsTemp ) );
+
+                        VariableVector temp;
+                        canBeTrueVars.swap( temp );
+                        std::set_union( canBeTrueVarsTemp.begin(), canBeTrueVarsTemp.end(), temp.begin(), temp.end(),
+                                        std::back_inserter( canBeTrueVars ) );
+                    }
+
+                    {
+                        VariableVector canBeFalseVarsTemp;
+                        std::set_intersection( state.false_vars.begin(), state.false_vars.end(),
+                                               remainingVarsSorted.begin(), remainingVarsSorted.end(),
+                                               std::back_inserter( canBeFalseVarsTemp ) );
+
+                        VariableVector temp;
+                        canBeFalseVars.swap( temp );
+                        std::set_union( canBeFalseVarsTemp.begin(), canBeFalseVarsTemp.end(), temp.begin(), temp.end(),
+                                        std::back_inserter( canBeFalseVars ) );
+                    }
+                }
+
+                // find all variables where BOTH values occur
+                std::set_intersection( canBeTrueVars.begin(), canBeTrueVars.end(), canBeFalseVars.begin(),
+                                       canBeFalseVars.end(), std::back_inserter( remainingDecideableVars ) );
+            }
+
+            // solve decider calls for remainingDecideableVars
+        }
+
+        return pSelection;
+    }
+
+    Decision::DecisionProcedure* compileTransition( Database& database, Concrete::Context* pContext,
+                                                    const StateVectorVector& transitionStates )
+    {
+        // determine the Concrete::State associated with the pContext
+        Concrete::State* pContextState = nullptr;
+        {
+            for( auto pIter = pContext; pIter; pIter = db_cast< Concrete::Context >( pIter->get_parent() ) )
+            {
+                if( ( pContextState = db_cast< Concrete::State >( pIter ) ) )
+                {
+                    break;
+                }
+            }
+            VERIFY_RTE_MSG( pContextState, "Failed to determine state assocaited with transition context : "
+                                               << Concrete::printContextFullType( pContext ) );
+        }
+
+        auto opt = pContext->get_concrete_object();
+        VERIFY_RTE( opt.has_value() );
+        Concrete::Object* pObject = opt.value();
+
+        // const TruthTable                        truthTable = pObject->get_truth_table();
+        // const std::vector< Automata::Vertex* >  variables  = pObject->get_variable_vertices();
+        const std::vector< Concrete::Decider* > deciders = pObject->get_deciders();
+
+        Concrete::State* pCommonAncestor = findCommonAncestor( pContextState, transitionStates );
+
+        // calculate the variable sequence for the transition
+        std::vector< VariableVector >           variableSequence;
+        std::unordered_set< Automata::Vertex* > transitionVariables;
+        {
+            for( const auto& transition : transitionStates )
+            {
+                VariableVector variables;
+                for( auto pState : transition )
+                {
+                    if( auto opt = pState->get_automata_vertex()->get_test_ancestor(); opt.has_value() )
+                    {
+                        auto pVariable = opt.value();
+                        if( !transitionVariables.contains( pVariable ) )
+                        {
+                            transitionVariables.insert( pVariable );
+                            variables.push_back( opt.value() );
+                        }
+                    }
+                }
+                if( !variables.empty() )
+                {
+                    variableSequence.push_back( variables );
+                }
+            }
+        }
+
+        Decision::Step* pRoot = buildDecisionProcedure( database, pContext, pCommonAncestor, variableSequence );
+
+        Decision::DecisionProcedure* pProcedure = database.construct< Decision::DecisionProcedure >(
+            Decision::DecisionProcedure::Args{ pCommonAncestor, pRoot } );
+
+        return pProcedure;
+    }
+
 public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
@@ -212,7 +541,7 @@ public:
 
         Database database( m_environment, m_sourceFilePath );
 
-        // find all deciders in object
+        // find all deciders in object and construct object truth table
         for( Concrete::Object* pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
         {
             DeciderVector deciders;
@@ -239,17 +568,13 @@ public:
         for( Concrete::Interupt* pInterupt : database.many< Concrete::Interupt >( m_sourceFilePath ) )
         {
             auto transitions = pInterupt->get_transition();
-            /*if( !transitions.empty() )
+            if( !transitions.empty() )
             {
-                Decision::DeciderSequence* pDeciderSequence = chooseDeciderSequence( pInterupt );
-                StateVectorVector transitionStates = collectDerivationStates( pInterupt, transitions );
-
                 Decision::DecisionProcedure* pProcedure
-                    = compileTransition( database, pInterupt, pDeciderSequence, transitionStates );
-
+                    = compileTransition( database, pInterupt, collectDerivationStates( pInterupt, transitions ) );
                 database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, pProcedure } );
             }
-            else*/
+            else
             {
                 database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, std::nullopt } );
             }
@@ -257,18 +582,13 @@ public:
         for( Concrete::State* pState : database.many< Concrete::State >( m_sourceFilePath ) )
         {
             auto transitions = pState->get_transition();
-            /*if( !transitions.empty() )
+            if( !transitions.empty() )
             {
-                Decision::DeciderSequence* pDeciderSequence = chooseDeciderSequence( pState );
-
-                StateVectorVector transitionStates = collectDerivationStates( pState, transitions );
-
                 Decision::DecisionProcedure* pProcedure
-                    = compileTransition( database, pState, pDeciderSequence, transitionStates );
-
+                    = compileTransition( database, pState, collectDerivationStates( pState, transitions ) );
                 database.construct< Concrete::State >( Concrete::State::Args{ pState, pProcedure } );
             }
-            else*/
+            else
             {
                 database.construct< Concrete::State >( Concrete::State::Args{ pState, std::nullopt } );
             }
