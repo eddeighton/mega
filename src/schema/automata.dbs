@@ -56,16 +56,14 @@ namespace Automata
         late< value< mega::U32 > >  failure_switch_index;
     }
 
+    object TruthAssignment -> ValueSpaceStage::ValueSpace
+    {
+        array< ref< Vertex > > true_vertices;
+    }
 }
 
 namespace Decision
 {
-    object DeciderSequence -> ValueSpaceStage::ValueSpace
-    {
-        ref< Concrete::State >              state;
-        array< ref< Concrete::Decider > >   deciders;
-    }
-
     object BDDVertex -> ValueSpaceStage::ValueSpace
     {
         value< bool >           ignored;

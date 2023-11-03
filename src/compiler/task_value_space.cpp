@@ -48,54 +48,6 @@ using namespace ValueSpaceStage;
 
 namespace mega::compiler
 {
-namespace
-{
-
-void collectTargets( Derivation::Step* pStep, std::vector< Concrete::Graph::Vertex* >& targets )
-{
-    auto edges = pStep->get_edges();
-    if( edges.empty() )
-    {
-        targets.push_back( pStep->get_vertex() );
-    }
-    else
-    {
-        for( auto pEdge : edges )
-        {
-            collectTargets( pEdge->get_next(), targets );
-        }
-    }
-}
-
-std::vector< Concrete::State* > collectTargetStates( Concrete::Context* pContext, Derivation::Root* pDerivation )
-{
-    std::vector< Concrete::State* > states;
-    {
-        std::vector< Concrete::Graph::Vertex* > targets;
-        for( auto pEdge : pDerivation->get_edges() )
-        {
-            collectTargets( pEdge->get_next(), targets );
-        }
-        VERIFY_RTE_MSG(
-            !targets.empty(), "No derivation targets for derivation: " << Concrete::printContextFullType( pContext ) );
-        for( auto pVertex : targets )
-        {
-            if( auto pState = db_cast< Concrete::State >( pVertex ) )
-            {
-                states.push_back( pState );
-            }
-            else
-            {
-                THROW_RTE( "Transition to non-state context: " << Concrete::printContextFullType( pContext ) );
-            }
-        }
-        states = make_unique_without_reorder( states );
-    }
-    return states;
-}
-
-} // namespace
-
 class Task_ValueSpace : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
@@ -108,733 +60,134 @@ public:
     }
 
 private:
-    Decision::DeciderSequence* chooseDeciderSequence( Concrete::Context* pContext )
-    {
-        VERIFY_RTE( pContext->get_concrete_object().has_value() );
-        auto pObject = pContext->get_concrete_object().value();
+    using DeciderVector = std::vector< Concrete::Decider* >;
 
-        Decision::DeciderSequence* pDeciderSequence = nullptr;
-        {
-            auto deciders = pObject->get_decider_sequences();
-            VERIFY_RTE_MSG(
-                deciders.size() <= 1,
-                "Non singular number of decider sequencers in: " << Concrete::printContextFullType( pObject ) );
-            if( !deciders.empty() )
-            {
-                pDeciderSequence = deciders.front();
-            }
-        }
-        // VERIFY_RTE_MSG(
-        //     pDeciderSequence, "Failed to choose decider sequence for: " << Concrete::printContextFullType( pContext )
-        //     );
-        return pDeciderSequence;
-    }
-
-    using StateVector       = std::vector< Concrete::State* >;
-    using StateVectorVector = std::vector< StateVector >;
-    using StateSet          = std::unordered_set< Concrete::State* >;
-
-    StateVectorVector collectDerivationStates( Concrete::Context*                      pContext,
-                                               const std::vector< Derivation::Root* >& transitions )
-    {
-        StateVectorVector transitionStates;
-
-        for( auto pDerivation : transitions )
-        {
-            std::vector< Concrete::State* > states = collectTargetStates( pContext, pDerivation );
-            VERIFY_RTE_MSG(
-                !states.empty(), "Derivation has empty target: " << Concrete::printContextFullType( pContext ) );
-            transitionStates.push_back( states );
-        }
-
-        VERIFY_RTE_MSG(
-            !transitionStates.empty(), "Derivation has no successors: " << Concrete::printContextFullType( pContext ) );
-
-        return transitionStates;
-    }
-
-    StateSet fromStateVectorVector( const StateVectorVector& states )
-    {
-        StateSet stateSet;
-        for( const auto& s : states )
-        {
-            for( auto pState : s )
-            {
-                stateSet.insert( pState );
-            }
-        }
-        return stateSet;
-    }
-
-    using DeciderSequenceVector = std::vector< Decision::DeciderSequence* >;
-    using DeciderVector         = std::vector< Concrete::Decider* >;
-
-    void findDeciderStates( Database& database, Concrete::Context* pContext, DeciderSequenceVector& sequences,
-                            DeciderVector& deciders )
+    void findDeciders( Concrete::Context* pContext, DeciderVector& deciders )
     {
         using namespace ValueSpaceStage;
-
-        for( auto pChild : pContext->get_children() )
-        {
-            findDeciderStates( database, pChild, sequences, deciders );
-        }
 
         if( auto pDecider = db_cast< Concrete::Decider >( pContext ) )
         {
             deciders.push_back( pDecider );
         }
-        else if( auto pState = db_cast< Concrete::State >( pContext ) )
+
+        for( auto pChild : pContext->get_children() )
         {
-            if( !deciders.empty() )
-            {
-                auto pDeciderSequence = database.construct< Decision::DeciderSequence >(
-                    Decision::DeciderSequence::Args{ pState, deciders } );
-                sequences.push_back( pDeciderSequence );
-                deciders.clear();
-            }
+            findDeciders( pChild, deciders );
         }
     }
 
-    Concrete::State* findCommonAncestor( Concrete::State* pState, Concrete::State* pAncestor )
+    struct TruthAssignment
     {
-        VERIFY_RTE( pState && pAncestor );
+        using Vector       = std::vector< Automata::Vertex* >;
+        using VectorVector = std::vector< Vector >;
 
-        CommonAncestor::GraphEdgeVector edges;
-        auto pAncestorVertex = CommonAncestor::commonRootDerivation( pState, pAncestor, edges, true );
-        VERIFY_RTE_MSG( pAncestorVertex,
-                        "Failed to find common ancestor between: " << Concrete::printContextFullType(
-                            pState ) << " and: " << Concrete::printContextFullType( pAncestor ) );
-        pAncestor = db_cast< Concrete::State >( pAncestorVertex );
-        VERIFY_RTE_MSG( pAncestor,
-                        "Failed to find common ancestor state between: " << Concrete::printContextFullType(
-                            pState ) << " and: " << Concrete::printContextFullType( pAncestor ) );
-        return pAncestor;
-    }
-
-    Concrete::State* findCommonAncestor( Concrete::State* pContext, const StateSet& transitionStatesSet )
-    {
-        Concrete::State* pCommonAncestor = pContext;
-
-        for( auto pState : transitionStatesSet )
+        static VectorVector add( Automata::Vertex* pVertex, const VectorVector& right )
         {
-            pCommonAncestor = findCommonAncestor( pState, pCommonAncestor );
-        }
-
-        while( pCommonAncestor )
-        {
-            if( db_cast< Automata::Or >( pCommonAncestor->get_automata_vertex() ) )
+            VectorVector result;
+            result.reserve( right.size() );
+            for( const Vector& r : right )
             {
-                break;
-            }
-            pCommonAncestor = db_cast< Concrete::State >( pCommonAncestor->get_parent() );
-        }
-
-        return pCommonAncestor;
-    }
-
-    bool recurseEliminatedStates( Concrete::State* pState, const StateSet& transitionStates, StateSet& decidedStates )
-    {
-        bool bIsStateInTransition = transitionStates.contains( pState );
-        if( !bIsStateInTransition )
-        {
-            for( auto pChild : pState->get_children() )
-            {
-                if( auto pChildState = db_cast< Concrete::State >( pChild ) )
+                Vector t;
                 {
-                    if( recurseEliminatedStates( pChildState, transitionStates, decidedStates ) )
+                    t.reserve( 1 + r.size() );
+                    t.push_back( pVertex );
+                    std::copy( r.begin(), r.end(), std::back_inserter( t ) );
+                }
+                result.push_back( t );
+            }
+            return result;
+        }
+
+        static VectorVector multiply( const VectorVector& left, const VectorVector& right )
+        {
+            VectorVector result;
+            result.reserve( left.size() * right.size() );
+            for( const Vector& l : left )
+            {
+                for( const Vector& r : right )
+                {
+                    Vector t;
                     {
-                        bIsStateInTransition = true;
+                        t.reserve( l.size() + r.size() );
+                        std::copy( l.begin(), l.end(), std::back_inserter( t ) );
+                        std::copy( r.begin(), r.end(), std::back_inserter( t ) );
                     }
+                    result.push_back( t );
                 }
             }
-            if( !bIsStateInTransition )
-            {
-                decidedStates.insert( pState );
-            }
+            return result;
         }
-        return bIsStateInTransition;
-    }
-
-    void recurseDecidedStates( Concrete::State* pState, const StateSet& transitionStates,
-                               const StateSet& eliminatedStates, StateSet& decidedStates )
-    {
-        if( !transitionStates.contains( pState ) && !eliminatedStates.contains( pState ) )
-        {
-            if( pState->get_automata_vertex()->get_is_conditional() )
-            {
-                if( !pState->get_interface_state()->get_is_historical() )
-                {
-                    decidedStates.insert( pState );
-                }
-            }
-        }
-
-        for( auto pChild : pState->get_children() )
-        {
-            if( auto pChildState = db_cast< Concrete::State >( pChild ) )
-            {
-                recurseDecidedStates( pChildState, transitionStates, eliminatedStates, decidedStates );
-            }
-        }
-    }
-
-    void findDecidedStates( Concrete::State* pCommonAncestor, const StateSet& transitionStatesSet,
-                            StateSet& eliminatedStates, StateSet& decidedStates )
-    {
-        // ignore the common ancestor if it is NOT in the transitionSet
-        if( !transitionStatesSet.contains( pCommonAncestor ) )
-        {
-            eliminatedStates.insert( pCommonAncestor );
-        }
-
-        // pCommonAncestor is the common ancestor of transitionStates#
-        recurseEliminatedStates( pCommonAncestor, transitionStatesSet, eliminatedStates );
-
-        // given the pDeciderSequence
-        // determine ALL decided states within the common ancestor that ARE NOT already in transitionStates
-        recurseDecidedStates( pCommonAncestor, transitionStatesSet, eliminatedStates, decidedStates );
-    }
-
-    struct DeciderInvocation
-    {
-        using Vector = std::vector< DeciderInvocation >;
-
-        Concrete::Decider*                          pDecider;
-        std::vector< std::set< Concrete::State* > > arguments;
     };
 
-    std::optional< DeciderInvocation > matchDecider( StateVectorVector::const_iterator i,
-                                                     StateVectorVector::const_iterator iEnd,
-                                                     Concrete::Decider*                pDecider,
-                                                     const StateVectorVector&          deciderParams )
+    TruthAssignment::VectorVector solveSatisfiability( Automata::Vertex* pVertex )
     {
-        const auto size      = deciderParams.size();
-        const auto available = std::distance( i, iEnd );
+        TruthAssignment::VectorVector result;
 
-        if( size <= available )
+        auto children = pVertex->get_children();
+
+        if( children.empty() )
         {
-            // allow matching in any order
-            using SetOfStates       = std::set< Concrete::State* >;
-            using SetOfSetsOfStates = std::set< SetOfStates >;
-
-            SetOfSetsOfStates deciderSets;
-            for( const auto& states : deciderParams )
-            {
-                deciderSets.insert( SetOfStates( states.begin(), states.end() ) );
-            }
-
-            SetOfSetsOfStates transitionStates;
-            for( auto j = i; j != ( i + size ); ++j )
-            {
-                const auto& states = *j;
-                transitionStates.insert( SetOfStates( states.begin(), states.end() ) );
-            }
-
-            if( deciderSets == transitionStates )
-            {
-                // TODO - work out the ordering...
-                DeciderInvocation deciderInvocation{ pDecider };
-                return deciderInvocation;
-            }
+            result.push_back( { pVertex } );
         }
-
-        return {};
-    }
-
-    std::optional< DeciderInvocation > matchDecider( const StateSet& remaining, Concrete::Decider* pDecider,
-                                                     const StateVectorVector& deciderParams )
-    {
-        DeciderInvocation deciderInvocation{ pDecider };
-
-        StateSet remainingStates = remaining;
-        for( const auto& states : deciderParams )
+        else
         {
-            for( auto pState : states )
+            if( auto pOr = db_cast< Automata::Or >( pVertex ) )
             {
-                if( remainingStates.contains( pState ) )
+                for( auto pChild : children )
                 {
-                    remainingStates.erase( pState );
-                }
-                else
-                {
-                    return {};
-                }
-            }
-        }
-
-        return deciderInvocation;
-    }
-
-    DeciderInvocation::Vector selectDeciders( Concrete::Context* pContext, Decision::DeciderSequence* pDeciderSequence,
-                                              const StateVectorVector& transitionStates, const StateSet& decidedStates )
-    {
-        DeciderInvocation::Vector result;
-
-        using DeciderParams = std::pair< Concrete::Decider*, StateVectorVector >;
-        std::vector< DeciderParams > deciderParams;
-
-        if( pDeciderSequence )
-        {
-            for( auto pDecider : pDeciderSequence->get_deciders() )
-            {
-                StateVectorVector transitionStates = collectDerivationStates( pDecider, pDecider->get_variables() );
-                deciderParams.emplace_back( pDecider, transitionStates );
-            }
-        }
-
-        // first solve the transitionStates sequence;
-        {
-            auto i    = transitionStates.begin();
-            auto iEnd = transitionStates.end();
-            // no decider required if singular
-            if( std::distance( i, iEnd ) > 1 )
-            {
-                while( i != iEnd )
-                {
-                    bool bMadeProgress = false;
-                    for( const auto& [ pDecider, deciderParams ] : deciderParams )
+                    for( const auto& t : TruthAssignment::add( pChild, solveSatisfiability( pChild ) ) )
                     {
-                        // attempt to match the decider params to the transition states
-
-                        // the deciderParams sequence of sets must match the sequence of transition states but
-                        // in ANY order
-                        if( auto match = matchDecider( i, iEnd, pDecider, deciderParams ); match.has_value() )
-                        {
-                            i += deciderParams.size();
-                            bMadeProgress = true;
-                            result.push_back( match.value() );
-                            break;
-                        }
-                    }
-
-                    VERIFY_RTE_MSG( bMadeProgress,
-                                    "Failed to make progress matching deciders to transition states for: "
-                                        << Concrete::printContextFullType( pContext ) );
-                }
-            }
-        }
-
-        // now solve the decidedStates
-        {
-            StateSet remaining = decidedStates;
-            while( !remaining.empty() )
-            {
-                bool bMadeProgress = false;
-                for( const auto& [ pDecider, deciderParams ] : deciderParams )
-                {
-                    // attempt to match the decider params to the transition states
-
-                    // the deciderParams sequence of sets must match the sequence of transition states but
-                    // in ANY order
-                    if( auto match = matchDecider( remaining, pDecider, deciderParams ); match.has_value() )
-                    {
-                        for( auto pState : fromStateVectorVector( deciderParams ) )
-                        {
-                            remaining.erase( pState );
-                        }
-                        bMadeProgress = true;
-                        result.push_back( match.value() );
+                        result.push_back( t );
                     }
                 }
-
-                if( !bMadeProgress )
+            }
+            else if( auto pAnd = db_cast< Automata::And >( pVertex ) )
+            {
+                bool bFirst = true;
+                for( auto pChild : children )
                 {
-                    std::ostringstream os;
-                    for( auto p : remaining )
+                    if( bFirst )
                     {
-                        os << Concrete::printContextFullType( p ) << " ";
+                        bFirst = false;
+                        result = solveSatisfiability( pChild );
                     }
-                    THROW_RTE( "Failed to make progress matching deciders to decided states for: "
-                               << Concrete::printContextFullType( pContext ) << " remaining: " << os.str() );
+                    else
+                    {
+                        result = TruthAssignment::multiply( result, solveSatisfiability( pChild ) );
+                    }
                 }
+            }
+            else
+            {
+                THROW_RTE( "Unknown automata vertex type" );
             }
         }
 
         return result;
     }
 
-    using VariableSequence = std::vector< Automata::Vertex* >;
-    void getVariableSequence( const StateVectorVector& transitionStates, const StateSet& decidedStates,
-                              const StateSet& eliminatedStates, VariableSequence& decidedVariables,
-                              VariableSequence& ignoredVariables )
+    void collectVariables( Automata::Vertex* pVertex, std::vector< Automata::Vertex* >& variables )
     {
-        // find common ancestor
-        std::unordered_set< Automata::Vertex* > used;
-        {
-            for( const auto& states : transitionStates )
-            {
-                for( auto pState : states )
-                {
-                    if( auto opt = pState->get_automata_vertex()->get_test_ancestor(); opt.has_value() )
-                    {
-                        auto pVertex = opt.value();
-                        if( !used.contains( pVertex ) )
-                        {
-                            decidedVariables.push_back( pVertex );
-                            used.insert( pVertex );
-                        }
-                    }
-                }
-            }
-        }
-        {
-            for( auto pState : decidedStates )
-            {
-                if( auto opt = pState->get_automata_vertex()->get_test_ancestor(); opt.has_value() )
-                {
-                    auto pVertex = opt.value();
-                    if( !used.contains( pVertex ) )
-                    {
-                        decidedVariables.push_back( pVertex );
-                        used.insert( pVertex );
-                    }
-                }
-            }
-        }
-        {
-            for( auto pState : eliminatedStates )
-            {
-                if( auto opt = pState->get_automata_vertex()->get_test_ancestor(); opt.has_value() )
-                {
-                    auto pVertex = opt.value();
-                    if( !used.contains( pVertex ) )
-                    {
-                        ignoredVariables.push_back( pVertex );
-                        used.insert( pVertex );
-                    }
-                }
-            }
-        }
-    }
-
-    Decision::BDDVertex* buildBDDrecurse( Database& database, VariableSequence::const_iterator i,
-                                          VariableSequence::const_iterator iEnd,
-                                          VariableSequence::const_iterator iIgnor,
-                                          VariableSequence::const_iterator iIgnorEnd )
-    {
-        std::optional< Decision::BDDVertex* > left, right;
-
-        if( i != iEnd )
-        {
-            auto iNext = i + 1;
-            if( iNext != iEnd )
-            {
-                left  = buildBDDrecurse( database, iNext, iEnd, iIgnor, iIgnorEnd );
-                right = buildBDDrecurse( database, iNext, iEnd, iIgnor, iIgnorEnd );
-            }
-            else if( iIgnor != iIgnorEnd )
-            {
-                left  = buildBDDrecurse( database, iNext, iEnd, iIgnor, iIgnorEnd );
-                right = buildBDDrecurse( database, iNext, iEnd, iIgnor, iIgnorEnd );
-            }
-            return database.construct< Decision::BDDVertex >( Decision::BDDVertex::Args{ false, *i, left, right } );
-        }
-        else // if ( iIgnor != iIgnorEnd )
-        {
-            auto iNext = iIgnor + 1;
-            if( iNext != iIgnorEnd )
-            {
-                left  = buildBDDrecurse( database, i, iEnd, iNext, iIgnorEnd );
-                right = buildBDDrecurse( database, i, iEnd, iNext, iIgnorEnd );
-            }
-            return database.construct< Decision::BDDVertex >( Decision::BDDVertex::Args{ true, *iIgnor, left, right } );
-        }
-    }
-
-    Decision::BDDVertex* buildBDD( Database& database, const VariableSequence& variableSequence,
-                                   const VariableSequence& ignoredVariables )
-    {
-        VERIFY_RTE( !variableSequence.empty() );
-        Decision::BDDVertex* pRoot = buildBDDrecurse( database, variableSequence.begin(), variableSequence.end(),
-                                                      ignoredVariables.begin(), ignoredVariables.end() );
-
-        return pRoot;
-    }
-
-    struct VariableAssignment
-    {
-        std::map< Automata::Vertex*, bool > assignments;
-    };
-
-    enum TriBool
-    {
-        eTrue,
-        eFalse,
-        eInvalid
-    };
-
-    TriBool recurseEvaluateBooleanExpression( Automata::Vertex* pVertex, const VariableAssignment& assignment )
-    {
-        std::vector< TriBool > results;
-        for( auto pChild : pVertex->get_children() )
-        {
-            const TriBool b = recurseEvaluateBooleanExpression( pChild, assignment );
-            if( b == eInvalid )
-            {
-                return eInvalid;
-            }
-            results.push_back( b );
-        }
-
         if( auto pOr = db_cast< Automata::Or >( pVertex ) )
         {
-            int iCounter = 0;
-            for( auto b : results )
+            for( auto pChild : pVertex->get_children() )
             {
-                if( b == eTrue )
-                {
-                    ++iCounter;
-                }
-            }
-            // NOTE: allow empty OR
-            if( ( iCounter == 1 ) || results.empty() )
-            {
-                if( pVertex->get_is_conditional() )
-                {
-                    auto iFind = assignment.assignments.find( pVertex );
-                    if( iFind == assignment.assignments.end() )
-                    {
-                        return eFalse;
-                    }
-                    else if( !iFind->second )
-                    {
-                        return eFalse;
-                    }
-                }
-                return eTrue;
-            }
-            else
-            {
-                return eInvalid;
+                variables.push_back( pChild );
+                collectVariables( pChild, variables );
             }
         }
         else if( auto pAnd = db_cast< Automata::And >( pVertex ) )
         {
-            int iCounter = 0;
-            for( auto b : results )
+            for( auto pChild : pVertex->get_children() )
             {
-                if( b == eTrue )
-                {
-                    ++iCounter;
-                }
-            }
-            if( iCounter == results.size() )
-            {
-                if( pVertex->get_is_conditional() )
-                {
-                    auto iFind = assignment.assignments.find( pVertex );
-                    if( iFind == assignment.assignments.end() )
-                    {
-                        return eFalse;
-                    }
-                    else if( !iFind->second )
-                    {
-                        return eFalse;
-                    }
-                }
-                return eTrue;
-            }
-            else
-            {
-                return eInvalid;
+                collectVariables( pChild, variables );
             }
         }
         else
         {
             THROW_RTE( "Unknown automata vertex type" );
         }
-    }
-
-    TriBool evaluateBooleanExpression( Concrete::State* pCommonAncestor, const VariableAssignment& assignment )
-    {
-        return recurseEvaluateBooleanExpression( pCommonAncestor->get_automata_vertex(), assignment );
-    }
-
-    enum Classification
-    {
-        eEliminated,
-        eOnlyTrue,
-        eOnlyFalse,
-        eDecideable
-    };
-
-    void classifyVertex( Database& database, Decision::BDDVertex* pVertex, Classification classification )
-    {
-        switch( classification )
-        {
-            case eEliminated:
-            {
-                database.construct< Decision::Eliminated >( Decision::Eliminated::Args{ pVertex } );
-            }
-            break;
-            case eOnlyTrue:
-            {
-                database.construct< Decision::True >( Decision::True::Args{ pVertex } );
-            }
-            break;
-            case eOnlyFalse:
-            {
-                database.construct< Decision::False >( Decision::False::Args{ pVertex } );
-            }
-            break;
-            case eDecideable:
-            {
-                database.construct< Decision::Decideable >( Decision::Decideable::Args{ pVertex } );
-            }
-            break;
-        }
-    }
-
-    bool classifyBDDrecurse( Database& database, Concrete::State* pCommonAncestor, Decision::BDDVertex* pVertex,
-                             VariableAssignment& assignment )
-    {
-        Classification result;
-        // is this vertex a leaf node ?
-        if( !pVertex->get_false_vertex().has_value() )
-        {
-            // if so evaluate the boolean expression for both true and false
-            assignment.assignments[ pVertex->get_test() ] = false;
-            const TriBool falseResult                     = evaluateBooleanExpression( pCommonAncestor, assignment );
-            assignment.assignments[ pVertex->get_test() ] = true;
-            const TriBool trueResult                      = evaluateBooleanExpression( pCommonAncestor, assignment );
-
-            if( falseResult == eTrue )
-            {
-                if( trueResult == eTrue )
-                {
-                    result = eDecideable;
-                }
-                else
-                {
-                    result = eOnlyFalse;
-                }
-            }
-            else
-            {
-                if( trueResult == eTrue )
-                {
-                    result = eOnlyTrue;
-                }
-                else
-                {
-                    result = eEliminated;
-                }
-            }
-        }
-        else
-        {
-            assignment.assignments[ pVertex->get_test() ] = false;
-            const bool falseResult
-                = classifyBDDrecurse( database, pCommonAncestor, pVertex->get_false_vertex().value(), assignment );
-            assignment.assignments[ pVertex->get_test() ] = true;
-            const bool trueResult
-                = classifyBDDrecurse( database, pCommonAncestor, pVertex->get_true_vertex().value(), assignment );
-
-            if( falseResult )
-            {
-                if( trueResult )
-                {
-                    result = eDecideable;
-                }
-                else
-                {
-                    result = eOnlyFalse;
-                }
-            }
-            else
-            {
-                if( trueResult )
-                {
-                    result = eOnlyTrue;
-                }
-                else
-                {
-                    result = eEliminated;
-                }
-            }
-        }
-
-        classifyVertex( database, pVertex, result );
-        return result != eEliminated;
-    }
-
-    void classifyBDD( Database& database, Concrete::State* pCommonAncestor, Decision::BDDVertex* pVertex )
-    {
-        VariableAssignment assignment;
-        classifyBDDrecurse( database, pCommonAncestor, pVertex, assignment );
-    }
-
-    void validateBDD( Decision::BDDVertex* pVertex, const DeciderInvocation::Vector& deciderSequence )
-    {
-        // for the sequences of sets ensure ignoring requirements that ALL exclusive and inclusive
-        // semantics are correctly possible given the BDD
-    }
-
-    Decision::DecisionProcedure* buildDecisionProcedure( Database& database, Decision::BDDVertex* pRoot,
-                                                         Concrete::State*                 pCommonAncestor,
-                                                         const DeciderInvocation::Vector& deciders )
-    {
-        // for each step in reduced binary tree
-
-        // 1. Determine associated decider callback if required
-
-        // 2. Determine how to call the decider callback - i.e. derivation from variables to states and
-        // dealing with parameter orders for decider
-
-        // 3. For all possible decider return values determine consequence including
-
-        // 4. How to actually set the activation state bits
-
-        Decision::DecisionProcedure* pProcedure = database.construct< Decision::DecisionProcedure >(
-            Decision::DecisionProcedure::Args{ pCommonAncestor, pRoot } );
-
-        return pProcedure;
-    }
-
-    Decision::DecisionProcedure* compileTransition( Database& database, Concrete::Context* pContext,
-                                                    Decision::DeciderSequence* pDeciderSequence,
-                                                    const StateVectorVector&   transitionStates )
-    {
-        StateSet transitionStatesSet = fromStateVectorVector( transitionStates );
-
-        Concrete::State* pContextState = nullptr;
-        {
-            for( auto pIter = pContext; pIter; pIter = db_cast< Concrete::Context >( pIter->get_parent() ) )
-            {
-                if( ( pContextState = db_cast< Concrete::State >( pIter ) ) )
-                {
-                    break;
-                }
-            }
-            VERIFY_RTE_MSG( pContextState, "Failed to determine state assocaited with transition context : "
-                                               << Concrete::printContextFullType( pContext ) );
-        }
-
-        Concrete::State* pCommonAncestor = findCommonAncestor( pContextState, transitionStatesSet );
-        VERIFY_RTE_MSG( pCommonAncestor && db_cast< Automata::Or >( pCommonAncestor->get_automata_vertex() ),
-                        "Common ancestor should be OR vertex for transition: " << Concrete::printContextFullType(
-                            pContext ) << " ancestor: " << Concrete::printContextFullType( pCommonAncestor ) );
-
-        StateSet eliminatedStates;
-        StateSet decidedStates;
-        findDecidedStates( pCommonAncestor, transitionStatesSet, eliminatedStates, decidedStates );
-
-        const DeciderInvocation::Vector deciders
-            = selectDeciders( pContext, pDeciderSequence, transitionStates, decidedStates );
-
-        VariableSequence decidedVariables;
-        VariableSequence ignoredVariables;
-        getVariableSequence( transitionStates, decidedStates, eliminatedStates, decidedVariables, ignoredVariables );
-
-        Decision::BDDVertex* pRoot = buildBDD( database, decidedVariables, ignoredVariables );
-
-        classifyBDD( database, pCommonAncestor, pRoot );
-
-        validateBDD( pRoot, deciders );
-
-        Decision::DecisionProcedure* pProcedure = buildDecisionProcedure( database, pRoot, pCommonAncestor, deciders );
-
-        return pProcedure;
     }
 
 public:
@@ -859,24 +212,36 @@ public:
 
         Database database( m_environment, m_sourceFilePath );
 
-        // determine the decider sequences
+        // find all deciders in object
         for( Concrete::Object* pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
         {
-            DeciderSequenceVector sequences;
-            DeciderVector         deciders;
-            findDeciderStates( database, pObject, sequences, deciders );
+            DeciderVector deciders;
+            findDeciders( pObject, deciders );
 
-            database.construct< Concrete::Object >( Concrete::Object::Args{ pObject, sequences } );
+            std::vector< Automata::TruthAssignment* > truthTable;
+            {
+                for( const auto& truthAssignments : solveSatisfiability( pObject->get_automata_root() ) )
+                {
+                    auto pTruthAssignment = database.construct< Automata::TruthAssignment >(
+                        Automata::TruthAssignment::Args{ truthAssignments } );
+                    truthTable.push_back( pTruthAssignment );
+                };
+            }
+
+            std::vector< Automata::Vertex* > variables;
+            collectVariables( pObject->get_automata_root(), variables );
+
+            database.construct< Concrete::Object >(
+                Concrete::Object::Args{ pObject, deciders, truthTable, variables } );
         }
 
         // determine decision procedures for each transition
         for( Concrete::Interupt* pInterupt : database.many< Concrete::Interupt >( m_sourceFilePath ) )
         {
             auto transitions = pInterupt->get_transition();
-            if( !transitions.empty() )
+            /*if( !transitions.empty() )
             {
                 Decision::DeciderSequence* pDeciderSequence = chooseDeciderSequence( pInterupt );
-
                 StateVectorVector transitionStates = collectDerivationStates( pInterupt, transitions );
 
                 Decision::DecisionProcedure* pProcedure
@@ -884,7 +249,7 @@ public:
 
                 database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, pProcedure } );
             }
-            else
+            else*/
             {
                 database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, std::nullopt } );
             }
@@ -892,7 +257,7 @@ public:
         for( Concrete::State* pState : database.many< Concrete::State >( m_sourceFilePath ) )
         {
             auto transitions = pState->get_transition();
-            if( !transitions.empty() )
+            /*if( !transitions.empty() )
             {
                 Decision::DeciderSequence* pDeciderSequence = chooseDeciderSequence( pState );
 
@@ -903,7 +268,7 @@ public:
 
                 database.construct< Concrete::State >( Concrete::State::Args{ pState, pProcedure } );
             }
-            else
+            else*/
             {
                 database.construct< Concrete::State >( Concrete::State::Args{ pState, std::nullopt } );
             }

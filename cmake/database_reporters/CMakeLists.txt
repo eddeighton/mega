@@ -44,6 +44,7 @@ set( DATABASE_REPORTERS_SRC
     ${DATABASE_REPORTERS_SRC}/interface.cpp
     ${DATABASE_REPORTERS_SRC}/symbols.cpp
     ${DATABASE_REPORTERS_SRC}/bdd.cpp
+    ${DATABASE_REPORTERS_SRC}/truth_table.cpp
 )
 
 

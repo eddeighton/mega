@@ -67,7 +67,9 @@ public:
 
         task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.OperationsTemplate(), m_environment.OperationsExternsTemplate(),
+              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
               m_environment.getBuildHashCode(
                   m_environment.ConcreteTypeRollout_PerSourceConcreteTable( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( concreteFile ) } );
