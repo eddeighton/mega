@@ -59,68 +59,113 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
     using namespace std::string_literals;
     using namespace mega::reports;
 
+    Graph::Node node;
 
-    const mega::reports::Graph::Node::ID nodeID = graph.m_nodes.size();
- 
-/*
-    auto pTest    = pVertex->get_test();
-    auto pContext = pTest->get_context();
-    Colour bkColour = pVertex->get_ignored() ? Colour::lightgrey : Colour::lightblue;
-
-    if( db_cast< Decision::Eliminated >( pVertex ) )
+    if( auto pNothing = db_cast< Decision::Nothing >( pStep ) )
     {
-        graph.m_nodes.push_back(
-            Graph::Node{ { { Concrete::printContextFullType( pContext ), pContext->get_concrete_id() },
-                           { "BDD Vertex Type"s, "Eliminated"s },
-                           { "Ignored"s, pVertex->get_ignored() ? "true"s : "false"s }
-
-                         },
-                         Colour::red, std::nullopt, std::nullopt, bkColour } );
+        node.m_rows.push_back( { "BDD Vertex Type"s, "Nothing"s } );
+        node.m_colour = Colour::red;
     }
-    else if( db_cast< Decision::True >( pVertex ) )
+    else if( auto pBoolean = db_cast< Decision::Boolean >( pStep ) )
     {
-        graph.m_nodes.push_back(
-            Graph::Node{ { { Concrete::printContextFullType( pContext ), pContext->get_concrete_id() },
-                           { "BDD Vertex Type"s, "True"s },
-                           { "Ignored"s, pVertex->get_ignored() ? "true"s : "false"s } },
+        auto optDecider = pStep->get_decider();
+        if( !optDecider.has_value() )
+        {
+            node.m_rows.push_back( { "BDD Vertex Type"s, "Boolean"s } );
+            node.m_colour = Colour::green;
 
-                         Colour::lightgreen, std::nullopt, std::nullopt, bkColour } );
+            auto pVarSet = pBoolean->get_variables();
+            for( auto pVar : pVarSet->get_variables() )
+            {
+                node.m_rows.push_back(
+                    { Concrete::printContextFullType( pVar->get_context() ), pVar->get_context()->get_concrete_id() } );
+            }
+        }
+        else
+        {
+            auto pDecider = optDecider.value();
+
+            node.m_rows.push_back( { "BDD Vertex Type"s, "Boolean"s } );
+            node.m_rows.push_back(
+                { "Decider"s, Concrete::printContextFullType( pDecider ), pDecider->get_concrete_id() } );
+            node.m_colour = Colour::blue;
+
+            auto pVarSet = pBoolean->get_variables();
+            for( auto pVar : pVarSet->get_variables() )
+            {
+                node.m_rows.push_back(
+                    { Concrete::printContextFullType( pVar->get_context() ), pVar->get_context()->get_concrete_id() } );
+            }
+        }
     }
-    else if( db_cast< Decision::False >( pVertex ) )
+    else if( auto pSelection = db_cast< Decision::Selection >( pStep ) )
     {
-        graph.m_nodes.push_back(
-            Graph::Node{ { { Concrete::printContextFullType( pContext ), pContext->get_concrete_id() },
-                           { "BDD Vertex Type"s, "False"s },
-                           { "Ignored"s, pVertex->get_ignored() ? "true"s : "false"s } },
+        auto optDecider = pStep->get_decider();
+        if( !optDecider.has_value() )
+        {
+            node.m_rows.push_back( { "BDD Vertex Type"s, "Selection"s } );
+            node.m_colour = Colour::green;
 
-                         Colour::lightblue, std::nullopt, std::nullopt, bkColour } );
-    }
-    else if( db_cast< Decision::Decideable >( pVertex ) )
-    {
-        graph.m_nodes.push_back(
-            Graph::Node{ { { Concrete::printContextFullType( pContext ), pContext->get_concrete_id() },
-                           { "BDD Vertex Type"s, "Decideable"s },
-                           { "Ignored"s, pVertex->get_ignored() ? "true"s : "false"s } },
+            auto alternatives = pSelection->get_variable_ordering();
+            auto altIter      = alternatives.begin();
+            for( auto pVarSet : pSelection->get_variable_alternatives() )
+            {
+                for( auto pVar : pVarSet->get_variables() )
+                {
+                    node.m_rows.push_back( { std::to_string( *altIter ),
+                                             Concrete::printContextFullType( pVar->get_context() ),
+                                             pVar->get_context()->get_concrete_id() } );
+                }
+                ++altIter;
+            }
+        }
+        else
+        {
+            auto pDecider = optDecider.value();
+            node.m_rows.push_back( { "BDD Vertex Type"s, "Selection"s } );
+            node.m_rows.push_back(
+                { "Decider"s, Concrete::printContextFullType( pDecider ), pDecider->get_concrete_id() } );
+            node.m_colour = Colour::blue;
 
-                         Colour::green, std::nullopt, std::nullopt, bkColour } );
+            auto alternatives = pSelection->get_variable_ordering();
+            auto altIter      = alternatives.begin();
+            for( auto pVarSet : pSelection->get_variable_alternatives() )
+            {
+                for( auto pVar : pVarSet->get_variables() )
+                {
+                    node.m_rows.push_back( { std::to_string( *altIter ),
+                                             Concrete::printContextFullType( pVar->get_context() ),
+                                             pVar->get_context()->get_concrete_id() } );
+                }
+                ++altIter;
+            }
+        }
     }
     else
     {
-        THROW_RTE( "Unknown BDDVertex type" );
+        THROW_RTE( "Unknown decision step type" );
     }
 
-    if( auto optFalse = pVertex->get_false_vertex(); optFalse.has_value() )
+    for( auto pTrueVar : pStep->get_vars_true() )
     {
-        auto nestedID = recurseNodes( graph, optFalse.value() );
-        graph.m_edges.push_back( Graph::Edge{ nodeID, nestedID, Colour::red } );
+        node.m_rows.push_back( { "TRUE"s, Concrete::printContextFullType( pTrueVar->get_context() ),
+                                 pTrueVar->get_context()->get_concrete_id() } );
+    }
+    for( auto pFalseVar : pStep->get_vars_false() )
+    {
+        node.m_rows.push_back( { "FALSE"s, Concrete::printContextFullType( pFalseVar->get_context() ),
+                                 pFalseVar->get_context()->get_concrete_id() } );
     }
 
-    if( auto optTrue = pVertex->get_true_vertex(); optTrue.has_value() )
+    const mega::reports::Graph::Node::ID nodeID = graph.m_nodes.size();
+    graph.m_nodes.push_back( node );
+
+    for( auto pChild : pStep->get_children() )
     {
-        auto nestedID = recurseNodes( graph, optTrue.value() );
-        graph.m_edges.push_back( Graph::Edge{ nodeID, nestedID, Colour::green } );
+        auto nestedID = recurseNodes( graph, pChild );
+        graph.m_edges.push_back( Graph::Edge{ nodeID, nestedID } );
     }
-*/
+
     return nodeID;
 }
 
@@ -132,7 +177,7 @@ mega::reports::Graph BDDReporter::makeBDDGraph( Decision::DecisionProcedure* pPr
     Graph graph;
     graph.m_rankDirection = Graph::RankDirection::TB;
 
-    // recurseNodes( graph, pProcedure->get_root() );
+    recurseNodes( graph, pProcedure->get_root() );
 
     return graph;
 }

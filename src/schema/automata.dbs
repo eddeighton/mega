@@ -72,8 +72,17 @@ namespace Decision
 
     object Step -> ValueSpaceStage::ValueSpace
     {
-        ref< Concrete::Decider >    decider;
-        array< ref< Step > >        children;
+        opt< ref< Concrete::Decider > >     decider;
+        array< ref< Automata::Vertex > >    vars_true;
+        array< ref< Automata::Vertex > >    vars_false;
+        array< ref< Step > >                children;
+    }
+
+    object Nothing : Step -> ValueSpaceStage::ValueSpace
+    {
+        // Since selection array of substeps MUST match 
+        // the actual selection alternatives then need
+        // a nothing step for case where no further steps
     }
 
     object Boolean : Step -> ValueSpaceStage::ValueSpace
