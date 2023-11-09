@@ -40,12 +40,14 @@ set( VALUE_TESTS_DIR ${MEGA_TEST_DIR}/value_tests )
 
 set( VALUE_UNIT_TESTS
 	${VALUE_TESTS_DIR}/arguments_tests.cpp
+	${VALUE_TESTS_DIR}/bitset_tests.cpp
+	${VALUE_TESTS_DIR}/component_info_tests.cpp
+	${VALUE_TESTS_DIR}/reference_tests.cpp
 	${VALUE_TESTS_DIR}/relation_id_tests.cpp
+	${VALUE_TESTS_DIR}/report_value_tests.cpp
 	${VALUE_TESTS_DIR}/sub_type_instance_tests.cpp
 	${VALUE_TESTS_DIR}/type_id_tests.cpp
-	${VALUE_TESTS_DIR}/report_value_tests.cpp
 
-	#${VALUE_TESTS_DIR}/reference_tests.cpp
 	)
 
 enable_testing()

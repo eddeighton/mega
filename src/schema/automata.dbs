@@ -22,6 +22,7 @@ namespace Automata
     object Vertex -> AutomataStage::AutomataAnalysis
     {
         value< bool >                   is_conditional;
+        value< bool >                   is_historical;
         value< bool >                   has_requirement;
         value< mega::U32 >              relative_domain;
         ref< Concrete::Context >        context;
@@ -57,7 +58,7 @@ namespace Automata
         late< value< mega::U32 > >  failure_switch_index;
     }
 
-    object TruthAssignment -> ValueSpaceStage::ValueSpace
+    object TruthAssignment -> OperationsStage::Operations
     {
         array< ref< Vertex > > true_vertices;
     }
@@ -65,38 +66,39 @@ namespace Automata
 
 namespace Decision
 {
-    object VariableSet -> ValueSpaceStage::ValueSpace
+    object VariableSet -> OperationsStage::Operations
     {
         array< ref< Automata::Vertex > > variables;
     }
 
-    object Step -> ValueSpaceStage::ValueSpace
+    object Step -> OperationsStage::Operations
     {
-        opt< ref< Concrete::Decider > >     decider;
-        array< ref< Automata::Vertex > >    vars_true;
-        array< ref< Automata::Vertex > >    vars_false;
-        array< ref< Step > >                children;
+        opt< ref< Concrete::Decider > >             decider;
+        array< ref< Automata::Vertex > >            assignment;
+        array< ref< Automata::Vertex > >            vars_true;
+        array< ref< Automata::Vertex > >            vars_false;
+        array< ref< Step > >                        children;
     }
 
-    object Nothing : Step -> ValueSpaceStage::ValueSpace
+    object Nothing : Step -> OperationsStage::Operations
     {
         // Since selection array of substeps MUST match 
         // the actual selection alternatives then need
         // a nothing step for case where no further steps
     }
 
-    object Boolean : Step -> ValueSpaceStage::ValueSpace
+    object Boolean : Step -> OperationsStage::Operations
     {
         ref< VariableSet > variables;
     }
 
-    object Selection : Step -> ValueSpaceStage::ValueSpace
+    object Selection : Step -> OperationsStage::Operations
     {
         array< ref< VariableSet > > variable_alternatives;
         array< value< mega::U32 > > variable_ordering;
     }
 
-    object DecisionProcedure -> ValueSpaceStage::ValueSpace
+    object DecisionProcedure -> OperationsStage::Operations
     {
         ref< Concrete::State >  common_ancestor;
         ref< Step >             root;

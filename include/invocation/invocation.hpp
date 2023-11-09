@@ -61,6 +61,8 @@ OperationsStage::Operations::Invocation* compileInvocation( OperationsStage::Dat
 void compileTransitions( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
 void compileEvents( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
 
+void compileDecisions( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
+
 } // namespace mega::invocation
 
 #endif // INVOCATION_6_JUNE_2022

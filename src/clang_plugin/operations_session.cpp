@@ -784,6 +784,7 @@ public:
 
                 mega::invocation::compileTransitions( m_database, m_sourceFile );
                 mega::invocation::compileEvents( m_database, m_sourceFile );
+                mega::invocation::compileDecisions( m_database, m_sourceFile );
 
                 m_database.construct< Operations::Invocations >(
                     Operations::Invocations::Args{ m_invocationsMap, operators } );

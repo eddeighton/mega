@@ -23,7 +23,7 @@
 
 #include "mega/values/runtime/reference.hpp"
 
-#include "type_id_limits.hpp"
+#include "mega/values/compilation/type_id_limits.hpp"
 
 #include <limits>
 

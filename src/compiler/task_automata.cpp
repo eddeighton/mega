@@ -74,6 +74,12 @@ public:
                 bIsConditional = true;
             }
 
+            bool bIsHistorical = false;
+            if( auto pParentState = db_cast< Concrete::State >( pParent->get_context() ) )
+            {
+                bIsHistorical = pParentState->get_interface_state()->get_is_historical();
+            }
+
             bool bHasRequirement = false;
             if( !pState->get_requirements().empty() )
             {
@@ -83,13 +89,13 @@ public:
             if( pState->get_interface_state()->get_is_or_state() )
             {
                 pResult = database.construct< Automata::Or >( { Automata::Or::Args{
-                    Automata::Vertex::Args{ bIsConditional, bHasRequirement, relative_domain, pContext, {} } } } );
+                    Automata::Vertex::Args{ bIsConditional, bIsHistorical, bHasRequirement, relative_domain, pContext, {} } } } );
                 pParent->push_back_children( pResult );
             }
             else
             {
                 pResult = database.construct< Automata::And >( { Automata::And::Args{
-                    Automata::Vertex::Args{ bIsConditional, bHasRequirement, relative_domain, pContext, {} } } } );
+                    Automata::Vertex::Args{ bIsConditional, bIsHistorical, bHasRequirement, relative_domain, pContext, {} } } } );
                 pParent->push_back_children( pResult );
             }
 
@@ -271,7 +277,7 @@ public:
         for( auto pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
         {
             Automata::And* pRoot = database.construct< Automata::And >(
-                { Automata::And::Args{ Automata::Vertex::Args{ false, false, 1, pObject, {} } } } );
+                { Automata::And::Args{ Automata::Vertex::Args{ false, false, false, 1, pObject, {} } } } );
             pRoot->set_test_ancestor( std::nullopt );
 
             std::vector< Automata::Vertex* > tests;

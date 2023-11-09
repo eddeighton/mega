@@ -415,11 +415,15 @@ stage OperationsStage
     persource accessor array< ref< Concrete::Context > >;
     persource accessor array< ref< Concrete::State > >;
     persource accessor array< ref< Concrete::Interupt > >;
+    persource accessor array< ref< Concrete::Object > >;
+    persource accessor array< ref< Interface::InvocationContext > >;
+    persource accessor array< ref< Interface::TransitionTypeTrait > >;
+    persource accessor array< ref< Interface::EventTypeTrait > >;
+    
+    persource accessor ref< Operations::Invocations >;
     persource accessor ref< Interface::Root >;
-    persource accessor ref< Interface::TransitionTypeTrait >;
-    persource accessor ref< Interface::EventTypeTrait >;
-    persource accessor ref< Interface::InvocationContext >;
 }
+
 
 stage OperationsLocs
 {
@@ -444,12 +448,6 @@ stage ValueSpaceStage
     dependency OperationsLocs;
 
     file ValueSpace;
-
-    persource accessor array< ref< Interface::InvocationContext > >;
-    persource accessor ref< Operations::Invocations >;
-    persource accessor array< ref< Concrete::Object > >;
-    persource accessor array< ref< Concrete::Interupt > >;
-    persource accessor array< ref< Concrete::State > >;
 }
 
 stage UnityStage

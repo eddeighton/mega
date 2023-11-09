@@ -145,7 +145,12 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
     {
         THROW_RTE( "Unknown decision step type" );
     }
-
+    
+    for( auto pAssignVar : pStep->get_assignment() )
+    {
+        node.m_rows.push_back( { "ASSIGN"s, Concrete::printContextFullType( pAssignVar->get_context() ),
+                                 pAssignVar->get_context()->get_concrete_id() } );
+    }
     for( auto pTrueVar : pStep->get_vars_true() )
     {
         node.m_rows.push_back( { "TRUE"s, Concrete::printContextFullType( pTrueVar->get_context() ),

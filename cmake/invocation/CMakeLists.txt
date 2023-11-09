@@ -38,6 +38,7 @@ set( INVOCATION_SOURCE
     ${MEGA_SRC_DIR}/invocation/invocation.cpp
     ${MEGA_SRC_DIR}/invocation/transitions.cpp
     ${MEGA_SRC_DIR}/invocation/events.cpp
+    ${MEGA_SRC_DIR}/invocation/decision.cpp
 )
 
 add_library( invocation
