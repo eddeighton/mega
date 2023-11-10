@@ -21,6 +21,7 @@ namespace Automata
 {
     object Vertex -> AutomataStage::AutomataAnalysis
     {
+        value< bool >                   is_first;
         value< bool >                   is_conditional;
         value< bool >                   is_historical;
         value< bool >                   has_requirement;
@@ -55,6 +56,7 @@ namespace Automata
     object Test : Enum -> AutomataStage::AutomataAnalysis
     {
         value< mega::U32 >          bitset_index;
+        value< bool >               start_state;
         late< value< mega::U32 > >  failure_switch_index;
     }
 

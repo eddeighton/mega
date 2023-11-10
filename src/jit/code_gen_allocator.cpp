@@ -69,6 +69,8 @@ std::string getContextTypeClass( const FinalStage::Concrete::Context* pContext )
         return "event";
     else if( db_cast< const Function >( pContext ) )
         return "function";
+    else if( db_cast< const Decider >( pContext ) )
+        return "decider";
     else if( db_cast< const Namespace >( pContext ) )
         return "namespace";
     else if( db_cast< const Interupt >( pContext ) )
@@ -333,6 +335,63 @@ std::string generate_enum( Inja& inja, FinalStage::Concrete::Object* pObject )
     return inja.render( szTemplate, data );
 }
 
+void collectStartStates( FinalStage::Automata::Enum* pEnum, std::vector< mega::U32 >& startBits )
+{
+    if( auto pTest = FinalStage::db_cast< FinalStage::Automata::Test >( pEnum ) )
+    {
+        if( pTest->get_start_state() )
+        {
+            startBits.push_back( pTest->get_bitset_index() );
+        }
+    }
+
+    for( auto pChildEnum : pEnum->get_children() )
+    {
+        collectStartStates( pChildEnum, startBits );
+    }
+}
+
+void collectStartStates( FinalStage::Concrete::Object* pObject, FinalStage::Concrete::Dimensions::Bitset* pBitSet,
+                         nlohmann::json& member )
+{
+    // determine the correct initialisation for the bitset size
+    std::vector< mega::U32 > startBits;
+    {
+        for( auto pEnum : pObject->get_automata_enums() )
+        {
+            collectStartStates( pEnum, startBits );
+        }
+        std::sort( startBits.begin(), startBits.end() );
+    }
+
+    const auto numberOfBits   = pBitSet->get_number_of_bits();
+    mega::U32  numberOfBlocks = numberOfBits / 64;
+    if( numberOfBits % 64 )
+    {
+        ++numberOfBlocks;
+    }
+
+    auto iBit = startBits.begin(), iBitEnd = startBits.end();
+    for( auto iBlock = 0; iBlock != numberOfBlocks; ++iBlock )
+    {
+        static const std::string blockBinaryLiteral
+            = "0000000000000000000000000000000000000000000000000000000000000000";
+        std::string block = blockBinaryLiteral;
+
+        for( int i = 0; i != 64; ++i )
+        {
+            if( ( iBit != iBitEnd ) && ( *iBit == ( i + ( iBlock * 64 ) ) ) )
+            {
+                block[ 63 - i ] = '1';
+                ++iBit;
+            }
+        }
+        member[ "blocks" ].push_back( block );
+    }
+
+    member[ "number_of_blocks" ] = numberOfBlocks;
+}
+
 } // namespace
 
 void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JITDatabase& database,
@@ -405,9 +464,6 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
                     for( auto pBitsetDim : pPart->get_bitset_dimensions() )
                     {
-                        // determine the correct initialisation for the bitset size
-                        const auto numberOfBits = pBitsetDim->get_number_of_bits();
-
                         const std::string strMangle
                             = megaMangle( pBitsetDim->get_interface_compiler_dimension()->get_erased_type() );
                         nlohmann::json member(
@@ -417,9 +473,13 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                               { "name", Concrete::getIdentifier( pBitsetDim ) },
                               { "offset", pBitsetDim->get_offset() },
                               { "is_bitset", true },
-                              { "number_of_bits", numberOfBits }
+                              { "number_of_blocks", 0 },
+                              { "blocks", nlohmann::json::array() }
 
                             } );
+
+                        collectStartStates( pObject, pBitsetDim, member );
+
                         part[ "members" ].push_back( member );
                         mangledDataTypes.insert( strMangle );
                     }

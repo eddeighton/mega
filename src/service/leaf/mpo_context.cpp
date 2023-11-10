@@ -348,7 +348,7 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
         {
             //SPDLOG_TRACE( "SIM::SimLockRelease Got transition record: {} {}", transition.m_data.m_Ref,
             //    transition.m_data.m_Transition );
-            m_pLog->record( log::Transition::Write( transition.m_data.m_Ref, transition.m_data.m_Transition ) );
+            m_pLog->record( log::Transition::Write( transition.m_data.m_Ref ) );
         }
     }
     {

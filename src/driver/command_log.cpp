@@ -159,8 +159,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 {
                     const Read&        transitionRecord = *i;
                     std::ostringstream os;
-                    os << std::setw( 15 ) << std::setfill( ' ' ) << transitionRecord.getRef() << ": "
-                       << transitionRecord.getTransition();
+                    os << std::setw( 15 ) << std::setfill( ' ' ) << transitionRecord.getRef();
                     SPDLOG_INFO( os.str() );
                 }
             }

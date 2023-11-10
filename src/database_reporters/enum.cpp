@@ -85,15 +85,31 @@ reports::Graph::Node::ID EnumReporter::recurse( mega::reports::Graph& graph, Fin
     {
         if( auto pTest = db_cast< Automata::Test >( pEnum ) )
         {
-            if( pEnum->get_action().has_value() )
+            if( pTest->get_start_state() )
             {
-                strEnumType = "Test And Action";
-                colour      = Colour::lightyellow;
+                if( pEnum->get_action().has_value() )
+                {
+                    strEnumType = "Start && Test && Action";
+                    colour      = Colour::lightsalmon;
+                }
+                else
+                {
+                    strEnumType = "Start && Test";
+                    colour      = Colour::lightgoldenrodyellow;
+                }
             }
             else
             {
-                strEnumType = "Test";
-                colour      = Colour::lightgreen;
+                if( pEnum->get_action().has_value() )
+                {
+                    strEnumType = "Test && Action";
+                    colour      = Colour::lightyellow;
+                }
+                else
+                {
+                    strEnumType = "Test";
+                    colour      = Colour::lightgreen;
+                }
             }
         }
         else

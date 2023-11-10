@@ -28,6 +28,7 @@
 #include "service/mpo_context.hpp"
 
 #include "mega/values/compilation/relation_id.hpp"
+#include "mega/common_strings.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -37,6 +38,12 @@
 #include <string>
 #include <istream>
 #include <sstream>
+
+namespace FinalStage
+{
+#include "compiler/interface_printer.hpp"
+#include "compiler/concrete_printer.hpp"
+} // namespace FinalStage
 
 namespace mega::runtime
 {
@@ -344,13 +351,16 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
 {
     SPDLOG_TRACE( "RUNTIME: generate_program" );
 
-    nlohmann::json data( { { "events", nlohmann::json::array() },
+    nlohmann::json data( { { "record_types", nlohmann::json::array() },
                            { "object_types", nlohmann::json::array() },
                            { "concrete_types", nlohmann::json::array() },
-                           { "concrete_link_types", nlohmann::json::array() },
                            { "dimension_types", nlohmann::json::array() },
-                           { "relation_types", nlohmann::json::array() } } );
+                           { "relation_types", nlohmann::json::array() },
+                           { "event_types", nlohmann::json::array() }
 
+    } );
+
+    // concrete to interface
     {
         JITDatabase::ConcreteToInterface concreteToInterface;
         database.getConcreteToInterface( concreteToInterface );
@@ -362,63 +372,136 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
         }
     }
 
-    for( const auto pObject : database.getObjects() )
+    // object types
     {
-        data[ "object_types" ].push_back( printTypeID( pObject->get_concrete_id() ) );
+        for( const auto pObject : database.getObjects() )
+        {
+            data[ "object_types" ].push_back( printTypeID( pObject->get_concrete_id() ) );
+        }
     }
-    std::set< std::string > events;
-    for( auto pUserDimension : database.getUserDimensions() )
+
+    // event_types
     {
         using namespace FinalStage;
-        using namespace FinalStage::Concrete;
-
+        // completion handlers
+        for( const Concrete::Action* pAction : database.getActions() )
         {
-            MemoryLayout::Part* pPart = pUserDimension->get_part();
-            // const bool          bSimple    = pUserDimension->get_interface_dimension()->get_simple();
-            const std::string strMangled = megaMangle( pUserDimension->get_interface_dimension()->get_erased_type() );
+            auto optHandler = pAction->get_completion_handler();
+            if( optHandler.has_value() )
+            {
+                auto pHandler = optHandler.value();
 
-            nlohmann::json typeInfo( { { "type_id", printTypeID( pUserDimension->get_concrete_id() ) },
-                                       { "part_offset", pPart->get_offset() },
-                                       { "part_size", pPart->get_size() },
-                                       { "dimension_offset", pUserDimension->get_offset() },
-                                       { "mangled_type_name", strMangled } } );
-            data[ "dimension_types" ].push_back( typeInfo );
-            events.insert( strMangled );
+                mega::U32 transitionDivider = 1U;
+
+                if( auto pInterupt = db_cast< Concrete::Interupt >( pHandler ) )
+                {
+                    for( const Concrete::Context* pIter = pAction; pIter && ( pIter != pInterupt->get_parent() );
+                         pIter                          = db_cast< const Concrete::Context >( pIter->get_parent() ) )
+                    {
+                        transitionDivider = transitionDivider * pIter->get_local_size();
+                    }
+
+                    nlohmann::json eventData( {
+
+                        { "type_id", printTypeID( pAction->get_concrete_id() ) },
+                        { "type_name", Concrete::printContextFullType( pAction ) },
+                        { "comment", Concrete::printContextFullType( pInterupt ) },
+
+                        { "has_transition", true },
+                        { "transition_sub_type", pInterupt->get_concrete_id().getSubObjectID() },
+                        { "transition_divider", transitionDivider }
+
+                    } );
+
+                    data[ "event_types" ].push_back( eventData );
+                }
+                else if( auto pState = db_cast< Concrete::State >( pHandler ) )
+                {
+                    for( const Concrete::Context* pIter = pAction; pIter && ( pIter != pState );
+                         pIter                          = db_cast< const Concrete::Context >( pIter->get_parent() ) )
+                    {
+                        transitionDivider = transitionDivider * pIter->get_local_size();
+                    }
+
+                    nlohmann::json eventData( {
+
+                        { "type_id", printTypeID( pAction->get_concrete_id() ) },
+                        { "type_name", Concrete::printContextFullType( pAction ) },
+                        { "comment", Concrete::printContextFullType( pState ) },
+
+                        { "has_transition", true },
+                        { "transition_sub_type", pState->get_concrete_id().getSubObjectID() },
+                        { "transition_divider", transitionDivider }
+
+                    } );
+
+                    data[ "event_types" ].push_back( eventData );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown handler type" );
+                }
+            }
         }
     }
-    for( auto pLinkDimension : database.getLinkDimensions() )
+
+    // record types and dimension types
     {
-        using namespace FinalStage;
-        using namespace FinalStage::Concrete;
-
-        std::string strMangled;
-        if( pLinkDimension->get_singular() )
+        std::set< std::string > record_types;
+        for( auto pUserDimension : database.getUserDimensions() )
         {
+            using namespace FinalStage;
+            using namespace FinalStage::Concrete;
+
+            {
+                MemoryLayout::Part* pPart = pUserDimension->get_part();
+                // const bool          bSimple    = pUserDimension->get_interface_dimension()->get_simple();
+                const std::string strMangled
+                    = megaMangle( pUserDimension->get_interface_dimension()->get_erased_type() );
+
+                nlohmann::json typeInfo( { { "type_id", printTypeID( pUserDimension->get_concrete_id() ) },
+                                           { "part_offset", pPart->get_offset() },
+                                           { "part_size", pPart->get_size() },
+                                           { "dimension_offset", pUserDimension->get_offset() },
+                                           { "mangled_type_name", strMangled } } );
+                data[ "dimension_types" ].push_back( typeInfo );
+                record_types.insert( strMangled );
+            }
         }
-        else
+        for( auto pLinkDimension : database.getLinkDimensions() )
         {
-            // const std::string   strMangled
-            //     = megaMangle( pLinkDimension->get_link()-> );
+            using namespace FinalStage;
+            using namespace FinalStage::Concrete;
+
+            std::string strMangled;
+            if( pLinkDimension->get_singular() )
+            {
+            }
+            else
+            {
+                // const std::string   strMangled
+                //     = megaMangle( pLinkDimension->get_link()-> );
+            }
+
+            /*
+                MemoryLayout::Part* pPart = pLinkDimension->get_part();
+                nlohmann::json typeInfo( { { "type_id", printTypeID( pLinkDimension->get_concrete_id()) },
+                                            { "part_offset", pPart->get_offset() },
+                                            { "part_size", pPart->get_size() },
+                                            { "dimension_offset", pLinkDimension->get_offset() },
+                                            { "mangled_type_name", strMangled } } );
+                data[ "dimension_types" ].push_back( typeInfo );
+                events.insert( strMangled );
+            */
         }
 
-        /*
-            MemoryLayout::Part* pPart = pLinkDimension->get_part();
-            nlohmann::json typeInfo( { { "type_id", printTypeID( pLinkDimension->get_concrete_id()) },
-                                        { "part_offset", pPart->get_offset() },
-                                        { "part_size", pPart->get_size() },
-                                        { "dimension_offset", pLinkDimension->get_offset() },
-                                        { "mangled_type_name", strMangled } } );
-            data[ "dimension_types" ].push_back( typeInfo );
-            events.insert( strMangled );
-        */
+        for( const auto& record_type : record_types )
+        {
+            data[ "record_types" ].push_back( record_type );
+        }
     }
 
-    for( const auto& event : events )
-    {
-        data[ "events" ].push_back( event );
-    }
-
-    // relations
+    // relation types
     {
         for( const auto& [ id, pRelation ] : database.getRelations() )
         {

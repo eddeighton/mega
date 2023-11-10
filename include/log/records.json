@@ -105,7 +105,7 @@
         },
         {
             "type": "Transition",
-            "padding": 8,
+            "padding": 0,
             "align": 16,
             "has_enum": false,
             "has_buffer": false,
@@ -115,10 +115,6 @@
                 {
                     "type": "mega::reference",
                     "name": "Ref"
-                },
-                {
-                    "type": "mega::TransitionID",
-                    "name": "Transition"
                 }
             ],
             "buffers": []

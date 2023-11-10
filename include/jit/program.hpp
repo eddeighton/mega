@@ -50,6 +50,7 @@ public:
     program::ReadAny::FunctionPtr       getReadAny() const { return m_pReadAny; }
     program::WriteAny::FunctionPtr      getWriteAny() const { return m_pWriteAny; }
     program::Enumerate::FunctionPtr     getEnumerate() const { return m_pEnumerate; }
+    program::Dispatch::FunctionPtr      getDispatch() const { return m_pDispatch; }
 
 private:
     JITCompiler::Module::Ptr            m_pModule;
@@ -64,6 +65,7 @@ private:
     program::ReadAny::FunctionPtr       m_pReadAny      = nullptr;
     program::WriteAny::FunctionPtr      m_pWriteAny     = nullptr;
     program::Enumerate::FunctionPtr     m_pEnumerate    = nullptr;
+    program::Dispatch::FunctionPtr      m_pDispatch     = nullptr;
 };
 
 } // namespace mega::runtime

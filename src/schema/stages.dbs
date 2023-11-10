@@ -510,5 +510,6 @@ stage FinalStage
     persource accessor array< ref< Concrete::Graph::Edge > >;
     persource accessor array< ref< Concrete::Interupt > >;
     persource accessor array< ref< Concrete::State > >;
+    persource accessor array< ref< Concrete::Action > >;
     
 }

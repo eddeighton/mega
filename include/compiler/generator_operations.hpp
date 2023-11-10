@@ -116,7 +116,7 @@ private:
                         osBody << bodyOpt.value()->get_text();
                     }
 
-                    osBody << "\nco_return mega::done();";
+                    osBody << "\nco_return mega::sleep();";
                 }
 
                 nlohmann::json operation( {

@@ -29,12 +29,13 @@
 
 namespace mega::mangle
 {
-{% for event in events %}
-    void load_record_{{event}}(void*,void*,mega::U64);
-    void save_record_{{event}}(const reference&,const void*);
+{% for record_type in record_types %}
+    void load_record_{{record_type}}(void*,void*,mega::U64);
+    void save_record_{{record_type}}(const reference&,const void*);
 {% endfor %}
 
     mega::TypeID iterator_state( void* );
+    void transition( const mega::reference& );
 }
 
 void object_save_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser )
@@ -280,6 +281,38 @@ mega::SubTypeInstance enumerate( mega::reference& ref, mega::U32& iterator )
         default:
         {
             throw mega::runtime::JITException{ "program Unknown type in object_load_bin" };
+        }
+        break;
+    }
+}
+
+void dispatch( const mega::reference& event )
+{
+    switch( event.getType() )
+    {
+{% for event in event_types %}
+        case {{ event.type_id }}: // {{ event.type_name }}
+        {
+{% if event.has_transition %}
+            mega::mangle::transition
+            ( 
+                mega::reference::make
+                ( 
+                    event, 
+                    mega::TypeInstance
+                    ( 
+                        event.getType().getObjectID(), 
+                        mega::SubTypeInstance{ {{ event.transition_sub_type }}, 
+                            static_cast< mega::SubType >( event.getInstance() / {{ event.transition_divider }}U ) } 
+                    ) 
+                ) 
+            ); // {{ event.comment }}
+{% endif %}  
+        }
+        break;
+{% endfor %}
+        default:
+        {
         }
         break;
     }

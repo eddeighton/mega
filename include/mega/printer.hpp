@@ -129,6 +129,11 @@ public:
         line( os, "fun", pszType, ref );
         os << "\n";
     }
+    void on_decider( const char* pszType, const LogicalReference& ref )
+    {
+        line( os, "dec", pszType, ref );
+        os << "\n";
+    }
     void on_namespace( const char* pszType, const LogicalReference& ref )
     {
         line( os, "nam", pszType, ref );

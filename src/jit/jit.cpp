@@ -239,6 +239,11 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
             *ppFunction = ( void* )m_pProgram->getEnumerate();
         }
         break;
+        case program::eDispatch:
+        {
+            *ppFunction = ( void* )m_pProgram->getDispatch();
+        }
+        break;
         default:
         case program::TOTAL_FUNCTION_TYPES:
         {

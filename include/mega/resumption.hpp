@@ -33,7 +33,7 @@ using namespace std::string_literals;
 
 namespace mega
 {
-inline ReturnReason done() { return {}; }
+inline ReturnReason complete() { return { eReason_Complete }; }
 
 ////////////////////////////////////////////////////////////////////////////
 // wait functions

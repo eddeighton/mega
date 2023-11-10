@@ -49,5 +49,6 @@ Program::Program( JITDatabase& database, JITCompiler::Module::Ptr pModule )
     m_pReadAny   = pModule->get< program::ReadAny::FunctionPtr >( Symbol( "read_any", Symbol::Ref ) );
     m_pWriteAny  = pModule->get< program::WriteAny::FunctionPtr >( Symbol( "write_any", Symbol::Ref_Any ) );
     m_pEnumerate = pModule->get< program::Enumerate::FunctionPtr >( Symbol( "enumerate", Symbol::RefR_U32R ) );
+    m_pDispatch  = pModule->get< program::Dispatch::FunctionPtr >( Symbol( "dispatch", Symbol::RefCR ) );
 }
 } // namespace mega::runtime

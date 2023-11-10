@@ -71,6 +71,7 @@ public:
     const FinalStage::Components::Component*     getComponent( TypeID objectType ) const;
     const FinalStage::Components::Component*     getOperationComponent( TypeID interfaceTypeID ) const;
     std::vector< FinalStage::Concrete::Object* > getObjects() const;
+    std::vector< FinalStage::Concrete::Action* > getActions() const;
 
     std::vector< FinalStage::Concrete::Dimensions::User* >       getUserDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::Link* >       getLinkDimensions() const;

@@ -184,6 +184,17 @@
             ],
             "return_type" : "mega::SubTypeInstance",
             "return" : "value"
+        },
+        {
+            "name" : "Dispatch",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "const mega::reference&"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
         }
     ]
 }

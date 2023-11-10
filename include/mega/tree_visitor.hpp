@@ -73,6 +73,9 @@ struct TreeVisitor
     void on_function( const char* pszType, const Reference& ref )
     {
     }
+    void on_decider( const char* pszType, const Reference& ref )
+    {
+    }
     void on_namespace( const char* pszType, const Reference& ref )
     {
     }

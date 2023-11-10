@@ -573,7 +573,7 @@ public:
                     case eReason_Timeout:
                         timeout_insert( iter, reason.timeout.value() );
                         break;
-                    case eReason_Terminated:
+                    case eReason_Complete:
                         m_actions.erase( iter );
                         on_event( m_events_by_ref_wait, m_pCurrentAction->getRef() );
                         on_event( m_events_by_ref_sleep, m_pCurrentAction->getRef() );

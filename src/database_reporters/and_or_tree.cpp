@@ -82,12 +82,13 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
 
     Graph::Node node{ {
                           { strType, Concrete::getIdentifier( pVertex->get_context() ) },
-                          { "Concrete TypeID: "s, pVertex->get_context()->get_concrete_id() },
-                          { "Relative Domain: "s, std::to_string( pVertex->get_relative_domain() ) },
-                          { "Conditional: "s, pVertex->get_is_conditional() ? "true"s : "false"s },
-                          { "Historical: "s, pVertex->get_is_historical() ? "true"s : "false"s },
-                          { "Requirement: "s, pVertex->get_has_requirement() ? "true"s : "false"s },
-                          { "Total Domain: "s, std::to_string( pVertex->get_context()->get_total_size() ) },
+                          { "Concrete TypeID"s, pVertex->get_context()->get_concrete_id() },
+                          { "Relative Domain"s, std::to_string( pVertex->get_relative_domain() ) },
+                          { "First"s, pVertex->get_is_first() ? "true"s : "false"s },
+                          { "Conditional"s, pVertex->get_is_conditional() ? "true"s : "false"s },
+                          { "Historical"s, pVertex->get_is_historical() ? "true"s : "false"s },
+                          { "Requirement"s, pVertex->get_has_requirement() ? "true"s : "false"s },
+                          { "Total Domain"s, std::to_string( pVertex->get_context()->get_total_size() ) },
 
                       },
                       pVertex->get_is_conditional() ? Colour::green : Colour::blue,

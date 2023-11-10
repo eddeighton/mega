@@ -44,24 +44,28 @@ public:
         None,
         VStar,
         VStar_VStar,
+        ID_VStar_VStar,
+        
         Mpo,
+
         Ref,
         Ref_Ref,
         Ref_Ref_U64,
         Ref_VStar,
         Ref_VStar_Bool,
         Ref_CVStar,
-        ID_VStar_VStar,
         Ref_VStar_U64,
         Ref_U64,
         Ref_Any,
 
         RefR,
         RefR_U32R,
-        RefCR_U32R,
         RefR_RefR,
         RefR_VStar,
-        RefR_CVStar
+        RefR_CVStar,
+        
+        RefCR,
+        RefCR_U32R
     };
 
     Symbol( const char* prefix, Parameters params );

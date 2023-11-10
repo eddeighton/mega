@@ -77,7 +77,7 @@ public:
         }
         inline void push_back( const log::Transition::Read& read )
         {
-            log::Transition::DataIO record{ { read.getRef().getNetworkAddress(), read.getTransition() } };
+            log::Transition::DataIO record{ { read.getRef().getNetworkAddress() } };
             m_transition.emplace_back( record );
         }
     };

@@ -331,6 +331,10 @@ std::vector< FinalStage::Concrete::Object* > JITDatabase::getObjects() const
 {
     return getPerCompilationFileType< FinalStage::Concrete::Object >( m_manifest, m_database );
 }
+std::vector< FinalStage::Concrete::Action* > JITDatabase::getActions() const
+{
+    return getPerCompilationFileType< FinalStage::Concrete::Action >( m_manifest, m_database );
+}
 
 std::vector< FinalStage::Concrete::Dimensions::User* > JITDatabase::getUserDimensions() const
 {

@@ -40,7 +40,7 @@ namespace mega::mangle
     Any read_any_{{type}}(void*);
     void write_any_{{type}}(void*,Any);
 {% endfor %}
-    void new_bitset_(void*,U64);
+    void new_bitset_(void*,void*, void*);
 
     mega::TypeID iterator_state( void* );
     void iterator_object_start( void*, const char* pszType, mega::TypeID );
@@ -59,6 +59,8 @@ namespace mega::mangle
     void iterator_interupt_end( void*, const char* pszType, mega::TypeID );
     void iterator_function_start( void*, const char* pszType, mega::TypeID );
     void iterator_function_end( void*, const char* pszType, mega::TypeID );
+    void iterator_decider_start( void*, const char* pszType, mega::TypeID );
+    void iterator_decider_end( void*, const char* pszType, mega::TypeID );
     void iterator_namespace_start( void*, const char* pszType, mega::TypeID );
     void iterator_namespace_end( void*, const char* pszType, mega::TypeID );
     void iterator_dimension( void*, const char* pszType, mega::TypeID );
@@ -72,7 +74,15 @@ void ctor_{{ objectTypeID }}( void* pBuffer )
     {
 {% for member in part.members %}
 {% if member.is_bitset %}
-        mega::mangle::new_bitset_( pIter + {{ member.offset }}, {{ member.number_of_bits }} );
+        {
+            mega::U64 startState[ {{ member.number_of_blocks }} ] =
+            {
+{% for block in member.blocks %}
+                0b{{ block }}{% if not loop.is_last %},{% endif %}
+{% endfor %}
+            };
+            mega::mangle::new_bitset_( pIter + {{ member.offset }}, &startState[ 0 ], &startState[ 0 ] + {{ member.number_of_blocks }} );
+        }
 {% else %}
         mega::mangle::new_{{member.mangle}}( pIter + {{ member.offset }} );
 {% endif %}
@@ -238,6 +248,12 @@ void traverse_{{ objectTypeID }}( void* pIterator )
             mega::mangle::iterator_function_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% else %}
             mega::mangle::iterator_function_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
+{% endif %}
+{% else if state.type == "decider" %}
+{% if state.start %}
+            mega::mangle::iterator_decider_start( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
+{% else %}
+            mega::mangle::iterator_decider_end( pIterator, "{{ state.name }}", mega::TypeID{ {{ state.successor }} } );
 {% endif %}
 {% else if state.type == "namespace" %}
 {% if state.start %}

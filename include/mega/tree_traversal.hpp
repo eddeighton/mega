@@ -54,6 +54,7 @@ struct LogicalTreeVisitor
     void on_link_end( const LogicalReference& ref, bool bOwning, bool bOwned )
     void on_interupt( const LogicalReference& ref )
     void on_function( const LogicalReference& ref )
+    void on_decider( const LogicalReference& ref )
     void on_namespace( const LogicalReference& ref )
     void on_dimension( const LogicalReference& ref, void* pData )
 };
@@ -222,6 +223,11 @@ private:
     void on_function( const char* pszType, const TypeInstance& typeInstance ) override
     {
         m_visitor.on_function( pszType, getReference( typeInstance ) );
+    }
+
+    void on_decider( const char* pszType, const TypeInstance& typeInstance ) override
+    {
+        m_visitor.on_decider( pszType, getReference( typeInstance ) );
     }
 
     void on_namespace( const char* pszType, const TypeInstance& typeInstance ) override

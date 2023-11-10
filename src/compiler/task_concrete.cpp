@@ -422,6 +422,7 @@ public:
                                 {},
                                 {} },
                             pState,
+                            {},
                             {} },
                         pAction } );
                 }
@@ -438,6 +439,7 @@ public:
                                 {},
                                 {} },
                             pState,
+                            {},
                             {} },
                         pInterfaceComponent } );
                 }
@@ -453,6 +455,7 @@ public:
                             {},
                             {} },
                         pState,
+                        {},
                         {} } );
                 }
 
@@ -525,26 +528,29 @@ public:
         {
             if( concreteObjectOpt.has_value() )
             {
-                Interupt* pConcrete = nullptr;
-
-                if( auto pInterfaceRequirement = db_cast< Interface::Requirement >( pInterupt ) )
+                Interupt* pConcrete = [ & ]() -> Interupt*
                 {
-                    pConcrete = database.construct< Requirement >( Requirement::Args{ Interupt::Args{
-                        Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
-                                       pParentContextGroup,
-                                       pInterupt,
-                                       {} },
-                        pInterupt } } );
-                }
-                else
-                {
-                    pConcrete = database.construct< Interupt >( Interupt::Args{
-                        Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
-                                       pParentContextGroup,
-                                       pInterupt,
-                                       {} },
-                        pInterupt } );
-                }
+                    if( auto pInterfaceRequirement = db_cast< Interface::Requirement >( pInterupt ) )
+                    {
+                        return database.construct< Requirement >( Requirement::Args{ Interupt::Args{
+                            Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                           pParentContextGroup,
+                                           pInterupt,
+                                           {} },
+                            pInterupt,
+                            {} } } );
+                    }
+                    else
+                    {
+                        return database.construct< Interupt >( Interupt::Args{
+                            Context::Args{ ContextGroup::Args{ Concrete::Graph::Vertex::Args{ pComponent }, {} },
+                                           pParentContextGroup,
+                                           pInterupt,
+                                           {} },
+                            pInterupt,
+                            {} } );
+                    }
+                }();
 
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
@@ -698,6 +704,71 @@ public:
         }
     }
 
+    using CompletionsMap = std::multimap< Concrete::Context*, Concrete::Action* >;
+
+    void recurseCompletions( Concrete::ContextGroup* pContext, std::optional< Concrete::Context* > completionHandler,
+                             CompletionsMap& completions )
+    {
+        bool bFoundInteruptCompletionHandler = false;
+        {
+            for( Concrete::Context* pChildContext : pContext->get_children() )
+            {
+                if( auto pRequirement = db_cast< Concrete::Requirement >( pChildContext ) )
+                {
+                    // TODO
+                }
+                else if( auto pInterupt = db_cast< Concrete::Interupt >( pChildContext ) )
+                {
+                    const bool bHasTransition = pInterupt->get_interface_interupt()->get_transition_trait().has_value();
+                    const bool bHasNoEvents
+                        = pInterupt->get_interface_interupt()->get_events_trait()->get_tuple().empty();
+
+                    if( bHasNoEvents )
+                    {
+                        VERIFY_RTE_MSG(
+                            bHasTransition,
+                            "Invalid completion interupt does NOT specify a transition: "
+                                << Interface::printIContextFullType( pInterupt->get_interface_interupt() ) );
+
+                        VERIFY_RTE_MSG( !bFoundInteruptCompletionHandler,
+                                        "Ambiguous completion interupt found: " << Interface::printIContextFullType(
+                                            pInterupt->get_interface_interupt() ) );
+
+                        completionHandler               = pInterupt;
+                        bFoundInteruptCompletionHandler = true;
+                    }
+                }
+            }
+        }
+
+        if( auto pState = db_cast< Concrete::State >( pContext ) )
+        {
+            const bool bHasTransition = pState->get_interface_state()->get_transition_trait().has_value();
+            if( bHasTransition )
+            {
+                VERIFY_RTE_MSG( !bFoundInteruptCompletionHandler,
+                                "Ambiguous completion interupt found: "
+                                    << Interface::printIContextFullType( pState->get_interface_state() ) );
+                bFoundInteruptCompletionHandler = true;
+                completionHandler               = pState;
+            }
+        }
+
+        if( auto pAction = db_cast< Concrete::Action >( pContext ) )
+        {
+            pAction->set_completion_handler( completionHandler );
+            if( completionHandler.has_value() )
+            {
+                completions.insert( { completionHandler.value(), pAction } );
+            }
+        }
+
+        for( Concrete::Context* pChildContext : pContext->get_children() )
+        {
+            recurseCompletions( pChildContext, completionHandler, completions );
+        }
+    }
+
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
@@ -734,6 +805,27 @@ public:
         for( Interface::IContext* pChildContext : pInterfaceRoot->get_children() )
         {
             recurse( database, pConcreteRoot, pChildContext, concreteObjectOpt, pComponent );
+        }
+
+        // determine action completion handlers
+        {
+            CompletionsMap completions;
+            recurseCompletions( pConcreteRoot, std::nullopt, completions );
+            for( auto [ pContext, pAction ] : completions )
+            {
+                if( auto pState = db_cast< Concrete::State >( pContext ) )
+                {
+                    pState->push_back_completions( pAction );
+                }
+                else if( auto pInterupt = db_cast< Concrete::Interupt >( pContext ) )
+                {
+                    pInterupt->push_back_completions( pAction );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown completion context type" );
+                }
+            }
         }
 
         const task::FileHash buildHash = database.save_Concrete_to_temp();

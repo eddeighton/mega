@@ -121,6 +121,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         // SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
         static mega::runtime::program::Enumerate funcEnumerate;
+        static mega::runtime::program::Dispatch funcDispatch;
 
         m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
 
@@ -179,6 +180,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         for( ; m_iter_events != m_pLog->end< log::Event::Read >(); ++m_iter_events )
                         {
                             const auto& event = *m_iter_events;
+                            funcDispatch( event.getRef() );
 
                             switch( event.getType() )
                             {
@@ -201,10 +203,14 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     // process all transitions
                     {
+
+                        
                         for( ; m_iter_transitions != m_pLog->end< log::Transition::Read >(); ++m_iter_transitions )
                         {
                             const auto& transition = *m_iter_transitions;
-                            //SPDLOG_INFO( "Got transition: {}", transition );
+                            SPDLOG_TRACE( "Got transition: {}", transition.getRef() );
+
+
                         }
                     }
 
@@ -231,6 +237,30 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                 while( !actionCoroutine.done() )
                                 {
                                     actionCoroutine.resume();
+                                }
+
+                                const auto& reason = actionCoroutine.getReason();
+                                switch( reason.reason )
+                                {
+                                    case eReason_Wait:
+                                    case eReason_Wait_All:
+                                    case eReason_Wait_Any:
+                                    case eReason_Sleep:
+                                    case eReason_Sleep_All:
+                                    case eReason_Sleep_Any:
+                                    case eReason_Timeout:
+                                        break;
+                                    case eReason_Complete:
+                                    {
+                                        SPDLOG_TRACE( "Generating completion event: {}", actionContext );
+                                        // generate completion event
+                                        m_pLog->record( mega::log::Event::Write( actionContext, mega::log::Event::eComplete ) );
+                                    }
+                                    break;
+                                    default:
+                                    {
+                                        THROW_RTE( "Unknown return reason" );
+                                    }
                                 }
                             }
                         }

@@ -39,7 +39,7 @@ enum Reason
     eReason_Sleep_All,
     eReason_Sleep_Any,
     eReason_Timeout,
-    eReason_Terminated
+    eReason_Complete
 };
 
 struct ReturnReason
@@ -49,7 +49,7 @@ struct ReturnReason
     std::optional< std::chrono::steady_clock::time_point > timeout;
 
     ReturnReason()
-        : reason( eReason_Terminated )
+        : reason( eReason_Complete )
     {
     }
 

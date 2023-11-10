@@ -266,7 +266,8 @@ public:
             parse_comment();
             ConsumeAnyToken();
 
-            while( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace, clang::tok::comment ) )
+            while( !isEofOrEom()
+                   && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace, clang::tok::comment ) )
             {
                 endLoc = Tok.getEndLoc();
                 parse_comment();
@@ -355,7 +356,9 @@ public:
                 clang::SourceLocation endLoc   = Tok.getEndLoc();
                 ConsumeAnyToken();
 
-                while( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace, clang::tok::comment ) )
+                while( !isEofOrEom()
+                       && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace, clang::tok::comment,
+                                        clang::tok::greater, clang::tok::less ) )
                 {
                     endLoc = Tok.getEndLoc();
                     ConsumeAnyToken();

@@ -94,7 +94,7 @@ struct TestActions
     mega::ActionCoroutine test()
     {
         ++iRunCount;
-        co_return mega::done();
+        co_return mega::sleep();
     }
     mega::ActionCoroutine start( const mega::reference& ref )
     {
@@ -140,7 +140,7 @@ struct BasicSchedulerWaitActions
         states.push_back( 0 );
         co_yield mega::wait( ref2 );
         states.push_back( 4 );
-        co_return mega::done();
+        co_return mega::sleep();
     }
 
     mega::ActionCoroutine test_2()
@@ -148,13 +148,13 @@ struct BasicSchedulerWaitActions
         states.push_back( 1 );
         co_yield mega::wait( ref3 );
         states.push_back( 3 );
-        co_return mega::done();
+        co_return mega::sleep();
     }
 
     mega::ActionCoroutine test_3()
     {
         states.push_back( 2 );
-        co_return mega::done();
+        co_return mega::sleep();
     }
 
     mega::ActionCoroutine start( const mega::reference& ref )

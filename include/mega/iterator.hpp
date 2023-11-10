@@ -52,6 +52,7 @@ struct TraversalVisitor
     virtual void on_event_end( const char* pszType, const TypeInstance& typeInstance )                             = 0;
     virtual void on_interupt( const char* pszType, const TypeInstance& typeInstance )                              = 0;
     virtual void on_function( const char* pszType, const TypeInstance& typeInstance )                              = 0;
+    virtual void on_decider( const char* pszType, const TypeInstance& typeInstance )                              = 0;
     virtual void on_namespace( const char* pszType, const TypeInstance& typeInstance )                             = 0;
     virtual void on_dimension( const char* pszType, const TypeInstance& typeInstance )                             = 0;
     virtual void on_link_start( const char* pszType, const TypeInstance& typeInstance, bool bOwning, bool bOwned ) = 0;
@@ -268,6 +269,12 @@ public:
         m_state = successor;
     }
     inline void function_end( const char* pszType, mega::TypeID successor ) { m_state = successor; }
+    inline void decider_start( const char* pszType, mega::TypeID successor )
+    {
+        m_visitor.on_decider( pszType, getTypeInstance( m_state ) );
+        m_state = successor;
+    }
+    inline void decider_end( const char* pszType, mega::TypeID successor ) { m_state = successor; }
     inline void namespace_start( const char* pszType, mega::TypeID successor )
     {
         m_visitor.on_namespace( pszType, getTypeInstance( m_state ) );

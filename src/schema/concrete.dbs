@@ -133,12 +133,12 @@ namespace Concrete
 
     object Interupt : Context -> ConcreteStage::Concrete
     {
-        ref< Interface::Interupt > interface_interupt;
+        ref< Interface::Interupt >      interface_interupt;
+        array< ref< Action > >          completions;
 
-        array< ref< Derivation::Root > > transition         -> OperationsStage::Operations;
-        late< array< ref< Derivation::Root > > > events     -> OperationsStage::Operations;
-
-        late< opt< ref< Decision::DecisionProcedure > > > transition_decision -> OperationsStage::Operations;
+        array< ref< Derivation::Root > >                    transition          -> OperationsStage::Operations;
+        late< array< ref< Derivation::Root > > >            events              -> OperationsStage::Operations;
+        late< opt< ref< Decision::DecisionProcedure > > >   transition_decision -> OperationsStage::Operations;
     }
 
     object Requirement : Interupt -> ConcreteStage::Concrete
@@ -171,19 +171,20 @@ namespace Concrete
 
     object State : UserDimensionContext -> ConcreteStage::Concrete
     {
-        ref< Interface::State >     interface_state;
-        array< ref< Requirement > > requirements;
+        ref< Interface::State >         interface_state;
+        array< ref< Requirement > >     requirements;
+        array< ref< Action > >          completions;
 
         ref< Automata::Vertex > automata_vertex -> AutomataStage::AutomataAnalysis;
 
-        array< ref< Derivation::Root > > transition -> OperationsStage::Operations;
-
-        late< opt< ref< Decision::DecisionProcedure > > > transition_decision -> OperationsStage::Operations;
+        array< ref< Derivation::Root > >                    transition          -> OperationsStage::Operations;
+        late< opt< ref< Decision::DecisionProcedure > > >   transition_decision -> OperationsStage::Operations;
     }
 
     object Action : State -> ConcreteStage::Concrete
     {
-        ref< Interface::Action > interface_action;
+        ref< Interface::Action >        interface_action;
+        late< opt< ref< Context > > >   completion_handler;
     }
 
     object Component : State -> ConcreteStage::Concrete

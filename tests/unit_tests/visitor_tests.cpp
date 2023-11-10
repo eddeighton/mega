@@ -46,6 +46,8 @@ void         iterator_interupt_start( void*, mega::TypeID );
 void         iterator_interupt_end( void*, mega::TypeID );
 void         iterator_function_start( void*, mega::TypeID );
 void         iterator_function_end( void*, mega::TypeID );
+void         iterator_decider_start( void*, mega::TypeID );
+void         iterator_decider_end( void*, mega::TypeID );
 void         iterator_namespace_start( void*, mega::TypeID );
 void         iterator_namespace_end( void*, mega::TypeID );
 void         iterator_dimension( void*, mega::TypeID );
@@ -365,6 +367,10 @@ struct TestLogicalTreeVisitor
     {
         //
         ++functions;
+    }
+    void on_decider( const LogicalReference& ref )
+    {
+        //
     }
     void on_namespace( const LogicalReference& ref )
     {

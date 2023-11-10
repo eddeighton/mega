@@ -62,9 +62,11 @@ void log( const char* pszMsg )
     log.record( mega::log::Log::Write( mega::log::Log::eTrace, pszMsg ) );
 }
 
-void new_bitset_( void* pData, U64 bits )
+void new_bitset_( void* pData, void* pBlockStart, void* pBlockEnd )
 {
-    new( pData ) BitSet{ bits };
+    const auto pStart = reinterpret_cast< const mega::U64* >( pBlockStart );
+    const auto pEnd   = reinterpret_cast< const mega::U64* >( pBlockEnd );
+    new( pData ) BitSet{ pStart, pEnd };
 }
 
 void structure_make( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
@@ -110,6 +112,13 @@ void event_signal( const mega::reference& event )
     VERIFY_RTE_MSG( event.isHeapAddress(), "event_signal passed network address " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::log::Event::Write( event, mega::log::Event::eSignal ) );
+}
+
+void transition( const mega::reference& t )
+{
+    VERIFY_RTE_MSG( t.isHeapAddress(), "event_signal passed network address " );
+    mega::log::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Transition::Write( t ) );
 }
 
 // const reference vector
@@ -183,7 +192,6 @@ void ref_vector_add( void* pData, const mega::reference& ref )
     auto& vec = reify< ReferenceVector >( pData );
     vec.push_back( ref.getNetworkAddress() );
 }
-
 
 /////////////////////////////////////////////////////////////
 void ref_vectors_remove( void* pData1, void* pData2, const mega::reference& ref )
@@ -290,7 +298,8 @@ void iterator_object_end( void* pIterator, const char* pszType )
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.object_end( pszType );
 }
-void iterator_component_start( void* pIterator, const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
+void iterator_component_start( void* pIterator, const char* pszType, mega::TypeID successor,
+                               mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.component_start( pszType, successor, localDomainSize );
@@ -300,7 +309,8 @@ void iterator_component_end( void* pIterator, const char* pszType, mega::TypeID 
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.component_end( pszType, successor );
 }
-void iterator_action_start( void* pIterator, const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
+void iterator_action_start( void* pIterator, const char* pszType, mega::TypeID successor,
+                            mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.action_start( pszType, successor, localDomainSize );
@@ -310,7 +320,8 @@ void iterator_action_end( void* pIterator, const char* pszType, mega::TypeID suc
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.action_end( pszType, successor );
 }
-void iterator_state_start( void* pIterator, const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
+void iterator_state_start( void* pIterator, const char* pszType, mega::TypeID successor,
+                           mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.state_start( pszType, successor, localDomainSize );
@@ -320,7 +331,8 @@ void iterator_state_end( void* pIterator, const char* pszType, mega::TypeID succ
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.state_end( pszType, successor );
 }
-void iterator_event_start( void* pIterator, const char* pszType, mega::TypeID successor, mega::Instance localDomainSize )
+void iterator_event_start( void* pIterator, const char* pszType, mega::TypeID successor,
+                           mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.event_start( pszType, successor, localDomainSize );
@@ -359,6 +371,16 @@ void iterator_function_end( void* pIterator, const char* pszType, mega::TypeID s
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.function_end( pszType, successor );
+}
+void iterator_decider_start( void* pIterator, const char* pszType, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.decider_start( pszType, successor );
+}
+void iterator_decider_end( void* pIterator, const char* pszType, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.decider_end( pszType, successor );
 }
 void iterator_namespace_start( void* pIterator, const char* pszType, mega::TypeID successor )
 {
