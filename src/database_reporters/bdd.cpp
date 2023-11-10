@@ -73,13 +73,6 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
         {
             node.m_rows.push_back( { "BDD Vertex Type"s, "Boolean"s } );
             node.m_colour = Colour::green;
-
-            auto pVarSet = pBoolean->get_variables();
-            for( auto pVar : pVarSet->get_variables() )
-            {
-                node.m_rows.push_back(
-                    { Concrete::printContextFullType( pVar->get_context() ), pVar->get_context()->get_concrete_id() } );
-            }
         }
         else
         {
@@ -89,14 +82,10 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
             node.m_rows.push_back(
                 { "Decider"s, Concrete::printContextFullType( pDecider ), pDecider->get_concrete_id() } );
             node.m_colour = Colour::blue;
-
-            auto pVarSet = pBoolean->get_variables();
-            for( auto pVar : pVarSet->get_variables() )
-            {
-                node.m_rows.push_back(
-                    { Concrete::printContextFullType( pVar->get_context() ), pVar->get_context()->get_concrete_id() } );
-            }
         }
+        auto pVertex = pBoolean->get_variable();
+        node.m_rows.push_back(
+            { Concrete::printContextFullType( pVertex->get_context() ), pVertex->get_context()->get_concrete_id() } );
     }
     else if( auto pSelection = db_cast< Decision::Selection >( pStep ) )
     {
@@ -105,19 +94,6 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
         {
             node.m_rows.push_back( { "BDD Vertex Type"s, "Selection"s } );
             node.m_colour = Colour::green;
-
-            auto alternatives = pSelection->get_variable_ordering();
-            auto altIter      = alternatives.begin();
-            for( auto pVarSet : pSelection->get_variable_alternatives() )
-            {
-                for( auto pVar : pVarSet->get_variables() )
-                {
-                    node.m_rows.push_back( { std::to_string( *altIter ),
-                                             Concrete::printContextFullType( pVar->get_context() ),
-                                             pVar->get_context()->get_concrete_id() } );
-                }
-                ++altIter;
-            }
         }
         else
         {
@@ -126,26 +102,21 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
             node.m_rows.push_back(
                 { "Decider"s, Concrete::printContextFullType( pDecider ), pDecider->get_concrete_id() } );
             node.m_colour = Colour::blue;
-
-            auto alternatives = pSelection->get_variable_ordering();
-            auto altIter      = alternatives.begin();
-            for( auto pVarSet : pSelection->get_variable_alternatives() )
-            {
-                for( auto pVar : pVarSet->get_variables() )
-                {
-                    node.m_rows.push_back( { std::to_string( *altIter ),
-                                             Concrete::printContextFullType( pVar->get_context() ),
-                                             pVar->get_context()->get_concrete_id() } );
-                }
-                ++altIter;
-            }
+        }
+        auto alternatives = pSelection->get_variable_ordering();
+        auto altIter      = alternatives.begin();
+        for( const auto pVar : pSelection->get_variable_alternatives() )
+        {
+            node.m_rows.push_back( { std::to_string( *altIter ), Concrete::printContextFullType( pVar->get_context() ),
+                                     pVar->get_context()->get_concrete_id() } );
+            ++altIter;
         }
     }
     else
     {
         THROW_RTE( "Unknown decision step type" );
     }
-    
+
     for( auto pAssignVar : pStep->get_assignment() )
     {
         node.m_rows.push_back( { "ASSIGN"s, Concrete::printContextFullType( pAssignVar->get_context() ),

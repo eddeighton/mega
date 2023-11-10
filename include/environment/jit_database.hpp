@@ -68,6 +68,7 @@ public:
     std::vector< TypeID >                        getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
     FinalStage::Concrete::Object*                getObject( TypeID objectType ) const;
     FinalStage::Interface::Action*               getAction( TypeID interfaceTypeID ) const;
+    FinalStage::Decision::DecisionProcedure*     getDecision( TypeID concreteTypeID ) const;
     const FinalStage::Components::Component*     getComponent( TypeID objectType ) const;
     const FinalStage::Components::Component*     getOperationComponent( TypeID interfaceTypeID ) const;
     std::vector< FinalStage::Concrete::Object* > getObjects() const;

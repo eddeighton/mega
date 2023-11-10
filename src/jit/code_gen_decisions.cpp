@@ -20,10 +20,111 @@
 
 #include "code_generator.hpp"
 
+#include "database/FinalStage.hxx"
+
 #include "symbol_utils.hpp"
 
 namespace mega::runtime
 {
+using namespace FinalStage;
+
+std::string recurseStep( Inja& inja, Indent& indent, Decision::Step* pStep )
+{
+    std::ostringstream os;
+
+    auto optDecider = pStep->get_decider();
+
+    // pStep->get_assignment()
+
+    if( auto pNothing = db_cast< Decision::Nothing >( pStep ) )
+    {
+        VERIFY_RTE( !optDecider.has_value() );
+
+    }
+    else if( auto pBoolean = db_cast< Decision::Boolean >( pStep ) )
+    {
+        if( optDecider.has_value() )
+        {
+        }
+        else
+        {
+        }
+    }
+    else if( auto pSelection = db_cast< Decision::Selection >( pStep ) )
+    {
+        if( optDecider.has_value() )
+        {
+            auto pDecider = optDecider.value();
+
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }} static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ decider_interface_type_id }} );
+{{ indent }} using Selector = mega::TypeID (*)();
+{{ indent }} Selector pDeciderFunction = reinterpret_cast< Selector* >( function() );
+{{ indent }} switch( pDeciderFunction() )
+{{ indent }} {
+{% for result in results %}
+{{ indent }}    case {{ result.type_id }}:
+{{ indent }}    {
+{{ indent }}{{ result.body }}
+{{ indent }}    }
+{{ indent }}    break;
+{% endfor %}
+{{ indent }}    default:
+{{ indent }}    {
+{{ indent }}        throw mega::runtime::JITException{ "decider_{{ type_id }} decider return value did not match any type" };
+{{ indent }}    }
+{{ indent }}    break;
+{{ indent }} }
+)TEMPLATE";
+
+                        
+            nlohmann::json templateData( {
+
+                { "indent", indent.str() },
+                { "decider_interface_type_id", printTypeID( pDecider->get_interface_decider()->get_interface_id() ) },
+                { "results", nlohmann::json::array() }
+
+            } );
+
+            auto alternatives = pSelection->get_variable_alternatives();
+            auto ordering = pSelection->get_variable_ordering();
+
+
+            ++indent;
+            int iVar = 0;
+            for( auto pNestedStep : pStep->get_children() )
+            {
+                VERIFY_RTE( alternatives.size() > iVar );
+                const Automata::Vertex* pVar = alternatives[ iVar ];
+                
+                nlohmann::json result( {
+
+                    { "type_id", printTypeID( pVar->get_context()->get_interface()->get_interface_id() ) },
+                    { "body", recurseStep( inja, indent, pNestedStep ) }
+
+                } );
+
+                templateData[ "results" ].push_back( result );
+
+                ++iVar;
+            }
+            --indent;
+
+
+            os << inja.render( szTemplate, templateData );
+        }
+        else
+        {
+        }
+    }
+    else
+    {
+        THROW_RTE( "Unknown step type" );
+    }
+
+    return os.str();
+}
 
 void CodeGenerator::generate_decision( const LLVMCompiler& compiler, const JITDatabase& database, TypeID concreteTypeID,
                                        std::ostream& os )
@@ -34,21 +135,37 @@ R"TEMPLATE(
 
 #include "mega/values/native_types.hpp"
 #include "mega/values/runtime/reference.hpp"
+#include "jit/jit_exception.hpp"
 
-void decision_{{ type_id }}( const mega::reference& source )
+static const char* g_pszModuleName = "decider_{{ type_id }}";
+
+void decision_{{ type_id }}( const mega::reference& ref )
 {
+    void* pBitset = reinterpret_cast< char* >( ref.getHeap() ) + {{ bitset_offset }};
+
+{{ body }}
 }
 
 )TEMPLATE";
     // clang-format on
 
+    FinalStage::Concrete::Object* pObject   = database.getObject( TypeID::make_object_from_typeID( concreteTypeID ) );
+    Decision::DecisionProcedure*  pDecision = database.getDecision( concreteTypeID );
+
     std::ostringstream osCPPCode;
     try
     {
-        nlohmann::json templateData(
-            { { "type_id", printTypeID( concreteTypeID ) }, { "concrete_types", nlohmann::json::array() }
+        Indent indent;
+        ++indent;
 
-            } );
+        nlohmann::json templateData( {
+
+            { "type_id", printTypeID( concreteTypeID ) },
+            { "bitset_offset",
+              pObject->get_activation()->get_part()->get_offset() + pObject->get_activation()->get_offset() },
+            { "body", recurseStep( *m_pInja, indent, pDecision->get_root() ) }
+
+        } );
 
         osCPPCode << m_pInja->render( szTemplate, templateData );
     }

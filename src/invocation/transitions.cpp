@@ -107,7 +107,7 @@ struct InvocationPolicy
     {
         OrPtrVector result;
 
-        if( auto pLink = db_cast< Concrete::Dimensions::Link >( pOr->get_vertex() ) )
+        /*if( auto pLink = db_cast< Concrete::Dimensions::Link >( pOr->get_vertex() ) )
         {
             GraphEdgeVector edges;
             for( auto pEdge : pLink->get_out_edges() )
@@ -177,7 +177,7 @@ struct InvocationPolicy
                 result.push_back( pLinkTargetOr );
             }
         }
-        else
+        else*/
         {
             result.push_back( pOr );
         }

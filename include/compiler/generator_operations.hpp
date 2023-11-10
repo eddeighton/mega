@@ -233,17 +233,17 @@ private:
             }
             else if( auto pDecider = db_cast< Decider >( pBody ) )
             {
-                osReturnType << "bool";
+                osReturnType << "I32";
                 auto        pEvents = pDecider->get_events_trait();
                 const auto& args    = pEvents->get_args();
-                {
+                /*{
                     for( int i = 0; i != args.size(); ++i )
                     {
                         if( i > 0 )
                             osArgs << ", ";
                         osArgs << "const mega::reference& _p" << i;
                     }
-                }
+                }*/
             }
 
             nlohmann::json operation( {
@@ -279,13 +279,13 @@ private:
                 auto        pEvents = pDecider->get_events_trait();
                 const auto& args    = pEvents->get_args();
                 {
-                    for( int i = 0; i != args.size(); ++i )
+                    /*for( int i = 0; i != args.size(); ++i )
                     {
                         std::ostringstream osParamName;
                         osParamName << "p_" << i;
                         nlohmann::json param( { { "type", "const mega::reference&" }, { "name", osParamName.str() } } );
                         operation[ "params" ].push_back( param );
-                    }
+                    }*/
                 } 
             }
 

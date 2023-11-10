@@ -264,6 +264,9 @@ struct Collector
             }
             VERIFY_RTE_MSG( !targets.empty(),
                             "No derivation targets for derivation: " << Concrete::printContextFullType( pContext ) );
+            VERIFY_RTE_MSG(
+                targets.size() == 1U,
+                "Non-singular derivation targets for derivation: " << Concrete::printContextFullType( pContext ) );
             for( auto pVertex : targets )
             {
                 if( auto pState = db_cast< Concrete::State >( pVertex ) )
@@ -417,7 +420,6 @@ struct DeciderSelector
         using Vector = std::vector< DeciderInfo >;
 
         Concrete::Decider* pDecider;
-        StateVectorVector  states;
         VariableOrdering   variables;
 
         auto size() const { return variables.size(); }
@@ -462,7 +464,7 @@ struct DeciderSelector
         {
             auto states    = Collector::collectDerivationStates( pDecider, pDecider->get_variables() );
             auto variables = Collector::statesToUniqueVariables( states );
-            m_deciders.push_back( DeciderInfo{ pDecider, states, { variables.begin(), variables.end() } } );
+            m_deciders.push_back( DeciderInfo{ pDecider, { variables.begin(), variables.end() } } );
         }
     }
 
@@ -582,10 +584,8 @@ Decision::Step* buildRecurse( Database& database, Concrete::Context* pContext, c
     {
         auto pBooleanVar = remainingDecideableVars.front();
         // Boolean
-        auto pVars = database.construct< Decision::VariableSet >( Decision::VariableSet::Args{ { pBooleanVar } } );
-
-        Decision::Boolean* pBoolean = database.construct< Decision::Boolean >(
-            Decision::Boolean::Args{ Decision::Step::Args{ deciderOpt, assignment, trueVars, falseVars, {} }, pVars } );
+        Decision::Boolean* pBoolean = database.construct< Decision::Boolean >( Decision::Boolean::Args{
+            Decision::Step::Args{ deciderOpt, assignment, trueVars, falseVars, {} }, pBooleanVar } );
 
         // true
         {
@@ -638,21 +638,11 @@ Decision::Step* buildRecurse( Database& database, Concrete::Context* pContext, c
     }
     else
     {
-        std::vector< Decision::VariableSet* > transitionSelectionVariables;
-        {
-            for( auto i    = remainingDecideableVars.begin(),
-                      iEnd = remainingDecideableVars.begin() + variableOrdering.size();
-                 i != iEnd;
-                 ++i )
-            {
-                transitionSelectionVariables.push_back(
-                    database.construct< Decision::VariableSet >( Decision::VariableSet::Args{ { *i } } ) );
-            }
-        }
         // selection
-        Decision::Selection* pSelection = database.construct< Decision::Selection >(
-            Decision::Selection::Args{ Decision::Step::Args{ deciderOpt, assignment, trueVars, falseVars, {} },
-                                       transitionSelectionVariables, variableOrdering } );
+        Decision::Selection* pSelection = database.construct< Decision::Selection >( Decision::Selection::Args{
+            Decision::Step::Args{ deciderOpt, assignment, trueVars, falseVars, {} },
+            { remainingDecideableVars.begin(), remainingDecideableVars.begin() + variableOrdering.size() },
+            variableOrdering } );
 
         for( int i = 0; i != variableOrdering.size(); ++i )
         {
@@ -711,15 +701,14 @@ Decision::Step* buildDecisionProcedure( Database&                               
     State::Vector truthTable
         = fromTruthTable( TruthTableSolver::solve( pCommonAncestor->get_automata_vertex() ), variablesSorted );
 
-    std::vector< Decision::VariableSet* > transitionSelectionVariables;
-    VariableVector                        transitionVarsSorted;
+    VariableVector transitionSelectionVariables, transitionVarsSorted;
     {
         for( const VariableVector& vars : transitionVariables )
         {
-            transitionSelectionVariables.push_back(
-                database.construct< Decision::VariableSet >( Decision::VariableSet::Args{ vars } ) );
-            std::copy( vars.begin(), vars.end(), std::back_inserter( transitionVarsSorted ) );
+            VERIFY_RTE( vars.size() == 1 );
+            transitionSelectionVariables.push_back( vars.front() );
         }
+        transitionVarsSorted = transitionSelectionVariables;
         std::sort( transitionVarsSorted.begin(), transitionVarsSorted.end() );
     }
 

@@ -39,14 +39,17 @@ namespace mega
             return amt;
         };
         inline operator int() const { return amt; }
+
+        inline std::string str() const
+        {
+            static constexpr auto spaces = 4;
+            return std::string( spaces * amt, ' ' );
+        }
     };
 
     inline std::ostream& operator<<( std::ostream& os, const Indent& indent )
     {
-        static const std::string indentation( "    " );
-        for( int i = 0; i != indent; ++i )
-            os << indentation;
-        return os;
+        return os << indent.str();
     }
 }
 

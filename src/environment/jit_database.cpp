@@ -288,6 +288,35 @@ FinalStage::Interface::Action* JITDatabase::getAction( mega::TypeID interfaceTyp
     return pAction;
 }
 
+FinalStage::Decision::DecisionProcedure* JITDatabase::getDecision( TypeID concreteTypeID ) const
+{
+    using ::operator<<;
+    VERIFY_RTE_MSG( concreteTypeID != mega::TypeID{}, "Null TypeID in getComponent" );
+    auto iFind = m_concreteTypeIDs.find( concreteTypeID );
+    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteTypeID );
+    auto pConcreteTypeID = iFind->second;
+
+    auto pVertex = pConcreteTypeID->get_vertex();
+
+    using namespace FinalStage;
+
+    std::optional< ::FinalStage::Decision::DecisionProcedure* > optDecisionProcedure;
+    {
+        if( auto pState = db_cast< Concrete::State >( pVertex ) )
+        {
+            optDecisionProcedure = pState->get_transition_decision();
+        }
+        else if( auto pInterupt = db_cast< Concrete::Interupt >( pVertex ) )
+        {
+            optDecisionProcedure = pInterupt->get_transition_decision();
+        }
+    }
+
+    VERIFY_RTE_MSG( optDecisionProcedure.has_value(),
+                    "Failed to find decision procedure for concrete type id: " << concreteTypeID );
+    return optDecisionProcedure.value();
+}
+
 const FinalStage::Components::Component* JITDatabase::getComponent( mega::TypeID objectType ) const
 {
     using ::operator<<;

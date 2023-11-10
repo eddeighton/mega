@@ -68,11 +68,6 @@ namespace Automata
 
 namespace Decision
 {
-    object VariableSet -> OperationsStage::Operations
-    {
-        array< ref< Automata::Vertex > > variables;
-    }
-
     object Step -> OperationsStage::Operations
     {
         opt< ref< Concrete::Decider > >             decider;
@@ -91,13 +86,13 @@ namespace Decision
 
     object Boolean : Step -> OperationsStage::Operations
     {
-        ref< VariableSet > variables;
+        ref< Automata::Vertex > variable;
     }
 
     object Selection : Step -> OperationsStage::Operations
     {
-        array< ref< VariableSet > > variable_alternatives;
-        array< value< mega::U32 > > variable_ordering;
+        array< ref< Automata::Vertex > >    variable_alternatives;
+        array< value< mega::U32 > >         variable_ordering;
     }
 
     object DecisionProcedure -> OperationsStage::Operations

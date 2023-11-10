@@ -165,12 +165,9 @@ R"TEMPLATE(
         const Concrete::Dimensions::Link* pLink = pDereference->get_link_dimension();
         MemoryLayout::Part*               pPart = pLink->get_part();
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
         VERIFY_RTE( pLink->get_part() == pLink->get_link_type()->get_part() );
 
-        nlohmann::json templateData( { { "indent", osIndent.str() },
+        nlohmann::json templateData( { { "indent", args.indent.str() },
                                        { "part_offset", pPart->get_offset() },
                                        { "part_size", pPart->get_size() },
                                        { "ref_offset", pLink->get_offset() },
@@ -213,11 +210,8 @@ R"TEMPLATE(
         auto pFunction = db_cast< Concrete::Function >( pOperation->get_context() );
         VERIFY_RTE( pFunction );
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
         nlohmann::json templateData(
-            { { "indent", osIndent.str() },
+            { { "indent", args.indent.str() },
               { "interface_type_id", printTypeID( pFunction->get_interface()->get_interface_id() ) },
               { "instance", args.get( pOperation->get_variable() ) } } );
 
@@ -259,11 +253,8 @@ R"TEMPLATE(
         // auto pState = db_cast< Concrete::State >( pOperation->get_context() );
         // VERIFY_RTE( pState );
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
         nlohmann::json templateData(
-            { { "indent", osIndent.str() }, { "instance", args.get( pOperation->get_variable() ) } } );
+            { { "indent", args.indent.str() }, { "instance", args.get( pOperation->get_variable() ) } } );
 
         os << args.inja.render( szTemplate, templateData );
     }
@@ -303,11 +294,8 @@ R"TEMPLATE(
         // auto pState = db_cast< Concrete::State >( pOperation->get_context() );
         // VERIFY_RTE( pState );
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
         nlohmann::json templateData(
-            { { "indent", osIndent.str() }, { "instance", args.get( pOperation->get_variable() ) } } );
+            { { "indent", args.indent.str() }, { "instance", args.get( pOperation->get_variable() ) } } );
 
         os << args.inja.render( szTemplate, templateData );
     }
@@ -337,11 +325,8 @@ R"TEMPLATE(
     {
         // auto pContext = db_cast< Concrete::Context >( pOperation->get_context() );
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
         nlohmann::json templateData(
-            { { "indent", osIndent.str() }, { "instance", args.get( pOperation->get_variable() ) } } );
+            { { "indent", args.indent.str() }, { "instance", args.get( pOperation->get_variable() ) } } );
 
         os << args.inja.render( szTemplate, templateData );
     }
@@ -385,10 +370,7 @@ R"TEMPLATE(
         Variables::Variable* pVariable = pOperation->get_variable();
         MemoryLayout::Part*  pPart     = pDimension->get_part();
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
-        nlohmann::json templateData( { { "indent", osIndent.str() },
+        nlohmann::json templateData( { { "indent", args.indent.str() },
                                        { "part_offset", pPart->get_offset() },
                                        { "part_size", pPart->get_size() },
                                        { "dimension_offset", pDimension->get_offset() },
@@ -443,10 +425,7 @@ R"TEMPLATE(
         const bool           bSimple    = pDimension->get_interface_dimension()->get_simple();
         const std::string    strMangled = megaMangle( pDimension->get_interface_dimension()->get_erased_type() );
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
-        nlohmann::json templateData( { { "indent", osIndent.str() },
+        nlohmann::json templateData( { { "indent", args.indent.str() },
                                        { "concrete_type_id", printTypeID( pDimension->get_concrete_id() ) },
                                        { "part_offset", pPart->get_offset() },
                                        { "part_size", pPart->get_size() },
@@ -502,10 +481,7 @@ R"TEMPLATE(
         Variables::Variable* pVariable = pOperation->get_variable();
         MemoryLayout::Part*  pPart     = pLink->get_part();
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
-        nlohmann::json templateData( { { "indent", osIndent.str() },
+        nlohmann::json templateData( { { "indent", args.indent.str() },
                                        { "part_offset", pPart->get_offset() },
                                        { "part_size", pPart->get_size() },
                                        { "dimension_offset", pLink->get_offset() },
@@ -545,10 +521,7 @@ mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 
         RelationID relationID = pLink->get_relation()->get_id();
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
-        nlohmann::json templateData( { { "indent", osIndent.str() },
+        nlohmann::json templateData( { { "indent", args.indent.str() },
                                        { "relation_id_lower", printTypeID( relationID.getLower() ) },
                                        { "relation_id_upper", printTypeID( relationID.getUpper() ) },
                                        { "instance", args.get( pOperation->get_variable() ) }
@@ -590,10 +563,7 @@ mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 
         RelationID relationID = pLink->get_relation()->get_id();
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
-        nlohmann::json templateData( { { "indent", osIndent.str() },
+        nlohmann::json templateData( { { "indent", args.indent.str() },
                                        { "relation_id_lower", printTypeID( relationID.getLower() ) },
                                        { "relation_id_upper", printTypeID( relationID.getUpper() ) },
                                        { "instance", args.get( pOperation->get_variable() ) }
@@ -635,10 +605,7 @@ mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 
         RelationID relationID = pLink->get_relation()->get_id();
 
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
-        nlohmann::json templateData( { { "indent", osIndent.str() },
+        nlohmann::json templateData( { { "indent", args.indent.str() },
                                        { "relation_id_lower", printTypeID( relationID.getLower() ) },
                                        { "relation_id_upper", printTypeID( relationID.getUpper() ) },
                                        { "instance", args.get( pOperation->get_variable() ) }
@@ -769,10 +736,7 @@ void gen( Args args, const FinalStage::Operations::Move* pMove,
                 THROW_RTE( "Move context is not a link interface" );
             }
 
-            std::ostringstream osIndent;
-            osIndent << args.indent;
-
-            nlohmann::json templateData( { { "indent", osIndent.str() },
+            nlohmann::json templateData( { { "indent", args.indent.str() },
                                            { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
                                            { "instance", args.get( pInstance ) },
                                            { "unparent_all", bUnparentAll },

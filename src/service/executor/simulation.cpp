@@ -210,6 +210,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                             const auto& transition = *m_iter_transitions;
                             const auto& ref = transition.getRef();
                             SPDLOG_TRACE( "Got transition: {}", ref );
+                            VERIFY_RTE( ref.getMPO() == getThisMPO() );
+                            VERIFY_RTE( !ref.isNetworkAddress() );
 
                             auto pDecision = decisionFunctionCache.getDecisionFunction( ref.getType() );
                             pDecision( &ref );
@@ -235,6 +237,9 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                 auto actionContext = mega::reference::make(
                                     ref, TypeInstance{ ref.getType().getObjectID(), subTypeInstance } );
                                 auto pAction = actionFunctionCache.getActionFunction( actionContext.getType() );
+
+                                SPDLOG_TRACE( "SIM: executing: {}", actionContext );
+                                
                                 mega::ActionCoroutine actionCoroutine = pAction( &actionContext );
                                 while( !actionCoroutine.done() )
                                 {

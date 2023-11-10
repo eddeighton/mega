@@ -73,3 +73,16 @@ TEST( Bitset, Paranoia )
         }
     }
 }
+
+TEST( Bitset, MoreParanoia )
+{
+    static constexpr auto size = 4;
+
+    static const mega::U64 data[ 1 ] = { 0b0000000000000000000000000000000000000000000000000000000000000001 };
+
+    const mega::BitSet bitset( &data[ 0 ], &data[ 0 ] + 1 );
+
+    ASSERT_TRUE( bitset[ 0 ] );
+    ASSERT_FALSE( bitset[ 1 ] );
+    ASSERT_FALSE( bitset[ 63 ] );
+}

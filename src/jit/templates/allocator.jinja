@@ -380,8 +380,10 @@ mega::SubTypeInstance enumerate_{{ objectTypeID }}( mega::reference& ref, mega::
 
     void* pBitset = reinterpret_cast< char* >( ref.getHeap() ) + {{ bitset_offset }};
 
+    do
+    {
 {{ enumeration }}
+    } while( iterator );
 
-    iterator = 0;
     return mega::SubTypeInstance{};
 }
