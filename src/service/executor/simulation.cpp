@@ -26,6 +26,7 @@
 
 #include "service/executor/executor.hpp"
 #include "service/executor/action_function_cache.hpp"
+#include "service/executor/decision_function_cache.hpp"
 
 #include "service/network/logical_thread.hpp"
 
@@ -121,7 +122,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         // SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
         static mega::runtime::program::Enumerate funcEnumerate;
-        static mega::runtime::program::Dispatch funcDispatch;
+        static mega::runtime::program::Dispatch  funcDispatch;
 
         m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
 
@@ -129,7 +130,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         log::FileIterator< log::Transition::Read > m_iter_transitions = m_pLog->begin< log::Transition::Read >();
         log::FileIterator< log::Structure::Read >  m_iter_structure   = m_pLog->begin< log::Structure::Read >();
 
-        ActionFunctionCache actionFunctionCache;
+        ActionFunctionCache   actionFunctionCache;
+        DecisionFunctionCache decisionFunctionCache;
 
         TimeStamp cycle     = getLog().getTimeStamp();
         TimeStamp lastCycle = cycle;
@@ -185,13 +187,13 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                             switch( event.getType() )
                             {
                                 case log::Event::eComplete:
-                                    SPDLOG_INFO( "Got completion event: {}", event.getRef() );
+                                    SPDLOG_TRACE( "Got completion event: {}", event.getRef() );
                                     break;
                                 case log::Event::eStart:
-                                    SPDLOG_INFO( "Got start event: {}", event.getRef() );
+                                    SPDLOG_TRACE( "Got start event: {}", event.getRef() );
                                     break;
                                 case log::Event::eSignal:
-                                    SPDLOG_INFO( "Got signal event: {}", event.getRef() );
+                                    SPDLOG_TRACE( "Got signal event: {}", event.getRef() );
                                     break;
                                 default:
                                 {
@@ -203,14 +205,14 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     // process all transitions
                     {
-
-                        
                         for( ; m_iter_transitions != m_pLog->end< log::Transition::Read >(); ++m_iter_transitions )
                         {
                             const auto& transition = *m_iter_transitions;
-                            SPDLOG_TRACE( "Got transition: {}", transition.getRef() );
+                            const auto& ref = transition.getRef();
+                            SPDLOG_TRACE( "Got transition: {}", ref );
 
-
+                            auto pDecision = decisionFunctionCache.getDecisionFunction( ref.getType() );
+                            pDecision( &ref );
                         }
                     }
 
@@ -254,7 +256,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                     {
                                         SPDLOG_TRACE( "Generating completion event: {}", actionContext );
                                         // generate completion event
-                                        m_pLog->record( mega::log::Event::Write( actionContext, mega::log::Event::eComplete ) );
+                                        m_pLog->record(
+                                            mega::log::Event::Write( actionContext, mega::log::Event::eComplete ) );
                                     }
                                     break;
                                     default:
@@ -272,13 +275,12 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         {
                             const auto& structure = *m_iter_structure;
 
-                            SPDLOG_INFO( "Got structure: {} {} {}", structure.getSource(), structure.getTarget(), structure.getRelation() );
+                            SPDLOG_INFO( "Got structure: {} {} {}", structure.getSource(), structure.getTarget(),
+                                         structure.getRelation() );
 
                             // structure.getSource();
                             // structure.getTarget();
                             // structure.getRelation();
-
-                            
                         }
                     }
 

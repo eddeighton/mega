@@ -50,6 +50,7 @@ set( EXECUTOR_LIB_API
     ${EXECUTOR_API_DIR}/action_function_cache.hpp
     ${EXECUTOR_API_DIR}/clock_standalone.hpp
     ${EXECUTOR_API_DIR}/clock.hpp
+    ${EXECUTOR_API_DIR}/decision_function_cache.hpp
     ${EXECUTOR_API_DIR}/executor.hpp
     ${EXECUTOR_API_DIR}/request.hpp 
     ${EXECUTOR_API_DIR}/sim_move_machine.hpp 

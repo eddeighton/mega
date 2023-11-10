@@ -1,4 +1,3 @@
-
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -18,8 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_February_04_scheduler
-#define GUARD_2023_February_04_scheduler
+#ifndef GUARD_2023_November_10_decision_function_cache
+#define GUARD_2023_November_10_decision_function_cache
 
 #include "service/protocol/common/context.hpp"
 #include "service/protocol/common/jit_base.hpp"
@@ -31,16 +30,16 @@
 namespace mega::service
 {
 
-class ActionFunctionCache
+class DecisionFunctionCache
 {
-    using ActionFunctionPtr = mega::ActionCoroutine ( * )( mega::reference* );
-    using ActionFunctionMap = std::unordered_map< TypeID, ActionFunctionPtr, TypeID::Hash >;
+    using DecisionFunctionPtr = void ( * )( const mega::reference* );
+    using DecisionFunctionMap = std::unordered_map< TypeID, DecisionFunctionPtr, TypeID::Hash >;
 
 public:
-    const ActionFunctionPtr& getActionFunction( TypeID typeID )
+    const DecisionFunctionPtr& getDecisionFunction( TypeID concreteTypeID )
     {
-        auto iter = m_actionFunctions.find( typeID );
-        if( iter != m_actionFunctions.end() )
+        auto iter = m_decisionFunctions.find( concreteTypeID );
+        if( iter != m_decisionFunctions.end() )
         {
             if( iter->second != nullptr )
             {
@@ -49,13 +48,12 @@ public:
         }
         else
         {
-            iter = m_actionFunctions.insert( { typeID, nullptr } ).first;
+            iter = m_decisionFunctions.insert( { concreteTypeID, nullptr } ).first;
         }
 
         {
-            mega::runtime::JITFunctor functor( [ typeID, &iter ]( mega::runtime::JITBase& jit, void* )
-                                               { jit.getActionFunction( typeID, ( void** )&iter->second ); } );
-            // NOTE: call to jit MAY return with THIS coroutine resumed in DIFFERENT thread!
+            mega::runtime::JITFunctor functor( [ concreteTypeID, &iter ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
+                                               { jit.getDecisionFunction( pLLVMCompiler, concreteTypeID, ( void** )&iter->second ); } );
             mega::Context::get()->jit( functor );
         }
 
@@ -63,9 +61,9 @@ public:
     }
 
 private:
-    ActionFunctionMap m_actionFunctions;
+    DecisionFunctionMap m_decisionFunctions;
 };
 
 } // namespace mega::service
 
-#endif // GUARD_2023_February_04_scheduler
+#endif // GUARD_2023_November_10_decision_function_cache

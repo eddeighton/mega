@@ -103,6 +103,7 @@ struct JITStatus
         archive& m_relations;
         archive& m_invocations;
         archive& m_operators;
+        archive& m_decisions;
     }
 
     U64 m_functionPointers = 0;
@@ -110,6 +111,7 @@ struct JITStatus
     U64 m_relations        = 0;
     U64 m_invocations      = 0;
     U64 m_operators        = 0;
+    U64 m_decisions        = 0;
 
     ComponentMgrStatus m_componentManagerStatus;
 };

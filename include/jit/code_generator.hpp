@@ -71,6 +71,8 @@ public:
     void generate_operator( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target,
                             mega::runtime::operators::FunctionType invocationType, std::ostream& os );
 
+    void generate_decision( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target, std::ostream& os );
+
 private:
     VariableMap
     generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,

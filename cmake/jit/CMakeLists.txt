@@ -115,6 +115,7 @@ set( RUNTIME_SOURCE
 
     ${MEGA_SRC_DIR}/jit/allocator.cpp
     ${MEGA_SRC_DIR}/jit/code_gen_allocator.cpp
+    ${MEGA_SRC_DIR}/jit/code_gen_decisions.cpp
     ${MEGA_SRC_DIR}/jit/code_gen_instructions.cpp
     ${MEGA_SRC_DIR}/jit/code_gen_operators.cpp
     ${MEGA_SRC_DIR}/jit/code_generator.cpp

@@ -199,7 +199,7 @@ namespace {{ record.type }}
 {% endif %}
 
 {%      for field in record.fields %}
-        inline {{ field.type }} get{{ field.name }}() const { return m_pData->m_{{ field.name }}; }
+        inline const {{ field.type }}& get{{ field.name }}() const { return m_pData->m_{{ field.name }}; }
 {%      endfor %}
 {%      for enum in record.enums %}
         inline {{ enum.name }} get{{ enum.name }}() const { return m_pData->m_{{ enum.name }}; }

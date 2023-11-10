@@ -97,6 +97,7 @@ network::JITStatus JIT::getStatus() const
     status.m_relations              = m_relations.size();
     status.m_invocations            = m_invocations.size();
     status.m_operators              = m_operators.size();
+    status.m_decisions              = m_decisions.size();
     status.m_componentManagerStatus = m_componentManager.getStatus();
 
     return status;
@@ -650,6 +651,36 @@ void JIT::getActionFunction( mega::TypeID concreteTypeID, void** ppFunction )
     const mega::TypeID interfaceTypeID = m_database.getInterfaceTypeID( concreteTypeID );
 
     *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( interfaceTypeID );
+}
+
+void JIT::getDecisionFunction( void* pLLVMCompiler, TypeID concreteTypeID, void** ppFunction )
+{
+    SPDLOG_TRACE( "JIT::getDecisionFunction : {}", concreteTypeID );
+
+    m_functionPointers.insert( ppFunction );
+
+    const CodeGenerator::LLVMCompiler& compiler
+        = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
+
+    JITCompiler::Module::Ptr pModule;
+    {
+        auto iFind = m_decisions.find( concreteTypeID );
+        if( iFind != m_decisions.end() )
+        {
+            pModule = iFind->second;
+        }
+    }
+
+    if( !pModule )
+    {
+        std::ostringstream osModule;
+        m_codeGenerator.generate_decision( compiler, m_database, concreteTypeID, osModule );
+        pModule = compile( osModule.str() );
+        m_decisions.insert( std::make_pair( concreteTypeID, pModule ) );
+    }
+    
+    *ppFunction
+        = ( void* )pModule->get< void (*)( const mega::reference& ) >( Symbol( "decision_", concreteTypeID, Symbol::RefCR ) );
 }
 
 void JIT::getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction, void* pPythonCaster )
