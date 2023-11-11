@@ -571,9 +571,71 @@ VariableVector calculateRemainingDecideableVariables( Concrete::Context* pContex
     return remainingDecideableVars;
 }
 
-Decision::Step* buildRecurse( Database& database, Concrete::Context* pContext, const DeciderSelector& deciderSelector,
-                              const State::Vector& truthTable, VariableVector assignment, VariableVector trueVars,
-                              VariableVector falseVars, VariableVector remainingDecideableVars )
+Instance calculateInstanceMultiplier( Concrete::State* pCommonAncestor, Automata::Vertex* pVariable )
+{
+    Instance multipler = 1;
+
+    Concrete::Context* pIter = pVariable->get_context();
+
+    while( pIter != pCommonAncestor )
+    {
+        multipler = multipler * pIter->get_local_size();
+        pIter     = db_cast< Concrete::Context >( pIter->get_parent() );
+        VERIFY_RTE( pIter );
+    }
+
+    return multipler;
+}
+
+Decision::Assignments* buildAssignments( Database& database, Concrete::State* pCommonAncestor,
+                                         const VariableVector& assignment, const VariableVector& trueVars,
+                                         const VariableVector& falseVars )
+{
+    std::vector< Decision::Assignment* > assignments;
+    {
+        std::unordered_set< Automata::Vertex* > variables;
+        for( auto pTrueVar : trueVars )
+        {
+            const Instance multiplier = calculateInstanceMultiplier( pCommonAncestor, pTrueVar );
+
+            auto pAssignment = database.construct< Decision::Assignment >(
+                Decision::Assignment::Args{ true, pTrueVar, multiplier } );
+            assignments.push_back( pAssignment );
+            variables.insert( pTrueVar );
+
+            for( auto pSibling : pTrueVar->get_siblings() )
+            {
+                VERIFY_RTE( !variables.contains( pSibling ) );
+                auto pAssignment = database.construct< Decision::Assignment >(
+                    Decision::Assignment::Args{ false, pSibling, multiplier } );
+                assignments.push_back( pAssignment );
+                variables.insert( pSibling );
+            }
+        }
+
+        for( auto pFalseVar : falseVars )
+        {
+            if( !variables.contains( pFalseVar ) )
+            {
+                Instance multiplier  = calculateInstanceMultiplier( pCommonAncestor, pFalseVar );
+                auto     pAssignment = database.construct< Decision::Assignment >(
+                    Decision::Assignment::Args{ false, pFalseVar, multiplier } );
+                assignments.push_back( pAssignment );
+                variables.insert( pFalseVar );
+            }
+        }
+    }
+
+    auto pAssignments = database.construct< Decision::Assignments >( Decision::Assignments::Args{
+        Decision::Step::Args{ std::nullopt, assignment, trueVars, falseVars, {} }, assignments } );
+
+    return pAssignments;
+}
+
+Decision::Step* buildRecurse( Database& database, Concrete::State* pCommonAncestor, Concrete::Context* pContext,
+                              const DeciderSelector& deciderSelector, const State::Vector& truthTable,
+                              VariableVector assignment, VariableVector trueVars, VariableVector falseVars,
+                              VariableVector remainingDecideableVars )
 {
     std::vector< U32 >                  variableOrdering;
     std::optional< Concrete::Decider* > deciderOpt = deciderSelector.chooseDecider(
@@ -599,15 +661,15 @@ Decision::Step* buildRecurse( Database& database, Concrete::Context* pContext, c
 
             if( !newRemainingDecideableVars.empty() )
             {
-                auto pStep = buildRecurse( database, pContext, deciderSelector, truthTable, newAssignment, newTrueVars,
-                                           newFalseVars, newRemainingDecideableVars );
+                auto pStep = buildRecurse( database, pCommonAncestor, pContext, deciderSelector, truthTable,
+                                           newAssignment, newTrueVars, newFalseVars, newRemainingDecideableVars );
                 VERIFY_RTE( pStep );
                 pBoolean->push_back_children( pStep );
             }
             else
             {
-                pBoolean->push_back_children( database.construct< Decision::Nothing >( Decision::Nothing::Args{
-                    Decision::Step::Args{ std::nullopt, newAssignment, newTrueVars, newFalseVars, {} } } ) );
+                pBoolean->push_back_children(
+                    buildAssignments( database, pCommonAncestor, newAssignment, newTrueVars, newFalseVars ) );
             }
         }
         // false
@@ -622,15 +684,15 @@ Decision::Step* buildRecurse( Database& database, Concrete::Context* pContext, c
 
             if( !newRemainingDecideableVars.empty() )
             {
-                auto pStep = buildRecurse( database, pContext, deciderSelector, truthTable, newAssignment, newTrueVars,
-                                           newFalseVars, newRemainingDecideableVars );
+                auto pStep = buildRecurse( database, pCommonAncestor, pContext, deciderSelector, truthTable,
+                                           newAssignment, newTrueVars, newFalseVars, newRemainingDecideableVars );
                 VERIFY_RTE( pStep );
                 pBoolean->push_back_children( pStep );
             }
             else
             {
-                pBoolean->push_back_children( database.construct< Decision::Nothing >( Decision::Nothing::Args{
-                    Decision::Step::Args{ std::nullopt, newAssignment, newTrueVars, newFalseVars, {} } } ) );
+                pBoolean->push_back_children(
+                    buildAssignments( database, pCommonAncestor, newAssignment, newTrueVars, newFalseVars ) );
             }
         }
 
@@ -668,15 +730,15 @@ Decision::Step* buildRecurse( Database& database, Concrete::Context* pContext, c
                 pContext, truthTable, newTrueVars, newFalseVars, remainingDecideableVars );
             if( !newRemainingDecideableVars.empty() )
             {
-                auto pStep = buildRecurse( database, pContext, deciderSelector, truthTable, newAssignment, newTrueVars,
-                                           newFalseVars, newRemainingDecideableVars );
+                auto pStep = buildRecurse( database, pCommonAncestor, pContext, deciderSelector, truthTable,
+                                           newAssignment, newTrueVars, newFalseVars, newRemainingDecideableVars );
                 VERIFY_RTE( pStep );
                 pSelection->push_back_children( pStep );
             }
             else
             {
-                pSelection->push_back_children( database.construct< Decision::Nothing >( Decision::Nothing::Args{
-                    Decision::Step::Args{ std::nullopt, newAssignment, newTrueVars, newFalseVars, {} } } ) );
+                pSelection->push_back_children(
+                    buildAssignments( database, pCommonAncestor, newAssignment, newTrueVars, newFalseVars ) );
             }
         }
 
@@ -751,15 +813,15 @@ Decision::Step* buildDecisionProcedure( Database&                               
             = calculateRemainingDecideableVariables( pContext, truthTable, trueVerts, falseVerts, remainingVarsSorted );
         if( !remainingDecideableVariables.empty() )
         {
-            auto pStep = buildRecurse( database, pContext, deciderSelector, truthTable, trueVerts, trueVerts,
-                                       falseVerts, remainingDecideableVariables );
+            auto pStep = buildRecurse( database, pCommonAncestor, pContext, deciderSelector, truthTable, trueVerts,
+                                       trueVerts, falseVerts, remainingDecideableVariables );
             VERIFY_RTE( pStep );
             pSelection->push_back_children( pStep );
         }
         else
         {
-            pSelection->push_back_children( database.construct< Decision::Nothing >( Decision::Nothing::Args{
-                Decision::Step::Args{ std::nullopt, trueVerts, trueVerts, falseVerts, {} } } ) );
+            pSelection->push_back_children(
+                buildAssignments( database, pCommonAncestor, trueVerts, trueVerts, falseVerts ) );
         }
     }
 
@@ -793,13 +855,23 @@ Decision::DecisionProcedure* compileTransition( Database& database, Concrete::Co
 
     Concrete::State* pCommonAncestor = findCommonAncestor( pContextState, transitionStates );
 
+    // calculate instance divider to common ancestor
+    Instance instanceDivider = 1;
+    {
+        for( auto pIter = pContext; pIter != pCommonAncestor;
+             pIter      = db_cast< Concrete::Context >( pIter->get_parent() ) )
+        {
+            instanceDivider = instanceDivider * pIter->get_local_size();
+        }
+    }
+
     // calculate the variable sequence for the transition
     std::vector< VariableVector > variableSequence = Collector::statesToUniqueVariables( transitionStates );
 
     Decision::Step* pRoot = buildDecisionProcedure( database, deciders, pContext, pCommonAncestor, variableSequence );
 
     Decision::DecisionProcedure* pProcedure = database.construct< Decision::DecisionProcedure >(
-        Decision::DecisionProcedure::Args{ pCommonAncestor, pRoot } );
+        Decision::DecisionProcedure::Args{ pCommonAncestor, instanceDivider, pRoot } );
 
     return pProcedure;
 }

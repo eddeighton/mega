@@ -64,7 +64,7 @@ namespace mega::mangle
     void iterator_namespace_start( void*, const char* pszType, mega::TypeID );
     void iterator_namespace_end( void*, const char* pszType, mega::TypeID );
     void iterator_dimension( void*, const char* pszType, mega::TypeID );
-    bool test_bitset( void*, mega::U32 index );
+    bool bitset_test( void*, mega::U32 index );
 }
 
 void ctor_{{ objectTypeID }}( void* pBuffer )

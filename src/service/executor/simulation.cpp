@@ -184,7 +184,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                             const auto& event = *m_iter_events;
                             funcDispatch( event.getRef() );
 
-                            switch( event.getType() )
+                            /*switch( event.getType() )
                             {
                                 case log::Event::eComplete:
                                     SPDLOG_TRACE( "Got completion event: {}", event.getRef() );
@@ -199,7 +199,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                 {
                                     THROW_RTE( "Unknown event type" );
                                 }
-                            }
+                            }*/
                         }
                     }
 
@@ -209,7 +209,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         {
                             const auto& transition = *m_iter_transitions;
                             const auto& ref = transition.getRef();
-                            SPDLOG_TRACE( "Got transition: {}", ref );
+                            //SPDLOG_TRACE( "Got transition: {}", ref );
                             VERIFY_RTE( ref.getMPO() == getThisMPO() );
                             VERIFY_RTE( !ref.isNetworkAddress() );
 
@@ -238,7 +238,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                     ref, TypeInstance{ ref.getType().getObjectID(), subTypeInstance } );
                                 auto pAction = actionFunctionCache.getActionFunction( actionContext.getType() );
 
-                                SPDLOG_TRACE( "SIM: executing: {}", actionContext );
+                                //SPDLOG_TRACE( "SIM: executing: {}", actionContext );
                                 
                                 mega::ActionCoroutine actionCoroutine = pAction( &actionContext );
                                 while( !actionCoroutine.done() )
@@ -259,7 +259,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                         break;
                                     case eReason_Complete:
                                     {
-                                        SPDLOG_TRACE( "Generating completion event: {}", actionContext );
+                                        //SPDLOG_TRACE( "Generating completion event: {}", actionContext );
                                         // generate completion event
                                         m_pLog->record(
                                             mega::log::Event::Write( actionContext, mega::log::Event::eComplete ) );

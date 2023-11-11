@@ -187,7 +187,7 @@ struct InvocationPolicy
 
     GraphVertex* commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const
     {
-        return CommonAncestor::commonRootDerivation( pSource, pTarget, edges );
+        return CommonAncestor::commonRootDerivation( pSource, pTarget, edges, true );
     }
 
     InvocationPolicy( Database& database )

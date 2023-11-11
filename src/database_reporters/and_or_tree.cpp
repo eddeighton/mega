@@ -80,6 +80,9 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
         }
     }
 
+    auto optBitsetStart = pVertex->get_bitset_range_start();
+
+
     Graph::Node node{ {
                           { strType, Concrete::getIdentifier( pVertex->get_context() ) },
                           { "Concrete TypeID"s, pVertex->get_context()->get_concrete_id() },
@@ -89,6 +92,8 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
                           { "Historical"s, pVertex->get_is_historical() ? "true"s : "false"s },
                           { "Requirement"s, pVertex->get_has_requirement() ? "true"s : "false"s },
                           { "Total Domain"s, std::to_string( pVertex->get_context()->get_total_size() ) },
+                          { "Bitset Start"s, optBitsetStart.has_value() ? std::to_string( optBitsetStart.value() ) : "none"s },
+                          { "Bitset Range"s, std::to_string( pVertex->get_bitset_range_size() ) },
 
                       },
                       pVertex->get_is_conditional() ? Colour::green : Colour::blue,

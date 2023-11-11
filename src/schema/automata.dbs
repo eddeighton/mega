@@ -27,7 +27,12 @@ namespace Automata
         value< bool >                   has_requirement;
         value< mega::U32 >              relative_domain;
         ref< Concrete::Context >        context;
+        opt< value< mega::U32 > >       bitset_range_start;
+        value< mega::U32 >              bitset_range_size;
+
         late< opt< ref< Vertex > > >    test_ancestor;
+
+        array< ref< Vertex > >          siblings;
         array< ref< Vertex > >          children;
     }
 
@@ -55,9 +60,9 @@ namespace Automata
 
     object Test : Enum -> AutomataStage::AutomataAnalysis
     {
-        value< mega::U32 >          bitset_index;
         value< bool >               start_state;
         late< value< mega::U32 > >  failure_switch_index;
+        late< value< mega::U32 > >  bitset_index;
     }
 
     object TruthAssignment -> OperationsStage::Operations
@@ -77,11 +82,16 @@ namespace Decision
         array< ref< Step > >                        children;
     }
 
-    object Nothing : Step -> OperationsStage::Operations
+    object Assignment -> OperationsStage::Operations
     {
-        // Since selection array of substeps MUST match 
-        // the actual selection alternatives then need
-        // a nothing step for case where no further steps
+        value< bool >           is_true;
+        ref< Automata::Vertex > vertex;
+        value< mega::Instance > instance_multiplier;
+    }
+
+    object Assignments : Step -> OperationsStage::Operations
+    {
+        array< ref< Assignment > > assignments;
     }
 
     object Boolean : Step -> OperationsStage::Operations
@@ -98,6 +108,7 @@ namespace Decision
     object DecisionProcedure -> OperationsStage::Operations
     {
         ref< Concrete::State >  common_ancestor;
+        value< mega::Instance > instance_divider;
         ref< Step >             root;
     }
 }

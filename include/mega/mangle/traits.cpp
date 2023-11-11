@@ -121,6 +121,7 @@ void transition( const mega::reference& t )
     log.record( mega::log::Transition::Write( t ) );
 }
 
+/////////////////////////////////////////////////////////////
 // const reference vector
 bool ref_vector_empty( void* pData )
 {
@@ -161,6 +162,7 @@ mega::TypeID& type_vector_get_at( void* pData, mega::U64 index )
     return vec[ index ];
 }
 
+/////////////////////////////////////////////////////////////
 // non-const reference vector
 void ref_vector_remove( void* pData, const mega::reference& ref )
 {
@@ -218,6 +220,26 @@ void ref_vectors_remove_at( void* pData1, void* pData2, mega::U64 index )
     auto& types = reify< LinkTypeVector >( pData2 );
     refs.erase( refs.begin() + index );
     types.erase( types.begin() + index );
+}
+
+/////////////////////////////////////////////////////////////
+// bitset routines
+bool bitset_test( void* pBitset, mega::U32 index )
+{
+    auto& bitset = reify< mega::BitSet >( pBitset );
+    return bitset.test( index );
+}
+
+void bitset_set( void* pBitset, mega::U32 position, mega::U32 length )
+{
+    auto& bitset = reify< mega::BitSet >( pBitset );
+    bitset.set( position, length, true );
+}
+
+void bitset_unset( void* pBitset, mega::U32 position, mega::U32 length )
+{
+    auto& bitset = reify< mega::BitSet >( pBitset );
+    bitset.set( position, length, false );
 }
 
 /////////////////////////////////////////////////////////////
@@ -396,12 +418,6 @@ void iterator_dimension( void* pIterator, const char* pszType, mega::TypeID succ
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.dimension( pszType, successor );
-}
-
-bool test_bitset( void* pBitset, mega::U32 index )
-{
-    auto& bitset = reify< mega::BitSet >( pBitset );
-    return bitset.test( index );
 }
 
 } // namespace mega::mangle

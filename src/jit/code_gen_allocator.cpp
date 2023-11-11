@@ -270,7 +270,7 @@ std::string generate_enum( Inja& inja, FinalStage::Concrete::Object* pObject )
         case {{ enum.switch_index }}:
         {
 {% if enum.is_test %}
-            if( mega::mangle::test_bitset( pBitset, {{ enum.bit_index }} ) )
+            if( mega::mangle::bitset_test( pBitset, {{ enum.bit_index }} ) )
             {
                 iterator = {{ enum.iterator_next }};
 {% if enum.is_action %}

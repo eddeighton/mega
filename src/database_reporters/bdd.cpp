@@ -61,10 +61,32 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
 
     Graph::Node node;
 
-    if( auto pNothing = db_cast< Decision::Nothing >( pStep ) )
+    bool bIncludeVariableInfo = true;
+    if( auto pAssignments = db_cast< Decision::Assignments >( pStep ) )
     {
-        node.m_rows.push_back( { "BDD Vertex Type"s, "Nothing"s } );
+        bIncludeVariableInfo = false;
+        node.m_rows.push_back( { "Assignment Type"s, "TypeName"s, "Multiplier"s } );
         node.m_colour = Colour::red;
+
+        for( auto pAssignment : pAssignments->get_assignments() )
+        {
+            auto               pVertex = pAssignment->get_vertex();
+            std::ostringstream osMultiplier;
+            osMultiplier << "* " << pAssignment->get_instance_multiplier();
+
+            if( pAssignment->get_is_true() )
+            {
+                node.m_rows.push_back( { "SET"s, Concrete::printContextFullType( pVertex->get_context() ),
+                                         pVertex->get_context()->get_concrete_id(), osMultiplier.str()
+
+                } );
+            }
+            else
+            {
+                node.m_rows.push_back( { "UNSET"s, Concrete::printContextFullType( pVertex->get_context() ),
+                                         pVertex->get_context()->get_concrete_id(), osMultiplier.str() } );
+            }
+        }
     }
     else if( auto pBoolean = db_cast< Decision::Boolean >( pStep ) )
     {
@@ -117,20 +139,23 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
         THROW_RTE( "Unknown decision step type" );
     }
 
-    for( auto pAssignVar : pStep->get_assignment() )
+    if( bIncludeVariableInfo )
     {
-        node.m_rows.push_back( { "ASSIGN"s, Concrete::printContextFullType( pAssignVar->get_context() ),
-                                 pAssignVar->get_context()->get_concrete_id() } );
-    }
-    for( auto pTrueVar : pStep->get_vars_true() )
-    {
-        node.m_rows.push_back( { "TRUE"s, Concrete::printContextFullType( pTrueVar->get_context() ),
-                                 pTrueVar->get_context()->get_concrete_id() } );
-    }
-    for( auto pFalseVar : pStep->get_vars_false() )
-    {
-        node.m_rows.push_back( { "FALSE"s, Concrete::printContextFullType( pFalseVar->get_context() ),
-                                 pFalseVar->get_context()->get_concrete_id() } );
+        for( auto pAssignVar : pStep->get_assignment() )
+        {
+            node.m_rows.push_back( { "ASSIGN"s, Concrete::printContextFullType( pAssignVar->get_context() ),
+                                    pAssignVar->get_context()->get_concrete_id() } );
+        }
+        for( auto pTrueVar : pStep->get_vars_true() )
+        {
+            node.m_rows.push_back( { "TRUE"s, Concrete::printContextFullType( pTrueVar->get_context() ),
+                                    pTrueVar->get_context()->get_concrete_id() } );
+        }
+        for( auto pFalseVar : pStep->get_vars_false() )
+        {
+            node.m_rows.push_back( { "FALSE"s, Concrete::printContextFullType( pFalseVar->get_context() ),
+                                    pFalseVar->get_context()->get_concrete_id() } );
+        }
     }
 
     const mega::reports::Graph::Node::ID nodeID = graph.m_nodes.size();
@@ -182,7 +207,9 @@ mega::reports::Container BDDReporter::generate( const mega::reports::URL& url )
                     Table{ {},
                            { { Line{ "Concrete TypeID"s }, Line{ pInterupt->get_concrete_id() } },
                              { Line{ "Common Ancestor"s },
-                               Line{ Concrete::printContextFullType( pDecisionProcedure->get_common_ancestor() ) } }
+                               Line{ Concrete::printContextFullType( pDecisionProcedure->get_common_ancestor() ) } },
+                             { Line{ "Instance Divider"s },
+                               Line{ std::to_string( pDecisionProcedure->get_instance_divider() ) } }
 
                            } } );
                 branch.m_elements.push_back( makeBDDGraph( pDecisionProcedure ) );
@@ -201,11 +228,11 @@ mega::reports::Container BDDReporter::generate( const mega::reports::URL& url )
                     Table{ {},
                            { { Line{ "Concrete TypeID"s }, Line{ pState->get_concrete_id() } },
                              { Line{ "Common Ancestor"s },
-                               Line{ Concrete::printContextFullType( pDecisionProcedure->get_common_ancestor() ) } }
+                               Line{ Concrete::printContextFullType( pDecisionProcedure->get_common_ancestor() ) } },
+                             { Line{ "Instance Divider"s },
+                               Line{ std::to_string( pDecisionProcedure->get_instance_divider() ) } }
 
                            } } );
-
-                // pState->get_transition()
 
                 branch.m_elements.push_back( makeBDDGraph( pDecisionProcedure ) );
                 sourceBranch.m_elements.push_back( branch );

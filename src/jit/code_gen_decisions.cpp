@@ -28,18 +28,51 @@ namespace mega::runtime
 {
 using namespace FinalStage;
 
-std::string recurseStep( Inja& inja, Indent& indent, Decision::Step* pStep )
+std::string recurseStep( Inja& inja, Indent& indent, Decision::DecisionProcedure* pDecision, Decision::Step* pStep )
 {
     std::ostringstream os;
 
     auto optDecider = pStep->get_decider();
 
-    // pStep->get_assignment()
-
-    if( auto pNothing = db_cast< Decision::Nothing >( pStep ) )
+    if( auto pAssignments = db_cast< Decision::Assignments >( pStep ) )
     {
         VERIFY_RTE( !optDecider.has_value() );
 
+        static const char* szTemplate =
+            R"TEMPLATE(
+{% for assignment in assignments %}
+{% if assignment.is_true %}
+{{ indent }}mega::mangle::bitset_set( pBitset, {{ assignment.bit_offset }} + ( ( ref.getInstance() / {{ assignment.divider }} ) * {{ assignment.multiplier }} ), {{ assignment.multiplier }} );
+{% else %}
+{{ indent }}mega::mangle::bitset_unset( pBitset, {{ assignment.bit_offset }} + ( ( ref.getInstance() / {{ assignment.divider }} ) * {{ assignment.multiplier }} ), {{ assignment.multiplier }} );
+{% endif %}
+{% endfor %}
+{{ indent }}
+)TEMPLATE";
+
+        nlohmann::json templateData( {
+
+            { "indent", indent.str() }, { "assignments", nlohmann::json::array() }
+
+        } );
+
+        for( auto pAssignment : pAssignments->get_assignments() )
+        {
+            auto optBit = pAssignment->get_vertex()->get_bitset_range_start();
+            VERIFY_RTE( optBit.has_value() );
+
+            nlohmann::json assignment( {
+
+                { "is_true", pAssignment->get_is_true() },
+                { "bit_offset", optBit.value() },
+                { "divider", pDecision->get_instance_divider() },
+                { "multiplier", pAssignment->get_instance_multiplier() }
+
+            } );
+            templateData[ "assignments" ].push_back( assignment );
+        }
+
+        os << inja.render( szTemplate, templateData );
     }
     else if( auto pBoolean = db_cast< Decision::Boolean >( pStep ) )
     {
@@ -56,8 +89,8 @@ std::string recurseStep( Inja& inja, Indent& indent, Decision::Step* pStep )
         {
             auto pDecider = optDecider.value();
 
-static const char* szTemplate =
-R"TEMPLATE(
+            static const char* szTemplate =
+                R"TEMPLATE(
 {{ indent }} static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ decider_interface_type_id }} );
 {{ indent }} using Selector = mega::TypeID (*)();
 {{ indent }} Selector pDeciderFunction = reinterpret_cast< Selector* >( function() );
@@ -78,7 +111,6 @@ R"TEMPLATE(
 {{ indent }} }
 )TEMPLATE";
 
-                        
             nlohmann::json templateData( {
 
                 { "indent", indent.str() },
@@ -88,8 +120,7 @@ R"TEMPLATE(
             } );
 
             auto alternatives = pSelection->get_variable_alternatives();
-            auto ordering = pSelection->get_variable_ordering();
-
+            auto ordering     = pSelection->get_variable_ordering();
 
             ++indent;
             int iVar = 0;
@@ -97,11 +128,11 @@ R"TEMPLATE(
             {
                 VERIFY_RTE( alternatives.size() > iVar );
                 const Automata::Vertex* pVar = alternatives[ iVar ];
-                
+
                 nlohmann::json result( {
 
                     { "type_id", printTypeID( pVar->get_context()->get_interface()->get_interface_id() ) },
-                    { "body", recurseStep( inja, indent, pNestedStep ) }
+                    { "body", recurseStep( inja, indent, pDecision, pNestedStep ) }
 
                 } );
 
@@ -111,11 +142,28 @@ R"TEMPLATE(
             }
             --indent;
 
-
             os << inja.render( szTemplate, templateData );
         }
         else
         {
+            auto alternatives = pSelection->get_variable_alternatives();
+            VERIFY_RTE( alternatives.size() == 1 );
+
+            static const char* szTemplate =
+                R"TEMPLATE(
+{{ indent }}{{ body }}
+)TEMPLATE";
+
+            auto children = pStep->get_children();
+            VERIFY_RTE( children.size() == 1 );
+
+            nlohmann::json templateData( {
+
+                { "indent", indent.str() }, { "body", recurseStep( inja, indent, pDecision, children.front() ) }
+
+            } );
+
+            os << inja.render( szTemplate, templateData );
         }
     }
     else
@@ -138,6 +186,12 @@ R"TEMPLATE(
 #include "jit/jit_exception.hpp"
 
 static const char* g_pszModuleName = "decider_{{ type_id }}";
+
+namespace mega::mangle
+{
+    void bitset_set( void*, mega::U32, mega::U32 );
+    void bitset_unset( void*, mega::U32, mega::U32 );
+}
 
 void decision_{{ type_id }}( const mega::reference& ref )
 {
@@ -163,7 +217,7 @@ void decision_{{ type_id }}( const mega::reference& ref )
             { "type_id", printTypeID( concreteTypeID ) },
             { "bitset_offset",
               pObject->get_activation()->get_part()->get_offset() + pObject->get_activation()->get_offset() },
-            { "body", recurseStep( *m_pInja, indent, pDecision->get_root() ) }
+            { "body", recurseStep( *m_pInja, indent, pDecision, pDecision->get_root() ) }
 
         } );
 

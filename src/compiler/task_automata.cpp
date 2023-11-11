@@ -91,13 +91,35 @@ public:
             if( pState->get_interface_state()->get_is_or_state() )
             {
                 pResult = database.construct< Automata::Or >( { Automata::Or::Args{ Automata::Vertex::Args{
-                    bFirst, bIsConditional, bIsHistorical, bHasRequirement, relative_domain, pContext, {} } } } );
+
+                    bFirst,
+                    bIsConditional,
+                    bIsHistorical,
+                    bHasRequirement,
+                    relative_domain,
+                    pContext,
+                    std::nullopt,
+                    0,
+                    {},
+                    {} } } } );
+
                 pParent->push_back_children( pResult );
             }
             else
             {
                 pResult = database.construct< Automata::And >( { Automata::And::Args{ Automata::Vertex::Args{
-                    bFirst, bIsConditional, bIsHistorical, bHasRequirement, relative_domain, pContext, {} } } } );
+
+                    bFirst,
+                    bIsConditional,
+                    bIsHistorical,
+                    bHasRequirement,
+                    relative_domain,
+                    pContext,
+                    std::nullopt,
+                    0,
+                    {},
+                    {} } } } );
+
                 pParent->push_back_children( pResult );
             }
 
@@ -121,6 +143,22 @@ public:
         }
 
         return pResult;
+    }
+
+    void recurseSetSiblings( Automata::Vertex* pVertex )
+    {
+        const auto children = pVertex->get_children();
+        for( auto pChild : children )
+        {
+            for( auto pIter : children )
+            {
+                if( pIter != pChild )
+                {
+                    pChild->push_back_siblings( pIter );
+                }
+            }
+            recurseSetSiblings( pChild );
+        }
     }
 
     struct Node
@@ -160,9 +198,18 @@ public:
         }
     }
 
+    struct CompareVertex
+    {
+        inline bool operator()( Automata::Vertex* pLeft, Automata::Vertex* pRight ) const
+        {
+            return pLeft->get_context()->get_concrete_id() < pRight->get_context()->get_concrete_id();
+        }
+    };
+    using TestMap = std::multimap< Automata::Vertex*, Automata::Test*, CompareVertex >;
+
     void recurseEnum( mega::pipeline::Progress& taskProgress, Database& database, const Node& node,
-                      std::vector< Automata::Enum* >& enums, Automata::Enum* pParentEnum, U32& bitsetIndex,
-                      U32& switchIndex )
+                      std::vector< Automata::Enum* >& enums, Automata::Enum* pParentEnum, U32& switchIndex,
+                      TestMap& tests )
     {
         using namespace AutomataStage;
 
@@ -204,8 +251,8 @@ public:
                                     subTypeInstance,
                                     {} },
 
-                                bitsetIndex, bIsStartState } );
-                        ++bitsetIndex;
+                                bIsStartState } );
+                        tests.insert( { instance.pVertex, pTest } );
                     }
                     else
                     {
@@ -233,7 +280,7 @@ public:
                     }
                 }
 
-                recurseEnum( taskProgress, database, instance, enums, pEnum, bitsetIndex, switchIndex );
+                recurseEnum( taskProgress, database, instance, enums, pEnum, switchIndex, tests );
 
                 if( pTest )
                 {
@@ -280,21 +327,43 @@ public:
 
         for( auto pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
         {
-            Automata::And* pRoot = database.construct< Automata::And >(
-                { Automata::And::Args{ Automata::Vertex::Args{ true, false, false, false, 1, pObject, {} } } } );
+            Automata::And* pRoot = database.construct< Automata::And >( { Automata::And::Args{
+                Automata::Vertex::Args{ true, false, false, false, 1, pObject, std::nullopt, 0, {}, {} } } } );
             pRoot->set_test_ancestor( std::nullopt );
 
             std::vector< Automata::Vertex* > tests;
             recurseAndOrTree( database, pObject, pRoot, std::nullopt, 1, tests );
+            recurseSetSiblings( pRoot );
 
             std::vector< Automata::Enum* > enums;
 
-            U32 bitsetIndex = 0;
             U32 switchIndex = 0;
+            U32 totalBits   = 0;
             {
                 Node rootNode{ 0, pRoot };
                 recurseNode( rootNode );
-                recurseEnum( taskProgress, database, rootNode, enums, nullptr, bitsetIndex, switchIndex );
+
+                TestMap tests;
+                recurseEnum( taskProgress, database, rootNode, enums, nullptr, switchIndex, tests );
+
+                // determine the bit indices
+                for( TestMap::const_iterator i = tests.begin(), iEnd = tests.end(); i != iEnd; )
+                {
+                    auto pVertex   = i->first;
+                    auto iRangeEnd = tests.upper_bound( pVertex );
+
+                    const auto rangeStart = totalBits;
+                    pVertex->set_bitset_range_start( rangeStart );
+
+                    for( ; i != iRangeEnd; ++i )
+                    {
+                        auto pEnum = i->second;
+                        pEnum->set_bitset_index( totalBits );
+                        ++totalBits;
+                    }
+
+                    pVertex->set_bitset_range_size( totalBits - rangeStart );
+                }
             }
 
             // set the child switch indices
@@ -307,12 +376,12 @@ public:
             }
 
             database.construct< Concrete::Object >(
-                { Concrete::Object::Args{ pObject, pRoot, tests, enums, bitsetIndex, switchIndex } } );
+                { Concrete::Object::Args{ pObject, pRoot, tests, enums, totalBits, switchIndex } } );
 
             for( auto pBitset : pObject->get_bitsets() )
             {
                 database.construct< Concrete::Dimensions::Bitset >(
-                    Concrete::Dimensions::Bitset::Args{ pBitset, bitsetIndex } );
+                    Concrete::Dimensions::Bitset::Args{ pBitset, totalBits } );
             }
         }
 
