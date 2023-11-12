@@ -762,33 +762,147 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
 
-    if( auto pInstructionGroup = db_cast< Instructions::InstructionGroup >( pInstruction ) )
+    try
     {
-        bool bTailRecursion = true;
-        if( auto pParentDerivation = db_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
+        if( auto pInstructionGroup = db_cast< Instructions::InstructionGroup >( pInstruction ) )
         {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pParentDerivation );
-        }
-        else if( auto pChildDerivation = db_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pChildDerivation );
-        }
-        else if( auto pDereference = db_cast< Instructions::Dereference >( pInstructionGroup ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pDereference );
-        }
-        else if( auto pLinkBranch = db_cast< Instructions::LinkBranch >( pInstructionGroup ) )
-        {
-            bTailRecursion = false;
-
+            bool bTailRecursion = true;
+            if( auto pParentDerivation = db_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
             {
-                std::ostringstream os;
-                os << indent << "// LinkBranch\n";
-                os << indent << "switch( " << Args::get( variables, pLinkBranch->get_link_type() ) << " )\n";
-                os << indent << "{";
-                data[ "assignments" ].push_back( os.str() );
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pParentDerivation );
+            }
+            else if( auto pChildDerivation = db_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
+            {
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pChildDerivation );
+            }
+            else if( auto pDereference = db_cast< Instructions::Dereference >( pInstructionGroup ) )
+            {
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pDereference );
+            }
+            else if( auto pLinkBranch = db_cast< Instructions::LinkBranch >( pInstructionGroup ) )
+            {
+                bTailRecursion = false;
+
+                {
+                    std::ostringstream os;
+                    os << indent << "// LinkBranch\n";
+                    os << indent << "switch( " << Args::get( variables, pLinkBranch->get_link_type() ) << " )\n";
+                    os << indent << "{";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+
+                {
+                    ++indent;
+                    for( auto pChildInstruction : pInstructionGroup->get_children() )
+                    {
+                        generateInstructions(
+                            database, pInvocation, pChildInstruction, variables, functions, data, indent );
+                    }
+                    --indent;
+                }
+
+                {
+                    using ::           operator<<;
+                    std::ostringstream os;
+                    os << indent << "   case 0x00000000:\n";
+                    os << indent << "   default:\n";
+                    os << indent << "   {\n";
+                    os << indent
+                       << "       throw mega::runtime::JITException{ \"Null reference in poly branch for invocation: "
+                       << pInvocation->get_id() << "\" };\n";
+                    os << indent << "   }\n";
+                    os << indent << "   break;\n";
+                    os << indent << "}";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+            }
+            else if( auto pPolyReference = db_cast< Instructions::PolyBranch >( pInstructionGroup ) )
+            {
+                bTailRecursion = false;
+
+                {
+                    std::ostringstream os;
+                    os << indent << "// PolyBranch\n";
+                    os << indent << "switch( " << Args::get( variables, pPolyReference->get_parameter() )
+                       << ".getType() )\n";
+                    os << indent << "{";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+
+                {
+                    ++indent;
+                    for( auto pChildInstruction : pInstructionGroup->get_children() )
+                    {
+                        generateInstructions(
+                            database, pInvocation, pChildInstruction, variables, functions, data, indent );
+                    }
+                    --indent;
+                }
+
+                {
+                    std::ostringstream os;
+                    os << indent << "   case 0x00000000:\n";
+                    os << indent << "   default:\n";
+                    os << indent << "   {\n";
+                    os << indent << "       throw mega::runtime::JITException{ \"Null reference in poly branch\" };\n";
+                    os << indent << "   }\n";
+                    os << indent << "   break;\n";
+                    os << indent << "}";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+            }
+            else if( auto pPolyCase = db_cast< Instructions::PolyCase >( pInstructionGroup ) )
+            {
+                bTailRecursion = false;
+
+                {
+                    std::ostringstream os;
+                    os << indent << "// PolyCase\n";
+                    Concrete::Graph::Vertex* pType = pPolyCase->get_type();
+                    if( auto pUserDim = db_cast< Concrete::Dimensions::User >( pType ) )
+                    {
+                        os << indent << "case " << printTypeID( pUserDim->get_concrete_id() ) << " :\n";
+                    }
+                    else if( auto pLinkDim = db_cast< Concrete::Dimensions::Link >( pType ) )
+                    {
+                        os << indent << "case " << printTypeID( pLinkDim->get_concrete_id() ) << " :\n";
+                    }
+                    else if( auto pContext = db_cast< Concrete::Context >( pType ) )
+                    {
+                        os << indent << "case " << printTypeID( pContext->get_concrete_id() ) << " :\n";
+                    }
+                    else
+                    {
+                        THROW_RTE( "Unknown poly case vertex type" );
+                    }
+
+                    os << indent << "{\n";
+                    ++indent;
+                    data[ "assignments" ].push_back( os.str() );
+                }
+
+                {
+                    for( auto pChildInstruction : pInstructionGroup->get_children() )
+                    {
+                        generateInstructions(
+                            database, pInvocation, pChildInstruction, variables, functions, data, indent );
+                    }
+                }
+
+                {
+                    --indent;
+                    std::ostringstream os;
+                    os << indent << "}\n";
+                    os << indent << "break;\n";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+            }
+            else
+            {
+                THROW_RTE( "Unknown instruction type" );
             }
 
+            if( bTailRecursion )
             {
                 ++indent;
                 for( auto pChildInstruction : pInstructionGroup->get_children() )
@@ -798,178 +912,74 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
                 }
                 --indent;
             }
-
-            {
-                using ::operator<<;
-                std::ostringstream os;
-                os << indent << "   case 0x00000000:\n";
-                os << indent << "   default:\n";
-                os << indent << "   {\n";
-                os << indent
-                   << "       throw mega::runtime::JITException{ \"Null reference in poly branch for invocation: "
-                   << pInvocation->get_id() << "\" };\n";
-                os << indent << "   }\n";
-                os << indent << "   break;\n";
-                os << indent << "}";
-                data[ "assignments" ].push_back( os.str() );
-            }
         }
-        else if( auto pPolyReference = db_cast< Instructions::PolyBranch >( pInstructionGroup ) )
+        else if( auto pOperation = db_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
         {
-            bTailRecursion = false;
+            using namespace FinalStage::Operations;
 
+            if( auto pStart = db_cast< Start >( pInvocation ) )
             {
-                std::ostringstream os;
-                os << indent << "// PolyBranch\n";
-                os << indent << "switch( " << Args::get( variables, pPolyReference->get_parameter() )
-                   << ".getType() )\n";
-                os << indent << "{";
-                data[ "assignments" ].push_back( os.str() );
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pStart, pOperation );
             }
-
+            else if( auto pCall = db_cast< Call >( pInvocation ) )
             {
-                ++indent;
-                for( auto pChildInstruction : pInstructionGroup->get_children() )
-                {
-                    generateInstructions(
-                        database, pInvocation, pChildInstruction, variables, functions, data, indent );
-                }
-                --indent;
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pCall, pOperation );
             }
-
+            else if( auto pSignal = db_cast< Signal >( pInvocation ) )
             {
-                std::ostringstream os;
-                os << indent << "   case 0x00000000:\n";
-                os << indent << "   default:\n";
-                os << indent << "   {\n";
-                os << indent << "       throw mega::runtime::JITException{ \"Null reference in poly branch\" };\n";
-                os << indent << "   }\n";
-                os << indent << "   break;\n";
-                os << indent << "}";
-                data[ "assignments" ].push_back( os.str() );
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pSignal, pOperation );
             }
-        }
-        else if( auto pPolyCase = db_cast< Instructions::PolyCase >( pInstructionGroup ) )
-        {
-            bTailRecursion = false;
-
+            else if( auto pMove = db_cast< Move >( pInvocation ) )
             {
-                std::ostringstream os;
-                os << indent << "// PolyCase\n";
-                Concrete::Graph::Vertex* pType = pPolyCase->get_type();
-                if( auto pUserDim = db_cast< Concrete::Dimensions::User >( pType ) )
-                {
-                    os << indent << "case " << printTypeID( pUserDim->get_concrete_id() ) << " :\n";
-                }
-                else if( auto pLinkDim = db_cast< Concrete::Dimensions::Link >( pType ) )
-                {
-                    os << indent << "case " << printTypeID( pLinkDim->get_concrete_id() ) << " :\n";
-                }
-                else if( auto pContext = db_cast< Concrete::Context >( pType ) )
-                {
-                    os << indent << "case " << printTypeID( pContext->get_concrete_id() ) << " :\n";
-                }
-                else
-                {
-                    THROW_RTE( "Unknown poly case vertex type" );
-                }
-
-                os << indent << "{\n";
-                ++indent;
-                data[ "assignments" ].push_back( os.str() );
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pMove, pOperation );
             }
-
+            else if( auto pGetContext = db_cast< GetContext >( pInvocation ) )
             {
-                for( auto pChildInstruction : pInstructionGroup->get_children() )
-                {
-                    generateInstructions(
-                        database, pInvocation, pChildInstruction, variables, functions, data, indent );
-                }
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pGetContext, pOperation );
             }
-
+            else if( auto pRead = db_cast< Read >( pInvocation ) )
             {
-                --indent;
-                std::ostringstream os;
-                os << indent << "}\n";
-                os << indent << "break;\n";
-                data[ "assignments" ].push_back( os.str() );
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pRead, pOperation );
+            }
+            else if( auto pWrite = db_cast< Write >( pInvocation ) )
+            {
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pWrite, pOperation );
+            }
+            else if( auto pLinkRead = db_cast< LinkRead >( pInvocation ) )
+            {
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkRead, pOperation );
+            }
+            else if( auto pLinkAdd = db_cast< LinkAdd >( pInvocation ) )
+            {
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkAdd, pOperation );
+            }
+            else if( auto pLinkRemove = db_cast< LinkRemove >( pInvocation ) )
+            {
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkRemove, pOperation );
+            }
+            else if( auto pLinkClear = db_cast< LinkClear >( pInvocation ) )
+            {
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkClear, pOperation );
+            }
+            else if( auto pRange = db_cast< Range >( pInvocation ) )
+            {
+                gen( Args{ database, variables, functions, data, indent, *m_pInja }, pRange, pOperation );
+            }
+            else
+            {
+                THROW_RTE( "Unknown operation type" );
             }
         }
         else
         {
             THROW_RTE( "Unknown instruction type" );
         }
-
-        if( bTailRecursion )
-        {
-            ++indent;
-            for( auto pChildInstruction : pInstructionGroup->get_children() )
-            {
-                generateInstructions( database, pInvocation, pChildInstruction, variables, functions, data, indent );
-            }
-            --indent;
-        }
     }
-    else if( auto pOperation = db_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
+    catch( inja::InjaError& ex )
     {
-        using namespace FinalStage::Operations;
-
-        if( auto pStart = db_cast< Start >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pStart, pOperation );
-        }
-        else if( auto pCall = db_cast< Call >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pCall, pOperation );
-        }
-        else if( auto pSignal = db_cast< Signal >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pSignal, pOperation );
-        }
-        else if( auto pMove = db_cast< Move >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pMove, pOperation );
-        }
-        else if( auto pGetContext = db_cast< GetContext >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pGetContext, pOperation );
-        }
-        else if( auto pRead = db_cast< Read >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pRead, pOperation );
-        }
-        else if( auto pWrite = db_cast< Write >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pWrite, pOperation );
-        }
-        else if( auto pLinkRead = db_cast< LinkRead >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkRead, pOperation );
-        }
-        else if( auto pLinkAdd = db_cast< LinkAdd >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkAdd, pOperation );
-        }
-        else if( auto pLinkRemove = db_cast< LinkRemove >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkRemove, pOperation );
-        }
-        else if( auto pLinkClear = db_cast< LinkClear >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkClear, pOperation );
-        }
-        else if( auto pRange = db_cast< Range >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pRange, pOperation );
-        }
-        else
-        {
-            THROW_RTE( "Unknown operation type" );
-        }
-    }
-    else
-    {
-        THROW_RTE( "Unknown instruction type" );
+        SPDLOG_ERROR(
+            "inja::InjaError in CodeGenerator::generateInstructions: {} for {}", ex.what(), pInvocation->get_id() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generateInstructions: " << ex.what() );
     }
 }
 

@@ -28,7 +28,8 @@ namespace mega::runtime
 {
 using namespace FinalStage;
 
-std::string recurseStep( Inja& inja, Indent& indent, Decision::DecisionProcedure* pDecision, Decision::Step* pStep )
+std::string recurseStep( Inja& inja, Indent& indent, const TypeID deciderTypeID, Decision::DecisionProcedure* pDecision,
+                         Decision::Step* pStep )
 {
     std::ostringstream os;
 
@@ -42,9 +43,11 @@ std::string recurseStep( Inja& inja, Indent& indent, Decision::DecisionProcedure
             R"TEMPLATE(
 {% for assignment in assignments %}
 {% if assignment.is_true %}
-{{ indent }}mega::mangle::bitset_set( pBitset, {{ assignment.bit_offset }} + ( ( ref.getInstance() / {{ assignment.divider }} ) * {{ assignment.multiplier }} ), {{ assignment.multiplier }} );
+{{ indent }}mega::mangle::bitset_set( pBitset, {{ assignment.bit_offset }} + 
+{{ indent }}    ( ( ref.getInstance() / {{ assignment.divider }} ) * {{ assignment.multiplier }} ), {{ assignment.multiplier }} );
 {% else %}
-{{ indent }}mega::mangle::bitset_unset( pBitset, {{ assignment.bit_offset }} + ( ( ref.getInstance() / {{ assignment.divider }} ) * {{ assignment.multiplier }} ), {{ assignment.multiplier }} );
+{{ indent }}mega::mangle::bitset_unset( pBitset, {{ assignment.bit_offset }} + 
+{{ indent }}    ( ( ref.getInstance() / {{ assignment.divider }} ) * {{ assignment.multiplier }} ), {{ assignment.multiplier }} );
 {% endif %}
 {% endfor %}
 {{ indent }}
@@ -78,9 +81,62 @@ std::string recurseStep( Inja& inja, Indent& indent, Decision::DecisionProcedure
     {
         if( optDecider.has_value() )
         {
+            auto pDecider = optDecider.value();
+
+            static const char* szTemplate =
+                R"TEMPLATE(
+{{ indent }} static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ decider_interface_type_id }} );
+{{ indent }} using Boolean = I32 (*)();
+{{ indent }} const Boolean pDeciderFunction = (const Boolean)( function() );
+{{ indent }} if( pDeciderFunction() )
+{{ indent }} {
+{{ indent }}     {{ body_true }}
+{{ indent }} }
+{{ indent }} else
+{{ indent }} {
+{{ indent }}     {{ body_false }}
+{{ indent }} }
+)TEMPLATE";
+            auto children = pBoolean->get_children();
+            VERIFY_RTE( children.size() == 2 );
+            auto pTrueStep  = children[ 0 ];
+            auto pFalseStep = children[ 1 ];
+
+            nlohmann::json templateData( {
+
+                { "indent", indent.str() },
+                { "decider_type_id", printTypeID( deciderTypeID ) },
+                { "decider_interface_type_id", printTypeID( pDecider->get_interface_decider()->get_interface_id() ) },
+                { "body_true", "" },
+                { "body_false", "" }
+
+            } );
+
+            ++indent;
+            templateData[ "body_true" ]  = recurseStep( inja, indent, deciderTypeID, pDecision, pTrueStep );
+            templateData[ "body_false" ] = recurseStep( inja, indent, deciderTypeID, pDecision, pFalseStep );
+            --indent;
+
+            os << inja.render( szTemplate, templateData );
         }
         else
         {
+            static const char* szTemplate =
+                R"TEMPLATE(
+{{ indent }}{{ body }}
+)TEMPLATE";
+
+            auto children = pStep->get_children();
+            VERIFY_RTE( children.size() == 1 );
+
+            nlohmann::json templateData( {
+
+                { "indent", indent.str() },
+                { "body", recurseStep( inja, indent, deciderTypeID, pDecision, children.front() ) }
+
+            } );
+
+            os << inja.render( szTemplate, templateData );
         }
     }
     else if( auto pSelection = db_cast< Decision::Selection >( pStep ) )
@@ -92,8 +148,8 @@ std::string recurseStep( Inja& inja, Indent& indent, Decision::DecisionProcedure
             static const char* szTemplate =
                 R"TEMPLATE(
 {{ indent }} static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ decider_interface_type_id }} );
-{{ indent }} using Selector = mega::TypeID (*)();
-{{ indent }} Selector pDeciderFunction = reinterpret_cast< Selector* >( function() );
+{{ indent }} using Selector = I32 (*)();
+{{ indent }} const Selector pDeciderFunction = (const Selector)( function() );
 {{ indent }} switch( pDeciderFunction() )
 {{ indent }} {
 {% for result in results %}
@@ -105,7 +161,7 @@ std::string recurseStep( Inja& inja, Indent& indent, Decision::DecisionProcedure
 {% endfor %}
 {{ indent }}    default:
 {{ indent }}    {
-{{ indent }}        throw mega::runtime::JITException{ "decider_{{ type_id }} decider return value did not match any type" };
+{{ indent }}        throw mega::runtime::JITException{ "decider_{{ decider_type_id }} decider return value did not match any type" };
 {{ indent }}    }
 {{ indent }}    break;
 {{ indent }} }
@@ -114,6 +170,7 @@ std::string recurseStep( Inja& inja, Indent& indent, Decision::DecisionProcedure
             nlohmann::json templateData( {
 
                 { "indent", indent.str() },
+                { "decider_type_id", printTypeID( deciderTypeID ) },
                 { "decider_interface_type_id", printTypeID( pDecider->get_interface_decider()->get_interface_id() ) },
                 { "results", nlohmann::json::array() }
 
@@ -132,7 +189,7 @@ std::string recurseStep( Inja& inja, Indent& indent, Decision::DecisionProcedure
                 nlohmann::json result( {
 
                     { "type_id", printTypeID( pVar->get_context()->get_interface()->get_interface_id() ) },
-                    { "body", recurseStep( inja, indent, pDecision, pNestedStep ) }
+                    { "body", recurseStep( inja, indent, deciderTypeID, pDecision, pNestedStep ) }
 
                 } );
 
@@ -159,7 +216,8 @@ std::string recurseStep( Inja& inja, Indent& indent, Decision::DecisionProcedure
 
             nlohmann::json templateData( {
 
-                { "indent", indent.str() }, { "body", recurseStep( inja, indent, pDecision, children.front() ) }
+                { "indent", indent.str() },
+                { "body", recurseStep( inja, indent, deciderTypeID, pDecision, children.front() ) }
 
             } );
 
@@ -183,6 +241,7 @@ R"TEMPLATE(
 
 #include "mega/values/native_types.hpp"
 #include "mega/values/runtime/reference.hpp"
+#include "jit/object_functions.hxx"
 #include "jit/jit_exception.hpp"
 
 static const char* g_pszModuleName = "decider_{{ type_id }}";
@@ -217,7 +276,7 @@ void decision_{{ type_id }}( const mega::reference& ref )
             { "type_id", printTypeID( concreteTypeID ) },
             { "bitset_offset",
               pObject->get_activation()->get_part()->get_offset() + pObject->get_activation()->get_offset() },
-            { "body", recurseStep( *m_pInja, indent, pDecision, pDecision->get_root() ) }
+            { "body", recurseStep( *m_pInja, indent, concreteTypeID, pDecision, pDecision->get_root() ) }
 
         } );
 
@@ -225,8 +284,8 @@ void decision_{{ type_id }}( const mega::reference& ref )
     }
     catch( inja::InjaError& ex )
     {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::gen_cast: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::gen_cast: " << ex.what() );
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_decision: {} for {}", ex.what(), concreteTypeID );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_decision: " << ex.what() );
     }
     std::ostringstream osModule;
     osModule << "decision_" << printTypeID( concreteTypeID );

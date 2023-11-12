@@ -116,7 +116,6 @@ void event_signal( const mega::reference& event )
 
 void transition( const mega::reference& t )
 {
-    VERIFY_RTE_MSG( t.isHeapAddress(), "event_signal passed network address " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::log::Transition::Write( t ) );
 }

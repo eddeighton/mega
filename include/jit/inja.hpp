@@ -106,8 +106,8 @@ public:
         }
         catch( inja::InjaError& ex )
         {
-            SPDLOG_ERROR( "inja::InjaError in CodeGenerator::render rendering: {}", ex.what() );
-            THROW_RTE( "inja::InjaError in CodeGenerator::render rendering: " << ex.what() );
+            SPDLOG_ERROR( "inja::InjaError in Inja::render rendering: {}", ex.what() );
+            throw;
         }
     }
 };

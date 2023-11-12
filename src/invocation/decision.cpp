@@ -101,11 +101,15 @@ Concrete::State* findCommonAncestor( Concrete::State* pContext, const StateVecto
         }
     }
 
+    // Common Ancestor MUST NOT be the actual context i.e. action foo > foo
     while( pCommonAncestor )
     {
-        if( db_cast< Automata::Or >( pCommonAncestor->get_automata_vertex() ) )
+        if( pCommonAncestor != pContext )
         {
-            break;
+            if( db_cast< Automata::Or >( pCommonAncestor->get_automata_vertex() ) )
+            {
+                break;
+            }
         }
         pCommonAncestor = db_cast< Concrete::State >( pCommonAncestor->get_parent() );
     }

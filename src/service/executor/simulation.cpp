@@ -208,10 +208,13 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         for( ; m_iter_transitions != m_pLog->end< log::Transition::Read >(); ++m_iter_transitions )
                         {
                             const auto& transition = *m_iter_transitions;
-                            const auto& ref = transition.getRef();
+                            auto ref = transition.getRef();
                             //SPDLOG_TRACE( "Got transition: {}", ref );
                             VERIFY_RTE( ref.getMPO() == getThisMPO() );
-                            VERIFY_RTE( !ref.isNetworkAddress() );
+                            if( ref.isNetworkAddress() )
+                            {
+                                networkToHeap( ref );
+                            }
 
                             auto pDecision = decisionFunctionCache.getDecisionFunction( ref.getType() );
                             pDecision( &ref );
