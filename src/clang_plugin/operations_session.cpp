@@ -102,9 +102,15 @@ public:
         }
 
         if( m_symbols.find( strIdentifier ) != m_symbols.end() )
+        {
+            // CLANG_PLUGIN_LOG( "isPossibleEGTypeIdentifier FOUND: " << strIdentifier );
             return true;
-        // CLANG_PLUGIN_LOG( "isPossibleEGTypeIdentifier: " << strIdentifier );
-        return false;
+        }
+        else
+        {
+            // CLANG_PLUGIN_LOG( "isPossibleEGTypeIdentifier NOT FOUND: " << strIdentifier );
+            return false;
+        }
     }
 
     void getRootPath( OperationsStage::Interface::ContextGroup*                 pContextGroup,
@@ -145,22 +151,10 @@ public:
                     pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, pContext->get_identifier() );
                 if( !declLocType.pDeclContext )
                 {
-                    std::ostringstream osFullType;
-                    bool               bFirst = true;
-                    for( auto i : path )
-                    {
-                        if( auto pContext = db_cast< Interface::IContext >( i ) )
-                        {
-                            if( bFirst )
-                                bFirst = false;
-                            else
-                                osFullType << "::";
-                            osFullType << pContext->get_identifier();
-                        }
-                    }
-                    CLANG_PLUGIN_LOG(
-                        "buildDimensionReturnType failed to resolve interface type: " << osFullType.str() );
-                    THROW_RTE( "Failed to resolve interface context: " << osFullType.str() );
+                    CLANG_PLUGIN_LOG( "locateInterfaceContext failed to resolve interface type: "
+                                      << Interface::printIContextFullType( pInterfaceContext ) );
+                    THROW_RTE( "Failed to resolve interface context: "
+                               << Interface::printIContextFullType( pInterfaceContext ) );
                 }
             }
         }
@@ -192,6 +186,9 @@ public:
             if( type != QualType() )
             {
                 resultType = type;
+                CLANG_PLUGIN_LOG( "buildDimensionReturnType found dimension return type: "
+                                  << Interface::printDimensionTraitFullType( pTargetDimension ) << " "
+                                  << resultType.getCanonicalType().getAsString() );
                 return true;
             }
         }
@@ -577,8 +574,8 @@ public:
                     {
                         if( auto pCall = result.getNodeAs< clang::CXXMemberCallExpr >( "invocation" ) )
                         {
-                            CLANG_PLUGIN_LOG(
-                                "Found member function call: " << pCall->getMethodDecl()->getNameAsString() );
+                            // CLANG_PLUGIN_LOG(
+                            //     "Found member function call: " << pCall->getMethodDecl()->getNameAsString() );
                             if( pCall->getMethodDecl()->getNameAsString() == mega::EG_INVOKE_MEMBER_FUNCTION_NAME )
                             {
                                 if( auto pElaboratedType
@@ -637,9 +634,9 @@ public:
                             {
                                 if( pFunctionDecl->getNameAsString() == strOpName )
                                 {
-                                    CLANG_PLUGIN_LOG( "Found operator instance: "
-                                                      << pFunctionDecl->getNameAsString()
-                                                      << " in function: " << pMethod->getThisType().getAsString() );
+                                    // CLANG_PLUGIN_LOG( "Found operator instance: "
+                                    //                   << pFunctionDecl->getNameAsString()
+                                    //                   << " in function: " << pMethod->getThisType().getAsString() );
 
                                     if( pFunctionDecl->getTemplatedKind()
                                         != FunctionDecl::TK_FunctionTemplateSpecialization )
