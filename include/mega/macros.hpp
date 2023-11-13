@@ -20,6 +20,10 @@
 #ifndef EG_MACROS_2_NOV_2022
 #define EG_MACROS_2_NOV_2022
 
+#include "mega/values/native_types_io.hpp"
+#include "mega/values/runtime/maths_types_io.hpp"
+#include "mega/values/runtime/reference_io.hpp"
+
 #include "service/protocol/common/context.hpp"
 #include "log/file_log.hpp"
 

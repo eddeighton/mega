@@ -27,8 +27,17 @@
 
 namespace mega
 {
+namespace
+{
+// https://maskray.me/blog/2023-07-16-precompiled-headers
+// https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-fpch-instantiate-templates
+static const std::string g_PCH_In_Flags = " -Xclang -fno-pch-timestamp ";
+static const std::string g_PCH_Out_Flags
+    = " -Xclang -fpch-codegen -Xclang -fno-pch-timestamp -Xclang -fpch-instantiate-templates ";
 
-std::string Compilation::generatePCHVerificationCMD() const
+} // namespace
+
+common::Command Compilation::generatePCHVerificationCMD() const
 {
     using ::operator<<;
 
@@ -54,8 +63,7 @@ std::string Compilation::generatePCHVerificationCMD() const
     // input pch
     for( const boost::filesystem::path& inputPCH : inputPCH )
     {
-        osCmd << "-Xclang -fno-pch-timestamp -Xclang -include-pch ";
-        osCmd << "-Xclang " << inputPCH.string() << " ";
+        osCmd << g_PCH_In_Flags << " -Xclang -include-pch -Xclang " << inputPCH.string() << " ";
     }
 
     VERIFY_RTE( compilationMode.has_value() );
@@ -98,17 +106,42 @@ std::string Compilation::generatePCHVerificationCMD() const
     VERIFY_RTE( outputPCH.has_value() );
     osCmd << " -verify-pch " << outputPCH.value().string();
 
-    return osCmd.str();
+    return { osCmd.str() };
 }
 
-std::string Compilation::generateCompilationCMD() const
+common::Command Compilation::generateCompilationCMD( Compilation::CompilerCacheOptions cacheOptions ) const
 {
     using ::operator<<;
-    
+
+    common::Command::EnvironmentMap environmentVars;
     std::ostringstream osCmd;
 
-    // the compiler itself
-    osCmd << compiler_command << " ";
+    switch( cacheOptions )
+    {
+        case eCache_none:
+        {
+            osCmd << compiler_command << " ";
+        }
+        break;
+        case eCache_cache:
+        {
+            osCmd << "ccache " << compiler_command << " ";
+        }
+        break;
+        case eCache_recache:
+        {
+            osCmd << "ccache " << compiler_command << " ";
+            environmentVars.insert( { "CCACHE_RECACHE", "true" } );
+        }
+        break;
+        default:
+        {
+            THROW_RTE( "Unknown cache option" );
+        }
+    }
+
+    // input
+    osCmd << inputFile.string() << " ";
 
     // flags
     for( const std::string& flag : flags )
@@ -127,8 +160,7 @@ std::string Compilation::generateCompilationCMD() const
     // input pch
     for( const boost::filesystem::path& inputPCH : inputPCH )
     {
-        osCmd << "-Xclang -fno-pch-timestamp -Xclang -include-pch ";
-        osCmd << "-Xclang " << inputPCH.string() << " ";
+        osCmd << g_PCH_In_Flags << " -Xclang -include-pch -Xclang " << inputPCH.string() << " ";
     }
 
     VERIFY_RTE( compilationMode.has_value() );
@@ -166,17 +198,11 @@ std::string Compilation::generateCompilationCMD() const
     // ensure no round trip debug cmd line handling in clang
     osCmd << "-Xclang -no-round-trip-args ";
 
-    // input
-    osCmd << inputFile.string() << " ";
-
     // output
     if( outputPCH.has_value() )
     {
         VERIFY_RTE( !outputObject.has_value() );
-        // https://maskray.me/blog/2023-07-16-precompiled-headers
-        // https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-fpch-instantiate-templates
-        osCmd << " -Xclang -fno-pch-timestamp -Xclang -fpch-instantiate-templates -Xclang -emit-pch -o "
-              << outputPCH.value().string() << " ";
+        osCmd << g_PCH_Out_Flags << " -Xclang -emit-pch -o " << outputPCH.value().string() << " ";
     }
     else if( outputObject.has_value() )
     {
@@ -188,7 +214,7 @@ std::string Compilation::generateCompilationCMD() const
         THROW_RTE( "Missing compiler output" );
     }
 
-    return osCmd.str();
+    return { osCmd.str(), environmentVars };
 }
 
 } // namespace mega

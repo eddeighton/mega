@@ -23,6 +23,7 @@
 #include "pipeline/pipeline.hpp"
 
 #include "compiler/build_report.hpp"
+#include "compiler/clang_compilation.hpp"
 
 #include "environment/environment_stash.hpp"
 
@@ -69,7 +70,6 @@
              << scoped_id->get_line_number() << common::COLOUR_END;                                             \
         throw std::runtime_error( _os2.str() );                                                                 \
     } )
-
 
 namespace mega::compiler
 {
@@ -176,54 +176,88 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress ) = 0;
 
-    int run_cmd( mega::pipeline::Progress& taskProgress, const std::string& strCmd, bool bTreatFailureAsError = true )
+    int run_cmd( mega::pipeline::Progress& taskProgress, const common::Command& command, bool bTreatFailureAsError = true )
     {
         std::string strOutput, strError;
 
         // always print cmd before anything
         {
-            taskProgress.onProgress( TaskReport{ TaskReport::eCMD, m_taskName, strCmd }.str() );
+            taskProgress.onProgress( TaskReport{ TaskReport::eCMD, m_taskName, command.str() }.str() );
         }
 
-        const int iExitCode = common::runProcess( strCmd, strOutput, strError );
-
+        try
         {
-            std::ostringstream os;
+            const int iExitCode = common::runCmd( command, strOutput, strError );
+
             {
-                std::istringstream isOut( strOutput );
+                std::ostringstream os;
+                {
+                    std::istringstream isOut( strOutput );
+                    std::string        str;
+                    while( isOut && std::getline( isOut, str ) )
+                    {
+                        if( !str.empty() )
+                        {
+                            os << TaskReport{ TaskReport::eOUT, m_taskName, str }.str();
+                        }
+                    }
+                }
+
+                os << common::COLOUR_END;
+                taskProgress.onProgress( os.str() );
+            }
+
+            if( ( iExitCode == EXIT_FAILURE ) && bTreatFailureAsError )
+            {
+                std::ostringstream osError;
+                osError << TaskReport{ TaskReport::eFAILED, m_taskName }.str();
+
                 std::string        str;
-                while( isOut && std::getline( isOut, str ) )
+                std::istringstream isErr( strError );
+                while( isErr && std::getline( isErr, str ) )
                 {
                     if( !str.empty() )
                     {
-                        os << TaskReport{ TaskReport::eOUT, m_taskName, str }.str();
+                        osError << TaskReport{ TaskReport::eERROR, m_taskName, str }.str();
                     }
                 }
+
+                taskProgress.onProgress( osError.str() );
             }
 
-            os << common::COLOUR_END;
-            taskProgress.onProgress( os.str() );
+            return iExitCode;
         }
-
-        if( iExitCode && bTreatFailureAsError )
+        catch( std::exception& ex )
         {
-            std::ostringstream osError;
-            osError << TaskReport{ TaskReport::eFAILED, m_taskName }.str();
-
-            std::string str;
-            std::istringstream isErr( strError );
-            while( isErr && std::getline( isErr, str ) )
-            {
-                if( !str.empty() )
-                {
-                    osError << TaskReport{ TaskReport::eERROR, m_taskName, str }.str();
-                }
-            }
-
-            taskProgress.onProgress( osError.str() );
+            THROW_RTE( "Command : " << command.str() << " failed with exception: " << ex.what() );
         }
+    }
 
-        return iExitCode;
+    int run_pch_compilation( mega::pipeline::Progress& taskProgress, const mega::Compilation& compilationCMD )
+    {
+        // attempt running using ccache first
+        if( EXIT_SUCCESS
+            != run_cmd( taskProgress, compilationCMD.generateCompilationCMD( Compilation::eCache_cache ) ) )
+        {
+            return EXIT_FAILURE;
+        }
+        else
+        {
+            // then verify and if fail run without ccache
+            if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
+            {
+                return EXIT_SUCCESS;
+            }
+            else if( EXIT_SUCCESS
+                     != run_cmd( taskProgress, compilationCMD.generateCompilationCMD( Compilation::eCache_recache ) ) )
+            {
+                return EXIT_FAILURE;
+            }
+            else
+            {
+                return EXIT_SUCCESS;
+            }
+        }
     }
 
     void start( mega::pipeline::Progress& taskProgress, const char* pszName, const boost::filesystem::path& fromPath,

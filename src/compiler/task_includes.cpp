@@ -83,23 +83,23 @@ public:
 
                 auto iter = megaDependencies.find( m_sourceFilePath );
                 VERIFY_RTE( iter != megaDependencies.end() );
-                auto                                         megaDep      = iter->second;
+                auto                                  megaDep      = iter->second;
                 std::vector< mega::io::megaFilePath > dependencies = megaDep->get_mega_source_files();
                 dependencies.push_back( m_sourceFilePath );
 
                 {
                     std::set< mega::io::megaFilePath >  uniqueFiles;
                     std::set< boost::filesystem::path > uniqueIncludes;
-                    for ( const mega::io::megaFilePath& megaFile : dependencies )
+                    for( const mega::io::megaFilePath& megaFile : dependencies )
                     {
-                        if ( uniqueFiles.count( megaFile ) > 0 )
+                        if( uniqueFiles.count( megaFile ) > 0 )
                             continue;
                         uniqueFiles.insert( megaFile );
 
-                        for ( Parser::CPPInclude* pCPPInclude : database.many< Parser::CPPInclude >( megaFile ) )
+                        for( Parser::CPPInclude* pCPPInclude : database.many< Parser::CPPInclude >( megaFile ) )
                         {
                             const auto& includeFile = pCPPInclude->get_cppSourceFilePath();
-                            if ( uniqueIncludes.count( includeFile ) > 0 )
+                            if( uniqueIncludes.count( includeFile ) > 0 )
                                 continue;
                             uniqueIncludes.insert( includeFile );
                             os << "#include \"" << includeFile.string() << "\"\n";
@@ -113,17 +113,17 @@ public:
                 {
                     std::set< mega::io::megaFilePath > uniqueFiles;
                     std::set< std::string >            uniqueIncludes;
-                    for ( const mega::io::megaFilePath& megaFile : dependencies )
+                    for( const mega::io::megaFilePath& megaFile : dependencies )
                     {
-                        if ( uniqueFiles.count( megaFile ) > 0 )
+                        if( uniqueFiles.count( megaFile ) > 0 )
                             continue;
                         uniqueFiles.insert( megaFile );
 
-                        for ( Parser::SystemInclude* pSystemInclude :
-                              database.many< Parser::SystemInclude >( megaFile ) )
+                        for( Parser::SystemInclude* pSystemInclude :
+                             database.many< Parser::SystemInclude >( megaFile ) )
                         {
                             const auto& includeFile = pSystemInclude->get_str();
-                            if ( uniqueIncludes.count( includeFile ) > 0 )
+                            if( uniqueIncludes.count( includeFile ) > 0 )
                                 continue;
                             uniqueIncludes.insert( includeFile );
                             os << "#include <" << includeFile << ">\n";
@@ -175,31 +175,37 @@ public:
 
         const task::DeterminantHash determinant( { m_toolChain.clangCompilerHash,
                                                    m_environment.getBuildHashCode( includeFilePath ),
-                                                   compilationCMD.generateCompilationCMD() } );
+                                                   compilationCMD.generateCompilationCMD().str() } );
 
-        if ( m_environment.restore( pchPath, determinant ) )
+        if( m_environment.restore( pchPath, determinant ) )
         {
-            if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
+            if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
             {
                 m_environment.setBuildHashCode( pchPath );
                 cached( taskProgress );
                 return;
             }
+            else
+            {
+                std::ostringstream os;
+                os << "Verification of cached pch: " << pchPath.path().string() << " failed";
+                msg( taskProgress, os.str() );
+            }
         }
 
-        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
+        if( EXIT_SUCCESS == run_pch_compilation( taskProgress, compilationCMD ) )
+        {
+            m_environment.setBuildHashCode( pchPath );
+            m_environment.stash( pchPath, determinant );
+            succeeded( taskProgress );
+        }
+        else
         {
             std::ostringstream os;
-            os << "Error compiling include files to pch for source file: " << m_sourceFilePath.path();
+            os << "Error compiling include files to pch for component: " << pComponent->get_name();
             msg( taskProgress, os.str() );
             failed( taskProgress );
-            return;
         }
-
-        m_environment.setBuildHashCode( pchPath );
-        m_environment.stash( pchPath, determinant );
-
-        succeeded( taskProgress );
     }
 };
 
@@ -226,10 +232,10 @@ public:
         Database database( m_environment, m_environment.project_manifest() );
 
         Components::Component* pComponent = nullptr;
-        for ( Components::Component* pIter :
-              database.template many< Components::Component >( m_environment.project_manifest() ) )
+        for( Components::Component* pIter :
+             database.template many< Components::Component >( m_environment.project_manifest() ) )
         {
-            if ( pIter->get_name() == m_strComponentName )
+            if( pIter->get_name() == m_strComponentName )
             {
                 pComponent = pIter;
                 break;
@@ -259,7 +265,7 @@ public:
                 auto cppDependencies = pDependencyAnalysis->get_cpp_dependencies();
 
                 std::vector< mega::io::megaFilePath > dependencies;
-                for ( const io::cppFilePath& cppFile : pComponent->get_cpp_source_files() )
+                for( const io::cppFilePath& cppFile : pComponent->get_cpp_source_files() )
                 {
                     auto iter = cppDependencies.find( cppFile );
                     VERIFY_RTE( iter != cppDependencies.end() );
@@ -271,16 +277,16 @@ public:
                 {
                     std::set< mega::io::megaFilePath >  uniqueFiles;
                     std::set< boost::filesystem::path > uniqueIncludes;
-                    for ( const mega::io::megaFilePath& megaFile : dependencies )
+                    for( const mega::io::megaFilePath& megaFile : dependencies )
                     {
-                        if ( uniqueFiles.count( megaFile ) > 0 )
+                        if( uniqueFiles.count( megaFile ) > 0 )
                             continue;
                         uniqueFiles.insert( megaFile );
 
-                        for ( Parser::CPPInclude* pCPPInclude : database.many< Parser::CPPInclude >( megaFile ) )
+                        for( Parser::CPPInclude* pCPPInclude : database.many< Parser::CPPInclude >( megaFile ) )
                         {
                             const auto& includeFile = pCPPInclude->get_cppSourceFilePath();
-                            if ( uniqueIncludes.count( includeFile ) > 0 )
+                            if( uniqueIncludes.count( includeFile ) > 0 )
                                 continue;
                             uniqueIncludes.insert( includeFile );
                             os << "#include \"" << includeFile.string() << "\"\n";
@@ -294,17 +300,17 @@ public:
                 {
                     std::set< mega::io::megaFilePath > uniqueFiles;
                     std::set< std::string >            uniqueIncludes;
-                    for ( const mega::io::megaFilePath& megaFile : dependencies )
+                    for( const mega::io::megaFilePath& megaFile : dependencies )
                     {
-                        if ( uniqueFiles.count( megaFile ) > 0 )
+                        if( uniqueFiles.count( megaFile ) > 0 )
                             continue;
                         uniqueFiles.insert( megaFile );
 
-                        for ( Parser::SystemInclude* pSystemInclude :
-                              database.many< Parser::SystemInclude >( megaFile ) )
+                        for( Parser::SystemInclude* pSystemInclude :
+                             database.many< Parser::SystemInclude >( megaFile ) )
                         {
                             const auto& includeFile = pSystemInclude->get_str();
-                            if ( uniqueIncludes.count( includeFile ) > 0 )
+                            if( uniqueIncludes.count( includeFile ) > 0 )
                                 continue;
                             uniqueIncludes.insert( includeFile );
                             os << "#include <" << includeFile << ">\n";
@@ -348,10 +354,10 @@ public:
         Database database( m_environment, m_environment.project_manifest() );
 
         Components::Component* pComponent = nullptr;
-        for ( Components::Component* pIter :
-              database.template many< Components::Component >( m_environment.project_manifest() ) )
+        for( Components::Component* pIter :
+             database.template many< Components::Component >( m_environment.project_manifest() ) )
         {
-            if ( pIter->get_name() == m_strComponentName )
+            if( pIter->get_name() == m_strComponentName )
             {
                 pComponent = pIter;
                 break;
@@ -370,31 +376,37 @@ public:
 
         const task::DeterminantHash determinant( { m_toolChain.clangCompilerHash,
                                                    m_environment.getBuildHashCode( includeFilePath ),
-                                                   compilationCMD.generateCompilationCMD() } );
+                                                   compilationCMD.generateCompilationCMD().str() } );
 
-        if ( m_environment.restore( pchPath, determinant ) )
+        if( m_environment.restore( pchPath, determinant ) )
         {
-            if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
+            if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
             {
                 m_environment.setBuildHashCode( pchPath );
                 cached( taskProgress );
                 return;
             }
+            else
+            {
+                std::ostringstream os;
+                os << "Verification of cached pch: " << pchPath.path().string() << " failed";
+                msg( taskProgress, os.str() );
+            }
         }
 
-        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
+        if( EXIT_SUCCESS == run_pch_compilation( taskProgress, compilationCMD ) )
+        {
+            m_environment.setBuildHashCode( pchPath );
+            m_environment.stash( pchPath, determinant );
+            succeeded( taskProgress );
+        }
+        else
         {
             std::ostringstream os;
             os << "Error compiling include files to pch for component: " << pComponent->get_name();
             msg( taskProgress, os.str() );
             failed( taskProgress );
-            return;
         }
-
-        m_environment.setBuildHashCode( pchPath );
-        m_environment.stash( pchPath, determinant );
-
-        succeeded( taskProgress );
     }
 };
 

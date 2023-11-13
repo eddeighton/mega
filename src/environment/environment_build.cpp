@@ -285,7 +285,7 @@ GeneratedHPPSourceFilePath BuildEnvironment::CPPTempHpp( const cppFilePath& sour
     return GeneratedHPPSourceFilePath( dirPath / os.str() );
 }
 
-PrecompiledHeaderFile BuildEnvironment::CPPPCH( const cppFilePath& source ) const
+PrecompiledHeaderFile BuildEnvironment::CPPOperationsPCH( const cppFilePath& source ) const
 {
     std::ostringstream os;
     os << source.path().filename().string() << PrecompiledHeaderFile::extension().string();

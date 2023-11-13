@@ -93,7 +93,7 @@ TASK(CPPIncludePCH,std::get< std::string >( task.sourceFilePath ),const std::str
 TASK(CPPInterfaceGeneration,std::get< std::string >( task.sourceFilePath ),const std::string&)
 TASK(CPPInterfaceAnalysis,std::get< std::string >( task.sourceFilePath ),const std::string&)
 
-TASK(CPPPCH,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
+TASK(CPPOperationsPCH,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
 TASK(CPPImplementation,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
 TASK(CPPObj,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
 

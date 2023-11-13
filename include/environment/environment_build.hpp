@@ -110,7 +110,7 @@ public:
     PrecompiledHeaderFile      InterfacePCH( const boost::filesystem::path& componentBuildDir,
                                              const std::string&             strComponentName ) const;
     GeneratedHPPSourceFilePath CPPTempHpp( const cppFilePath& source ) const;
-    PrecompiledHeaderFile      CPPPCH( const cppFilePath& source ) const;
+    PrecompiledHeaderFile      CPPOperationsPCH( const cppFilePath& source ) const;
     GeneratedCPPSourceFilePath CPPImplementation( const cppFilePath& source ) const;
     ObjectFilePath             CPPObj( const cppFilePath& source ) const;
 

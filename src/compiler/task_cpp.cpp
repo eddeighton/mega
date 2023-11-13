@@ -85,26 +85,26 @@ namespace FinalStage
 namespace mega::compiler
 {
 
-#define CPP_DUMB_STAGE( Stage, File )                                                                           \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                                            \
-        const mega::io::CompilationFilePath compilationFile = m_environment.Stage##_##File( m_sourceFilePath ); \
-                                                                                                                \
-        const task::DeterminantHash determinant = { m_toolChain.toolChainHash };                                \
-                                                                                                                \
-        if( m_environment.restore( compilationFile, determinant ) ) {                                           \
-            m_environment.setBuildHashCode( compilationFile );                                                  \
-            cached( taskProgress );                                                                             \
-            return;                                                                                             \
-        }                                                                                                       \
-                                                                                                                \
-        using namespace Stage;                                                                                  \
-                                                                                                                \
-        Database database( m_environment, m_sourceFilePath );                                                   \
-                                                                                                                \
-        const task::FileHash fileHashCode = database.save_##File##_to_temp();                                   \
-        m_environment.setBuildHashCode( compilationFile, fileHashCode );                                        \
-        m_environment.temp_to_real( compilationFile );                                                          \
-        m_environment.stash( compilationFile, determinant ); )
+#define CPP_DUMB_STAGE( Stage, File )                                                                         \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( const mega::io::CompilationFilePath compilationFile                      \
+                                     = m_environment.Stage##_##File( m_sourceFilePath );                      \
+                                                                                                              \
+                                     const task::DeterminantHash determinant = { m_toolChain.toolChainHash }; \
+                                                                                                              \
+                                     if( m_environment.restore( compilationFile, determinant ) ) {            \
+                                         m_environment.setBuildHashCode( compilationFile );                   \
+                                         cached( taskProgress );                                              \
+                                         return;                                                              \
+                                     }                                                                        \
+                                                                                                              \
+                                     using namespace Stage;                                                   \
+                                                                                                              \
+                                     Database database( m_environment, m_sourceFilePath );                    \
+                                                                                                              \
+                                     const task::FileHash fileHashCode = database.save_##File##_to_temp();    \
+                                     m_environment.setBuildHashCode( compilationFile, fileHashCode );         \
+                                     m_environment.temp_to_real( compilationFile );                           \
+                                     m_environment.stash( compilationFile, determinant ); )
 
 class Task_CPPStages : public BaseTask
 {
@@ -342,29 +342,32 @@ public:
 
         start( taskProgress, "Task_CPPInterfaceAnalysis", m_strComponentName, interfacePCHFilePath.path() );
 
-        const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceHeader ) } );
-
         const mega::Compilation compilationCMD
             = mega::Compilation::make_cpp_interfacePCH_compilation( m_environment, m_toolChain, pComponent );
 
+        const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
+                                                   m_environment.getBuildHashCode( interfaceHeader ),
+                                                   m_environment.getBuildHashCode( m_environment.IncludePCH(
+                                                       pComponent->get_build_dir(), m_strComponentName ) ),
+                                                   compilationCMD.generateCompilationCMD().str() } );
+
         if( m_environment.restore( interfacePCHFilePath, determinant ) )
         {
-            // if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            // if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
             {
                 m_environment.setBuildHashCode( interfacePCHFilePath );
                 cached( taskProgress );
                 return;
             }
+            /*else
+            {
+                std::ostringstream os;
+                os << "Verification of cached pch: " << interfacePCHFilePath.path().string() << " failed";
+                msg( taskProgress, os.str() );
+            }*/
         }
 
-        if( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
-        {
-            failed( taskProgress );
-            return;
-        }
-
-        if( m_environment.exists( interfacePCHFilePath ) )
+        if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             m_environment.setBuildHashCode( interfacePCHFilePath );
             m_environment.stash( interfacePCHFilePath, determinant );
@@ -384,12 +387,12 @@ BaseTask::Ptr create_Task_CPPInterfaceAnalysis( const TaskArguments& taskArgumen
     return std::make_unique< Task_CPPInterfaceAnalysis >( taskArguments, strComponentName );
 }
 
-class Task_CPPPCH : public BaseTask
+class Task_CPPOperationsPCH : public BaseTask
 {
     const mega::io::cppFilePath& m_sourceFilePath;
 
 public:
-    Task_CPPPCH( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
+    Task_CPPOperationsPCH( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
@@ -400,8 +403,8 @@ public:
         const mega::io::GeneratedHPPSourceFilePath tempHPPFile = m_environment.CPPTempHpp( m_sourceFilePath );
         const mega::io::CompilationFilePath        compilationFile
             = m_environment.OperationsStage_Operations( m_sourceFilePath );
-        const mega::io::PrecompiledHeaderFile cppPCHFile = m_environment.CPPPCH( m_sourceFilePath );
-        start( taskProgress, "Task_CPPPCH", m_sourceFilePath.path(), cppPCHFile.path() );
+        const mega::io::PrecompiledHeaderFile cppPCHFile = m_environment.CPPOperationsPCH( m_sourceFilePath );
+        start( taskProgress, "Task_CPPOperationsPCH", m_sourceFilePath.path(), cppPCHFile.path() );
 
         using namespace OperationsStage;
         Database               database( m_environment, m_sourceFilePath );
@@ -410,7 +413,8 @@ public:
         const mega::Compilation compilationCMD
             = mega::Compilation::make_cpp_pch_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath );
 
-        const task::DeterminantHash determinant( { m_toolChain.toolChainHash, compilationCMD.generateCompilationCMD(),
+        const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
+                                                   compilationCMD.generateCompilationCMD().str(),
                                                    m_environment.getBuildHashCode( m_environment.IncludePCH(
                                                        pComponent->get_build_dir(), pComponent->get_name() ) ),
                                                    m_environment.getBuildHashCode( m_environment.InterfacePCH(
@@ -420,11 +424,17 @@ public:
         bool bRestoredHPP = m_environment.restore( tempHPPFile, determinant );
         if( bRestoredHPP )
         {
-            // if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            // if ( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
             {
                 m_environment.setBuildHashCode( tempHPPFile );
                 bRestoredHPP = true;
             }
+            /*else
+            {
+                std::ostringstream os;
+                os << "Verification of cached pch: " << cppPCHFile.path().string() << " failed";
+                msg( taskProgress, os.str() );
+            }*/
         }
 
         if( m_environment.restore( cppPCHFile, determinant ) && m_environment.restore( compilationFile, determinant ) )
@@ -457,14 +467,7 @@ public:
             m_environment.stash( tempHPPFile, determinant );
         }
 
-        if( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
-        {
-            std::ostringstream os;
-            os << "Error compiling C++ source file: " << m_sourceFilePath.path();
-            throw std::runtime_error( os.str() );
-        }
-
-        if( m_environment.exists( compilationFile ) && m_environment.exists( cppPCHFile ) )
+        if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             m_environment.setBuildHashCode( compilationFile );
             m_environment.stash( compilationFile, determinant );
@@ -476,14 +479,18 @@ public:
         }
         else
         {
+            std::ostringstream os;
+            os << "Error compiling C++ source file: " << m_sourceFilePath.path();
+            msg( taskProgress, os.str() );
             failed( taskProgress );
         }
     }
 };
 
-BaseTask::Ptr create_Task_CPPPCH( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_CPPOperationsPCH( const TaskArguments&         taskArguments,
+                                            const mega::io::cppFilePath& sourceFilePath )
 {
-    return std::make_unique< Task_CPPPCH >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_CPPOperationsPCH >( taskArguments, sourceFilePath );
 }
 
 class Task_CPPImplementation : public BaseTask
@@ -566,7 +573,7 @@ public:
                   m_environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
               m_environment.getBuildHashCode(
                   m_environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
-              m_environment.getBuildHashCode( m_environment.CPPPCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.CPPOperationsPCH( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( m_environment.CPPImplementation( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( m_environment.OperationsStage_Operations( m_sourceFilePath ) ) } );
 

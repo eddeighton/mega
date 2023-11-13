@@ -131,11 +131,6 @@ public:
         const mega::io::PrecompiledHeaderFile      operationsPCH     = m_environment.OperationsPCH( m_sourceFilePath );
         start( taskProgress, "Task_OperationsPCH", m_sourceFilePath.path(), operationsPCH.path() );
 
-        const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( operationsHPPFile ),
-              m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ) } );
-
         using namespace OperationsStage;
 
         Database               database( m_environment, m_sourceFilePath );
@@ -144,27 +139,31 @@ public:
         const mega::Compilation compilationCMD = mega::Compilation::make_operationsPCH_compilation(
             m_environment, m_toolChain, pComponent, m_sourceFilePath );
 
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( operationsHPPFile ),
+              m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
+              compilationCMD.generateCompilationCMD().str() } );
+
         if( m_environment.restore( operationsPCH, determinant )
             && m_environment.restore( compilationFile, determinant ) )
         {
-            // if( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            //if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
             {
                 m_environment.setBuildHashCode( operationsPCH );
                 m_environment.setBuildHashCode( compilationFile );
                 cached( taskProgress );
                 return;
             }
+            /*else
+            {
+                std::ostringstream os;
+                os << "Verification of cached pch: " << operationsPCH.path().string() << " failed";
+                msg( taskProgress, os.str() );
+            }*/
         }
 
-        if( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
-        {
-            std::ostringstream os;
-            os << "Error compiling operations pch file for source file: " << m_sourceFilePath.path();
-            msg( taskProgress, os.str() );
-            failed( taskProgress );
-            return;
-        }
-        else
+        if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             if( m_environment.exists( compilationFile ) && m_environment.exists( operationsPCH ) )
             {
@@ -180,6 +179,13 @@ public:
             {
                 failed( taskProgress );
             }
+        }
+        else
+        {
+            std::ostringstream os;
+            os << "Error compiling operations pch file for source file: " << m_sourceFilePath.path();
+            msg( taskProgress, os.str() );
+            failed( taskProgress );
         }
     }
 };

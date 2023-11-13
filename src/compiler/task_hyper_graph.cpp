@@ -104,20 +104,25 @@ public:
                             }
                         }
                     }
+
                     VERIFY_RTE_MSG( !found.empty(),
-                                    "Failed to resolve object link type: " << printLinkTraitTypePath( pLinkTrait ) );
+                                    "Failed to resolve object link type: " << printIContextFullType(
+                                        pLinkTrait->get_parent() ) << " " << printLinkTraitTypePath( pLinkTrait ) );
                     candidates.swap( found );
                 }
 
                 VERIFY_RTE_MSG( !candidates.empty(),
-                                "Failed to resolve object link type: " << printLinkTraitTypePath( pLinkTrait ) );
+                                "Failed to resolve object link type: " << printIContextFullType(
+                                    pLinkTrait->get_parent() ) << " " << printLinkTraitTypePath( pLinkTrait ) );
                 VERIFY_RTE_MSG( 1 == candidates.size(),
-                                "Failed to disambiguate object link type: " << printLinkTraitTypePath( pLinkTrait ) );
+                                "Failed to disambiguate object link type: " << printIContextFullType(
+                                    pLinkTrait->get_parent() ) << " " << printLinkTraitTypePath( pLinkTrait ) );
                 variantResults.push_back( candidates.front() );
             }
         }
         VERIFY_RTE_MSG( 1 == variantResults.size(),
-                        "Failed to disambiguate variant object link type: " << printLinkTraitTypePath( pLinkTrait ) );
+                        "Failed to disambiguate variant object link type: " << printIContextFullType(
+                            pLinkTrait->get_parent() ) << " " << printLinkTraitTypePath( pLinkTrait ) );
 
         return variantResults.front();
     }

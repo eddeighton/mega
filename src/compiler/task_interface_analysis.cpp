@@ -68,7 +68,7 @@ public:
               m_environment.getBuildHashCode( interfaceTreeFile ), m_environment.getBuildHashCode( symbolTableFile ),
               m_environment.ContextTemplate(), m_environment.InterfaceTemplate() } );
 
-        if ( m_environment.restore( interfaceHeader, determinant ) )
+        if( m_environment.restore( interfaceHeader, determinant ) )
         {
             m_environment.setBuildHashCode( interfaceHeader );
             cached( taskProgress );
@@ -100,17 +100,17 @@ public:
             VERIFY_RTE( megaIter != megaFileDependencies.end() );
             Dependencies::TransitiveDependencies* pTransitiveDep = megaIter->second;
 
-            for ( const mega::io::megaFilePath& megaFile : pTransitiveDep->get_mega_source_files() )
+            for( const mega::io::megaFilePath& megaFile : pTransitiveDep->get_mega_source_files() )
             {
                 Interface::Root* pRoot = database.one< Interface::Root >( megaFile );
-                for ( IContext* pContext : pRoot->get_children() )
+                for( IContext* pContext : pRoot->get_children() )
                 {
                     InterfaceGen::buildInterfaceTree( pInterfaceRoot, pContext );
                 }
             }
 
             Interface::Root* pRoot = database.one< Interface::Root >( m_sourceFilePath );
-            for ( IContext* pContext : pRoot->get_children() )
+            for( IContext* pContext : pRoot->get_children() )
             {
                 InterfaceGen::buildInterfaceTree( pInterfaceRoot, pContext );
             }
@@ -118,7 +118,7 @@ public:
 
         std::ostringstream os;
         {
-            for ( InterfaceGen::InterfaceNode::Ptr pInterfaceNode : pInterfaceRoot->children )
+            for( InterfaceGen::InterfaceNode::Ptr pInterfaceNode : pInterfaceRoot->children )
             {
                 InterfaceGen::recurse( templateEngine, pInterfaceNode, structs, typenames, os );
             }
@@ -132,9 +132,9 @@ public:
             std::ostringstream osGuard;
             {
                 bool bFirst = true;
-                for ( auto filePart : m_sourceFilePath.path() )
+                for( auto filePart : m_sourceFilePath.path() )
                 {
-                    if ( bFirst )
+                    if( bFirst )
                         bFirst = false;
                     else
                         osGuard << "_";
@@ -150,20 +150,20 @@ public:
             Symbols::SymbolTable* pSymbolTable
                 = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
-            for ( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbol_names() )
+            for( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbol_names() )
             {
                 nlohmann::json forwardDecl( { { "symbol", pSymbol->get_id().getSymbolID() }, { "name", symbolName } } );
 
                 bool bIsGlobal = false;
-                for ( auto pContext : pSymbol->get_contexts() )
+                for( auto pContext : pSymbol->get_contexts() )
                 {
-                    if ( db_cast< Interface::Root >( pContext->get_parent() ) )
+                    if( db_cast< Interface::Root >( pContext->get_parent() ) )
                     {
                         bIsGlobal = true;
                     }
                 }
 
-                if ( !bIsGlobal )
+                if( !bIsGlobal )
                 {
                     interfaceData[ "forward_decls" ].push_back( forwardDecl );
                 }
@@ -206,12 +206,6 @@ public:
 
         start( taskProgress, "Task_InterfaceAnalysis", m_sourceFilePath.path(), interfacePCHFilePath.path() );
 
-        const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceHeader ),
-              m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( interfaceTreeFile ) } );
-
         using namespace InterfaceAnalysisStage;
         using namespace InterfaceAnalysisStage::Interface;
         Database               database( m_environment, m_sourceFilePath );
@@ -220,38 +214,42 @@ public:
         const mega::Compilation compilationCMD = mega::Compilation::make_interfacePCH_compilation(
             m_environment, m_toolChain, pComponent, m_sourceFilePath );
 
-        if ( m_environment.restore( interfacePCHFilePath, determinant )
-             && m_environment.restore( interfaceAnalysisFile, determinant ) )
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceHeader ),
+              m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( interfaceTreeFile ), compilationCMD.generateCompilationCMD().str() } );
+
+        if( m_environment.restore( interfacePCHFilePath, determinant )
+            && m_environment.restore( interfaceAnalysisFile, determinant ) )
         {
-            // if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            //if ( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
             {
                 m_environment.setBuildHashCode( interfacePCHFilePath );
                 m_environment.setBuildHashCode( interfaceAnalysisFile );
                 cached( taskProgress );
                 return;
             }
+            /*else
+            {
+                std::ostringstream os;
+                os << "Verification of cached pch: " << interfacePCHFilePath.path().string() << " failed";
+                msg( taskProgress, os.str() );
+            }*/
         }
-
-        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
-        {
-            failed( taskProgress );
-            return;
-        }
-
-        if ( m_environment.exists( interfaceAnalysisFile ) && m_environment.exists( interfacePCHFilePath ) )
+        
+        if ( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             m_environment.setBuildHashCode( interfacePCHFilePath );
-            m_environment.stash( interfacePCHFilePath, determinant );
-
             m_environment.setBuildHashCode( interfaceAnalysisFile );
-            m_environment.stash( interfaceAnalysisFile, determinant );
-
-            succeeded( taskProgress );
+            cached( taskProgress );
+            return;
         }
         else
         {
             failed( taskProgress );
         }
+
     }
 
     const mega::io::megaFilePath& m_sourceFilePath;

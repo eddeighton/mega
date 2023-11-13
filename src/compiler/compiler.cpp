@@ -493,15 +493,15 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
                     for( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
                     {
-                        const TskDesc cppPCH               = encode( Task{ eTask_CPPPCH, sourceFile } );
+                        const TskDesc cppOperationsPCH     = encode( Task{ eTask_CPPOperationsPCH, sourceFile } );
                         const TskDesc cppCPPImplementation = encode( Task{ eTask_CPPImplementation, sourceFile } );
                         const TskDesc cppObj               = encode( Task{ eTask_CPPObj, sourceFile } );
 
-                        dependencies.add( cppPCH, tasks );
-                        dependencies.add( cppCPPImplementation, TskDescVec{ cppPCH } );
+                        dependencies.add( cppOperationsPCH, tasks );
+                        dependencies.add( cppCPPImplementation, TskDescVec{ cppOperationsPCH } );
                         dependencies.add( cppObj, TskDescVec{ cppCPPImplementation } );
 
-                        unityDependencyTasks.push_back( cppPCH );
+                        unityDependencyTasks.push_back( cppOperationsPCH );
                         binaryTasks.push_back( cppObj );
                     }
                 }

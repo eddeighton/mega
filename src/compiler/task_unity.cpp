@@ -230,7 +230,7 @@ public:
             osCmd << "-reflectionData " << unityDataFilePath.string() << " ";
             osCmd << "-unityData " << unityAnalysisFilePath.string() << " ";
 
-            this->run_cmd( taskProgress, osCmd.str() );
+            this->run_cmd( taskProgress, common::Command{ osCmd.str() } );
         }
 
         if( !boost::filesystem::exists( unityAnalysisFilePath ) )

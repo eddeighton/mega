@@ -27,13 +27,13 @@
 
 #include "environment/environment_build.hpp"
 
+#include "common/process.hpp"
+
 #include <boost/filesystem/path.hpp>
 
 #include <optional>
 #include <string>
 #include <vector>
-
-// #define DISABLE_CCACHE 1
 
 namespace mega
 {
@@ -57,25 +57,17 @@ class EGDB_EXPORT Compilation
 
     Compilation() = default;
 
-    static std::string maybeUseCCache( const utilities::ToolChain& toolChain )
-    {
-        // use ccache on linux to speed up include pch
-#ifndef DISABLE_CCACHE
-#ifdef __gnu_linux__
-        std::ostringstream useCCache;
-        useCCache << "ccache " << toolChain.clangCompilerPath.string();
-        return useCCache.str();
-#else
-        return toolChain.clangCompilerPath.string();
-#endif
-#else
-        return toolChain.clangCompilerPath.string();
-#endif
-    }
-
 public:
-    std::string generatePCHVerificationCMD() const;
-    std::string generateCompilationCMD() const;
+    common::Command generatePCHVerificationCMD() const;
+
+    enum CompilerCacheOptions
+    {
+        eCache_none,
+        eCache_cache,
+        eCache_recache
+    };
+
+    common::Command generateCompilationCMD( CompilerCacheOptions cacheOptions = eCache_none ) const;
 
     template < typename TComponentType >
     static inline Compilation
@@ -84,7 +76,7 @@ public:
     {
         Compilation compilation;
         compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = maybeUseCCache( toolChain );
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -170,7 +162,7 @@ public:
         Compilation compilation;
 
         compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = maybeUseCCache( toolChain );
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -193,7 +185,7 @@ public:
     {
         Compilation compilation;
         compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = maybeUseCCache( toolChain );
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -270,7 +262,7 @@ public:
             environment.FilePath( environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() ) ) };
 
         compilation.inputFile = environment.FilePath( environment.CPPTempHpp( sourceFile ) );
-        compilation.outputPCH = environment.FilePath( environment.CPPPCH( sourceFile ) );
+        compilation.outputPCH = environment.FilePath( environment.CPPOperationsPCH( sourceFile ) );
 
         return compilation;
     }
@@ -286,7 +278,7 @@ public:
         Compilation compilation;
 
         compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = maybeUseCCache( toolChain );
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -295,7 +287,7 @@ public:
         compilation.inputPCH
             = { environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
                 environment.FilePath( environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
-                environment.FilePath( environment.CPPPCH( sourceFile ) ) };
+                environment.FilePath( environment.CPPOperationsPCH( sourceFile ) ) };
 
         compilation.inputFile    = environment.FilePath( environment.CPPImplementation( sourceFile ) );
         compilation.outputObject = environment.FilePath( environment.CPPObj( sourceFile ) );
@@ -314,7 +306,7 @@ public:
         Compilation compilation;
 
         compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = maybeUseCCache( toolChain );
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -340,7 +332,7 @@ public:
         Compilation compilation;
 
         compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = maybeUseCCache( toolChain );
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
