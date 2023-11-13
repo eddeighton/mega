@@ -60,7 +60,7 @@ struct ExamplePolicy
 template < typename TPolicy >
 static typename TPolicy::OrPtrVector solveStep( typename TPolicy::OrPtr                    pCurrentFrontierStep,
                                                 const typename TPolicy::GraphVertexVector& typePathElement,
-                                                bool bAllowInterObjectStep, const TPolicy& policy )
+                                                const TPolicy&                             policy )
 {
     typename TPolicy::OrPtrVector nextFrontier;
 
@@ -158,8 +158,7 @@ static typename TPolicy::RootPtr solveContextFree( const typename TPolicy::Spec&
         typename TPolicy::OrPtrVector nextFrontier;
         for( typename TPolicy::OrPtr pCurrentFrontierStep : frontier )
         {
-            typename TPolicy::OrPtrVector recursiveResult
-                = solveStep( pCurrentFrontierStep, typePathElement, false, policy );
+            typename TPolicy::OrPtrVector recursiveResult = solveStep( pCurrentFrontierStep, typePathElement, policy );
 
             if( !bLast )
             {

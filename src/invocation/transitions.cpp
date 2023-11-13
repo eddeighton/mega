@@ -86,11 +86,6 @@ struct InvocationPolicy
     {
         return m_database.construct< Derivation::Or >( Derivation::Or::Args{ Derivation::Step::Args{ pVertex, {} } } );
     }
-    /*AndPtr makeAnd( GraphVertex* pVertex ) const
-    {
-        return m_database.construct< Derivation::And >(
-            Derivation::And::Args{ Derivation::Step::Args{ pVertex, {} } } );
-    }*/
     RootPtr makeRoot( const GraphVertexVector& context ) const
     {
         return m_database.construct< Derivation::Root >( Derivation::Root::Args{ context, {} } );
@@ -106,82 +101,7 @@ struct InvocationPolicy
     OrPtrVector expandLink( OrPtr pOr ) const
     {
         OrPtrVector result;
-
-        /*if( auto pLink = db_cast< Concrete::Dimensions::Link >( pOr->get_vertex() ) )
-        {
-            GraphEdgeVector edges;
-            for( auto pEdge : pLink->get_out_edges() )
-            {
-                switch( pEdge->get_type().get() )
-                {
-                    case EdgeType::eMonoSingularMandatory:
-                    case EdgeType::ePolySingularMandatory:
-                    case EdgeType::eMonoNonSingularMandatory:
-                    case EdgeType::ePolyNonSingularMandatory:
-                    case EdgeType::eMonoSingularOptional:
-                    case EdgeType::ePolySingularOptional:
-                    case EdgeType::eMonoNonSingularOptional:
-                    case EdgeType::ePolyNonSingularOptional:
-                    case EdgeType::ePolyParent:
-                    {
-                        edges.push_back( pEdge );
-                    }
-                    break;
-                    case EdgeType::eParent:
-                    case EdgeType::eChildSingular:
-                    case EdgeType::eChildNonSingular:
-                    case EdgeType::eDim:
-                    case EdgeType::eLink:
-                    case EdgeType::TOTAL_EDGE_TYPES:
-                        break;
-                }
-            }
-            VERIFY_RTE( !edges.empty() );
-
-            auto pAnd = m_database.construct< Derivation::And >(
-                Derivation::And::Args{ Derivation::Step::Args{ pLink, {} } } );
-
-            auto pOrToAndEdge
-                = m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pAnd, false, false, 0, {} } );
-
-            pOr->push_back_edges( pOrToAndEdge );
-
-            for( auto pGraphEdge : edges )
-            {
-                // determine the parent context of the link target
-                GraphVertex* pParentVertex = nullptr;
-                GraphEdge*   pParentEdge   = nullptr;
-                {
-                    auto pLinkTarget = pGraphEdge->get_target();
-                    for( auto pLinkGraphEdge : pLinkTarget->get_out_edges() )
-                    {
-                        if( pLinkGraphEdge->get_type().get() == EdgeType::eParent )
-                        {
-                            VERIFY_RTE( !pParentVertex );
-                            pParentEdge   = pLinkGraphEdge;
-                            pParentVertex = pLinkGraphEdge->get_target();
-                        }
-                    }
-                }
-                VERIFY_RTE( pParentEdge );
-                VERIFY_RTE( pParentVertex );
-
-                auto pLinkTargetOr = m_database.construct< Derivation::Or >(
-                    Derivation::Or::Args{ Derivation::Step::Args{ pParentVertex, {} } } );
-
-                auto pDerivationEdge = m_database.construct< Derivation::Edge >(
-                    Derivation::Edge::Args{ pLinkTargetOr, false, false, 0, { pGraphEdge, pParentEdge } } );
-
-                pAnd->push_back_edges( pDerivationEdge );
-
-                result.push_back( pLinkTargetOr );
-            }
-        }
-        else*/
-        {
-            result.push_back( pOr );
-        }
-
+        result.push_back( pOr );
         return result;
     }
 
@@ -209,17 +129,17 @@ void compileTransitions( OperationsStage::Database& database, const mega::io::me
 {
     using namespace OperationsStage;
 
-    auto allStates = database.many< Concrete::State >( sourceFile );
+    auto                         allStates = database.many< Concrete::State >( sourceFile );
     std::set< Concrete::State* > remainingStates( allStates.begin(), allStates.end() );
 
-    auto allInterupts = database.many< Concrete::Interupt >( sourceFile );
+    auto                            allInterupts = database.many< Concrete::Interupt >( sourceFile );
     std::set< Concrete::Interupt* > remainingInterupts( allInterupts.begin(), allInterupts.end() );
 
     for( auto pTransition : database.many< Interface::TransitionTypeTrait >( sourceFile ) )
     {
         for( auto pContextVert : pTransition->get_parent_invocation_context()->get_concrete() )
         {
-            std::vector< InvocationPolicy::RootPtr > derivations;  
+            std::vector< InvocationPolicy::RootPtr > derivations;
 
             for( auto pTypePathVariant : pTransition->get_tuple() )
             {
@@ -261,10 +181,10 @@ void compileTransitions( OperationsStage::Database& database, const mega::io::me
                             using ::           operator<<;
                             if( result == Derivation::eAmbiguous )
                                 os << "Derivation disambiguation was ambiguous for: "
-                                << Concrete::printContextFullType( pContextVert ) << "\n";
+                                   << Concrete::printContextFullType( pContextVert ) << "\n";
                             else if( result == Derivation::eFailure )
-                                os << "Derivation disambiguation failed for: " << Concrete::printContextFullType( pContextVert )
-                                << "\n";
+                                os << "Derivation disambiguation failed for: "
+                                   << Concrete::printContextFullType( pContextVert ) << "\n";
                             else
                                 THROW_RTE( "Unknown derivation failure type" );
                             THROW_RTE( os.str() );
@@ -277,8 +197,8 @@ void compileTransitions( OperationsStage::Database& database, const mega::io::me
                     catch( std::exception& ex )
                     {
                         std::ostringstream os;
-                        os << "Exception while compiling successor for: " << Concrete::printContextFullType( pContextVert )
-                        << "\n";
+                        os << "Exception while compiling successor for: "
+                           << Concrete::printContextFullType( pContextVert ) << "\n";
                         printDerivationStep( pRoot, true, os );
                         os << "\nError: " << ex.what();
                         THROW_RTE( os.str() );
@@ -286,18 +206,19 @@ void compileTransitions( OperationsStage::Database& database, const mega::io::me
                 }
             }
 
-
             if( auto pState = db_cast< Concrete::State >( pContextVert ) )
             {
-                database.construct< Concrete::State >(
-                    Concrete::State::Args{ pState, derivations } );
-                remainingStates.erase( pState );
+                auto iFind = remainingStates.find( pState );
+                VERIFY_RTE( iFind != remainingStates.end() );
+                remainingStates.erase( iFind );
+                database.construct< Concrete::State >( Concrete::State::Args{ pState, derivations } );
             }
             else if( auto pInterupt = db_cast< Concrete::Interupt >( pContextVert ) )
             {
-                database.construct< Concrete::Interupt >(
-                    Concrete::Interupt::Args{ pInterupt, derivations } );
-                remainingInterupts.erase( pInterupt );
+                auto iFind = remainingInterupts.find( pInterupt );
+                VERIFY_RTE( iFind != remainingInterupts.end() );
+                remainingInterupts.erase( iFind );
+                database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, derivations } );
             }
             else
             {
@@ -309,13 +230,11 @@ void compileTransitions( OperationsStage::Database& database, const mega::io::me
     // ensure ALL optional transitions are set
     for( auto pState : remainingStates )
     {
-        database.construct< Concrete::State >(
-            Concrete::State::Args{ pState, {} } );
+        database.construct< Concrete::State >( Concrete::State::Args{ pState, {} } );
     }
     for( auto pInterupt : remainingInterupts )
     {
-        database.construct< Concrete::Interupt >(
-            Concrete::Interupt::Args{ pInterupt, {} } );
+        database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, {} } );
     }
 }
 

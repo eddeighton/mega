@@ -101,6 +101,11 @@ Concrete::State* findCommonAncestor( Concrete::State* pContext, const StateVecto
         }
     }
 
+    return pCommonAncestor;
+}
+
+Concrete::State* findCommonAncestorContextParent( Concrete::Context* pContext, Concrete::State* pCommonAncestor )
+{
     // Common Ancestor MUST NOT be the actual context i.e. action foo > foo
     while( pCommonAncestor )
     {
@@ -268,9 +273,9 @@ struct Collector
             }
             VERIFY_RTE_MSG( !targets.empty(),
                             "No derivation targets for derivation: " << Concrete::printContextFullType( pContext ) );
-            VERIFY_RTE_MSG(
-                targets.size() == 1U,
-                "Non-singular derivation targets for derivation: " << Concrete::printContextFullType( pContext ) );
+            VERIFY_RTE_MSG( targets.size() == 1U,
+                            "Non-singular derivation targets for derivation: " << Concrete::printContextFullType(
+                                pContext ) << "\n" << Derivation::printDerivationStep( pDerivation, false ) );
             for( auto pVertex : targets )
             {
                 if( auto pState = db_cast< Concrete::State >( pVertex ) )
@@ -832,8 +837,8 @@ Decision::Step* buildDecisionProcedure( Database&                               
     return pSelection;
 }
 
-Decision::DecisionProcedure* compileTransition( Database& database, Concrete::Context* pContext,
-                                                const StateVectorVector& transitionStates )
+Decision::DecisionProcedure* compileDecision( Database& database, Concrete::Context* pContext,
+                                              const StateVectorVector& transitionStates )
 {
     // determine the Concrete::State associated with the pContext
     Concrete::State* pContextState = nullptr;
@@ -858,6 +863,9 @@ Decision::DecisionProcedure* compileTransition( Database& database, Concrete::Co
     const std::vector< Concrete::Decider* > deciders = pObject->get_deciders();
 
     Concrete::State* pCommonAncestor = findCommonAncestor( pContextState, transitionStates );
+    pCommonAncestor                  = findCommonAncestorContextParent( pContext, pCommonAncestor );
+    VERIFY_RTE_MSG( pCommonAncestor, "Failed to determine common ancestor for decision: "
+                                         << Concrete::printContextFullType( pContext ) );
 
     // calculate instance divider to common ancestor
     Instance instanceDivider = 1;
@@ -865,6 +873,7 @@ Decision::DecisionProcedure* compileTransition( Database& database, Concrete::Co
         for( auto pIter = pContext; pIter != pCommonAncestor;
              pIter      = db_cast< Concrete::Context >( pIter->get_parent() ) )
         {
+            VERIFY_RTE( pIter );
             instanceDivider = instanceDivider * pIter->get_local_size();
         }
     }
@@ -912,8 +921,8 @@ void compileDecisions( Database& database, const mega::io::megaFilePath& sourceF
         auto transitions = pInterupt->get_transition();
         if( !transitions.empty() )
         {
-            Decision::DecisionProcedure* pProcedure = compileTransition(
-                database, pInterupt, Collector::collectDerivationStates( pInterupt, transitions ) );
+            Decision::DecisionProcedure* pProcedure
+                = compileDecision( database, pInterupt, Collector::collectDerivationStates( pInterupt, transitions ) );
             pInterupt->set_transition_decision( std::optional< Decision::DecisionProcedure* >( pProcedure ) );
         }
         else
@@ -927,7 +936,7 @@ void compileDecisions( Database& database, const mega::io::megaFilePath& sourceF
         if( !transitions.empty() )
         {
             Decision::DecisionProcedure* pProcedure
-                = compileTransition( database, pState, Collector::collectDerivationStates( pState, transitions ) );
+                = compileDecision( database, pState, Collector::collectDerivationStates( pState, transitions ) );
             pState->set_transition_decision( std::optional< Decision::DecisionProcedure* >( pProcedure ) );
         }
         else

@@ -21,9 +21,10 @@
 #include <gtest/gtest.h>
 #include <gtest/gtest-param-test.h>
 
-#include "mega/values/native_types.hpp"#include "mega/reference_limits.hpp"
+#include "mega/values/native_types.hpp"
+#include "mega/values/runtime/reference_limits.hpp"
 #include "mega/values/compilation/relation_id.hpp"
-#include "mega/type_id_limits.hpp"
+#include "mega/values/compilation/type_id_limits.hpp"
 
 #include "log/filename.hpp"
 #include "log/records.hxx"

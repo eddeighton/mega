@@ -96,3 +96,10 @@ static void printDerivationStep( Root* pRoot, bool bShowEliminated, std::ostream
 
     pop_indent( strIndent );
 }
+
+static std::string printDerivationStep( Root* pRoot, bool bShowEliminated )
+{
+    std::ostringstream os;
+    printDerivationStep( pRoot, bShowEliminated, os );
+    return os.str();
+}

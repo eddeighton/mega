@@ -416,6 +416,8 @@ stage OperationsStage
     persource accessor array< ref< Concrete::State > >;
     persource accessor array< ref< Concrete::Interupt > >;
     persource accessor array< ref< Concrete::Object > >;
+    persource accessor array< ref< Concrete::Decider > >;
+    persource accessor array< ref< Concrete::Interupt > >;
     persource accessor array< ref< Interface::InvocationContext > >;
     persource accessor array< ref< Interface::TransitionTypeTrait > >;
     persource accessor array< ref< Interface::EventTypeTrait > >;

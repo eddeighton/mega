@@ -780,7 +780,8 @@ public:
                 auto operators = detectOperatorInstantiations();
 
                 mega::invocation::compileTransitions( m_database, m_sourceFile );
-                mega::invocation::compileEvents( m_database, m_sourceFile );
+                mega::invocation::compileInterupts( m_database, m_sourceFile );
+                mega::invocation::compileDeciders( m_database, m_sourceFile );
                 mega::invocation::compileDecisions( m_database, m_sourceFile );
 
                 m_database.construct< Operations::Invocations >(

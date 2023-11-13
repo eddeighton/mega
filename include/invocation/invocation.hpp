@@ -59,8 +59,8 @@ OperationsStage::Operations::Invocation* compileInvocation( OperationsStage::Dat
                                                             const mega::InvocationID&  id );
 
 void compileTransitions( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
-void compileEvents( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
-
+void compileInterupts( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
+void compileDeciders( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
 void compileDecisions( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
 
 } // namespace mega::invocation

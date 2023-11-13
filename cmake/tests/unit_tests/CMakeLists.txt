@@ -35,24 +35,17 @@ include_directories( ${MEGA_SRC_DIR} )
 
 set( MEGA_UNIT_TESTS_DIR ${MEGA_TEST_DIR}/unit_tests )
 
-set( COMPILER_SRC
-	${MEGA_SRC_DIR}/compiler/automata.cpp )
+set( COMPILER_SRC 
+	${MEGA_SRC_DIR}/compiler/glob.cpp 
+)
 
 set( MEGA_UNIT_TESTS
-	#${MEGA_UNIT_TESTS_DIR}/scheduler_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/arguments_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/asio_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/automata_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/compiler_pipeline_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/database_tests.cpp 
 	${MEGA_UNIT_TESTS_DIR}/glob_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/io_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/log_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/manifest_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/network_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/pipeline_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/protocol_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/schema_grammar_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/schematic_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/sim_state_machine_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/visitor_tests.cpp
@@ -90,7 +83,6 @@ link_boost( mega_tests serialization )
 link_gtest( mega_tests )
 
 target_link_libraries( mega_tests database )
-target_link_libraries( mega_tests database_compiler)
 target_link_libraries( mega_tests protocol)
 target_link_libraries( mega_tests network)
 target_link_libraries( mega_tests pipeline)

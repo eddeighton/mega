@@ -39,9 +39,6 @@ set( INVOCATION_UNIT_TESTS
 	${INVOCATION_TESTS_DIR}/basic_tests.cpp 
 	${INVOCATION_TESTS_DIR}/get_tests.cpp 
 	${INVOCATION_TESTS_DIR}/link_tests.cpp 
-
-	## ensure the version is baked into the shared object
-	${MEGA_SRC_DIR}/version/version.cxx
 	)
 
 enable_testing()
@@ -73,7 +70,6 @@ link_gtest( invocation_tests )
 
 target_link_libraries( invocation_tests compiler_config )
 target_link_libraries( invocation_tests database )
-target_link_libraries( invocation_tests utilities )
 target_link_libraries( invocation_tests pipeline)
 target_link_libraries( invocation_tests invocation)
 

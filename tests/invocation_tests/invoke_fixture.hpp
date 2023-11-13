@@ -23,8 +23,6 @@
 
 #include "mega/values/compilation/tool_chain_hash.hpp"
 
-#include "version/version.hpp"
-
 #include "compiler/configuration.hpp"
 
 #include "pipeline/configuration.hpp"
@@ -69,7 +67,7 @@ public:
 
         bool m_bSuccess = false;
 
-        mega::io::Directories   m_directories;
+        mega::io::Directories         m_directories;
         mega::io::BuildEnvironment    m_environment;
         mega::pipeline::Configuration m_pipeline;
         boost::filesystem::path       m_srcFilePath;
@@ -111,8 +109,7 @@ public:
                 = m_directories.buildDir / componentListingFilePath.path();
             VERIFY_RTE( boost::filesystem::exists( actualComponentInfoFilePath ) );
 
-            const mega::compiler::Configuration config = { g_toolChain.megaCompilerPath.string(),
-                                                           mega::Version::getVersion(),
+            const mega::compiler::Configuration config = { { g_toolChain.megaCompilerPath.string(), mega::Version{} },
                                                            TEST_NAME,
                                                            { actualComponentInfoFilePath },
                                                            m_directories };
@@ -125,8 +122,6 @@ public:
             return mega::pipeline::runPipelineLocally(
                 g_stashDir, g_toolChain, m_pipeline, "Task_OperationsPCH", "", {}, false, true, std::cout );
         };
-
-        
     };
 
     static void SetUpTestSuite()
@@ -134,7 +129,8 @@ public:
         try
         {
             // create directories
-            boost::filesystem::path testFolder = boost::filesystem::temp_directory_path() / "invocation_tests" / TEST_NAME;
+            boost::filesystem::path testFolder
+                = boost::filesystem::temp_directory_path() / "invocation_tests" / TEST_NAME;
             boost::filesystem::create_directories( testFolder );
             VERIFY_RTE_MSG(
                 boost::filesystem::exists( testFolder ), "Failed to create temporary folder: " << testFolder.string() );
@@ -146,8 +142,7 @@ public:
             boost::filesystem::path installDir = testFolder / "install";
             boost::filesystem::create_directories( installDir );
 
-            m_pImpl
-                = std::make_unique< Impl >( mega::io::Directories{ srcDir, buildDir, installDir, g_templatesDir } );
+            m_pImpl = std::make_unique< Impl >( mega::io::Directories{ srcDir, buildDir, installDir, g_templatesDir } );
 
             mega::pipeline::PipelineResult result = m_pImpl->runPipeline();
             ASSERT_TRUE( result.m_bSuccess );

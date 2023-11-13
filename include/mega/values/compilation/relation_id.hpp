@@ -34,7 +34,7 @@ struct RelationID
 {
 public:
     using ValueType                  = U64;
-    static constexpr ValueType SHIFT = ( sizeof( ValueType ) * 4 );
+    static constexpr ValueType SHIFT = ( sizeof( TypeID::ValueType ) * 8 );
 
     constexpr inline RelationID()                    = default;
     constexpr inline RelationID( const RelationID& ) = default;

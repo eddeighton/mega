@@ -90,11 +90,6 @@ struct InvocationPolicy
     {
         return m_database.construct< Derivation::Or >( Derivation::Or::Args{ Derivation::Step::Args{ pVertex, {} } } );
     }
-    /*AndPtr makeAnd( GraphVertex* pVertex ) const
-    {
-        return m_database.construct< Derivation::And >(
-            Derivation::And::Args{ Derivation::Step::Args{ pVertex, {} } } );
-    }*/
     RootPtr makeRoot( const GraphVertexVector& context ) const
     {
         return m_database.construct< Derivation::Root >( Derivation::Root::Args{ context, {} } );
@@ -103,9 +98,9 @@ struct InvocationPolicy
     {
         return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, {} } );
     }
-    bool   isLinkDimension( GraphVertex* pVertex ) const { return db_cast< Concrete::Dimensions::Link >( pVertex ); }
-    AndPtr isAndStep( StepPtr pStep ) const { return db_cast< OperationsStage::Derivation::And >( pStep ); }
-    void   backtrack( EdgePtr pEdge ) const { pEdge->set_backtracked( true ); }
+    // bool   isLinkDimension( GraphVertex* pVertex ) const { return db_cast< Concrete::Dimensions::Link >( pVertex ); }
+    // AndPtr isAndStep( StepPtr pStep ) const { return db_cast< OperationsStage::Derivation::And >( pStep ); }
+    // void   backtrack( EdgePtr pEdge ) const { pEdge->set_backtracked( true ); }
 
     OrPtrVector expandLink( OrPtr pOr ) const
     {

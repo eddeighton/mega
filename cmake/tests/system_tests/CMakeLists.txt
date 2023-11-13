@@ -59,7 +59,6 @@ link_gtest( system_tests )
 
 target_link_libraries( system_tests database )
 target_link_libraries( system_tests utilities )
-target_link_libraries( system_tests database_compiler)
 target_link_libraries( system_tests protocol)
 target_link_libraries( system_tests network)
 target_link_libraries( system_tests pipeline)

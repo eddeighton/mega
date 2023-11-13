@@ -52,17 +52,8 @@ struct ConcreteTypeIDReporter
     reports::Container               generate( const reports::URL& url );
 };
 
-class InterfaceReporter
+struct InterfaceReporter
 {
-    void addInheritance( std::optional< FinalStage::Interface::InheritanceTrait* > inheritance,
-                         reports::Branch&                                          branch );
-    void addProperties( reports::Branch& typeIDs, reports::Branch& parentBranch, reports::Branch& concreteTypeIDs,
-                        const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions );
-
-    void recurse( reports::Branch& typeIDs, reports::Branch& parentBranch, reports::Branch& concreteTypeIDs,
-                  FinalStage::Interface::IContext* pContext );
-
-public:
     CompilationReportArgs            m_args;
     static const reports::ReporterID ID;
     reports::Container               generate( const reports::URL& url );

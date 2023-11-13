@@ -69,8 +69,43 @@ mega::reports::Container SymbolsReporter::generate( const mega::reports::URL& ur
         Table symbols{ { "Symbol ID"s, "Name"s } };
         for( auto [ symbolID, pSymbolID ] : pSymbolTable->get_symbol_type_ids() )
         {
+            Branch branch;
+            for( auto pContext : pSymbolID->get_contexts() )
+            {
+                Branch interfaceTypeID{
+                    { "Context"s, pContext->get_interface_id(), Interface::printIContextFullType( pContext ) } };
+                for( auto pConcrete : pContext->get_concrete() )
+                {
+                    interfaceTypeID.m_elements.push_back(
+                        Multiline{ { pConcrete->get_concrete_id(), Concrete::printContextFullType( pConcrete ) } } );
+                }
+                branch.m_elements.push_back( interfaceTypeID );
+            }
+            for( auto pLink : pSymbolID->get_links() )
+            {
+                Branch interfaceTypeID{
+                    { "Link"s, pLink->get_interface_id(), Interface::printLinkTraitFullType( pLink ) } };
+                for( auto pConcrete : pLink->get_concrete() )
+                {
+                    interfaceTypeID.m_elements.push_back(
+                        Multiline{ { pConcrete->get_concrete_id(), Concrete::printContextFullType( pConcrete ) } } );
+                }
+                branch.m_elements.push_back( interfaceTypeID );
+            }
+            for( auto pDim : pSymbolID->get_dimensions() )
+            {
+                Branch interfaceTypeID{
+                    { "Dim"s, pDim->get_interface_id(), Interface::printDimensionTraitFullType( pDim ) } };
+                for( auto pConcrete : pDim->get_concrete() )
+                {
+                    interfaceTypeID.m_elements.push_back(
+                        Multiline{ { pConcrete->get_concrete_id(), Concrete::printContextFullType( pConcrete ) } } );
+                }
+                branch.m_elements.push_back( interfaceTypeID );
+            }
+
             symbols.m_rows.push_back( ContainerVector{
-                Line{ symbolID, std::nullopt, symbolID }, Line{ pSymbolID->get_symbol() }
+                Line{ symbolID, std::nullopt, symbolID }, Line{ pSymbolID->get_symbol() }, branch
 
             } );
         }

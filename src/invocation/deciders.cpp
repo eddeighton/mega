@@ -204,95 +204,81 @@ private:
 namespace mega::invocation
 {
 
-void compileEvents( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile )
+void compileDeciders( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile )
 {
     using namespace OperationsStage;
 
-    for( auto pEvent : database.many< Interface::EventTypeTrait >( sourceFile ) )
+    for( auto pDecider : database.many< Concrete::Decider >( sourceFile ) )
     {
-        for( auto pContextVert : pEvent->get_parent_invocation_context()->get_concrete() )
+        std::vector< InvocationPolicy::RootPtr > derivations;
+
+        auto pEventTrait = pDecider->get_interface_decider()->get_events_trait();
+
+        for( auto pTypePathVariant : pEventTrait->get_tuple() )
         {
-            std::vector< InvocationPolicy::RootPtr > derivations;  
+            InvocationPolicy::Spec derivationSpec{ { pDecider } };
 
-            for( auto pTypePathVariant : pEvent->get_tuple() )
+            for( auto pSequence : pTypePathVariant->get_sequence() )
             {
-                InvocationPolicy::Spec derivationSpec{ { pContextVert } };
-
-                for( auto pSequence : pTypePathVariant->get_sequence() )
+                for( auto pSymbol : pSequence->get_types() )
                 {
-                    for( auto pSymbol : pSequence->get_types() )
+                    InvocationPolicy::GraphVertexVector pathElement;
+                    for( auto pContext : pSymbol->get_contexts() )
                     {
-                        InvocationPolicy::GraphVertexVector pathElement;
-                        for( auto pContext : pSymbol->get_contexts() )
+                        for( auto pConcrete : pContext->get_concrete() )
                         {
-                            for( auto pConcrete : pContext->get_concrete() )
-                            {
-                                pathElement.push_back( pConcrete );
-                            }
-                        }
-                        VERIFY_RTE_MSG( !pathElement.empty(), "Successor contains invalid symbols" );
-                        if( !pathElement.empty() )
-                        {
-                            derivationSpec.path.push_back( pathElement );
+                            pathElement.push_back( pConcrete );
                         }
                     }
-
-                    // solve the context free derivation
-                    InvocationPolicy              policy( database );
-                    InvocationPolicy::OrPtrVector finalFrontier;
-                    InvocationPolicy::RootPtr     pRoot
-                        = DerivationSolver::solveContextFree( derivationSpec, policy, finalFrontier );
-
-                    Derivation::precedence( pRoot );
-
-                    try
+                    VERIFY_RTE_MSG( !pathElement.empty(), "Event contains invalid symbols" );
+                    if( !pathElement.empty() )
                     {
-                        const Derivation::Disambiguation result = Derivation::disambiguate( pRoot, finalFrontier );
-                        if( result != Derivation::eSuccess )
-                        {
-                            std::ostringstream os;
-                            using ::           operator<<;
-                            if( result == Derivation::eAmbiguous )
-                                os << "Derivation disambiguation was ambiguous for: "
-                                << Concrete::printContextFullType( pContextVert ) << "\n";
-                            else if( result == Derivation::eFailure )
-                                os << "Derivation disambiguation failed for: " << Concrete::printContextFullType( pContextVert )
-                                << "\n";
-                            else
-                                THROW_RTE( "Unknown derivation failure type" );
-                            THROW_RTE( os.str() );
-                        }
-                        else
-                        {
-                            derivations.push_back( pRoot );
-                        }
-                    }
-                    catch( std::exception& ex )
-                    {
-                        std::ostringstream os;
-                        os << "Exception while compiling successor for: " << Concrete::printContextFullType( pContextVert )
-                        << "\n";
-                        printDerivationStep( pRoot, true, os );
-                        os << "\nError: " << ex.what();
-                        THROW_RTE( os.str() );
+                        derivationSpec.path.push_back( pathElement );
                     }
                 }
-            }
 
-            if( auto pInterupt = db_cast< Concrete::Interupt >( pContextVert ) )
-            {
-                pInterupt->set_events( derivations );
-            }
-            else if( auto pDecider = db_cast< Concrete::Decider >( pContextVert ) )
-            {
-                database.construct< Concrete::Decider >(
-                    Concrete::Decider::Args{ pDecider, derivations } );
-            }
-            else
-            {
-                THROW_RTE( "Unknown successor type" );
+                // solve the context free derivation
+                InvocationPolicy              policy( database );
+                InvocationPolicy::OrPtrVector finalFrontier;
+                InvocationPolicy::RootPtr     pRoot
+                    = DerivationSolver::solveContextFree( derivationSpec, policy, finalFrontier );
+
+                Derivation::precedence( pRoot );
+
+                try
+                {
+                    const Derivation::Disambiguation result = Derivation::disambiguate( pRoot, finalFrontier );
+                    if( result != Derivation::eSuccess )
+                    {
+                        std::ostringstream os;
+                        using ::           operator<<;
+                        if( result == Derivation::eAmbiguous )
+                            os << "Derivation disambiguation was ambiguous for: "
+                               << Concrete::printContextFullType( pDecider ) << "\n";
+                        else if( result == Derivation::eFailure )
+                            os << "Derivation disambiguation failed for: " << Concrete::printContextFullType( pDecider )
+                               << "\n";
+                        else
+                            THROW_RTE( "Unknown derivation failure type" );
+                        THROW_RTE( os.str() );
+                    }
+                    else
+                    {
+                        derivations.push_back( pRoot );
+                    }
+                }
+                catch( std::exception& ex )
+                {
+                    std::ostringstream os;
+                    os << "Exception while compiling event for: " << Concrete::printContextFullType( pDecider ) << "\n";
+                    printDerivationStep( pRoot, true, os );
+                    os << "\nError: " << ex.what();
+                    THROW_RTE( os.str() );
+                }
             }
         }
+
+        database.construct< Concrete::Decider >( Concrete::Decider::Args{ pDecider, derivations } );
     }
 }
 

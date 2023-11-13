@@ -26,6 +26,6 @@
 std::ostream& operator<<( std::ostream& os, const mega::RelationID& relationID )
 {
     // this must work within a filename - used for relation code gen
-    return os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << relationID.getID() << std::dec;
+    return os << "0x" << std::hex << std::setw( 16 ) << std::setfill( '0' ) << relationID.getID() << std::dec;
 }
 
