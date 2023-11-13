@@ -140,6 +140,10 @@ namespace Interface
         value< mega::TypeID > interface_id  -> SymbolRollout::PerSourceSymbols;
 
         array< ref< Concrete::Context > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
+
+        value< bool > is_meta_type  -> MetaStage::MetaAnalysis;
+        value< bool > is_or_state   -> MetaStage::MetaAnalysis;
+        value< bool > is_historical -> MetaStage::MetaAnalysis;
     }
 
     object InvocationInstance -> OperationsLocs::Locations
@@ -180,8 +184,6 @@ namespace Interface
         late< opt< ref< TransitionTypeTrait > > >   transition_trait;
         late< array< ref< PartTrait > > >           part_traits;
 
-        value< bool > is_or_state   -> MetaStage::MetaAnalysis;
-        value< bool > is_historical -> MetaStage::MetaAnalysis;
     }
 
     object Action : State -> InterfaceStage::Tree

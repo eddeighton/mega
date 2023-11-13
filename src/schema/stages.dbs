@@ -149,6 +149,7 @@ stage MetaStage
 
     file MetaAnalysis;
 
+    persource accessor array< ref< Interface::IContext > >;
     persource accessor array< ref< Interface::State > >;
     persource accessor array< ref< Interface::Action > >;
     persource accessor array< ref< Interface::Component > >;

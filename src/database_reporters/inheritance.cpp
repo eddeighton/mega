@@ -69,6 +69,11 @@ mega::reports::Container InheritanceReporter::generate( const mega::reports::URL
 
         for( Interface::IContext* pContext : database.many< Interface::IContext >( sourceFilePath ) )
         {
+            if( pContext->get_is_meta_type() )
+            {
+                continue;
+            }
+
             auto index = graph.m_nodes.size();
             VERIFY_RTE( objectIDs.insert( { pContext->get_interface_id(), index } ).second );
 
@@ -118,6 +123,11 @@ mega::reports::Container InheritanceReporter::generate( const mega::reports::URL
 
         for( Interface::IContext* pContext : database.many< Interface::IContext >( sourceFilePath ) )
         {
+            if( pContext->get_is_meta_type() )
+            {
+                continue;
+            }
+
             auto iFind = objectIDs.find( pContext->get_interface_id() );
             VERIFY_RTE( iFind != objectIDs.end() );
             const auto index = iFind->second;
@@ -144,6 +154,10 @@ mega::reports::Container InheritanceReporter::generate( const mega::reports::URL
             {
                 for( auto pInherited : inheritance.value()->get_contexts() )
                 {
+                    if( pInherited->get_is_meta_type() )
+                    {
+                        continue;
+                    }
                     auto jFind = objectIDs.find( pInherited->get_interface_id() );
                     VERIFY_RTE( jFind != objectIDs.end() );
                     graph.m_edges.push_back( Graph::Edge{ index, jFind->second, Colour::red } );

@@ -65,26 +65,35 @@ public:
         static const U64                                       TotalMetaTypes = 2;
         static const std::array< std::string, TotalMetaTypes > metaTypes      = { "OR"s, "Historical"s };
 
-        for( Interface::State* pState : database.many< Interface::State >( m_sourceFilePath ) )
+        for( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
         {
-            std::array< bool, TotalMetaTypes > metaValues{ false, false };
-
-            if( pState->get_inheritance_trait().has_value() )
+            bool bIsMetaType = false;
+            auto iFind       = std::find( metaTypes.begin(), metaTypes.end(), pContext->get_identifier() );
+            if( iFind != metaTypes.end() )
             {
-                auto inheritance = pState->get_inheritance_trait().value();
-                for( const std::string& strIdentifier : inheritance->get_strings() )
+                bIsMetaType = true;
+            }
+            
+            std::array< bool, TotalMetaTypes > metaValues{ false, false };
+            if( Interface::State* pState = db_cast< Interface::State >( pContext ) )
+            {
+                if( pState->get_inheritance_trait().has_value() )
                 {
-                    auto iFind = std::find( metaTypes.begin(), metaTypes.end(), strIdentifier );
-                    if( iFind != metaTypes.end() )
+                    auto inheritance = pState->get_inheritance_trait().value();
+                    for( const std::string& strIdentifier : inheritance->get_strings() )
                     {
-                        auto index          = std::distance( metaTypes.begin(), iFind );
-                        metaValues[ index ] = true;
+                        auto iFind = std::find( metaTypes.begin(), metaTypes.end(), strIdentifier );
+                        if( iFind != metaTypes.end() )
+                        {
+                            auto index          = std::distance( metaTypes.begin(), iFind );
+                            metaValues[ index ] = true;
+                        }
                     }
                 }
             }
 
-            database.construct< Interface::State >(
-                Interface::State::Args{ pState, metaValues[ 0 ], metaValues[ 1 ] } );
+            database.construct< Interface::IContext >(
+                Interface::IContext::Args{ pContext, bIsMetaType, metaValues[ 0 ], metaValues[ 1 ] } );
         }
 
         const task::FileHash fileHashCode = database.save_MetaAnalysis_to_temp();
