@@ -158,14 +158,19 @@ private:
             CleverUtility c( types, pInterupt->get_identifier() );
 
             std::ostringstream osArgs;
-            auto               pEvents = pInterupt->get_events_trait();
-            const auto&        args    = pEvents->get_args();
+            if( pInterupt->get_events_trait_opt().has_value() )
             {
-                for( int i = 0; i != args.size(); ++i )
+                const auto totalArgs = pInterupt->get_events_trait_opt()
+                                           .value()
+                                           ->get_named_symbol_variant_path_sequence()
+                                           .m_symbolVariantPaths.size();
                 {
-                    if( i > 0 )
-                        osArgs << ", ";
-                    osArgs << "const mega::reference& _p" << i;
+                    for( int i = 0; i != totalArgs; ++i )
+                    {
+                        if( i > 0 )
+                            osArgs << ", ";
+                        osArgs << "const mega::reference& _p" << i;
+                    }
                 }
             }
 
@@ -207,53 +212,46 @@ private:
                 operation[ "file" ] = bodyOpt.value()->get_file();
             }
 
-            /*{
-                int iParamCounter = 1;
-                for( const std::string& strParamType : pInterupt->get_arguments_trait()->get_canonical_types() )
-                {
-                    std::ostringstream osParamName;
-                    osParamName << "p_" << iParamCounter++;
-                    nlohmann::json param( { { "type", strParamType }, { "name", osParamName.str() } } );
-                    operation[ "params" ].push_back( param );
-                }
-            }*/
-
             data[ "operations" ].push_back( operation );
         }
-        else if( auto pBody = db_cast< Body >( pContext ) )
+        else if( auto pDecider = db_cast< Decider >( pContext ) )
         {
-            CleverUtility c( types, pBody->get_identifier() );
+            CleverUtility c( types, pDecider->get_identifier() );
+            nlohmann::json operation( {
+
+                { "return_type", "I32" },
+                { "body", pDecider->get_body()->get_text() },
+                { "line", pDecider->get_body()->get_line_number() },
+                { "file", pDecider->get_body()->get_file() },
+                { "hash", common::Hash{ pDecider->get_body()->get_text() }.toHexString() },
+                { "typeID", pDecider->get_interface_id().getSymbolID() },
+                { "has_namespaces", !namespaces.empty() },
+                { "namespaces", namespaces },
+                { "types", types },
+                { "params_string", "" },
+                { "params", nlohmann::json::array() },
+                { "requires_extern", true }
+
+            } );
+            data[ "operations" ].push_back( operation );
+        }
+        else if( auto pFunction = db_cast< Function >( pContext ) )
+        {
+            CleverUtility c( types, pFunction->get_identifier() );
 
             std::ostringstream osArgs;
             std::ostringstream osReturnType;
-            if( auto pFunction = db_cast< Function >( pBody ) )
-            {
-                osArgs << pFunction->get_arguments_trait()->get_args();
-                osReturnType << pFunction->get_return_type_trait()->get_str();
-            }
-            else if( auto pDecider = db_cast< Decider >( pBody ) )
-            {
-                osReturnType << "I32";
-                auto        pEvents = pDecider->get_events_trait();
-                const auto& args    = pEvents->get_args();
-                /*{
-                    for( int i = 0; i != args.size(); ++i )
-                    {
-                        if( i > 0 )
-                            osArgs << ", ";
-                        osArgs << "const mega::reference& _p" << i;
-                    }
-                }*/
-            }
+            osArgs << pFunction->get_arguments_trait()->get_arguments();
+            osReturnType << pFunction->get_return_type_trait()->get_str();
 
             nlohmann::json operation( {
 
                 { "return_type", osReturnType.str() },
-                { "body", pBody->get_body()->get_text() },
-                { "line", pBody->get_body()->get_line_number() },
-                { "file", pBody->get_body()->get_file() },
-                { "hash", common::Hash{ pBody->get_body()->get_text() }.toHexString() },
-                { "typeID", pBody->get_interface_id().getSymbolID() },
+                { "body", pFunction->get_body()->get_text() },
+                { "line", pFunction->get_body()->get_line_number() },
+                { "file", pFunction->get_body()->get_file() },
+                { "hash", common::Hash{ pFunction->get_body()->get_text() }.toHexString() },
+                { "typeID", pFunction->get_interface_id().getSymbolID() },
                 { "has_namespaces", !namespaces.empty() },
                 { "namespaces", namespaces },
                 { "types", types },
@@ -263,30 +261,13 @@ private:
 
             } );
 
-            if( auto pFunction = db_cast< Function >( pBody ) )
+            int iParamCounter = 1;
+            for( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )
             {
-                int iParamCounter = 1;
-                for( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )
-                {
-                    std::ostringstream osParamName;
-                    osParamName << "p_" << iParamCounter++;
-                    nlohmann::json param( { { "type", strParamType }, { "name", osParamName.str() } } );
-                    operation[ "params" ].push_back( param );
-                }
-            }
-            else if( auto pDecider = db_cast< Decider >( pBody ) )
-            {
-                auto        pEvents = pDecider->get_events_trait();
-                const auto& args    = pEvents->get_args();
-                {
-                    /*for( int i = 0; i != args.size(); ++i )
-                    {
-                        std::ostringstream osParamName;
-                        osParamName << "p_" << i;
-                        nlohmann::json param( { { "type", "const mega::reference&" }, { "name", osParamName.str() } } );
-                        operation[ "params" ].push_back( param );
-                    }*/
-                } 
+                std::ostringstream osParamName;
+                osParamName << "p_" << iParamCounter++;
+                nlohmann::json param( { { "type", strParamType }, { "name", osParamName.str() } } );
+                operation[ "params" ].push_back( param );
             }
 
             data[ "operations" ].push_back( operation );

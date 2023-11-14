@@ -122,11 +122,9 @@ public:
                 {
                     if( auto pUserDimensionTrait = db_cast< Interface::UserDimensionTrait >( pDim ) )
                     {
-                        if( auto pInitOpt = pUserDimensionTrait->get_parser_dimension()->get_initialiser();
-                            pInitOpt.has_value() )
+                        if( auto pInitOpt = pUserDimensionTrait->get_parser_dimension()->get_initialiser_opt() )
                         {
                             auto pInit = pInitOpt.value();
-
                             nlohmann::json initialiser(
                                 { { "expression", pInit->get_initialiser() },
                                   { "type", pDim->get_canonical_type() },

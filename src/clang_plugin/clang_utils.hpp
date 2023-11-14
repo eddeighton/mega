@@ -55,11 +55,14 @@ const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool
 bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType,
                           mega::InvocationID::SymbolIDVector& contextTypes );
 
-bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath,
-                           mega::InvocationID::SymbolIDVector& typePathTypes );
+bool getSymbolVariant( ASTContext* pASTContext, QualType typePath, mega::InvocationID::SymbolIDVector& typePathTypes );
 
-bool getTypePathVariantTupleSymbolIDs( ASTContext* pASTContext, QualType typePath,
-                                       std::vector< std::vector< std::vector< mega::TypeID > > >& result );
+using SymbolID                      = mega::TypeID;
+using SymbolIDVariant               = std::vector< mega::TypeID >;
+using SymbolIDVariantSequence       = std::vector< SymbolIDVariant >;
+using SymbolIDVariantSequenceVector = std::vector< SymbolIDVariantSequence >;
+bool getSymbolIDVariantSequenceVector( ASTContext* pASTContext, QualType typePath,
+                                       SymbolIDVariantSequenceVector& result );
 
 std::optional< ::mega::U64 > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext,
                                           const SourceLocation& loc, const std::string& strConstantName );

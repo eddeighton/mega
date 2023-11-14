@@ -69,13 +69,14 @@ set( COMPILER_LIB_HEADERS
 
     # reusable
     ${MEGA_API_DIR}/compiler/common_ancestor.hpp
-    ${MEGA_API_DIR}/compiler/derivation.hpp
-    ${MEGA_API_DIR}/compiler/interface.hpp
-    ${MEGA_API_DIR}/compiler/concrete.hpp
-    ${MEGA_API_DIR}/compiler/interface_printer.hpp
-    ${MEGA_API_DIR}/compiler/interface_link_printer.hpp
     ${MEGA_API_DIR}/compiler/concrete_printer.hpp
+    ${MEGA_API_DIR}/compiler/concrete.hpp
     ${MEGA_API_DIR}/compiler/derivation_printer.hpp
+    ${MEGA_API_DIR}/compiler/derivation.hpp
+    ${MEGA_API_DIR}/compiler/interface_printer.hpp
+    ${MEGA_API_DIR}/compiler/interface.hpp
+    ${MEGA_API_DIR}/compiler/symbol_variant_printer.hpp
+    ${MEGA_API_DIR}/compiler/invocation_policy.hpp
 )
 
 set( COMPILER_LIB_SOURCE

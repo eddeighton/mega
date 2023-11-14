@@ -25,7 +25,7 @@ template < typename TContext >
 static inline mega::U64 getSizeTraitSize( const TContext* pInterfaceContext )
 {
     mega::U64                              allocationSize = 1U;
-    std::optional< Interface::SizeTrait* > sizeTraitOpt   = pInterfaceContext->get_size_trait();
+    std::optional< Interface::SizeTrait* > sizeTraitOpt   = pInterfaceContext->get_size_trait_opt();
     if( sizeTraitOpt.has_value() )
     {
         allocationSize = sizeTraitOpt.value()->get_size();

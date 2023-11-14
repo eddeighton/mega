@@ -75,6 +75,7 @@ stage InterfaceStage
     persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor array< ref< Interface::Interupt > >;
     persource accessor array< ref< Interface::Decider > >;
+    persource accessor array< ref< Interface::Requirement > >;
 }
 
 stage DependencyAnalysis

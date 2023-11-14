@@ -217,17 +217,23 @@ private:
                 {
                     std::ostringstream osTrait;
                     {
-                        osTrait << "using Type = __eg_type_path< ";
+                        osTrait << "using Type = " << mega::EG_TYPE_PATH << "< " << mega::EG_TYPE_PATH << "< ";
                         bool bFirst = true;
-                        for( const auto& arg : pUserLinkTrait->get_parser_link()->get_type()->get_args() )
+
+                        for( const auto& arg :
+                             pUserLinkTrait->get_parser_link()->get_symbol_variant_path().m_symbolVariants )
                         {
                             if( bFirst )
                                 bFirst = false;
                             else
                                 osTrait << ", ";
-                            osTrait << arg.get();
+                            if( arg.m_symbols.size() != 1 )
+                            {
+                                osTrait << mega::EG_TYPE_PATH;
+                            }
+                            osTrait << arg.str();
                         }
-                        osTrait << " >";
+                        osTrait << " > >";
                     }
                     trait_struct[ "traits" ].push_back( osTrait.str() );
                 }
@@ -237,48 +243,6 @@ private:
 
         return traits;
     }
-
-    /*
-        template < typename TContextType >
-        static std::vector< nlohmann::json >
-        getRequirementTraits( const nlohmann::json& typenames, TContextType* pContext,
-                              const std::vector< RequirementTrait* >& requirementTraits )
-        {
-            std::vector< nlohmann::json > traits;
-            for( RequirementTrait* pRequirementTrait : requirementTraits )
-            {
-                nlohmann::json     traitNames = typenames;
-                std::ostringstream os;
-                os << pRequirementTrait->get_id()->get_str();
-                traitNames.push_back( os.str() );
-
-                nlohmann::json trait_struct( { { "name", os.str() },
-                                               // { "typeid", toHex( pContext->get_interface_id() ) },
-                                               { "types", traitNames },
-                                               { "traits", nlohmann::json::array() } } );
-
-                {
-                    std::ostringstream osTrait;
-                    {
-                        osTrait << "using Type = __eg_type_path< ";
-                        bool bFirst = true;
-                        for( const auto& arg : pRequirementTrait->get_argumentList()->get_args() )
-                        {
-                            if( bFirst )
-                                bFirst = false;
-                            else
-                                osTrait << ", ";
-                            osTrait << arg.get();
-                        }
-                        osTrait << " >";
-                    }
-                    trait_struct[ "traits" ].push_back( osTrait.str() );
-                }
-                traits.push_back( trait_struct );
-            }
-
-            return traits;
-        }*/
 
     template < typename TContextType >
     static nlohmann::json getSizeTrait( const nlohmann::json& typenames, TContextType* pContext, SizeTrait* pSizeTrait )
@@ -325,7 +289,8 @@ private:
     }
 
     template < typename TContextType >
-    static nlohmann::json getEventsTrait( const nlohmann::json& typenames, TContextType* pInterupt )
+    static nlohmann::json getEventsTrait( const nlohmann::json& typenames, TContextType* pContext,
+                                          EventTypeTrait* pEventTypeTrait )
     {
         nlohmann::json     traitNames = typenames;
         std::ostringstream os;
@@ -333,22 +298,55 @@ private:
         traitNames.push_back( os.str() );
 
         nlohmann::json trait_struct( { { "name", os.str() },
-                                       { "typeid", toHex( pInterupt->get_interface_id() ) },
+                                       { "typeid", toHex( pContext->get_interface_id() ) },
                                        { "types", traitNames },
                                        { "traits", nlohmann::json::array() } } );
         {
             std::ostringstream osTrait;
-            osTrait << "using Type = __eg_type_path< ";
-            bool bFirst = true;
-            for( const auto& arg : pInterupt->get_events_trait()->get_args() )
+            osTrait << "using Type = " << mega::EG_TYPE_PATH << "< ";
             {
-                if( bFirst )
-                    bFirst = false;
-                else
-                    osTrait << ", ";
-                osTrait << arg.getType();
+                bool bFirst = true;
+                for( const mega::NamedSymbolVariantPath& namedSymbolVariantPath :
+                    pEventTypeTrait->get_named_symbol_variant_path_sequence().m_symbolVariantPaths )
+                {
+                    if( bFirst )
+                        bFirst = false;
+                    else
+                        osTrait << ",";
+
+                    osTrait << mega::EG_TYPE_PATH << "< ";
+                    bool bFirstVariant = true;
+                    for( const mega::SymbolVariant& symbolVariant :
+                        namedSymbolVariantPath.m_symbolVariantPath.m_symbolVariants )
+                    {
+                        if( bFirstVariant )
+                            bFirstVariant = false;
+                        else
+                            osTrait << ",";
+
+                        if( symbolVariant.m_symbols.size() == 1 )
+                        {
+                            osTrait << symbolVariant.m_symbols.front().str();
+                        }
+                        else
+                        {
+                            osTrait << mega::EG_TYPE_PATH << "< ";
+                            bool bFirstSymbol = true;
+                            for( const mega::Symbol& symbol : symbolVariant.m_symbols )
+                            {
+                                if( bFirstSymbol )
+                                    bFirstSymbol = false;
+                                else
+                                    osTrait << ",";
+                                osTrait << symbol.str();
+                            }
+                            osTrait << " >";
+                        }
+                    }
+                    osTrait << " >";
+                }
+                osTrait << " >";
             }
-            osTrait << " >";
             trait_struct[ "traits" ].push_back( osTrait.str() );
         }
 
@@ -370,7 +368,51 @@ private:
                                        { "traits", nlohmann::json::array() } } );
         {
             std::ostringstream osTrait;
-            osTrait << "using Type = __eg_type_path< " << transitionTrait->get_str() << " >";
+
+            osTrait << "using Type = " << mega::EG_TYPE_PATH << "< ";
+            {
+                bool bFirst = true;
+                for( const auto& symbolVariantPath :
+                    transitionTrait->get_symbol_variant_path_sequence().m_symbolVariantPaths )
+                {
+                    if( bFirst )
+                        bFirst = false;
+                    else
+                        osTrait << ",";
+
+                    osTrait << mega::EG_TYPE_PATH << "< ";
+                    bool bFirstVariant = true;
+                    for( const mega::SymbolVariant& symbolVariant :
+                        symbolVariantPath.m_symbolVariants )
+                    {
+                        if( bFirstVariant )
+                            bFirstVariant = false;
+                        else
+                            osTrait << ",";
+
+                        if( symbolVariant.m_symbols.size() == 1 )
+                        {
+                            osTrait << symbolVariant.m_symbols.front().str();
+                        }
+                        else
+                        {
+                            osTrait << mega::EG_TYPE_PATH << "< ";
+                            bool bFirstSymbol = true;
+                            for( const mega::Symbol& symbol : symbolVariant.m_symbols )
+                            {
+                                if( bFirstSymbol )
+                                    bFirstSymbol = false;
+                                else
+                                    osTrait << ",";
+                                osTrait << symbol.str();
+                            }
+                            osTrait << " >";
+                        }
+                    }
+                    osTrait << " >";
+                }
+                osTrait << " >";
+            }
             trait_struct[ "traits" ].push_back( osTrait.str() );
         }
 
@@ -414,7 +456,6 @@ public:
 
         } );
 
-        // if ( pInterfaceNode->bCreateTraits )
         for( IContext* pContext : pInterfaceNode->contexts )
         {
             bool bFoundType = false;
@@ -438,7 +479,7 @@ public:
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
-                    if( auto opt = pAbstract->get_inheritance_trait() )
+                    if( auto opt = pAbstract->get_inheritance_trait_opt() )
                     {
                         for( const nlohmann::json& trait : getInheritanceTraits( typenames, pAbstract, opt.value() ) )
                         {
@@ -462,18 +503,9 @@ public:
                             structs.push_back( trait );
                         }
                     }
-                    /*{
-                        for( const nlohmann::json& trait :
-                             getRequirementTraits( typenames, pAbstract, pAbstract->get_requirement_traits() ) )
-                        {
-                            contextData[ "trait_structs" ].push_back( trait );
-                            structs.push_back( trait );
-                        }
-                    }*/
-                    if( pAbstract->get_size_trait().has_value() )
+                    if( auto sizeOpt = pAbstract->get_size_trait_opt() )
                     {
-                        const nlohmann::json& trait
-                            = getSizeTrait( typenames, pAbstract, pAbstract->get_size_trait().value() );
+                        const nlohmann::json& trait = getSizeTrait( typenames, pAbstract, sizeOpt.value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
@@ -490,7 +522,7 @@ public:
                     contextData[ "operation_return_type" ] = "mega::ActionCoroutine";
                     contextData[ "operation_parameters" ]  = "";
 
-                    if( auto opt = pState->get_inheritance_trait() )
+                    if( auto opt = pState->get_inheritance_trait_opt() )
                     {
                         for( const nlohmann::json& trait : getInheritanceTraits( typenames, pState, opt.value() ) )
                         {
@@ -514,26 +546,16 @@ public:
                             structs.push_back( trait );
                         }
                     }
-                    /*{
-                        for( const nlohmann::json& trait :
-                             getRequirementTraits( typenames, pState, pState->get_requirement_traits() ) )
-                        {
-                            contextData[ "trait_structs" ].push_back( trait );
-                            structs.push_back( trait );
-                        }
-                    }*/
-                    if( pState->get_size_trait().has_value() )
+                    if( auto sizeOpt = pState->get_size_trait_opt() )
                     {
-                        const nlohmann::json& trait
-                            = getSizeTrait( typenames, pState, pState->get_size_trait().value() );
+                        const nlohmann::json& trait = getSizeTrait( typenames, pState, sizeOpt.value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
 
-                    if( pState->get_transition_trait().has_value() )
+                    if( auto transitionOpt = pState->get_transition_trait_opt() )
                     {
-                        const nlohmann::json& trait
-                            = getTransitionTraits( typenames, pState, pState->get_transition_trait().value() );
+                        const nlohmann::json& trait = getTransitionTraits( typenames, pState, transitionOpt.value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
@@ -546,7 +568,7 @@ public:
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
-                    if( auto opt = pEvent->get_inheritance_trait() )
+                    if( auto opt = pEvent->get_inheritance_trait_opt() )
                     {
                         for( const nlohmann::json& trait : getInheritanceTraits( typenames, pEvent, opt.value() ) )
                         {
@@ -562,10 +584,9 @@ public:
                             structs.push_back( trait );
                         }
                     }
-                    if( pEvent->get_size_trait().has_value() )
+                    if( auto sizeOpt = pEvent->get_size_trait_opt() )
                     {
-                        const nlohmann::json& trait
-                            = getSizeTrait( typenames, pEvent, pEvent->get_size_trait().value() );
+                        const nlohmann::json& trait = getSizeTrait( typenames, pEvent, sizeOpt.value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
@@ -580,11 +601,13 @@ public:
                     contextData[ "has_operation" ]         = true;
                     contextData[ "operation_return_type" ] = "void";
 
-                    auto pEvents = pInterupt->get_events_trait();
+                    if( auto eventsTraitOpt = pInterupt->get_events_trait_opt() )
                     {
-                        const auto&        args = pEvents->get_args();
+                        const auto totalArgs = eventsTraitOpt.value()
+                                                   ->get_named_symbol_variant_path_sequence()
+                                                   .m_symbolVariantPaths.size();
                         std::ostringstream osParameters;
-                        for( int i = 0; i != args.size(); ++i )
+                        for( int i = 0; i != totalArgs; ++i )
                         {
                             if( i > 0 )
                                 osParameters << ", ";
@@ -592,15 +615,15 @@ public:
                         }
                         contextData[ "operation_parameters" ] = osParameters.str();
 
-                        const nlohmann::json& trait = getEventsTrait( typenames, pInterupt );
+                        const nlohmann::json& trait = getEventsTrait( typenames, pInterupt, eventsTraitOpt.value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
 
-                    if( pInterupt->get_transition_trait().has_value() )
+                    if( auto transitionOpt = pInterupt->get_transition_trait_opt() )
                     {
                         const nlohmann::json& trait
-                            = getTransitionTraits( typenames, pInterupt, pInterupt->get_transition_trait().value() );
+                            = getTransitionTraits( typenames, pInterupt, transitionOpt.value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
@@ -618,23 +641,12 @@ public:
 
                     auto pEvents = pDecider->get_events_trait();
                     {
-                        const auto&        args = pEvents->get_args();
-                        std::ostringstream osParameters;
-                        /*for( int i = 0; i != args.size(); ++i )
-                        {
-                            if( i > 0 )
-                                osParameters << ", ";
-                            osParameters << "const mega::reference& _p" << i;
-                        }*/
-                        contextData[ "operation_parameters" ] = osParameters.str();
-
-                        const nlohmann::json& trait = getEventsTrait( typenames, pDecider );
+                        const nlohmann::json& trait = getEventsTrait( typenames, pDecider, pEvents );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
 
                     templateEngine.renderContext( contextData, os );
-
                 }
                 else if( Function* pFunction = db_cast< Function >( pContext ) )
                 {
@@ -644,7 +656,7 @@ public:
                     contextData[ "operation_return_type" ] = pFunction->get_return_type_trait()->get_str();
 
                     std::ostringstream osArgs;
-                    osArgs << pFunction->get_arguments_trait()->get_args();
+                    osArgs << pFunction->get_arguments_trait()->get_arguments();
                     contextData[ "operation_parameters" ] = osArgs.str();
 
                     if( !pFunction->get_return_type_trait()->get_str().empty() || !osArgs.str().empty() )
@@ -663,7 +675,7 @@ public:
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
-                    if( auto opt = pObject->get_inheritance_trait() )
+                    if( auto opt = pObject->get_inheritance_trait_opt() )
                     {
                         for( const nlohmann::json& trait : getInheritanceTraits( typenames, pObject, opt.value() ) )
                         {
@@ -687,10 +699,9 @@ public:
                             structs.push_back( trait );
                         }
                     }
-                    if( pObject->get_size_trait().has_value() )
+                    if( auto sizeOpt = pObject->get_size_trait_opt() )
                     {
-                        const nlohmann::json& trait
-                            = getSizeTrait( typenames, pObject, pObject->get_size_trait().value() );
+                        const nlohmann::json& trait = getSizeTrait( typenames, pObject, sizeOpt.value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }

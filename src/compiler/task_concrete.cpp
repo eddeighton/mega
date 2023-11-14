@@ -136,7 +136,7 @@ public:
         {
             collectDimensions( database, pAbstract, identifierMap );
             collectLinks( database, pAbstract, identifierMap );
-            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
+            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait_opt() )
             {
                 for( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
@@ -148,7 +148,7 @@ public:
         {
             collectDimensions( database, pState, identifierMap );
             collectLinks( database, pState, identifierMap );
-            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pState->get_inheritance_trait() )
+            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pState->get_inheritance_trait_opt() )
             {
                 for( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
@@ -159,7 +159,7 @@ public:
         else if( auto pEvent = db_cast< Interface::Event >( pContext ) )
         {
             collectDimensions( database, pEvent, identifierMap );
-            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pEvent->get_inheritance_trait() )
+            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pEvent->get_inheritance_trait_opt() )
             {
                 for( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
@@ -183,7 +183,7 @@ public:
         {
             collectDimensions( database, pObject, identifierMap );
             collectLinks( database, pObject, identifierMap );
-            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
+            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait_opt() )
             {
                 for( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
@@ -715,16 +715,14 @@ public:
             {
                 if( auto pRequirement = db_cast< Concrete::Requirement >( pChildContext ) )
                 {
-                    // TODO
+                    THROW_TODO;
                 }
-                else if( auto pInterupt = db_cast< Concrete::Interupt >( pChildContext ) )
+                if( auto pInterupt = db_cast< Concrete::Interupt >( pChildContext ) )
                 {
-                    const bool bHasTransition = pInterupt->get_interface_interupt()->get_transition_trait().has_value();
-                    const bool bHasNoEvents
-                        = pInterupt->get_interface_interupt()->get_events_trait()->get_tuple().empty();
-
-                    if( bHasNoEvents )
+                    if( !pInterupt->get_interface_interupt()->get_events_trait_opt().has_value() )
                     {
+                        const bool bHasTransition
+                            = pInterupt->get_interface_interupt()->get_transition_trait_opt().has_value();
                         VERIFY_RTE_MSG(
                             bHasTransition,
                             "Invalid completion interupt does NOT specify a transition: "
@@ -743,7 +741,7 @@ public:
 
         if( auto pState = db_cast< Concrete::State >( pContext ) )
         {
-            const bool bHasTransition = pState->get_interface_state()->get_transition_trait().has_value();
+            const bool bHasTransition = pState->get_interface_state()->get_transition_trait_opt().has_value();
             if( bHasTransition )
             {
                 VERIFY_RTE_MSG( !bFoundInteruptCompletionHandler,

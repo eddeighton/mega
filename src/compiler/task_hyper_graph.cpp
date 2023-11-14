@@ -40,7 +40,7 @@ namespace HyperGraphAnalysis
 {
 #include "compiler/interface.hpp"
 #include "compiler/concrete.hpp"
-#include "compiler/interface_link_printer.hpp"
+#include "compiler/symbol_variant_printer.hpp"
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 } // namespace HyperGraphAnalysis
@@ -66,19 +66,16 @@ public:
         using namespace HyperGraphAnalysis::HyperGraph;
 
         std::vector< Interface::IContext* > variantResults;
-        for( auto pTypePathVariant : pLinkTrait->get_tuple() )
+        for( auto pSymbolVariantSequence : pLinkTrait->get_symbol_variant_sequences() )
         {
-            for( Interface::TypePath* pTypePath : pTypePathVariant->get_sequence() )
+            for( auto pSymbolVariant : pSymbolVariantSequence->get_variants() )
             {
-                std::vector< Interface::IContext* > candidates;
-
-                for( auto pSymbol : pTypePath->get_types() )
+                std::vector< Interface::IContext* > found;
+                for( auto pSymbol : pSymbolVariant->get_symbols() )
                 {
-                    std::vector< Interface::IContext* > found;
-                    const bool                          bFirst = candidates.empty();
                     for( auto pContext : pSymbol->get_contexts() )
                     {
-                        if( bFirst )
+                        if( variantResults.empty() )
                         {
                             // first MUST be object or interface
                             if( auto pObject = db_cast< Interface::Object >( pContext ) )
@@ -96,7 +93,7 @@ public:
                             for( auto pIter = pContext; pIter;
                                  pIter      = db_cast< Interface::IContext >( pIter->get_parent() ) )
                             {
-                                if( std::find( candidates.begin(), candidates.end(), pIter ) != candidates.end() )
+                                if( std::find( variantResults.begin(), variantResults.end(), pIter ) != variantResults.end() )
                                 {
                                     found.push_back( pContext );
                                     break;
@@ -104,27 +101,22 @@ public:
                             }
                         }
                     }
-
-                    VERIFY_RTE_MSG( !found.empty(),
-                                    "Failed to resolve object link type: " << printIContextFullType(
-                                        pLinkTrait->get_parent() ) << " " << printLinkTraitTypePath( pLinkTrait ) );
-                    candidates.swap( found );
                 }
 
-                VERIFY_RTE_MSG( !candidates.empty(),
+                VERIFY_RTE_MSG( !found.empty(),
                                 "Failed to resolve object link type: " << printIContextFullType(
                                     pLinkTrait->get_parent() ) << " " << printLinkTraitTypePath( pLinkTrait ) );
-                VERIFY_RTE_MSG( 1 == candidates.size(),
+                VERIFY_RTE_MSG( 1 == found.size(),
                                 "Failed to disambiguate object link type: " << printIContextFullType(
                                     pLinkTrait->get_parent() ) << " " << printLinkTraitTypePath( pLinkTrait ) );
-                variantResults.push_back( candidates.front() );
+                variantResults.push_back( found.front() );
             }
         }
-        VERIFY_RTE_MSG( 1 == variantResults.size(),
+        VERIFY_RTE_MSG( !variantResults.empty(),
                         "Failed to disambiguate variant object link type: " << printIContextFullType(
                             pLinkTrait->get_parent() ) << " " << printLinkTraitTypePath( pLinkTrait ) );
 
-        return variantResults.front();
+        return variantResults.back();
     }
 
     struct UserLinkTraitTarget

@@ -57,74 +57,74 @@ namespace Parser
 {
     object Identifier -> ParserStage::AST
     {
-        value< std::string > str;
+        value< std::string >                str;
     }
 
     object ScopedIdentifier -> ParserStage::AST
     {
-        array< ref< Identifier > > ids;
-        value< std::string > source_file;
-        value< mega::U64 > line_number;
-    }
-
-    object TypeList -> ParserStage::AST
-    {
-        array< value< mega::Type > > args;
-    }
-
-    object ArgumentList -> ParserStage::AST
-    {
-        array< value< mega::TypeName > > args;
+        array< ref< Identifier > >          ids;
+        value< std::string >                source_file;
+        value< mega::U64 >                  line_number;
     }
 
     object ReturnType -> ParserStage::AST
     {
-        value< std::string > str;
+        value< std::string >                str;
     }
 
     object Transition -> ParserStage::AST
     {
-        value< bool > is_successor;
-        value< bool > is_predecessor;
-        value< std::string > str;
+        value< bool >                               is_successor;
+        value< bool >                               is_predecessor;
+        value< mega::SymbolVariantPathSequence >    symbol_variant_path_sequence;
+    }
+
+    object ArgumentList -> ParserStage::AST
+    {
+        value< mega::TypeName::Vector > arguments;
+    }
+
+    object EventList -> ParserStage::AST
+    {
+        value< mega::NamedSymbolVariantPathSequence > named_symbol_variant_path_sequence;
     }
 
     object Inheritance -> ParserStage::AST
     {
-        array< value< std::string > > strings;
+        array< value< std::string > >       strings;
     }
 
     object Size -> ParserStage::AST
     {
-        value< std::string > str;
+        value< std::string >                str;
     }
 
     object Initialiser -> ParserStage::AST
     {
-        value< std::string > initialiser;
-        value< mega::U64 > source_loc_start;
-        value< mega::U64 > source_loc_end;
+        value< std::string >                initialiser;
+        value< mega::U64 >                  source_loc_start;
+        value< mega::U64 >                  source_loc_end;
     }
 
     object Link -> ParserStage::AST
     {
-        ref< Identifier >               id;
-        ref< TypeList >                 type;
-        value< bool >                   owning;
-        value< mega::CardinalityRange > cardinality;
+        ref< Identifier >                   id;
+        value< mega::SymbolVariantPath >    symbol_variant_path;
+        value< bool >                       owning;
+        value< mega::CardinalityRange >     cardinality;
     }
 
     object Dimension -> ParserStage::AST
     {
-        value< bool > isConst;
-        ref< Identifier > id;
-        value< std::string > type;
-        opt< ref< Initialiser > > initialiser;
+        value< bool >                       isConst;
+        ref< Identifier >                   id;
+        value< std::string >                type;
+        opt< ref< Initialiser > >           initialiser_opt;
     }
 
     object Part -> ParserStage::AST
     {
-        array< value< std::string > > identifiers;
+        array< value< std::string > >       identifiers;
     }
 
     object Include -> ParserStage::AST
@@ -133,12 +133,13 @@ namespace Parser
 
     object SystemInclude : Include -> ParserStage::AST
     {
-        value< std::string > str;
+        value< std::string >                str;
     }
+
     object MegaInclude : Include -> ParserStage::AST
     {
-        value< boost::filesystem::path > megaSourceFilePath;
-        late< ref< IncludeRoot > > root;
+        value< boost::filesystem::path >    megaSourceFilePath;
+        late< ref< IncludeRoot > >          root;
     }
 
     object MegaIncludeInline : MegaInclude -> ParserStage::AST
@@ -147,36 +148,36 @@ namespace Parser
 
     object MegaIncludeNested : MegaInclude -> ParserStage::AST
     {
-        ref< ScopedIdentifier > id;
+        ref< ScopedIdentifier >             id;
     }
 
     object CPPInclude : Include -> ParserStage::AST
     {
-        value< boost::filesystem::path > cppSourceFilePath;
+        value< boost::filesystem::path >    cppSourceFilePath;
     }
 
     object Dependency -> ParserStage::AST
     {
-        value< std::string > str;
+        value< std::string >                str;
     }
 
     object Body -> ParserStage::Body
     {
-        value< std::string >    text;
-        value< std::string >    file;
-        value< mega::U64 >      line_number;
+        value< std::string >                text;
+        value< std::string >                file;
+        value< mega::U64 >                  line_number;
     }
 
     object ContextDef -> ParserStage::AST
     {
-        ref< ScopedIdentifier > id;
-        array< ref< ContextDef > > children;
-        array< ref< Dimension > > dimensions;
-        array< ref< Link > > links;
-        array< ref< Include > > includes;
-        array< ref< Dependency > > dependencies;
-        array< ref< Part > > parts;
-        opt< ref< Body > > body;
+        ref< ScopedIdentifier >             id;
+        array< ref< ContextDef > >          children;
+        array< ref< Dimension > >           dimensions;
+        array< ref< Link > >                links;
+        array< ref< Include > >             includes;
+        array< ref< Dependency > >          dependencies;
+        array< ref< Part > >                parts;
+        opt< ref< Body > >                  body_opt;
     }
 
     object NamespaceDef : ContextDef -> ParserStage::AST
@@ -185,15 +186,15 @@ namespace Parser
 
     object AbstractDef : ContextDef -> ParserStage::AST
     {
-        ref< Size > size;
-        ref< Inheritance > inheritance;
+        ref< Size >                         size;
+        ref< Inheritance >                  inheritance;
     }
 
     object StateDef : ContextDef -> ParserStage::AST
     {
-        ref< Size > size;
-        ref< Inheritance > inheritance;
-        ref< Transition > transition;
+        ref< Size >                         size;
+        ref< Inheritance >                  inheritance;
+        opt< ref< Transition > >            transition_opt;
     }
 
     object ActionDef : StateDef -> ParserStage::AST
@@ -206,41 +207,44 @@ namespace Parser
 
     object EventDef : ContextDef -> ParserStage::AST
     {
-        ref< Size > size;
-        ref< Inheritance > inheritance;
+        ref< Size >                         size;
+        ref< Inheritance >                  inheritance;
     }
 
     object InteruptDef : ContextDef -> ParserStage::AST
     {
-        ref< ArgumentList > argumentList;
-        ref< Transition > transition;
+        opt< ref< EventList > >             events_opt;
+        opt< ref< Transition > >            transition_opt;
     }
 
-    object RequirementDef : InteruptDef -> ParserStage::AST
+    object RequirementDef : ContextDef -> ParserStage::AST
     {
+        ref< EventList >                    events;
+        ref< Transition >                   transition;
     }
 
     object FunctionDef : ContextDef -> ParserStage::AST
     {
-        ref< ArgumentList > argumentList;
-        ref< ReturnType > returnType;
+        ref< ArgumentList >                 arguments;
+        ref< ReturnType >                   returnType;
     }
 
-    object DeciderDef : FunctionDef -> ParserStage::AST
+    object DeciderDef : ContextDef -> ParserStage::AST
     {
+        ref< EventList >                    parameters;
     }
 
     object ObjectDef : ContextDef -> ParserStage::AST
     {
-        ref< Size > size;
-        ref< Inheritance > inheritance;
+        ref< Size >                         size;
+        ref< Inheritance >                  inheritance;
     }
 
     object SourceRoot  -> ParserStage::AST
     {
-        value< boost::filesystem::path > sourceFile;
-        ref< Components::Component > component;
-        ref< ContextDef > ast;
+        value< boost::filesystem::path >    sourceFile;
+        ref< Components::Component >        component;
+        ref< ContextDef >                   ast;
     }
 
     object IncludeRoot : SourceRoot -> ParserStage::AST

@@ -37,7 +37,7 @@
 namespace AliasAnalysis
 {
 #include "compiler/interface_printer.hpp"
-#include "compiler/interface_link_printer.hpp"
+#include "compiler/symbol_variant_printer.hpp"
 #include "compiler/interface.hpp"
 #include "compiler/derivation.hpp"
 } // namespace AliasAnalysis
@@ -201,12 +201,12 @@ public:
             }
 
             std::optional< Derivation::GraphVertexVectorVector > pathOpt;
-            for( auto pTypePathVariant : pComponentLink->get_tuple() )
+            for( auto pTypePathVariant : pComponentLink->get_symbol_variant_sequence() )
             {
                 Derivation::VertexVariantVector path;
-                for( auto pTypePath : pTypePathVariant->get_sequence() )
+                for( auto pTypePath : pTypePathVariant->get_variants() )
                 {
-                    for( auto pType : pTypePath->get_types() )
+                    for( auto pType : pTypePath->get_symbols() )
                     {
                         Derivation::VertexVariant vertices;
                         for( auto pContext : pType->get_contexts() )

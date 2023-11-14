@@ -231,6 +231,7 @@ public:
         {
             THROW_RTE( "Command : " << command.str() << " failed with exception: " << ex.what() );
         }
+        return EXIT_FAILURE;
     }
 
     int run_pch_compilation( mega::pipeline::Progress& taskProgress, const mega::Compilation& compilationCMD )

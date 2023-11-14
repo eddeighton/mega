@@ -47,6 +47,7 @@ set( VALUE_UNIT_TESTS
 	${VALUE_TESTS_DIR}/report_value_tests.cpp
 	${VALUE_TESTS_DIR}/sub_type_instance_tests.cpp
 	${VALUE_TESTS_DIR}/type_id_tests.cpp
+	${VALUE_TESTS_DIR}/symbol_grammar_tests.cpp
 
 	)
 

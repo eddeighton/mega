@@ -47,6 +47,7 @@ namespace FinalStage
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 #include "compiler/concrete.hpp"
+#include "compiler/symbol_variant_printer.hpp"
 } // namespace FinalStage
 
 namespace mega::reporters
@@ -126,15 +127,17 @@ void addLinks( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBran
             tableInterfaceTypeIDs.m_rows.push_back( { Line{ pLink->get_interface_id() } } );
             tableConcreteTypeIDs.m_rows.push_back( { Multiline{ fromConcrete( pLink->get_concrete() ) } } );
 
-            auto pRelation =  pLink->get_relation();
+            auto pRelation = pLink->get_relation();
 
             if( auto pUser = db_cast< UserLinkTrait >( pLink ) )
             {
-                table.m_rows.push_back( { Line{ "User "s }, Line{ getIdentifier( pLink ) }, Line{ pRelation->get_id() } } );
+                table.m_rows.push_back(
+                    { Line{ "User "s }, Line{ getIdentifier( pLink ) }, Line{ pRelation->get_id() } } );
             }
             else if( auto pOwner = db_cast< OwnershipLinkTrait >( pLink ) )
             {
-                table.m_rows.push_back( { Line{ "Owner "s }, Line{ getIdentifier( pLink ) }, Line{ pRelation->get_id() } } );
+                table.m_rows.push_back(
+                    { Line{ "Owner "s }, Line{ getIdentifier( pLink ) }, Line{ pRelation->get_id() } } );
             }
             else
             {
@@ -178,60 +181,41 @@ void addEvent( Interface::EventTypeTrait* pEventTrait, mega::reports::Branch& br
     using namespace reports;
 
     std::ostringstream os;
-    os << "(";
+    os << "(" << pEventTrait->get_named_symbol_variant_path_sequence().str() << ")";
+    // Interface::printSymbolVariantSequences( pEventTrait->get_symbol_variant_sequences(), os );
+    branch.m_label.push_back( os.str() );
+}
 
-    bool bFirstVariant = true;
-    for( auto pTypeVariant : pEventTrait->get_tuple() )
+void addTransition( std::optional< Interface::TransitionTypeTrait* > pTransitionTraitOpt,
+                    mega::reports::Branch&                           branch )
+{
+    using namespace FinalStage::Interface;
+    using namespace std::string_literals;
+    using namespace reports;
+
+    if( pTransitionTraitOpt.has_value() )
     {
-        if( bFirstVariant )
+        auto pTransitionTrait = pTransitionTraitOpt.value();
+
+        std::ostringstream os;
+
+        if( pTransitionTrait->get_is_successor() )
         {
-            bFirstVariant = false;
+            os << " > ";
+        }
+        else if( pTransitionTrait->get_is_predecessor() )
+        {
+            os << " < ";
         }
         else
         {
-            os << ",";
-        }
-        const auto sequence     = pTypeVariant->get_sequence();
-        const bool bNonSingular = sequence.size() > 1;
-        if( bNonSingular )
-        {
-            os << "<";
+            THROW_RTE( "Unknown transition type" );
         }
 
-        bool bFirstType = true;
-        for( auto pType : sequence )
-        {
-            if( bFirstType )
-            {
-                bFirstType = false;
-            }
-            else
-            {
-                os << ",";
-            }
+        os << pTransitionTrait->get_symbol_variant_path_sequence().str();
 
-            bool bFirstSymbol = true;
-            for( auto pSymbol : pType->get_types() )
-            {
-                if( bFirstSymbol )
-                {
-                    bFirstSymbol = false;
-                }
-                else
-                {
-                    os << ".";
-                }
-                os << pSymbol->get_symbol();
-            }
-        }
-        if( bNonSingular )
-        {
-            os << ">";
-        }
+        branch.m_label.push_back( os.str() );
     }
-    os << ")";
-
-    branch.m_label.push_back( os.str() );
 }
 
 void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, reports::Branch& concreteTypeIDs,
@@ -256,13 +240,9 @@ void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, 
     {
         branch.m_label
             = { { "Interface "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
-        addInheritance( pAbstract->get_inheritance_trait(), branch );
-
+        addInheritance( pAbstract->get_inheritance_trait_opt(), branch );
         addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pAbstract->get_dimension_traits() );
         addLinks( interfaceTypeIDs, branch, concreteTypeIDs, pAbstract->get_link_traits() );
-
-        // pAbstract->get_concrete()
-        // pAbstract->get_link_traits()
     }
     else if( auto pAction = db_cast< Action >( pContext ) )
     {
@@ -270,9 +250,8 @@ void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, 
             = { { "Action "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
         addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pAction->get_dimension_traits() );
         addLinks( interfaceTypeIDs, branch, concreteTypeIDs, pAction->get_link_traits() );
-        addInheritance( pAction->get_inheritance_trait(), branch );
-
-        // addTransition( pAction->get_transition_trait(), node );
+        addInheritance( pAction->get_inheritance_trait_opt(), branch );
+        addTransition( pAction->get_transition_trait_opt(), branch );
     }
     else if( auto pComponent = db_cast< Component >( pContext ) )
     {
@@ -280,8 +259,8 @@ void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, 
             = { { "Component "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
         addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pComponent->get_dimension_traits() );
         addLinks( interfaceTypeIDs, branch, concreteTypeIDs, pComponent->get_link_traits() );
-        addInheritance( pComponent->get_inheritance_trait(), branch );
-        // addTransition( pComponent->get_transition_trait(), node );
+        addInheritance( pComponent->get_inheritance_trait_opt(), branch );
+        addTransition( pComponent->get_transition_trait_opt(), branch );
     }
     else if( auto pState = db_cast< State >( pContext ) )
     {
@@ -289,29 +268,28 @@ void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, 
             = { { "State "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
         addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pState->get_dimension_traits() );
         addLinks( interfaceTypeIDs, branch, concreteTypeIDs, pState->get_link_traits() );
-        addInheritance( pState->get_inheritance_trait(), branch );
-
-        // addTransition( pState->get_transition_trait(), node );
+        addInheritance( pState->get_inheritance_trait_opt(), branch );
+        addTransition( pState->get_transition_trait_opt(), branch );
     }
     else if( auto pEvent = db_cast< Event >( pContext ) )
     {
         branch.m_label
             = { { "Event "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
         addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pEvent->get_dimension_traits() );
-        addInheritance( pEvent->get_inheritance_trait(), branch );
+        addInheritance( pEvent->get_inheritance_trait_opt(), branch );
     }
     else if( auto pInterupt = db_cast< Interupt >( pContext ) )
     {
         branch.m_label = { { "Interupt "s, Interface::getIdentifier( pContext ) } };
-
-        // addTransition( pInterupt->get_transition_trait(), node );
-        addEvent( pInterupt->get_events_trait(), branch );
+        if( auto eventOpt = pInterupt->get_events_trait_opt() )
+        {
+            addEvent( eventOpt.value(), branch );
+        }
+        addTransition( pInterupt->get_transition_trait_opt(), branch );
     }
     else if( auto pDecider = db_cast< Decider >( pContext ) )
     {
         branch.m_label = { { "Decider "s, Interface::getIdentifier( pContext ) } };
-
-        // addTransition( pInterupt->get_transition_trait(), node );
         addEvent( pDecider->get_events_trait(), branch );
     }
     else if( auto pFunction = db_cast< Function >( pContext ) )
@@ -319,7 +297,7 @@ void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, 
         branch.m_label = { { "Function "s, Interface::getIdentifier( pContext ) } };
         branch.m_label.push_back( "("s );
         bool bFirst = true;
-        for( const auto& arg : pFunction->get_arguments_trait()->get_args() )
+        for( const auto& arg : pFunction->get_arguments_trait()->get_arguments() )
         {
             if( bFirst )
             {
@@ -340,7 +318,7 @@ void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, 
             = { { "Object "s, Interface::getIdentifier( pContext ), "["s, getLocalDomainSize( pContext ), "]"s } };
         addProperties( interfaceTypeIDs, branch, concreteTypeIDs, pObject->get_dimension_traits() );
         addLinks( interfaceTypeIDs, branch, concreteTypeIDs, pObject->get_link_traits() );
-        addInheritance( pObject->get_inheritance_trait(), branch );
+        addInheritance( pObject->get_inheritance_trait_opt(), branch );
     }
     else
     {

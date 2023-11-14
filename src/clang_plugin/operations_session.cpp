@@ -342,7 +342,7 @@ public:
         }
 
         mega::InvocationID::SymbolIDVector typePathSymbolIDs;
-        if( !clang::getTypePathSymbolIDs( pASTContext, typePath, typePathSymbolIDs ) )
+        if( !clang::getSymbolVariant( pASTContext, typePath, typePathSymbolIDs ) )
         {
             pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
                 << "Invalid type path for invocation";

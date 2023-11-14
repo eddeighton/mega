@@ -75,11 +75,11 @@ public:
             }
             
             std::array< bool, TotalMetaTypes > metaValues{ false, false };
-            if( Interface::State* pState = db_cast< Interface::State >( pContext ) )
+            if( auto pState = db_cast< Interface::State >( pContext ) )
             {
-                if( pState->get_inheritance_trait().has_value() )
+                if( pState->get_inheritance_trait_opt().has_value() )
                 {
-                    auto inheritance = pState->get_inheritance_trait().value();
+                    auto inheritance = pState->get_inheritance_trait_opt().value();
                     for( const std::string& strIdentifier : inheritance->get_strings() )
                     {
                         auto iFind = std::find( metaTypes.begin(), metaTypes.end(), strIdentifier );

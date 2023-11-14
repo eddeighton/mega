@@ -165,7 +165,7 @@ public:
             }
 
             std::ostringstream osArgs;
-            osArgs << pFunction->get_arguments_trait()->get_args();
+            osArgs << pFunction->get_arguments_trait()->get_arguments();
 
             nlohmann::json operation( { { "return_type", pFunction->get_return_type_trait()->get_str() },
                                         { "hash", hash.toHexString() },

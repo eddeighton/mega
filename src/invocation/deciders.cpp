@@ -40,6 +40,7 @@ namespace OperationsStage
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 #include "compiler/common_ancestor.hpp"
+#include "compiler/invocation_policy.hpp"
 namespace Derivation
 {
 #include "compiler/derivation_printer.hpp"
@@ -53,134 +54,12 @@ namespace mega
 {
 namespace
 {
-struct InvocationPolicy
+struct InvocationPolicy : public InvocationPolicyBase
 {
-    using GraphVertex             = OperationsStage::Concrete::Graph::Vertex;
-    using GraphEdge               = OperationsStage::Concrete::Graph::Edge;
-    using GraphVertexVector       = std::vector< GraphVertex* >;
-    using GraphVertexSet          = std::unordered_set< GraphVertex* >;
-    using GraphVertexVectorVector = std::vector< GraphVertexVector >;
-    using GraphEdgeVector         = std::vector< GraphEdge* >;
-
-    struct Spec
-    {
-        GraphVertexVector       context;
-        GraphVertexVectorVector path;
-    };
-
-    using StepPtr      = OperationsStage::Derivation::Step*;
-    using EdgePtr      = OperationsStage::Derivation::Edge*;
-    using OrPtr        = OperationsStage::Derivation::Or*;
-    using OrPtrVector  = std::vector< OrPtr >;
-    using AndPtr       = OperationsStage::Derivation::And*;
-    using AndPtrVector = std::vector< AndPtr >;
-    using RootPtr      = OperationsStage::Derivation::Root*;
-
-    EdgePtr makeEdge( StepPtr pNext, const GraphEdgeVector& edges ) const
-    {
-        // initially no edges are eliminated
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, edges } );
-    }
-    OrPtr makeOr( GraphVertex* pVertex ) const
-    {
-        return m_database.construct< Derivation::Or >( Derivation::Or::Args{ Derivation::Step::Args{ pVertex, {} } } );
-    }
-    /*AndPtr makeAnd( GraphVertex* pVertex ) const
-    {
-        return m_database.construct< Derivation::And >(
-            Derivation::And::Args{ Derivation::Step::Args{ pVertex, {} } } );
-    }*/
-    RootPtr makeRoot( const GraphVertexVector& context ) const
-    {
-        return m_database.construct< Derivation::Root >( Derivation::Root::Args{ context, {} } );
-    }
-    EdgePtr makeRootEdge( OrPtr pNext ) const
-    {
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, {} } );
-    }
-    bool   isLinkDimension( GraphVertex* pVertex ) const { return db_cast< Concrete::Dimensions::Link >( pVertex ); }
-    AndPtr isAndStep( StepPtr pStep ) const { return db_cast< OperationsStage::Derivation::And >( pStep ); }
-    void   backtrack( EdgePtr pEdge ) const { pEdge->set_backtracked( true ); }
-
     OrPtrVector expandLink( OrPtr pOr ) const
     {
         OrPtrVector result;
-
-        if( auto pLink = db_cast< Concrete::Dimensions::Link >( pOr->get_vertex() ) )
-        {
-            GraphEdgeVector edges;
-            for( auto pEdge : pLink->get_out_edges() )
-            {
-                switch( pEdge->get_type().get() )
-                {
-                    case EdgeType::eMonoSingularMandatory:
-                    case EdgeType::ePolySingularMandatory:
-                    case EdgeType::eMonoNonSingularMandatory:
-                    case EdgeType::ePolyNonSingularMandatory:
-                    case EdgeType::eMonoSingularOptional:
-                    case EdgeType::ePolySingularOptional:
-                    case EdgeType::eMonoNonSingularOptional:
-                    case EdgeType::ePolyNonSingularOptional:
-                    case EdgeType::ePolyParent:
-                    {
-                        edges.push_back( pEdge );
-                    }
-                    break;
-                    case EdgeType::eParent:
-                    case EdgeType::eChildSingular:
-                    case EdgeType::eChildNonSingular:
-                    case EdgeType::eDim:
-                    case EdgeType::eLink:
-                    case EdgeType::TOTAL_EDGE_TYPES:
-                        break;
-                }
-            }
-            VERIFY_RTE( !edges.empty() );
-
-            auto pAnd = m_database.construct< Derivation::And >(
-                Derivation::And::Args{ Derivation::Step::Args{ pLink, {} } } );
-
-            auto pOrToAndEdge
-                = m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pAnd, false, false, 0, {} } );
-
-            pOr->push_back_edges( pOrToAndEdge );
-
-            for( auto pGraphEdge : edges )
-            {
-                // determine the parent context of the link target
-                GraphVertex* pParentVertex = nullptr;
-                GraphEdge*   pParentEdge   = nullptr;
-                {
-                    auto pLinkTarget = pGraphEdge->get_target();
-                    for( auto pLinkGraphEdge : pLinkTarget->get_out_edges() )
-                    {
-                        if( pLinkGraphEdge->get_type().get() == EdgeType::eParent )
-                        {
-                            VERIFY_RTE( !pParentVertex );
-                            pParentEdge   = pLinkGraphEdge;
-                            pParentVertex = pLinkGraphEdge->get_target();
-                        }
-                    }
-                }
-                VERIFY_RTE( pParentEdge );
-                VERIFY_RTE( pParentVertex );
-
-                auto pLinkTargetOr = m_database.construct< Derivation::Or >(
-                    Derivation::Or::Args{ Derivation::Step::Args{ pParentVertex, {} } } );
-
-                auto pDerivationEdge = m_database.construct< Derivation::Edge >(
-                    Derivation::Edge::Args{ pLinkTargetOr, false, false, 0, { pGraphEdge, pParentEdge } } );
-
-                pAnd->push_back_edges( pDerivationEdge );
-
-                result.push_back( pLinkTargetOr );
-            }
-        }
-        else
-        {
-            result.push_back( pOr );
-        }
-
+        result.push_back( pOr );
         return result;
     }
 
@@ -190,12 +69,9 @@ struct InvocationPolicy
     }
 
     InvocationPolicy( Database& database )
-        : m_database( database )
+        : InvocationPolicyBase( database )
     {
     }
-
-private:
-    Database& m_database;
 };
 
 } // namespace
@@ -214,67 +90,47 @@ void compileDeciders( OperationsStage::Database& database, const mega::io::megaF
 
         auto pEventTrait = pDecider->get_interface_decider()->get_events_trait();
 
-        for( auto pTypePathVariant : pEventTrait->get_tuple() )
+        for( auto pSymbolVariantSequence : pEventTrait->get_symbol_variant_sequences() )
         {
-            InvocationPolicy::Spec derivationSpec{ { pDecider } };
+            InvocationPolicy::Spec derivationSpec( pDecider, pSymbolVariantSequence );
 
-            for( auto pSequence : pTypePathVariant->get_sequence() )
+            // solve the context free derivation
+            InvocationPolicy              policy( database );
+            InvocationPolicy::OrPtrVector finalFrontier;
+            InvocationPolicy::RootPtr     pRoot
+                = DerivationSolver::solveContextFree( derivationSpec, policy, finalFrontier );
+
+            Derivation::precedence( pRoot );
+
+            try
             {
-                for( auto pSymbol : pSequence->get_types() )
-                {
-                    InvocationPolicy::GraphVertexVector pathElement;
-                    for( auto pContext : pSymbol->get_contexts() )
-                    {
-                        for( auto pConcrete : pContext->get_concrete() )
-                        {
-                            pathElement.push_back( pConcrete );
-                        }
-                    }
-                    VERIFY_RTE_MSG( !pathElement.empty(), "Event contains invalid symbols" );
-                    if( !pathElement.empty() )
-                    {
-                        derivationSpec.path.push_back( pathElement );
-                    }
-                }
-
-                // solve the context free derivation
-                InvocationPolicy              policy( database );
-                InvocationPolicy::OrPtrVector finalFrontier;
-                InvocationPolicy::RootPtr     pRoot
-                    = DerivationSolver::solveContextFree( derivationSpec, policy, finalFrontier );
-
-                Derivation::precedence( pRoot );
-
-                try
-                {
-                    const Derivation::Disambiguation result = Derivation::disambiguate( pRoot, finalFrontier );
-                    if( result != Derivation::eSuccess )
-                    {
-                        std::ostringstream os;
-                        using ::           operator<<;
-                        if( result == Derivation::eAmbiguous )
-                            os << "Derivation disambiguation was ambiguous for: "
-                               << Concrete::printContextFullType( pDecider ) << "\n";
-                        else if( result == Derivation::eFailure )
-                            os << "Derivation disambiguation failed for: " << Concrete::printContextFullType( pDecider )
-                               << "\n";
-                        else
-                            THROW_RTE( "Unknown derivation failure type" );
-                        THROW_RTE( os.str() );
-                    }
-                    else
-                    {
-                        derivations.push_back( pRoot );
-                    }
-                }
-                catch( std::exception& ex )
+                const Derivation::Disambiguation result = Derivation::disambiguate( pRoot, finalFrontier );
+                if( result != Derivation::eSuccess )
                 {
                     std::ostringstream os;
-                    os << "Exception while compiling event for: " << Concrete::printContextFullType( pDecider ) << "\n";
-                    printDerivationStep( pRoot, true, os );
-                    os << "\nError: " << ex.what();
+                    using ::           operator<<;
+                    if( result == Derivation::eAmbiguous )
+                        os << "Derivation disambiguation was ambiguous for: "
+                            << Concrete::printContextFullType( pDecider ) << "\n";
+                    else if( result == Derivation::eFailure )
+                        os << "Derivation disambiguation failed for: " << Concrete::printContextFullType( pDecider )
+                            << "\n";
+                    else
+                        THROW_RTE( "Unknown derivation failure type" );
                     THROW_RTE( os.str() );
                 }
+                else
+                {
+                    derivations.push_back( pRoot );
+                }
+            }
+            catch( std::exception& ex )
+            {
+                std::ostringstream os;
+                os << "Exception while compiling event for: " << Concrete::printContextFullType( pDecider ) << "\n";
+                printDerivationStep( pRoot, true, os );
+                os << "\nError: " << ex.what();
+                THROW_RTE( os.str() );
             }
         }
 

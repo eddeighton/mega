@@ -175,41 +175,6 @@ public:
         }
     }
 
-    TypeList* parse_typeList( Database& database )
-    {
-        using namespace ParserStage::Parser;
-        std::string strArguments;
-        if( Tok.is( clang::tok::l_paren ) )
-        {
-            BalancedDelimiterTracker T( *this, clang::tok::l_paren );
-            T.consumeOpen();
-
-            if( !Tok.is( clang::tok::r_paren ) )
-            {
-                clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc   = Tok.getEndLoc();
-                ConsumeAnyToken();
-
-                while( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
-                {
-                    endLoc = Tok.getEndLoc();
-                    ConsumeAnyToken();
-                }
-                if( !getSourceText( startLoc, endLoc, strArguments ) )
-                {
-                    MEGA_PARSER_ERROR( "Error parsing argument list" );
-                }
-            }
-
-            T.consumeClose();
-        }
-
-        mega::Type::Vector args;
-        mega::parse( strArguments, args );
-
-        return database.construct< TypeList >( TypeList::Args( args ) );
-    }
-
     ArgumentList* parse_argumentList( Database& database )
     {
         using namespace ParserStage::Parser;
@@ -243,6 +208,47 @@ public:
         mega::parse( strArguments, args );
 
         return database.construct< ArgumentList >( ArgumentList::Args( args ) );
+    }
+
+    std::optional< EventList* > parse_eventList( Database& database )
+    {
+        using namespace ParserStage::Parser;
+        std::string str;
+        if( Tok.is( clang::tok::l_paren ) )
+        {
+            BalancedDelimiterTracker T( *this, clang::tok::l_paren );
+            T.consumeOpen();
+
+            if( !Tok.is( clang::tok::r_paren ) )
+            {
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                ConsumeAnyToken();
+
+                while( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeAnyToken();
+                }
+                if( !getSourceText( startLoc, endLoc, str ) )
+                {
+                    MEGA_PARSER_ERROR( "Error parsing argument list" );
+                }
+            }
+
+            T.consumeClose();
+        }
+
+        std::optional< mega::NamedSymbolVariantPathSequence > events
+            = mega::NamedSymbolVariantPathSequence::parseOptional( str );
+        if( events.has_value() )
+        {
+            return database.construct< EventList >( EventList::Args( events.value() ) );
+        }
+        else
+        {
+            return std::nullopt;
+        }
     }
 
     void parse_comment()
@@ -284,10 +290,8 @@ public:
         return database.construct< ReturnType >( ReturnType::Args{ str } );
     }
 
-    Transition* parse_transition( Database& database )
+    std::optional< Transition* > parse_transition( Database& database )
     {
-        std::string str;
-
         bool isSuccessor   = false;
         bool isPredecessor = false;
 
@@ -319,14 +323,19 @@ public:
                 parse_comment();
                 ConsumeAnyToken();
             }
+            std::string str;
+            if( !getSourceText( startLoc, endLoc, str ) )
             {
-                if( !getSourceText( startLoc, endLoc, str ) )
-                {
-                    MEGA_PARSER_ERROR( "Error parsing return type" );
-                }
+                MEGA_PARSER_ERROR( "Error parsing return type" );
             }
+            const auto symbolVariantPathSequence = mega::SymbolVariantPathSequence::parse( str );
+            return database.construct< Transition >(
+                Transition::Args{ isSuccessor, isPredecessor, symbolVariantPathSequence } );
         }
-        return database.construct< Transition >( Transition::Args{ isSuccessor, isPredecessor, str } );
+        else
+        {
+            return std::nullopt;
+        }
     }
 
     Inheritance* parse_inheritance( Database& database, bool bSkipColon = false )
@@ -457,14 +466,12 @@ public:
             //           << " to offset: " << sm.getFileOffset( endLoc ) << std::endl;
 
             Initialiser::Args initArgs = { strInitialiser, sm.getFileOffset( startLoc ), sm.getFileOffset( endLoc ) };
-
-            args.initialiser = database.construct< Initialiser >( initArgs );
-
+            args.initialiser_opt = database.construct< Initialiser >( initArgs );
             parse_semicolon();
         }
         else
         {
-            args.initialiser = std::optional< Initialiser* >();
+            args.initialiser_opt = std::optional< Initialiser* >();
             parse_semicolon();
         }
 
@@ -507,8 +514,8 @@ public:
             linker.setNumber( iNumber );
         }
     }
-
-    mega::Type::Vector parse_typeList()
+/*
+    mega::Symbol parse_symbol()
     {
         clang::SourceLocation startLoc = Tok.getLocation();
         clang::SourceLocation endLoc   = Tok.getEndLoc();
@@ -519,14 +526,25 @@ public:
             ConsumeAnyToken();
         }
 
-        std::string strTypeList;
-        VERIFY_RTE( getSourceText( startLoc, endLoc, strTypeList ) );
-        strTypeList.erase( std::remove( strTypeList.begin(), strTypeList.end(), ' ' ), strTypeList.end() );
+        std::string str;
+        VERIFY_RTE( getSourceText( startLoc, endLoc, str ) );
+        return mega::Symbol::parse( str );
+    }*/
 
-        mega::Type::Vector typeList;
-        mega::parse( strTypeList, typeList );
+    mega::SymbolVariantPath parse_symbolVariantPath()
+    {
+        clang::SourceLocation startLoc = Tok.getLocation();
+        clang::SourceLocation endLoc   = Tok.getEndLoc();
 
-        return typeList;
+        while( !Tok.is( clang::tok::l_square ) && !Tok.is( clang::tok::semi ) && !Tok.is( clang::tok::equal ) )
+        {
+            endLoc = Tok.getEndLoc();
+            ConsumeAnyToken();
+        }
+
+        std::string str;
+        VERIFY_RTE( getSourceText( startLoc, endLoc, str ) );
+        return mega::SymbolVariantPath::parse( str );
     }
 
     Link* parse_link( Database& database, bool bOwning )
@@ -538,58 +556,43 @@ public:
         // link Foo = Type.Path.To.Somehere;
 
         Identifier* pID       = nullptr;
-        TypeList*   pTypeList = nullptr;
+        
+        mega::SymbolVariantPath symbolVariantPath = parse_symbolVariantPath();
+        mega::SymbolVariantPath actualSymbolVariantPath;
 
-        mega::Type::Vector typeList = parse_typeList();
         parse_comment();
 
         if( Tok.is( clang::tok::equal ) )
         {
-            if( typeList.size() != 1 )
+            ConsumeToken();
+
+            if( symbolVariantPath.m_symbolVariants.size() != 1 )
             {
                 MEGA_PARSER_ERROR( "Link alias must be a single symbol" );
             }
-            const auto& identifier = typeList.front();
+            else if( symbolVariantPath.m_symbolVariants.front().m_symbols.size() != 1 )
             {
-                auto iFind = std::find( identifier.get().begin(), identifier.get().end(), '.' );
-                if( iFind != identifier.get().end() )
-                {
-                    MEGA_PARSER_ERROR( "Link alias cannot be a type path" );
-                }
+                MEGA_PARSER_ERROR( "Link alias must be a single symbol" );
             }
+            auto symbol = symbolVariantPath.m_symbolVariants.front().m_symbols.front();
+            pID = database.construct< Identifier >( Identifier::Args{ symbol.m_identifier } );
 
-            pID = database.construct< Identifier >( Identifier::Args{ identifier.get() } );
-
-            ConsumeToken();
-            parse_comment();
-
-            mega::Type::Vector actulTypeList = parse_typeList();
-            if( actulTypeList.size() == 0 )
-            {
-                MEGA_PARSER_ERROR( "Link must contain a symbol" );
-            }
-            pTypeList = database.construct< TypeList >( TypeList::Args( actulTypeList ) );
+            actualSymbolVariantPath = parse_symbolVariantPath();
         }
         else
         {
-            if( typeList.size() == 0 )
+            if( symbolVariantPath.m_symbolVariants.size() == 0 )
             {
                 MEGA_PARSER_ERROR( "Link must contain a symbol" );
             }
-
-            const std::string& strLast   = typeList.back().get();
-            auto               iFindLast = std::find( strLast.rbegin(), strLast.rend(), '.' );
-            if( iFindLast != strLast.rend() )
+            else if( symbolVariantPath.m_symbolVariants.back().m_symbols.size() != 1 )
             {
-                pID = database.construct< Identifier >(
-                    Identifier::Args{ std::string( iFindLast.base(), strLast.end() ) } );
-            }
-            else
-            {
-                pID = database.construct< Identifier >( Identifier::Args{ typeList.back().get() } );
+                MEGA_PARSER_ERROR( "Link target must be a single symbol" );
             }
 
-            pTypeList = database.construct< TypeList >( TypeList::Args( typeList ) );
+            mega::SymbolVariant last = symbolVariantPath.m_symbolVariants.back();
+            actualSymbolVariantPath = symbolVariantPath;
+            pID = database.construct< Identifier >( Identifier::Args{ last.str() } );
         }
 
         parse_comment();
@@ -625,7 +628,7 @@ public:
         parse_comment();
         parse_semicolon();
 
-        return database.construct< Link >( Link::Args{ pID, pTypeList, bOwning, cardinality_range } );
+        return database.construct< Link >( Link::Args{ pID, actualSymbolVariantPath, bOwning, cardinality_range } );
     }
 
     boost::filesystem::path resolveFilePath( const std::string& strFile )
@@ -928,7 +931,7 @@ public:
         return database.construct< EventDef >( EventDef::Args{ body, pSize, pInheritance } );
     }
 
-    InteruptDef* parse_interupt( Database& database, bool bIsRequirement )
+    InteruptDef* parse_interupt( Database& database )
     {
         ScopedIdentifier* pScopedIdentifier = nullptr;
         if( Tok.is( clang::tok::identifier ) )
@@ -941,9 +944,9 @@ public:
         }
 
         parse_comment();
-        ArgumentList* pArgumentList = parse_argumentList( database );
+        std::optional< EventList* > pEventListOpt = parse_eventList( database );
         parse_comment();
-        Transition* pTransition = parse_transition( database );
+        std::optional< Transition* > pTransitionOpt = parse_transition( database );
         parse_comment();
 
         ContextDef::Args body = defaultBody( pScopedIdentifier );
@@ -964,36 +967,65 @@ public:
                 MEGA_PARSER_ERROR( "Expected semicolon" );
             }
         }
-        if( bIsRequirement )
-        {
-            return database.construct< RequirementDef >(
-                RequirementDef::Args{ InteruptDef::Args{ body, pArgumentList, pTransition } } );
-        }
-        else
-        {
-            return database.construct< InteruptDef >( InteruptDef::Args{ body, pArgumentList, pTransition } );
-        }
+
+        return database.construct< InteruptDef >( InteruptDef::Args{ body, pEventListOpt, pTransitionOpt } );
     }
 
-    FunctionDef* parse_function( Database& database, bool bIsDecider )
+    RequirementDef* parse_requirement( Database& database )
     {
         ScopedIdentifier* pScopedIdentifier = nullptr;
-
-        if( bIsDecider )
-        {
-            if( Tok.is( clang::tok::identifier ) )
-            {
-                pScopedIdentifier = parse_scopedIdentifier( database );
-            }
-            else
-            {
-                pScopedIdentifier = generate_unamedScopeIdentifier( database );
-            }
-        }
-        else
+        if( Tok.is( clang::tok::identifier ) )
         {
             pScopedIdentifier = parse_scopedIdentifier( database );
         }
+        else
+        {
+            pScopedIdentifier = generate_unamedScopeIdentifier( database );
+        }
+
+        parse_comment();
+        std::optional< EventList* > pEventListOpt = parse_eventList( database );
+        parse_comment();
+        std::optional< Transition* > pTransitionOpt = parse_transition( database );
+        parse_comment();
+
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
+        {
+            if( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                body = parse_context_body( database, pScopedIdentifier );
+                T.consumeClose();
+            }
+            else if( Tok.is( clang::tok::semi ) )
+            {
+                ConsumeToken();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Expected semicolon" );
+            }
+        }
+
+        if( !pEventListOpt.has_value() )
+        {
+            MEGA_PARSER_ERROR( "Expected event list for requirement" );
+        }
+        if( !pTransitionOpt.has_value() )
+        {
+            MEGA_PARSER_ERROR( "Expected transition for requirement" );
+        }
+
+        return database.construct< RequirementDef >(
+            RequirementDef::Args{ body, pEventListOpt.value(), pTransitionOpt.value() } );
+    }
+
+    FunctionDef* parse_function( Database& database )
+    {
+        ScopedIdentifier* pScopedIdentifier = nullptr;
+
+        pScopedIdentifier = parse_scopedIdentifier( database );
 
         parse_comment();
 
@@ -1021,16 +1053,55 @@ public:
             }
         }
 
-        if( bIsDecider )
+        return database.construct< FunctionDef >( FunctionDef::Args{ body, pArgumentList, pReturnType } );
+    }
+
+    DeciderDef* parse_decider( Database& database )
+    {
+        ScopedIdentifier* pScopedIdentifier = nullptr;
+
+        if( Tok.is( clang::tok::identifier ) )
         {
-            return database.construct< DeciderDef >(
-                DeciderDef::Args{ FunctionDef::Args{ body, pArgumentList, pReturnType } } );
+            pScopedIdentifier = parse_scopedIdentifier( database );
         }
         else
         {
-            return database.construct< FunctionDef >( FunctionDef::Args{ body, pArgumentList, pReturnType } );
+            pScopedIdentifier = generate_unamedScopeIdentifier( database );
         }
+
+        parse_comment();
+
+        std::optional< EventList* > pEventListOpt = parse_eventList( database );
+        parse_comment();
+
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
+        {
+            if( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                body = parse_context_body( database, pScopedIdentifier );
+                T.consumeClose();
+            }
+            else if( Tok.is( clang::tok::semi ) )
+            {
+                ConsumeToken();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Expected semicolon" );
+            }
+        }
+
+        if( !pEventListOpt.has_value() )
+        {
+            MEGA_PARSER_ERROR( "Expected event list for decider" );
+        }
+
+        return database.construct< DeciderDef >(
+            DeciderDef::Args{ body, pEventListOpt.value() } );
     }
+    
 
     ObjectDef* parse_object( Database& database )
     {
@@ -1071,7 +1142,7 @@ public:
         parse_comment();
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
-        Transition* pTransition = parse_transition( database );
+        std::optional< Transition* > pTransitionOpt = parse_transition( database );
         parse_comment();
 
         ContextDef::Args body = defaultBody( pScopedIdentifier );
@@ -1093,7 +1164,7 @@ public:
             }
         }
 
-        return database.construct< StateDef >( StateDef::Args{ body, pSize, pInheritance, pTransition } );
+        return database.construct< StateDef >( StateDef::Args{ body, pSize, pInheritance, pTransitionOpt } );
     }
 
     ActionDef* parse_action( Database& database )
@@ -1104,7 +1175,7 @@ public:
         parse_comment();
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
-        Transition* pTransition = parse_transition( database );
+        std::optional< Transition* > pTransitionOpt = parse_transition( database );
         parse_comment();
 
         ContextDef::Args body = defaultBody( pScopedIdentifier );
@@ -1127,7 +1198,7 @@ public:
         }
 
         return database.construct< ActionDef >(
-            ActionDef::Args{ StateDef::Args{ body, pSize, pInheritance, pTransition } } );
+            ActionDef::Args{ StateDef::Args{ body, pSize, pInheritance, pTransitionOpt } } );
     }
 
     ComponentDef* parse_component( Database& database )
@@ -1138,7 +1209,7 @@ public:
         parse_comment();
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
-        Transition* pTransition = parse_transition( database );
+        std::optional< Transition* > pTransitionOpt = parse_transition( database );
         parse_comment();
 
         ContextDef::Args body = defaultBody( pScopedIdentifier );
@@ -1161,7 +1232,7 @@ public:
         }
 
         return database.construct< ComponentDef >(
-            ComponentDef::Args{ StateDef::Args{ body, pSize, pInheritance, pTransition } } );
+            ComponentDef::Args{ StateDef::Args{ body, pSize, pInheritance, pTransitionOpt } } );
     }
 
     ContextDef::Args parse_context_body( Database& database, ScopedIdentifier* pScopedIdentifier )
@@ -1192,22 +1263,22 @@ public:
             else if( Tok.is( clang::tok::kw_interupt ) )
             {
                 ConsumeToken();
-                bodyArgs.children.value().push_back( parse_interupt( database, false ) );
+                bodyArgs.children.value().push_back( parse_interupt( database ) );
             }
             else if( Tok.is( clang::tok::kw_requirement ) )
             {
                 ConsumeToken();
-                bodyArgs.children.value().push_back( parse_interupt( database, true ) );
+                bodyArgs.children.value().push_back( parse_requirement( database ) );
             }
             else if( Tok.is( clang::tok::kw_function ) )
             {
                 ConsumeToken();
-                bodyArgs.children.value().push_back( parse_function( database, false ) );
+                bodyArgs.children.value().push_back( parse_function( database ) );
             }
             else if( Tok.is( clang::tok::kw_decider ) )
             {
                 ConsumeToken();
-                bodyArgs.children.value().push_back( parse_function( database, true ) );
+                bodyArgs.children.value().push_back( parse_decider( database ) );
             }
             else if( Tok.is( clang::tok::kw_action ) )
             {
@@ -1336,7 +1407,7 @@ public:
                     // capture body if allowed
                     if( !strBodyPart.empty() && bIsBodyDefinition )
                     {
-                        bodyArgs.body = database.construct< Body >( Body::Args{
+                        bodyArgs.body_opt = database.construct< Body >( Body::Args{
                             strBodyPart, sm.getFilename( startLoc ).str(), sm.getSpellingLineNumber( startLoc ) } );
                     }
                 }

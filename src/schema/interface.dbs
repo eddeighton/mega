@@ -19,13 +19,14 @@
 
 namespace Interface
 {
-    object TypePath -> InterfaceAnalysisStage::Clang
+    object SymbolVariant -> InterfaceAnalysisStage::Clang
     {
-        array< ref< Symbols::SymbolTypeID > > types;
+        array< ref< Symbols::SymbolTypeID > > symbols;
     }
-    object TypePathVariant -> InterfaceAnalysisStage::Clang
+
+    object SymbolVariantSequence -> InterfaceAnalysisStage::Clang
     {
-        array< ref< TypePath > > sequence;
+        array< ref< SymbolVariant > > variants;
     }
 
     // context traits
@@ -72,7 +73,7 @@ namespace Interface
     object UserLinkTrait : LinkTrait  -> InterfaceStage::Tree
     {
         ref< Parser::Link > parser_link;
-        array< ref< TypePathVariant > > tuple -> InterfaceAnalysisStage::Clang;
+        array< ref< SymbolVariantSequence > > symbol_variant_sequences -> InterfaceAnalysisStage::Clang;
     }
 
     object OwnershipLinkTrait : LinkTrait  -> InterfaceStage::Tree
@@ -91,22 +92,22 @@ namespace Interface
 
     object ArgumentListTrait : Parser::ArgumentList -> InterfaceStage::Tree
     {
-        array< value< std::string > > canonical_types  -> InterfaceAnalysisStage::Clang;
+        array< value< std::string > > canonical_types -> InterfaceAnalysisStage::Clang;
     }
 
-    object EventTypeTrait : Parser::ArgumentList -> InterfaceStage::Tree
+    object EventTypeTrait : Parser::EventList -> InterfaceStage::Tree
     {
         ref< InvocationContext > parent_invocation_context;
 
         // each argument may be a variant of type paths
-        array< ref< TypePathVariant > > tuple  -> InterfaceAnalysisStage::Clang;
+        array< ref< SymbolVariantSequence > > symbol_variant_sequences -> InterfaceAnalysisStage::Clang;
     }
 
     object TransitionTypeTrait : Parser::Transition -> InterfaceStage::Tree
     {
         ref< InvocationContext > parent_invocation_context;
         
-        array< ref< TypePathVariant > > tuple -> InterfaceAnalysisStage::Clang;
+        array< ref< SymbolVariantSequence > > symbol_variant_sequences -> InterfaceAnalysisStage::Clang;
     }
 
     object PartTrait : Parser::Part -> InterfaceStage::Tree
@@ -119,7 +120,12 @@ namespace Interface
         value< mega::U64 > size -> InterfaceAnalysisStage::Clang;
     }
 
-    // basic context types
+    object InvocationInstance -> OperationsLocs::Locations
+    {
+        ref< Operations::Invocation > invocation;
+        value< mega::SourceLocation > source_location;
+    }
+
     object ContextGroup -> InterfaceStage::Tree
     {
         array< ref< IContext > > children;
@@ -136,8 +142,8 @@ namespace Interface
         ref< ContextGroup >             parent;
         ref< Components::Component >    component;
         
-        value< mega::TypeID > symbol_id     -> SymbolRollout::PerSourceSymbols;
-        value< mega::TypeID > interface_id  -> SymbolRollout::PerSourceSymbols;
+        value< mega::TypeID >           symbol_id     -> SymbolRollout::PerSourceSymbols;
+        value< mega::TypeID >           interface_id  -> SymbolRollout::PerSourceSymbols;
 
         array< ref< Concrete::Context > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
 
@@ -146,91 +152,27 @@ namespace Interface
         value< bool > is_historical -> MetaStage::MetaAnalysis;
     }
 
-    object InvocationInstance -> OperationsLocs::Locations
-    {
-        ref< Operations::Invocation > invocation;
-        value< mega::SourceLocation > source_location;
-    }
-
-    object InvocationContext : IContext -> InterfaceStage::Tree
-    {
-        array< ref< InvocationInstance > > invocation_instances -> OperationsLocs::Locations;
-        value< mega::SourceLocation > source_location -> OperationsLocs::Locations;
-    }
-
-    // main context types
     object Namespace : IContext -> InterfaceStage::Tree
     {
-        value< bool > is_global;
-        array< ref< Parser::ContextDef > > namespace_defs;
-        late< array< ref< DimensionTrait > > > dimension_traits;
+        value< bool >                               is_global;
+        array< ref< Parser::ContextDef > >          namespace_defs;
+        late< array< ref< DimensionTrait > > >      dimension_traits;
     }
     object Abstract : IContext -> InterfaceStage::Tree
     {
         array< ref< Parser::AbstractDef > >         abstract_defs;
         late< array< ref< DimensionTrait > > >      dimension_traits;
         late< array< ref< LinkTrait > > >           link_traits;
-        late< opt< ref< InheritanceTrait > > >      inheritance_trait;
-        late< opt< ref< SizeTrait > > >             size_trait;
-    }
-
-    object State : InvocationContext -> InterfaceStage::Tree
-    {
-        array< ref< Parser::StateDef > >            state_defs;
-        late< array< ref< DimensionTrait > > >      dimension_traits;
-        late< array< ref< LinkTrait > > >           link_traits;
-        late< opt< ref< InheritanceTrait > > >      inheritance_trait;
-        late< opt< ref< SizeTrait > > >             size_trait;
-        late< opt< ref< TransitionTypeTrait > > >   transition_trait;
-        late< array< ref< PartTrait > > >           part_traits;
-
-    }
-
-    object Action : State -> InterfaceStage::Tree
-    {
-        late< opt< ref< Parser::Body > > >          body_opt;
-    }
-
-    object Component : State -> InterfaceStage::Tree
-    {
+        late< opt< ref< InheritanceTrait > > >      inheritance_trait_opt;
+        late< opt< ref< SizeTrait > > >             size_trait_opt;
     }
 
     object Event : IContext -> InterfaceStage::Tree
     {
         array< ref< Parser::EventDef > >            event_defs;
         late< array< ref< DimensionTrait > > >      dimension_traits;
-        late< opt< ref< InheritanceTrait > > >      inheritance_trait;
-        late< opt< ref< SizeTrait > > >             size_trait;
-    }
-
-    object Interupt : InvocationContext -> InterfaceStage::Tree
-    {
-        array< ref< Parser::InteruptDef > >         interupt_defs;
-        late< ref< EventTypeTrait > >               events_trait;
-        late< opt< ref< TransitionTypeTrait > > >   transition_trait;
-        late< opt< ref< Parser::Body > > >          body_opt;
-    }
-
-    object Requirement : Interupt -> InterfaceStage::Tree
-    {
-
-    }
-
-    object Body : InvocationContext -> InterfaceStage::Tree
-    {
-        array< ref< Parser::FunctionDef > >     function_defs;
-        late< ref< Parser::Body > >             body;
-    }
-
-    object Function :  Body -> InterfaceStage::Tree
-    {
-        late< ref< ReturnTypeTrait > >     return_type_trait;
-        late< ref< ArgumentListTrait > >   arguments_trait;
-    }
-
-    object Decider : Body -> InterfaceStage::Tree
-    {
-        late< ref< EventTypeTrait > > events_trait;
+        late< opt< ref< InheritanceTrait > > >      inheritance_trait_opt;
+        late< opt< ref< SizeTrait > > >             size_trait_opt;
     }
 
     object Object : IContext -> InterfaceStage::Tree
@@ -238,7 +180,64 @@ namespace Interface
         array< ref< Parser::ObjectDef > >           object_defs;
         late< array< ref< DimensionTrait > > >      dimension_traits;
         late< array< ref< LinkTrait > > >           link_traits;
-        late< opt< ref< InheritanceTrait > > >      inheritance_trait;
-        late< opt< ref< SizeTrait > > >             size_trait;
+        late< opt< ref< InheritanceTrait > > >      inheritance_trait_opt;
+        late< opt< ref< SizeTrait > > >             size_trait_opt;
+    }
+
+    object InvocationContext : IContext -> InterfaceStage::Tree
+    {
+        array< ref< InvocationInstance > >          invocation_instances    -> OperationsLocs::Locations;
+        value< mega::SourceLocation >               source_location         -> OperationsLocs::Locations;
+    }
+
+    object Interupt : InvocationContext -> InterfaceStage::Tree
+    {
+        array< ref< Parser::InteruptDef > >         interupt_defs;
+        late< opt< ref< EventTypeTrait > > >        events_trait_opt;
+        late< opt< ref< TransitionTypeTrait > > >   transition_trait_opt;
+        late< opt< ref< Parser::Body > > >          body_opt;
+    }
+
+    object Requirement : InvocationContext -> InterfaceStage::Tree
+    {
+        array< ref< Parser::RequirementDef > >      requirement_defs;
+        late< ref< EventTypeTrait > >               events_trait;
+        late< ref< TransitionTypeTrait > >          transition_trait;
+        late< opt< ref< Parser::Body > > >          body_opt;
+    }
+
+    object Decider : InvocationContext -> InterfaceStage::Tree
+    {
+        array< ref< Parser::DeciderDef > >      decider_defs;
+        late< ref< EventTypeTrait > >           events_trait;
+        late< ref< Parser::Body > >             body;
+    }
+
+    object Function : InvocationContext -> InterfaceStage::Tree
+    {
+        array< ref< Parser::FunctionDef > >     function_defs;
+        late< ref< Parser::Body > >             body;
+        late< ref< ReturnTypeTrait > >          return_type_trait;
+        late< ref< ArgumentListTrait > >        arguments_trait;
+    }
+
+    object State : InvocationContext -> InterfaceStage::Tree
+    {
+        array< ref< Parser::StateDef > >            state_defs;
+        late< array< ref< DimensionTrait > > >      dimension_traits;
+        late< array< ref< LinkTrait > > >           link_traits;
+        late< opt< ref< InheritanceTrait > > >      inheritance_trait_opt;
+        late< opt< ref< SizeTrait > > >             size_trait_opt;
+        late< opt< ref< TransitionTypeTrait > > >   transition_trait_opt;
+        late< array< ref< PartTrait > > >           part_traits;
+    }
+
+    object Action : State -> InterfaceStage::Tree
+    {
+        late< opt< ref< Parser::Body > > > body_opt;
+    }
+
+    object Component : State -> InterfaceStage::Tree
+    {
     }
 }

@@ -287,13 +287,13 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Components::Component* pComponent, Parser::RequirementDef* pRequirementDef ) -> Requirement*
                     {
-                        return database.construct< Requirement >( Requirement::Args{ Interupt::Args{
+                        return database.construct< Requirement >( Requirement::Args{
                             InvocationContext::Args( IContext::Args(
                                 ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ) ),
-                            { pRequirementDef } } } );
+                            { pRequirementDef } } );
                     },
                     []( Requirement* pBuffer, Parser::RequirementDef* pRequirementDef )
-                    { pBuffer->push_back_interupt_defs( pRequirementDef ); } );
+                    { pBuffer->push_back_requirement_defs( pRequirementDef ); } );
             }
             else if( auto pInteruptDef = db_cast< Parser::InteruptDef >( pChildContext ) )
             {
@@ -317,13 +317,13 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Components::Component* pComponent, Parser::DeciderDef* pDeciderDef ) -> Decider*
                     {
-                        return database.construct< Decider >( Decider::Args{ Body::Args{
+                        return database.construct< Decider >( Decider::Args{
                             InvocationContext::Args{ IContext::Args{
                                 ContextGroup::Args{ std::vector< IContext* >{} }, name, pParent, pComponent } },
-                            { pDeciderDef } } } );
+                            { pDeciderDef } } );
                     },
                     []( Decider* pFunction, Parser::DeciderDef* pDeciderDef )
-                    { pFunction->push_back_function_defs( pDeciderDef ); } );
+                    { pFunction->push_back_decider_defs( pDeciderDef ); } );
             }
             else if( auto pFunctionDef = db_cast< Parser::FunctionDef >( pChildContext ) )
             {
@@ -332,10 +332,10 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Components::Component* pComponent, Parser::FunctionDef* pFunctionDef ) -> Function*
                     {
-                        return database.construct< Function >( Function::Args{ Body::Args{
+                        return database.construct< Function >( Function::Args{
                             InvocationContext::Args( IContext::Args{
                                 ContextGroup::Args{ std::vector< IContext* >{} }, name, pParent, pComponent } ),
-                            { pFunctionDef } } } );
+                            { pFunctionDef } } );
                     },
                     []( Function* pFunction, Parser::FunctionDef* pFunctionDef )
                     { pFunction->push_back_function_defs( pFunctionDef ); } );
@@ -395,18 +395,6 @@ public:
                 Interface::UserLinkTrait::Args{ Interface::LinkTrait::Args{ pContext }, pParserLink } ) );
         }
     }
-    /*
-        void collectRequirements( InterfaceStage::Database& database, InterfaceStage::Interface::IContext* pContext,
-                                  InterfaceStage::Parser::ContextDef*                          pDef,
-                                  std::vector< InterfaceStage::Interface::RequirementTrait* >& requirements )
-        {
-            using namespace InterfaceStage;
-            for( auto pRequirement : pDef->get_requirements() )
-            {
-                requirements.push_back( database.construct< Interface::RequirementTrait >(
-                    Interface::RequirementTrait::Args( pRequirement, pContext ) ) );
-            }
-        }*/
 
     template < typename TParserType >
     void collectInheritanceTrait( InterfaceStage::Database& database, TParserType* pContextDef,
@@ -438,18 +426,20 @@ public:
     }
 
     template < typename TParserType >
-    void collectTransitionTrait( InterfaceStage::Database&                     database,
-                                 InterfaceStage::Interface::InvocationContext* pContext, TParserType* pContextDef,
-                                 std::optional< InterfaceStage::Interface::TransitionTypeTrait* >& transition )
+    void collectTransitionTraitOpt( InterfaceStage::Database&                     database,
+                                    InterfaceStage::Interface::InvocationContext* pContext, TParserType* pContextDef,
+                                    std::optional< InterfaceStage::Interface::TransitionTypeTrait* >& transition )
     {
         using namespace InterfaceStage;
-        Parser::Transition* pTransition = pContextDef->get_transition();
-        const std::string&  str         = pTransition->get_str();
-        if( !str.empty() )
+        if( auto transitionOpt = pContextDef->get_transition_opt() )
         {
             VERIFY_PARSER( !transition.has_value(), "Duplicate transition specified", pContextDef->get_id() );
             transition = database.construct< Interface::TransitionTypeTrait >(
-                Interface::TransitionTypeTrait::Args{ pTransition, pContext } );
+                Interface::TransitionTypeTrait::Args{ transitionOpt.value(), pContext } );
+        }
+        else
+        {
+            transition = std::nullopt;
         }
     }
 
@@ -484,7 +474,7 @@ public:
                     collectDimensionTraits( database, pNamespace, pDef, dimensions );
                 }
 
-                VERIFY_PARSER( !pDef->get_body().has_value(), "Namespace has body", pDef->get_id() );
+                VERIFY_PARSER( !pDef->get_body_opt().has_value(), "Namespace has body", pDef->get_id() );
             }
         }
 
@@ -498,7 +488,6 @@ public:
         std::vector< InterfaceStage::Interface::LinkTrait* >      links;
         std::optional< Interface::InheritanceTrait* >             inheritance;
         std::optional< Interface::SizeTrait* >                    size;
-        // std::vector< Interface::RequirementTrait* >               requirements;
 
         for( Parser::AbstractDef* pDef : pAbstract->get_abstract_defs() )
         {
@@ -506,14 +495,12 @@ public:
             collectLinkTraits( database, pAbstract, pDef, links );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
-            // collectRequirements( database, pAbstract, pDef, requirements );
         }
 
         pAbstract->set_dimension_traits( dimensions );
         pAbstract->set_link_traits( links );
-        pAbstract->set_inheritance_trait( inheritance );
-        pAbstract->set_size_trait( size );
-        // pAbstract->set_requirement_traits( requirements );
+        pAbstract->set_inheritance_trait_opt( inheritance );
+        pAbstract->set_size_trait_opt( size );
     }
     void onState( InterfaceStage::Database& database, InterfaceStage::Interface::State* pState )
     {
@@ -525,7 +512,6 @@ public:
         std::optional< Interface::SizeTrait* >                    size;
         std::optional< Interface::TransitionTypeTrait* >          transition;
         std::vector< InterfaceStage::Interface::PartTrait* >      parts;
-        // std::vector< Interface::RequirementTrait* >               requirements;
 
         Parser::Body* pBody = nullptr;
 
@@ -535,22 +521,21 @@ public:
             collectLinkTraits( database, pState, pDef, links );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
-            collectTransitionTrait( database, pState, pDef, transition );
+            collectTransitionTraitOpt( database, pState, pDef, transition );
             collectPartTraits( database, pState, pDef, parts );
-            // collectRequirements( database, pState, pDef, requirements );
 
-            if( pDef->get_body().has_value() )
+            if( pDef->get_body_opt().has_value() )
             {
                 VERIFY_PARSER( pBody == nullptr, "State has duplicate bodies", pDef->get_id() );
-                pBody = pDef->get_body().value();
+                pBody = pDef->get_body_opt().value();
             }
         }
 
         pState->set_dimension_traits( dimensions );
         pState->set_link_traits( links );
-        pState->set_inheritance_trait( inheritance );
-        pState->set_size_trait( size );
-        pState->set_transition_trait( transition );
+        pState->set_inheritance_trait_opt( inheritance );
+        pState->set_size_trait_opt( size );
+        pState->set_transition_trait_opt( transition );
         pState->set_part_traits( parts );
 
         // ensure only Action has body
@@ -566,9 +551,8 @@ public:
         {
             VERIFY_PARSER( pBody == nullptr, "State has body", pState->get_state_defs().front()->get_id() );
         }
-
-        // pState->set_requirement_traits( requirements );
     }
+
     void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent )
     {
         using namespace InterfaceStage;
@@ -583,48 +567,51 @@ public:
         }
 
         pEvent->set_dimension_traits( dimensions );
-        pEvent->set_inheritance_trait( inheritance );
-        pEvent->set_size_trait( size );
+        pEvent->set_inheritance_trait_opt( inheritance );
+        pEvent->set_size_trait_opt( size );
     }
+
     void onInterupt( InterfaceStage::Database& database, InterfaceStage::Interface::Interupt* pInterupt )
     {
         using namespace InterfaceStage;
 
-        Interface::EventTypeTrait*                       pEventsTrait = nullptr;
-        std::optional< Interface::TransitionTypeTrait* > transition;
+        std::optional< Interface::EventTypeTrait* >      pEventsTraitOpt;
+        std::optional< Interface::TransitionTypeTrait* > transitionOpt;
+        std::optional< Parser::Body* >                   bodyOpt;
 
-        mega::TypeName::Vector args;
-        Parser::Body*          pBody = nullptr;
         for( Parser::InteruptDef* pDef : pInterupt->get_interupt_defs() )
         {
-            if( pDef->get_body().has_value() )
+            if( pDef->get_body_opt().has_value() )
             {
-                VERIFY_PARSER( pBody == nullptr, "Interupt has duplicate bodies", pDef->get_id() );
-                pBody = pDef->get_body().value();
+                VERIFY_PARSER( !bodyOpt.has_value(), "Interupt has duplicate bodies", pDef->get_id() );
+                bodyOpt = pDef->get_body_opt().value();
             }
 
-            Parser::ArgumentList* pArguments = pDef->get_argumentList();
+            if( auto eventsOpt = pDef->get_events_opt() )
             {
-                if( !pEventsTrait )
+                if( !pEventsTraitOpt.has_value() )
                 {
-                    pEventsTrait = database.construct< Interface::EventTypeTrait >(
-                        Interface::EventTypeTrait::Args{ pArguments, pInterupt } );
-                    args = pArguments->get_args();
+                    pEventsTraitOpt = database.construct< Interface::EventTypeTrait >(
+                        Interface::EventTypeTrait::Args{ eventsOpt.value(), pInterupt } );
                 }
                 else
                 {
-                    VERIFY_PARSER( args == pArguments->get_args(), "Function arguments mismatch", pDef->get_id() );
+                    VERIFY_PARSER( false, "Interupt events multiply defined", pDef->get_id() );
                 }
             }
-            collectTransitionTrait( database, pInterupt, pDef, transition );
+            collectTransitionTraitOpt( database, pInterupt, pDef, transitionOpt );
         }
 
-        VERIFY_PARSER( pEventsTrait, "Interupt missing events list", pInterupt->get_interupt_defs().front()->get_id() );
-
-        pInterupt->set_events_trait( pEventsTrait );
-        pInterupt->set_transition_trait( transition );
-        pInterupt->set_body_opt( pBody ? std::optional< Parser::Body* >( pBody ) : std::optional< Parser::Body* >{} );
+        pInterupt->set_events_trait_opt( pEventsTraitOpt );
+        pInterupt->set_transition_trait_opt( transitionOpt );
+        pInterupt->set_body_opt( bodyOpt );
     }
+
+    void onRequirement( InterfaceStage::Database& database, InterfaceStage::Interface::Requirement* pRequirement )
+    {
+        THROW_TODO;
+    }
+
     void onFunction( InterfaceStage::Database& database, InterfaceStage::Interface::Function* pFunction )
     {
         using namespace InterfaceStage;
@@ -634,33 +621,32 @@ public:
 
         mega::TypeName::Vector args;
         std::string            strReturnType;
-        Parser::Body*          pBody = nullptr;
+        std::optional< Parser::Body* > bodyOpt;
         for( Parser::FunctionDef* pDef : pFunction->get_function_defs() )
         {
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
 
-            if( pDef->get_body().has_value() )
+            if( pDef->get_body_opt().has_value() )
             {
-                VERIFY_PARSER( pBody == nullptr, "Function has duplicate bodies", pDef->get_id() );
-                pBody = pDef->get_body().value();
+                VERIFY_PARSER( !bodyOpt.has_value(), "Function has duplicate bodies", pDef->get_id() );
+                bodyOpt = pDef->get_body_opt();
             }
 
-            Parser::ArgumentList* pArguments = pDef->get_argumentList();
+            Parser::ArgumentList* pArguments = pDef->get_arguments();
             {
                 if( !pArgumentListTrait )
                 {
                     pArgumentListTrait = database.construct< Interface::ArgumentListTrait >(
                         Interface::ArgumentListTrait::Args{ pArguments } );
-                    args = pArguments->get_args();
+                    args = pArguments->get_arguments();
                 }
                 else
                 {
-                    VERIFY_PARSER( args == pArguments->get_args(), "Function arguments mismatch", pDef->get_id() );
+                    VERIFY_PARSER( args == pArguments->get_arguments(), "Function arguments mismatch", pDef->get_id() );
                 }
             }
 
             Parser::ReturnType* pReturnType = pDef->get_returnType();
-            // if ( !pReturnType->get_str().empty() )
             {
                 if( !pReturnTypeTrait )
                 {
@@ -679,11 +665,11 @@ public:
             pArgumentListTrait, "Function missing argument list", pFunction->get_function_defs().front()->get_id() );
         VERIFY_PARSER(
             pReturnTypeTrait, "Function missing return type", pFunction->get_function_defs().front()->get_id() );
-        VERIFY_PARSER( pBody, "Function missing body", pFunction->get_function_defs().front()->get_id() );
+        VERIFY_PARSER( bodyOpt.has_value(), "Function missing body", pFunction->get_function_defs().front()->get_id() );
 
         pFunction->set_arguments_trait( pArgumentListTrait );
         pFunction->set_return_type_trait( pReturnTypeTrait );
-        pFunction->set_body( pBody );
+        pFunction->set_body( bodyOpt.value() );
     }
 
     void onDecider( InterfaceStage::Database& database, InterfaceStage::Interface::Decider* pDecider )
@@ -692,40 +678,31 @@ public:
 
         Interface::EventTypeTrait* pEventsTrait = nullptr;
 
-        mega::TypeName::Vector args;
         std::string            strReturnType;
         Parser::Body*          pBody = nullptr;
-        for( Parser::FunctionDef* pDef : pDecider->get_function_defs() )
+        for( Parser::DeciderDef* pDef : pDecider->get_decider_defs() )
         {
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
 
-            if( pDef->get_body().has_value() )
+            if( pDef->get_body_opt().has_value() )
             {
                 VERIFY_PARSER( pBody == nullptr, "Decider has duplicate bodies", pDef->get_id() );
-                pBody = pDef->get_body().value();
+                pBody = pDef->get_body_opt().value();
             }
-
-            Parser::ArgumentList* pArguments = pDef->get_argumentList();
             {
-                if( !pEventsTrait )
-                {
-                    pEventsTrait = database.construct< Interface::EventTypeTrait >(
-                        Interface::EventTypeTrait::Args{ pArguments, pDecider } );
-                    args = pArguments->get_args();
-                }
-                else
-                {
-                    VERIFY_PARSER( args == pArguments->get_args(), "Decider arguments mismatch", pDef->get_id() );
-                }
+                VERIFY_PARSER( !pEventsTrait, "Duplicate decider definitions", pDef->get_id() );
+                pEventsTrait = database.construct< Interface::EventTypeTrait >(
+                    Interface::EventTypeTrait::Args{ pDef->get_parameters(), pDecider } );
             }
         }
 
-        VERIFY_PARSER( pEventsTrait, "Decider missing argument list", pDecider->get_function_defs().front()->get_id() );
-        VERIFY_PARSER( pBody, "Decider missing body", pDecider->get_function_defs().front()->get_id() );
+        VERIFY_PARSER( pEventsTrait, "Decider missing argument list", pDecider->get_decider_defs().front()->get_id() );
+        VERIFY_PARSER( pBody, "Decider missing body", pDecider->get_decider_defs().front()->get_id() );
 
         pDecider->set_events_trait( pEventsTrait );
         pDecider->set_body( pBody );
     }
+
     void onObject( InterfaceStage::Database& database, InterfaceStage::Interface::Object* pObject )
     {
         using namespace InterfaceStage;
@@ -740,7 +717,7 @@ public:
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
             VERIFY_PARSER(
-                !pDef->get_body().has_value(), "Object has body: " << pObject->get_identifier(), pDef->get_id() );
+                !pDef->get_body_opt().has_value(), "Object has body: " << pObject->get_identifier(), pDef->get_id() );
         }
 
         // add compiler generated elements
@@ -781,8 +758,8 @@ public:
 
         pObject->set_dimension_traits( dimensions );
         pObject->set_link_traits( links );
-        pObject->set_inheritance_trait( inheritance );
-        pObject->set_size_trait( size );
+        pObject->set_inheritance_trait_opt( inheritance );
+        pObject->set_size_trait_opt( size );
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
@@ -849,6 +826,10 @@ public:
         for( Interface::Interupt* pInterupt : database.many< Interface::Interupt >( m_sourceFilePath ) )
         {
             onInterupt( database, pInterupt );
+        }
+        for( Interface::Requirement* pRequirement : database.many< Interface::Requirement >( m_sourceFilePath ) )
+        {
+            onRequirement( database, pRequirement );
         }
 
         const task::FileHash fileHashCode = database.save_Tree_to_temp();

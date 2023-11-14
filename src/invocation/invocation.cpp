@@ -39,6 +39,7 @@ namespace OperationsStage
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 #include "compiler/common_ancestor.hpp"
+#include "compiler/invocation_policy.hpp"
 namespace Derivation
 {
 #include "compiler/derivation_printer.hpp"
@@ -58,50 +59,8 @@ using namespace OperationsStage;
 
 namespace
 {
-struct InvocationPolicy
+struct InvocationPolicy : public InvocationPolicyBase
 {
-    using GraphVertex             = OperationsStage::Concrete::Graph::Vertex;
-    using GraphEdge               = OperationsStage::Concrete::Graph::Edge;
-    using GraphVertexVector       = std::vector< GraphVertex* >;
-    using GraphVertexSet          = std::unordered_set< GraphVertex* >;
-    using GraphVertexVectorVector = std::vector< GraphVertexVector >;
-    using GraphEdgeVector         = std::vector< GraphEdge* >;
-
-    struct Spec
-    {
-        GraphVertexVector       context;
-        GraphVertexVectorVector path;
-    };
-
-    using StepPtr      = OperationsStage::Derivation::Step*;
-    using EdgePtr      = OperationsStage::Derivation::Edge*;
-    using OrPtr        = OperationsStage::Derivation::Or*;
-    using OrPtrVector  = std::vector< OrPtr >;
-    using AndPtr       = OperationsStage::Derivation::And*;
-    using AndPtrVector = std::vector< AndPtr >;
-    using RootPtr      = OperationsStage::Derivation::Root*;
-
-    EdgePtr makeEdge( StepPtr pNext, const GraphEdgeVector& edges ) const
-    {
-        // initially no edges are eliminated
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, edges } );
-    }
-    OrPtr makeOr( GraphVertex* pVertex ) const
-    {
-        return m_database.construct< Derivation::Or >( Derivation::Or::Args{ Derivation::Step::Args{ pVertex, {} } } );
-    }
-    RootPtr makeRoot( const GraphVertexVector& context ) const
-    {
-        return m_database.construct< Derivation::Root >( Derivation::Root::Args{ context, {} } );
-    }
-    EdgePtr makeRootEdge( OrPtr pNext ) const
-    {
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, {} } );
-    }
-    // bool   isLinkDimension( GraphVertex* pVertex ) const { return db_cast< Concrete::Dimensions::Link >( pVertex ); }
-    // AndPtr isAndStep( StepPtr pStep ) const { return db_cast< OperationsStage::Derivation::And >( pStep ); }
-    // void   backtrack( EdgePtr pEdge ) const { pEdge->set_backtracked( true ); }
-
     OrPtrVector expandLink( OrPtr pOr ) const
     {
         OrPtrVector result;
@@ -190,12 +149,9 @@ struct InvocationPolicy
     }
 
     InvocationPolicy( Database& database )
-        : m_database( database )
+        : InvocationPolicyBase( database )
     {
     }
-
-private:
-    Database& m_database;
 };
 
 void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationID& id,

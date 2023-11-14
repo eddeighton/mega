@@ -176,21 +176,21 @@ public:
                     {
                         QualType typeTypeCanonical = typeType.getCanonicalType();
 
-                        std::vector< std::vector< std::vector< mega::TypeID > > > result;
-                        if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
+                        SymbolIDVariantSequenceVector result;
+                        if( !getSymbolIDVariantSequenceVector( pASTContext, typeTypeCanonical, result ) )
                         {
                             REPORT_ERROR( "Failed to resolve link type for " << printLinkTraitFullType( pLinkTrait )
                                                                              << "(" << pLinkTrait->get_interface_id()
-                                                                             << ")" );
+                                                                             << ") with type: " << typeTypeCanonical.getAsString() );
                             return false;
                         }
 
-                        std::vector< Interface::TypePathVariant* > linkType;
+                        std::vector< Interface::SymbolVariantSequence* > linkType;
                         if( !convert( result, linkType ) )
                         {
                             REPORT_ERROR( "Failed to convert link type for " << printLinkTraitFullType( pLinkTrait )
                                                                              << "(" << pLinkTrait->get_interface_id()
-                                                                             << ")" );
+                                                                             << ") with type: " << typeTypeCanonical.getAsString() );
                             return false;
                         }
 
@@ -231,15 +231,15 @@ public:
                 {
                     QualType typeTypeCanonical = typeType.getCanonicalType();
 
-                    std::vector< std::vector< std::vector< mega::TypeID > > > result;
-                    if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
+                    SymbolIDVariantSequenceVector result;
+                    if( !getSymbolIDVariantSequenceVector( pASTContext, typeTypeCanonical, result ) )
                     {
                         REPORT_ERROR( "Failed to resolve requirement type for "
                                       << pContext->get_identifier() << "(" << pContext->get_interface_id() << ")" );
                         return false;
                     }
 
-                    std::vector< Interface::TypePathVariant* > linkType;
+                    std::vector< Interface::SymbolVariantSequence* > linkType;
                     if( !convert( result, linkType ) )
                     {
                         REPORT_ERROR( "Failed to convert requirement type for "
@@ -538,15 +538,15 @@ public:
         return true;
     }
 
-    bool convert( const std::vector< mega::TypeID >& types, std::vector< Symbols::SymbolTypeID* >& result )
+    bool convert( const std::vector< mega::TypeID >& symbolIDVariant, std::vector< Symbols::SymbolTypeID* >& symbolVariant )
     {
-        for( mega::TypeID symbolID : types )
+        for( mega::TypeID symbolID : symbolIDVariant )
         {
             auto iFind = m_symbolIDs.find( symbolID );
             if( iFind != m_symbolIDs.end() )
             {
                 Symbols::SymbolTypeID* pSymbol = iFind->second;
-                result.push_back( pSymbol );
+                symbolVariant.push_back( pSymbol );
             }
             else
             {
@@ -559,7 +559,7 @@ public:
                     if( iFind3 != m_symbolIDs.end() )
                     {
                         Symbols::SymbolTypeID* pSymbol = iFind3->second;
-                        result.push_back( pSymbol );
+                        symbolVariant.push_back( pSymbol );
                     }
                     else
                     {
@@ -577,28 +577,28 @@ public:
         return true;
     }
 
-    using TypePathVariantTuple = std::vector< std::vector< std::vector< mega::TypeID > > >;
-    bool convert( const TypePathVariantTuple& type, std::vector< Interface::TypePathVariant* >& result )
+    bool convert( const SymbolIDVariantSequenceVector& type, std::vector< Interface::SymbolVariantSequence* >& result )
     {
-        for( const auto& element : type )
+        for( const auto& symbolIDVariantPath : type )
         {
-            std::vector< Interface::TypePath* > variantTypes;
-            for( const auto& path : element )
+            std::vector< Interface::SymbolVariant* > symbolVariantPath;
+            for( const auto& symbolIDVariant : symbolIDVariantPath )
             {
-                std::vector< Symbols::SymbolTypeID* > typePath;
-                if( !convert( path, typePath ) )
+                std::vector< Symbols::SymbolTypeID* > symbolVariant;
+                if( !convert( symbolIDVariant, symbolVariant ) )
                 {
                     return false;
                 }
 
-                Interface::TypePath* pTypePath
-                    = m_database.construct< Interface::TypePath >( Interface::TypePath::Args{ typePath } );
-                variantTypes.push_back( pTypePath );
+                Interface::SymbolVariant* pSymbolVariant = m_database.construct< Interface::SymbolVariant >(
+                    Interface::SymbolVariant::Args{ symbolVariant } );
+                symbolVariantPath.push_back( pSymbolVariant );
             }
 
-            Interface::TypePathVariant* pTypePathVariant = m_database.construct< Interface::TypePathVariant >(
-                Interface::TypePathVariant::Args{ variantTypes } );
-            result.push_back( pTypePathVariant );
+            Interface::SymbolVariantSequence* pSymbolVariantPath
+                = m_database.construct< Interface::SymbolVariantSequence >(
+                    Interface::SymbolVariantSequence::Args{ symbolVariantPath } );
+            result.push_back( pSymbolVariantPath );
         }
         return true;
     }
@@ -620,13 +620,13 @@ public:
                 = getTypeTrait( pASTContext, pSema, interuptTypeResult.pDeclContext, interuptTypeResult.loc, "Type" );
             QualType typeTypeCanonical = typeType.getCanonicalType();
 
-            std::vector< std::vector< std::vector< mega::TypeID > > > result;
-            if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
+            SymbolIDVariantSequenceVector result;
+            if( !getSymbolIDVariantSequenceVector( pASTContext, typeTypeCanonical, result ) )
             {
                 return false;
             }
 
-            std::vector< Interface::TypePathVariant* > transitionType;
+            std::vector< Interface::SymbolVariantSequence* > transitionType;
             if( !convert( result, transitionType ) )
             {
                 return false;
@@ -655,13 +655,13 @@ public:
                 = getTypeTrait( pASTContext, pSema, eventTypeResult.pDeclContext, eventTypeResult.loc, "Type" );
             QualType typeTypeCanonical = typeType.getCanonicalType();
 
-            std::vector< std::vector< std::vector< mega::TypeID > > > result;
-            if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
+            SymbolIDVariantSequenceVector result;
+            if( !getSymbolIDVariantSequenceVector( pASTContext, typeTypeCanonical, result ) )
             {
                 return false;
             }
 
-            std::vector< Interface::TypePathVariant* > eventType;
+            std::vector< Interface::SymbolVariantSequence* > eventType;
             if( !convert( result, eventType ) )
             {
                 return false;
@@ -700,12 +700,12 @@ public:
                 linkAnalysis( pAbstract, result.loc, result.pDeclContext );
                 // requirementAnalysis( pAbstract, result.loc, result.pDeclContext );
 
-                if( std::optional< InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
+                if( auto inheritanceOpt = pAbstract->get_inheritance_trait_opt() )
                 {
                     if( !inheritanceAnalysis( pAbstract, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
-                if( std::optional< Interface::SizeTrait* > sizeOpt = pAbstract->get_size_trait() )
+                if( auto sizeOpt = pAbstract->get_size_trait_opt() )
                 {
                     if( !sizeAnalysis( pAbstract, sizeOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
@@ -720,17 +720,17 @@ public:
                 linkAnalysis( pState, result.loc, result.pDeclContext );
                 // requirementAnalysis( pState, result.loc, result.pDeclContext );
 
-                if( std::optional< InheritanceTrait* > inheritanceOpt = pState->get_inheritance_trait() )
+                if( auto inheritanceOpt = pState->get_inheritance_trait_opt() )
                 {
                     if( !inheritanceAnalysis( pState, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
-                if( std::optional< Interface::SizeTrait* > sizeOpt = pState->get_size_trait() )
+                if( auto sizeOpt = pState->get_size_trait_opt() )
                 {
                     if( !sizeAnalysis( pState, sizeOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
-                if( std::optional< Interface::TransitionTypeTrait* > transitionOpt = pState->get_transition_trait() )
+                if( auto transitionOpt = pState->get_transition_trait_opt() )
                 {
                     if( !transitionAnalysis( pState, transitionOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
@@ -743,12 +743,12 @@ public:
             {
                 dimensionAnalysis( pEvent, result.loc, result.pDeclContext );
 
-                if( std::optional< InheritanceTrait* > inheritanceOpt = pEvent->get_inheritance_trait() )
+                if( auto inheritanceOpt = pEvent->get_inheritance_trait_opt() )
                 {
                     if( !inheritanceAnalysis( pEvent, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
-                if( std::optional< Interface::SizeTrait* > sizeOpt = pEvent->get_size_trait() )
+                if( auto sizeOpt = pEvent->get_size_trait_opt() )
                 {
                     if( !sizeAnalysis( pEvent, sizeOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
@@ -767,15 +767,18 @@ public:
                     return false;
                 }
 
-                if( std::optional< Interface::TransitionTypeTrait* > transitionOpt = pInterupt->get_transition_trait() )
+                if( auto transitionOpt = pInterupt->get_transition_trait_opt() )
                 {
                     if( !transitionAnalysis( pInterupt, transitionOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
 
-                if( !eventAnalysis( pInterupt, pInterupt->get_events_trait(), result.loc, pCXXRecordDecl ) )
+                if( auto eventOpt = pInterupt->get_events_trait_opt() )
                 {
-                    return false;
+                    if( !eventAnalysis( pInterupt, eventOpt.value(), result.loc, pCXXRecordDecl ) )
+                    {
+                        return false;
+                    }
                 }
 
                 bProcess = true;
@@ -788,7 +791,7 @@ public:
                 if( !pCXXRecordDecl )
                 {
                     REPORT_ERROR( "Invalid decider context type: " << pContext->get_identifier() << "("
-                                                                    << pContext->get_interface_id() << ")" );
+                                                                   << pContext->get_interface_id() << ")" );
                     return false;
                 }
                 if( !eventAnalysis( pDecider, pDecider->get_events_trait(), result.loc, pCXXRecordDecl ) )
@@ -817,12 +820,12 @@ public:
                 dimensionAnalysis( pObject, result.loc, result.pDeclContext );
                 linkAnalysis( pObject, result.loc, result.pDeclContext );
 
-                if( std::optional< InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
+                if( auto inheritanceOpt = pObject->get_inheritance_trait_opt() )
                 {
                     if( !inheritanceAnalysis( pObject, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
-                if( std::optional< Interface::SizeTrait* > sizeOpt = pObject->get_size_trait() )
+                if( auto sizeOpt = pObject->get_size_trait_opt() )
                 {
                     if( !sizeAnalysis( pObject, sizeOpt.value(), result.loc, result.pDeclContext ) )
                         return false;

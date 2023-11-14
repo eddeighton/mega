@@ -67,7 +67,7 @@ public:
 
             if( auto pAbstract = db_cast< Interface::Abstract >( pIContext ) )
             {
-                if( auto opt = pAbstract->get_inheritance_trait(); opt.has_value() )
+                if( auto opt = pAbstract->get_inheritance_trait_opt() )
                 {
                     for( auto pInheritedIContext : opt.value()->get_contexts() )
                     {
@@ -77,7 +77,7 @@ public:
             }
             else if( auto pState = db_cast< Interface::State >( pIContext ) )
             {
-                if( auto opt = pState->get_inheritance_trait(); opt.has_value() )
+                if( auto opt = pState->get_inheritance_trait_opt() )
                 {
                     for( auto pInheritedIContext : opt.value()->get_contexts() )
                     {
@@ -87,7 +87,7 @@ public:
             }
             else if( auto pEvent = db_cast< Interface::Event >( pIContext ) )
             {
-                if( auto opt = pEvent->get_inheritance_trait(); opt.has_value() )
+                if( auto opt = pEvent->get_inheritance_trait_opt() )
                 {
                     for( auto pInheritedIContext : opt.value()->get_contexts() )
                     {
@@ -97,7 +97,7 @@ public:
             }
             else if( auto pObject = db_cast< Interface::Object >( pIContext ) )
             {
-                if( auto opt = pObject->get_inheritance_trait(); opt.has_value() )
+                if( auto opt = pObject->get_inheritance_trait_opt() )
                 {
                     for( auto pInheritedIContext : opt.value()->get_contexts() )
                     {

@@ -133,21 +133,23 @@ mega::reports::Container InheritanceReporter::generate( const mega::reports::URL
             const auto index = iFind->second;
 
             std::optional< Interface::InheritanceTrait* > inheritance;
-            if( auto pAbstract = db_cast< Interface::Abstract >( pContext ) )
             {
-                inheritance = pAbstract->get_inheritance_trait();
-            }
-            else if( auto pState = db_cast< Interface::State >( pContext ) )
-            {
-                inheritance = pState->get_inheritance_trait();
-            }
-            else if( auto pEvent = db_cast< Interface::Event >( pContext ) )
-            {
-                inheritance = pEvent->get_inheritance_trait();
-            }
-            else if( auto pObject = db_cast< Interface::Object >( pContext ) )
-            {
-                inheritance = pObject->get_inheritance_trait();
+                if( auto pAbstract = db_cast< Interface::Abstract >( pContext ) )
+                {
+                    inheritance = pAbstract->get_inheritance_trait_opt();
+                }
+                else if( auto pState = db_cast< Interface::State >( pContext ) )
+                {
+                    inheritance = pState->get_inheritance_trait_opt();
+                }
+                else if( auto pEvent = db_cast< Interface::Event >( pContext ) )
+                {
+                    inheritance = pEvent->get_inheritance_trait_opt();
+                }
+                else if( auto pObject = db_cast< Interface::Object >( pContext ) )
+                {
+                    inheritance = pObject->get_inheritance_trait_opt();
+                }
             }
 
             if( inheritance.has_value() )

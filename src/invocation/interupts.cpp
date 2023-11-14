@@ -40,6 +40,8 @@ namespace OperationsStage
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 #include "compiler/common_ancestor.hpp"
+#include "compiler/invocation_policy.hpp"
+#include "compiler/symbol_variant_printer.hpp"
 namespace Derivation
 {
 #include "compiler/derivation_printer.hpp"
@@ -53,50 +55,8 @@ namespace mega
 {
 namespace
 {
-struct InvocationPolicy
+struct InvocationPolicy : public InvocationPolicyBase
 {
-    using GraphVertex             = OperationsStage::Concrete::Graph::Vertex;
-    using GraphEdge               = OperationsStage::Concrete::Graph::Edge;
-    using GraphVertexVector       = std::vector< GraphVertex* >;
-    using GraphVertexSet          = std::unordered_set< GraphVertex* >;
-    using GraphVertexVectorVector = std::vector< GraphVertexVector >;
-    using GraphEdgeVector         = std::vector< GraphEdge* >;
-
-    struct Spec
-    {
-        GraphVertexVector       context;
-        GraphVertexVectorVector path;
-    };
-
-    using StepPtr      = OperationsStage::Derivation::Step*;
-    using EdgePtr      = OperationsStage::Derivation::Edge*;
-    using OrPtr        = OperationsStage::Derivation::Or*;
-    using OrPtrVector  = std::vector< OrPtr >;
-    using AndPtr       = OperationsStage::Derivation::And*;
-    using AndPtrVector = std::vector< AndPtr >;
-    using RootPtr      = OperationsStage::Derivation::Root*;
-
-    EdgePtr makeEdge( StepPtr pNext, const GraphEdgeVector& edges ) const
-    {
-        // initially no edges are eliminated
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, edges } );
-    }
-    OrPtr makeOr( GraphVertex* pVertex ) const
-    {
-        return m_database.construct< Derivation::Or >( Derivation::Or::Args{ Derivation::Step::Args{ pVertex, {} } } );
-    }
-    RootPtr makeRoot( const GraphVertexVector& context ) const
-    {
-        return m_database.construct< Derivation::Root >( Derivation::Root::Args{ context, {} } );
-    }
-    EdgePtr makeRootEdge( OrPtr pNext ) const
-    {
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, {} } );
-    }
-    // bool   isLinkDimension( GraphVertex* pVertex ) const { return db_cast< Concrete::Dimensions::Link >( pVertex ); }
-    // AndPtr isAndStep( StepPtr pStep ) const { return db_cast< OperationsStage::Derivation::And >( pStep ); }
-    // void   backtrack( EdgePtr pEdge ) const { pEdge->set_backtracked( true ); }
-
     OrPtrVector expandLink( OrPtr pOr ) const
     {
         OrPtrVector result;
@@ -185,12 +145,9 @@ struct InvocationPolicy
     }
 
     InvocationPolicy( Database& database )
-        : m_database( database )
+        : InvocationPolicyBase( database )
     {
     }
-
-private:
-    Database& m_database;
 };
 
 } // namespace
@@ -199,7 +156,7 @@ private:
 namespace mega::invocation
 {
 
-void compileInterupts( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile )
+void compileInterupts( Database& database, const mega::io::megaFilePath& sourceFile )
 {
     using namespace OperationsStage;
 
@@ -207,37 +164,13 @@ void compileInterupts( OperationsStage::Database& database, const mega::io::mega
     {
         std::vector< InvocationPolicy::RootPtr > derivations;
 
-        auto pEventTrait = pInterupt->get_interface_interupt()->get_events_trait();
-
-        for( auto pTypePathVariant : pEventTrait->get_tuple() )
+        auto pEventTraitOpt = pInterupt->get_interface_interupt()->get_events_trait_opt();
+        if( pEventTraitOpt.has_value() )
         {
-            InvocationPolicy::Spec derivationSpec{ { pInterupt } };
-
-            for( auto pSequence : pTypePathVariant->get_sequence() )
+            auto pEventTrait = pEventTraitOpt.value();
+            for( auto pSymbolVariantSequence : pEventTrait->get_symbol_variant_sequences() )
             {
-                for( auto pSymbol : pSequence->get_types() )
-                {
-                    InvocationPolicy::GraphVertexVector pathElement;
-                    for( auto pContext : pSymbol->get_contexts() )
-                    {
-                        for( auto pConcrete : pContext->get_concrete() )
-                        {
-                            pathElement.push_back( pConcrete );
-                        }
-                    }
-                    for( auto pLink : pSymbol->get_links() )
-                    {
-                        for( auto pConcrete : pLink->get_concrete() )
-                        {
-                            pathElement.push_back( pConcrete );
-                        }
-                    }
-                    VERIFY_RTE_MSG( !pathElement.empty(), "Event contains invalid symbols" );
-                    if( !pathElement.empty() )
-                    {
-                        derivationSpec.path.push_back( pathElement );
-                    }
-                }
+                InvocationPolicy::Spec derivationSpec( pInterupt, pSymbolVariantSequence, true );
 
                 // solve the context free derivation
                 InvocationPolicy              policy( database );
@@ -247,6 +180,7 @@ void compileInterupts( OperationsStage::Database& database, const mega::io::mega
 
                 VERIFY_RTE_MSG( !finalFrontier.empty(),
                     "Interupt derivation failed for: " << Concrete::printContextFullType( pInterupt ) <<
+                    " " << Interface::printSymbolVariantSequence( pSymbolVariantSequence ) <<
                     "\n" << printDerivationStep( pRoot, true ) );
 
                 Derivation::precedence( pRoot );
@@ -261,10 +195,10 @@ void compileInterupts( OperationsStage::Database& database, const mega::io::mega
                         using ::           operator<<;
                         if( result == Derivation::eAmbiguous )
                             os << "Derivation disambiguation was ambiguous for: "
-                               << Concrete::printContextFullType( pInterupt ) << "\n";
+                                << Concrete::printContextFullType( pInterupt ) << "\n";
                         else if( result == Derivation::eFailure )
                             os << "Derivation disambiguation failed for: "
-                               << Concrete::printContextFullType( pInterupt ) << "\n";
+                                << Concrete::printContextFullType( pInterupt ) << "\n";
                         else
                             THROW_RTE( "Unknown derivation failure type" );
                         THROW_RTE( os.str() );
@@ -278,7 +212,7 @@ void compileInterupts( OperationsStage::Database& database, const mega::io::mega
                 {
                     std::ostringstream os;
                     os << "Exception while compiling event for: " << Concrete::printContextFullType( pInterupt )
-                       << "\n";
+                        << "\n";
                     printDerivationStep( pRoot, true, os );
                     os << "\nError: " << ex.what();
                     THROW_RTE( os.str() );

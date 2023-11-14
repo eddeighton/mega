@@ -55,15 +55,27 @@ public:
         using namespace GlobalMemoryStage;
         std::optional< Interface::SizeTrait* > sizeOpt;
         {
-            if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
+            if( auto p = db_cast< Interface::Object >( pContext ) )
             {
-                sizeOpt = pObject->get_size_trait();
+                sizeOpt = p->get_size_trait_opt();
             }
         }
         {
-            if( Interface::Abstract* pInterface = db_cast< Interface::Abstract >( pContext ) )
+            if( auto p = db_cast< Interface::Abstract >( pContext ) )
             {
-                sizeOpt = pInterface->get_size_trait();
+                sizeOpt = p->get_size_trait_opt();
+            }
+        }
+        {
+            if( auto p = db_cast< Interface::State >( pContext ) )
+            {
+                sizeOpt = p->get_size_trait_opt();
+            }
+        }
+        {
+            if( auto p = db_cast< Interface::Event >( pContext ) )
+            {
+                sizeOpt = p->get_size_trait_opt();
             }
         }
         return sizeOpt;

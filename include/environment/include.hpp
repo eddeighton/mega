@@ -37,6 +37,7 @@
 #include "mega/values/compilation/type_id_limits.hpp"
 #include "mega/values/compilation/type_id_sequence.hpp"
 #include "mega/values/compilation/type_instance.hpp"
+#include "mega/values/compilation/symbol_grammar.hpp"
 
 #include "database/component_type.hpp"
 #include "database/component_info.hpp"
