@@ -224,6 +224,7 @@ public:
             return;
         }
 
+        bool bModified = false;
         {
             using namespace ConcreteStage;
             using namespace ConcreteStage::Interface;
@@ -257,13 +258,21 @@ public:
                 templateEngine.renderPythonWrappers( data, os );
             }
             std::string strOperations = os.str();
-            boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
+            bModified = boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
         }
 
-        m_environment.setBuildHashCode( operationsFile );
-        m_environment.stash( operationsFile, determinant );
+        if( bModified )
+        {
+            m_environment.setBuildHashCode( operationsFile );
+            m_environment.stash( operationsFile, determinant );
+            succeeded( taskProgress );
+        }
+        else
+        {
+            m_environment.setBuildHashCode( operationsFile );
+            cached( taskProgress );
+        }
 
-        succeeded( taskProgress );
     }
 };
 

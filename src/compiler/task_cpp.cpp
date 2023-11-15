@@ -195,108 +195,116 @@ public:
         }*/
 
         // using namespace OperationsStage;
-        using namespace InheritanceAnalysisView::Interface;
-
-        ::inja::Environment injaEnvironment;
+        std::ostringstream osInterface;
         {
-            injaEnvironment.set_trim_blocks( true );
-        }
+            using namespace InheritanceAnalysisView::Interface;
 
-        InterfaceGen::TemplateEngine templateEngine( m_environment, injaEnvironment );
-        nlohmann::json               structs   = nlohmann::json::array();
-        nlohmann::json               typenames = nlohmann::json::array();
-
-        Dependencies::Analysis* pDependencyAnalysis
-            = database.one< Dependencies::Analysis >( m_environment.project_manifest() );
-
-        // build the interface view for this translation unit
-        InterfaceGen::InterfaceNode::Ptr pInterfaceRoot = std::make_shared< InterfaceGen::InterfaceNode >();
-        {
-            auto cppFileDependencies = pDependencyAnalysis->get_cpp_dependencies();
-
-            for( const mega::io::cppFilePath& cppFile : pComponent->get_cpp_source_files() )
+            ::inja::Environment injaEnvironment;
             {
-                auto megaIter = cppFileDependencies.find( cppFile );
-                VERIFY_RTE( megaIter != cppFileDependencies.end() );
-                Dependencies::TransitiveDependencies* pTransitiveDep = megaIter->second;
+                injaEnvironment.set_trim_blocks( true );
+            }
 
-                for( const mega::io::megaFilePath& megaFile : pTransitiveDep->get_mega_source_files() )
+            InterfaceGen::TemplateEngine templateEngine( m_environment, injaEnvironment );
+            nlohmann::json               structs   = nlohmann::json::array();
+            nlohmann::json               typenames = nlohmann::json::array();
+
+            Dependencies::Analysis* pDependencyAnalysis
+                = database.one< Dependencies::Analysis >( m_environment.project_manifest() );
+
+            // build the interface view for this translation unit
+            InterfaceGen::InterfaceNode::Ptr pInterfaceRoot = std::make_shared< InterfaceGen::InterfaceNode >();
+            {
+                auto cppFileDependencies = pDependencyAnalysis->get_cpp_dependencies();
+
+                for( const mega::io::cppFilePath& cppFile : pComponent->get_cpp_source_files() )
                 {
-                    // ensure meta analysis loaded
-                    Interface::Root* pRoot = database.one< Interface::Root >( megaFile );
-                    for( IContext* pContext : pRoot->get_children() )
+                    auto megaIter = cppFileDependencies.find( cppFile );
+                    VERIFY_RTE( megaIter != cppFileDependencies.end() );
+                    Dependencies::TransitiveDependencies* pTransitiveDep = megaIter->second;
+
+                    for( const mega::io::megaFilePath& megaFile : pTransitiveDep->get_mega_source_files() )
                     {
-                        InterfaceGen::buildInterfaceTree( pInterfaceRoot, pContext );
+                        // ensure meta analysis loaded
+                        Interface::Root* pRoot = database.one< Interface::Root >( megaFile );
+                        for( IContext* pContext : pRoot->get_children() )
+                        {
+                            InterfaceGen::buildInterfaceTree( pInterfaceRoot, pContext );
+                        }
                     }
                 }
             }
-        }
 
-        std::ostringstream os;
-        {
-            for( InterfaceGen::InterfaceNode::Ptr pInterfaceNode : pInterfaceRoot->children )
+            std::ostringstream os;
             {
-                InterfaceGen::recurse( templateEngine, pInterfaceNode, structs, typenames, os );
-            }
-        }
-
-        // clang-format
-        std::string strInterface = os.str();
-
-        // generate the interface header
-        {
-            std::ostringstream osGuard;
-            {
-                bool bFirst = true;
-                for( auto filePart : pComponent->get_build_dir() )
+                for( InterfaceGen::InterfaceNode::Ptr pInterfaceNode : pInterfaceRoot->children )
                 {
-                    if( bFirst )
-                        bFirst = false;
-                    else
-                        osGuard << "_";
-                    std::string str = filePart.replace_extension( "" ).string();
-                    std::replace_if(
-                        str.begin(), str.end(), []( char ch ) { return !std::isalnum( ch ); }, '_' );
-                    if( str != "/" )
-                        osGuard << str;
+                    InterfaceGen::recurse( templateEngine, pInterfaceNode, structs, typenames, os );
                 }
-                osGuard << "_" << pComponent->get_name();
             }
 
-            nlohmann::json interfaceData( { { "interface", strInterface },
-                                            { "guard", osGuard.str() },
-                                            { "structs", structs },
-                                            { "forward_decls", nlohmann::json::array() } } );
+            // clang-format
+            std::string strInterface = os.str();
 
-            Symbols::SymbolTable* pSymbolTable
-                = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-            for( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbol_names() )
+            // generate the interface header
             {
-                nlohmann::json forwardDecl( { { "symbol", pSymbol->get_id().getSymbolID() }, { "name", symbolName } } );
-
-                bool bIsGlobal = false;
-                for( auto pContext : pSymbol->get_contexts() )
+                std::ostringstream osGuard;
                 {
-                    if( db_cast< Interface::Root >( pContext->get_parent() ) )
+                    bool bFirst = true;
+                    for( auto filePart : pComponent->get_build_dir() )
                     {
-                        bIsGlobal = true;
+                        if( bFirst )
+                            bFirst = false;
+                        else
+                            osGuard << "_";
+                        std::string str = filePart.replace_extension( "" ).string();
+                        std::replace_if(
+                            str.begin(), str.end(), []( char ch ) { return !std::isalnum( ch ); }, '_' );
+                        if( str != "/" )
+                            osGuard << str;
+                    }
+                    osGuard << "_" << pComponent->get_name();
+                }
+
+                nlohmann::json interfaceData( { { "interface", strInterface },
+                                                { "guard", osGuard.str() },
+                                                { "structs", structs },
+                                                { "forward_decls", nlohmann::json::array() } } );
+
+                Symbols::SymbolTable* pSymbolTable
+                    = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+                for( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbol_names() )
+                {
+                    nlohmann::json forwardDecl(
+                        { { "symbol", pSymbol->get_id().getSymbolID() }, { "name", symbolName } } );
+
+                    bool bIsGlobal = false;
+                    for( auto pContext : pSymbol->get_contexts() )
+                    {
+                        if( db_cast< Interface::Root >( pContext->get_parent() ) )
+                        {
+                            bIsGlobal = true;
+                        }
+                    }
+
+                    if( !bIsGlobal )
+                    {
+                        interfaceData[ "forward_decls" ].push_back( forwardDecl );
                     }
                 }
-
-                if( !bIsGlobal )
-                {
-                    interfaceData[ "forward_decls" ].push_back( forwardDecl );
-                }
+                templateEngine.renderInterface( interfaceData, osInterface );
             }
-
-            std::unique_ptr< boost::filesystem::ofstream > pOStream = m_environment.write( interfaceHeader );
-            templateEngine.renderInterface( interfaceData, *pOStream );
         }
 
-        m_environment.setBuildHashCode( interfaceHeader );
-        // m_environment.stash( interfaceHeader, determinant );
-
-        succeeded( taskProgress );
+        if( boost::filesystem::updateFileIfChanged( m_environment.FilePath( interfaceHeader ), osInterface.str() ) )
+        {
+            m_environment.setBuildHashCode( interfaceHeader );
+            succeeded( taskProgress );
+        }
+        else
+        {
+            m_environment.setBuildHashCode( interfaceHeader );
+            cached( taskProgress );
+        }
     }
 };
 
@@ -319,7 +327,10 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        using namespace InheritanceAnalysisView; // just need a stage that uses project_manifest
+        using namespace InheritanceAnalysisView;
+
+        // NOTE: this stage runs clang with Library mode which DOES NOT save a compilation file
+        // so the ONLY byproduct is the pch file
 
         Database database( m_environment, m_environment.project_manifest() );
 
@@ -336,9 +347,9 @@ public:
         VERIFY_RTE( pComponent );
 
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader
-            = m_environment.Interface( pComponent->get_build_dir(), pComponent->get_name() );
+            = m_environment.Interface( pComponent->get_build_dir(), m_strComponentName );
         const mega::io::PrecompiledHeaderFile interfacePCHFilePath
-            = m_environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() );
+            = m_environment.InterfacePCH( pComponent->get_build_dir(), m_strComponentName );
 
         start( taskProgress, "Task_CPPInterfaceAnalysis", m_strComponentName, interfacePCHFilePath.path() );
 
@@ -532,12 +543,18 @@ public:
             ImplementationGen implGen( m_environment, m_sourceFilePath.path().string() );
             implGen.generate( database.one< Operations::Invocations >( m_sourceFilePath ), os );
         }
-        boost::filesystem::updateFileIfChanged( m_environment.FilePath( implementationFile ), os.str() );
-
-        m_environment.setBuildHashCode( implementationFile );
-        m_environment.stash( implementationFile, determinant );
-
-        succeeded( taskProgress );
+        
+        if( boost::filesystem::updateFileIfChanged( m_environment.FilePath( implementationFile ), os.str() ) )
+        {
+            m_environment.setBuildHashCode( implementationFile );
+            m_environment.stash( implementationFile, determinant );
+            succeeded( taskProgress );
+        }
+        else
+        {
+            m_environment.setBuildHashCode( implementationFile );
+            cached( taskProgress );
+        }
     }
 };
 

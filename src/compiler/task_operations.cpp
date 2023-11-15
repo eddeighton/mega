@@ -81,6 +81,7 @@ public:
             return;
         }
 
+        bool bModified = false;
         {
             using namespace OperationsStage;
             using namespace OperationsStage::Interface;
@@ -97,13 +98,20 @@ public:
                 Interface::Root*              pRoot = database.one< Interface::Root >( m_sourceFilePath );
                 strOperations                       = OperationsGen::generate( templateEngine, pRoot, true );
             }
-            boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
+            bModified = boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
         }
 
-        m_environment.setBuildHashCode( operationsFile );
-        m_environment.stash( operationsFile, determinant );
-
-        succeeded( taskProgress );
+        if( bModified )
+        {
+            m_environment.setBuildHashCode( operationsFile );
+            m_environment.stash( operationsFile, determinant );
+            succeeded( taskProgress );
+        }
+        else
+        {
+            m_environment.setBuildHashCode( operationsFile );
+            cached( taskProgress );
+        }
     }
 };
 

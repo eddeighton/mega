@@ -64,12 +64,17 @@ namespace Derivation
         array< ref< Edge > >            edges;
     }
 
+    object Or : Step -> OperationsStage::Operations
+    {
+    }
+
     object And : Step -> OperationsStage::Operations
     {
     }
 
-    object Or : Step -> OperationsStage::Operations
+    object Select : And -> OperationsStage::Operations
     {
+        ref< Concrete::Graph::Vertex >  selection;
     }
 
     object Root -> OperationsStage::Operations

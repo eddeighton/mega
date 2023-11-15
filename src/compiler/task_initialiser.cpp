@@ -93,6 +93,7 @@ public:
             return;
         }
 
+        bool bModified = true;
         {
             using namespace ConcreteStage;
             using namespace ConcreteStage::Interface;
@@ -138,13 +139,20 @@ public:
                 templateEngine.renderOperations( data, os );
             }
             std::string strOperations = os.str();
-            boost::filesystem::updateFileIfChanged( m_environment.FilePath( initialiserCPPFile ), strOperations );
+            bModified = boost::filesystem::updateFileIfChanged( m_environment.FilePath( initialiserCPPFile ), strOperations );
         }
 
-        m_environment.setBuildHashCode( initialiserCPPFile );
-        m_environment.stash( initialiserCPPFile, determinant );
-
-        succeeded( taskProgress );
+        if( bModified )
+        {
+            m_environment.setBuildHashCode( initialiserCPPFile );
+            m_environment.stash( initialiserCPPFile, determinant );
+            succeeded( taskProgress );
+        }
+        else
+        {
+            m_environment.setBuildHashCode( initialiserCPPFile );
+            cached( taskProgress );
+        }
     }
 };
 

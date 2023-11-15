@@ -82,12 +82,17 @@ public:
             ImplementationGen implGen( m_environment, m_sourceFilePath.path().string() );
             implGen.generate( database.one< Operations::Invocations >( m_sourceFilePath ), os );
         }
-        boost::filesystem::updateFileIfChanged( m_environment.FilePath( implementationFile ), os.str() );
-
-        m_environment.setBuildHashCode( implementationFile );
-        m_environment.stash( implementationFile, determinant );
-
-        succeeded( taskProgress );
+        if( boost::filesystem::updateFileIfChanged( m_environment.FilePath( implementationFile ), os.str() ) )
+        {
+            m_environment.setBuildHashCode( implementationFile );
+            m_environment.stash( implementationFile, determinant );
+            succeeded( taskProgress );
+        }
+        else
+        {
+            m_environment.setBuildHashCode( implementationFile );
+            cached( taskProgress );
+        }
     }
 };
 

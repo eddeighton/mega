@@ -32,13 +32,16 @@ namespace mega::compiler
 
 namespace
 {
-inline void addStandardIncludes( std::ostream& os )
-{
-    os << "#include \"mega/include.hpp\"\n";
-    os << "#include \"mega/mangle/traits.hpp\"\n";
-    os << "#include \"jit/functions.hpp\"\n";
-    os << "#include <boost/dll/alias.hpp>\n";
-}
+const char* pszStandardIncludes =
+R"INCLUDES(
+
+#include "mega/include.hpp"
+#include "mega/mangle/traits.hpp"
+#include "jit/functions.hpp"
+#include <boost/dll/alias.hpp>
+
+)INCLUDES";
+
 } // namespace
 
 class Task_Include : public BaseTask
@@ -58,16 +61,17 @@ public:
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
         start( taskProgress, "Task_Include", m_sourceFilePath.path(), includeFilePath.path() );
 
-        // const task::DeterminantHash determinant(
-        //     { m_toolChain.toolChainHash, m_environment.getBuildHashCode( astFile ) } );
+         const task::DeterminantHash determinant(
+             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( astFile ), pszStandardIncludes } );
 
-        /*if ( m_environment.restore( includeFilePath, determinant ) )
-        {
-            m_environment.setBuildHashCode( includeFilePath );
-            cached( taskProgress );
-            return;
-        }*/
+        // if ( m_environment.restore( includeFilePath, determinant ) )
+        // {
+        //     m_environment.setBuildHashCode( includeFilePath );
+        //     cached( taskProgress );
+        //     return;
+        // }
 
+        bool bModified = false;
         {
             using namespace InterfaceAnalysisStage;
             using namespace InterfaceAnalysisStage::Interface;
@@ -108,7 +112,7 @@ public:
                 }
 
                 // mega library includes
-                addStandardIncludes( os );
+                os << pszStandardIncludes;
 
                 {
                     std::set< mega::io::megaFilePath > uniqueFiles;
@@ -134,13 +138,21 @@ public:
                 os << "\n";
             }
 
-            boost::filesystem::updateFileIfChanged( m_environment.FilePath( includeFilePath ), os.str() );
+            bModified = boost::filesystem::updateFileIfChanged( m_environment.FilePath( includeFilePath ), os.str() );
         }
 
         m_environment.setBuildHashCode( includeFilePath );
         // m_environment.stash( includeFilePath, determinant );
 
-        succeeded( taskProgress );
+        if( bModified )
+        {
+            succeeded( taskProgress );
+        }
+        else
+        {
+            cached( taskProgress );
+        }
+
     }
 };
 
@@ -256,6 +268,7 @@ public:
             return;
         }*/
 
+        bool bModified = false;
         {
             std::ostringstream os;
             {
@@ -295,7 +308,7 @@ public:
                 }
 
                 // mega library includes
-                addStandardIncludes( os );
+                os << pszStandardIncludes;
 
                 {
                     std::set< mega::io::megaFilePath > uniqueFiles;
@@ -321,13 +334,21 @@ public:
                 os << "\n";
             }
 
-            boost::filesystem::updateFileIfChanged( m_environment.FilePath( includeFilePath ), os.str() );
+            bModified = boost::filesystem::updateFileIfChanged( m_environment.FilePath( includeFilePath ), os.str() );
         }
 
         m_environment.setBuildHashCode( includeFilePath );
         // m_environment.stash( includeFilePath, determinant );
 
-        succeeded( taskProgress );
+        if( bModified )
+        {
+            succeeded( taskProgress );
+        }
+        else
+        {
+            cached( taskProgress );
+        }
+
     }
 };
 
