@@ -137,6 +137,8 @@ namespace Concrete
         array< ref< Action > >          completions;
 
         array< ref< Derivation::Root > >                    transition          -> OperationsStage::Operations;
+        array< ref< Derivation::Dispatch > >                dispatches          -> OperationsStage::Operations;
+
         late< array< ref< Derivation::Root > > >            events              -> OperationsStage::Operations;
         late< opt< ref< Decision::DecisionProcedure > > >   transition_decision -> OperationsStage::Operations;
     }

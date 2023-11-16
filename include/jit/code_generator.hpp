@@ -47,7 +47,7 @@ class JIT_EXPORT CodeGenerator
     class Pimpl;
 
 public:
-    using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
+    using VariableMap = std::map< const FinalStage::Instructions::Variables::Variable*, std::string >;
 
     class LLVMCompiler
     {
@@ -61,26 +61,34 @@ public:
 
     void generate_alllocator( const LLVMCompiler& compiler, const JITDatabase& database, mega::TypeID objectTypeID,
                               std::ostream& os );
+
     void generate_invocation( const LLVMCompiler& compiler, const JITDatabase& database,
                               const mega::InvocationID&               invocationID,
                               mega::runtime::invocation::FunctionType invocationType, std::ostream& os );
+
     void generate_relation( const LLVMCompiler& compiler, const JITDatabase& database, const RelationID& relationID,
                             std::ostream& os );
+
     void generate_program( const LLVMCompiler& compiler, const JITDatabase& database, std::ostream& os );
 
     void generate_operator( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target,
                             mega::runtime::operators::FunctionType invocationType, std::ostream& os );
 
-    void generate_decision( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target, std::ostream& os );
+    void generate_decision( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target,
+                            std::ostream& os );
+
+    void generate_dispatcher( const LLVMCompiler& compiler, const JITDatabase& database,
+                              const FinalStage::Concrete::Interupt*   pInterupt,
+                              const FinalStage::Derivation::Dispatch* pDispatch, std::ostream& os );
 
 private:
     VariableMap
-    generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
+    generateVariables( const std::vector< ::FinalStage::Instructions::Variables::Variable* >& invocationVariables,
                        nlohmann::json&                                                       data,
                        Indent&                                                               indent ) const;
 
     void generateInstructions( const JITDatabase& database, const FinalStage::Operations::Invocation* pInvocation,
-                               const FinalStage::Invocations::Instructions::Instruction* pInstruction,
+                               const FinalStage::Instructions::Calculation::Instruction* pInstruction,
                                const VariableMap& variables, FunctionDeclarations& functions, nlohmann::json& data,
                                Indent& indent ) const;
 

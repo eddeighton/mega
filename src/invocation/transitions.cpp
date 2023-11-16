@@ -154,7 +154,7 @@ void compileTransitions( OperationsStage::Database& database, const mega::io::me
                 auto iFind = remainingInterupts.find( pInterupt );
                 VERIFY_RTE( iFind != remainingInterupts.end() );
                 remainingInterupts.erase( iFind );
-                database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, derivations } );
+                database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, derivations, {} } );
             }
             else
             {
@@ -170,7 +170,7 @@ void compileTransitions( OperationsStage::Database& database, const mega::io::me
     }
     for( auto pInterupt : remainingInterupts )
     {
-        database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, {} } );
+        database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, {}, {} } );
     }
 }
 

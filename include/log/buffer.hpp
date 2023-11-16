@@ -67,7 +67,7 @@ public:
     }
 
     template < typename RecordType >
-    void terminate() noexcept
+    inline void terminate() noexcept
     {
         if constexpr( RecordType::Variable )
         {
@@ -80,14 +80,14 @@ public:
     }
 
     template < typename RecordType >
-    bool isTerminated() const noexcept
+    inline bool isTerminated() const noexcept
     {
         static_assert( !RecordType::Variable, "incorrect isTerminated function used" );
         return !fit( RecordType::size() );
     }
 
     template < typename RecordType >
-    bool isTerminated( InterBufferOffset readPosition ) const noexcept
+    inline bool isTerminated( InterBufferOffset readPosition ) const noexcept
     {
         static_assert( RecordType::Variable, "incorrect isTerminated function used" );
         return !fit( sizeof( SizeType ) ) || ( RecordType::getVariableSize( read( readPosition ) ) == 0U );
@@ -104,7 +104,7 @@ class BufferSequence
     using BufferPtrMap = std::unordered_map< BufferIndex, typename BufferType::Ptr, BufferIndex::Hash >;
 
 public:
-    BufferSequence( BufferFactory& bufferFactory, TrackID trackID )
+    inline BufferSequence( BufferFactory& bufferFactory, TrackID trackID )
         : m_bufferStorage( bufferFactory )
         , m_trackID( trackID )
     {
@@ -112,7 +112,7 @@ public:
 
     ~BufferSequence() = default;
 
-    BufferType* getBuffer( BufferIndex fileIndex )
+    inline BufferType* getBuffer( BufferIndex fileIndex )
     {
         auto iFind = m_buffers.find( fileIndex );
         if( iFind != m_buffers.end() )
@@ -129,7 +129,7 @@ public:
         }
     }
 
-    const BufferType* getBuffer( BufferIndex fileIndex ) const
+    inline const BufferType* getBuffer( BufferIndex fileIndex ) const
     {
         auto iFind = m_buffers.find( fileIndex );
         if( iFind != m_buffers.end() )
@@ -157,7 +157,7 @@ class Index : public BufferSequence< BufferFactory >
 public:
     using Ptr = std::unique_ptr< Index >;
 
-    Index( BufferFactory& bufferFactory )
+    inline Index( BufferFactory& bufferFactory )
         : BufferSequence< BufferFactory >( bufferFactory, TrackID::TOTAL )
     {
     }
@@ -166,9 +166,13 @@ public:
     static_assert( RecordSize == 64U, "Unexpected record size" );
     static constexpr auto RecordsPerFile = LogFileSize / RecordSize;
 
-    static BufferIndex toBufferIndex( TimeStamp timeStamp ) noexcept
+    static inline BufferIndex toBufferIndex( TimeStamp timeStamp ) noexcept
     {
         return BufferIndex{ static_cast< U32 >( timeStamp / RecordsPerFile ) };
+    }
+    static inline InterBufferOffset toInterBufferOffset( TimeStamp timeStamp ) noexcept
+    {
+        return ( timeStamp % RecordsPerFile ) * RecordSize;
     }
 };
 
@@ -177,7 +181,7 @@ class Track : public BufferSequence< BufferFactory >
 {
 public:
     using Ptr = std::unique_ptr< Track >;
-    Track( BufferFactory& bufferFactory, TrackID trackID )
+    inline Track( BufferFactory& bufferFactory, TrackID trackID )
         : BufferSequence< BufferFactory >( bufferFactory, trackID )
     {
     }

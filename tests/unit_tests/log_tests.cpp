@@ -136,7 +136,6 @@ TEST( MemoryLogTests, Basic )
         ASSERT_EQ( r.getType(), types[ index ] );
         ASSERT_EQ( r.getMessage(), msgs[ index ] );
     }
-
 }
 
 namespace bfs = boost::filesystem;
@@ -329,6 +328,115 @@ TEST_F( BasicLogTest, Range )
         }
     }
 }
+
+TEST_F( BasicLogTest, Load )
+{
+    using namespace mega::log;
+
+    const boost::filesystem::path logPath = m_folder / "Timestamp";
+
+    {
+        FileStorage log( logPath, false );
+
+        ASSERT_EQ( log.getTimeStamp(), 0 );
+        log.record( Log::Write( Log::eInfo, "0" ) );
+        log.cycle();
+        ASSERT_EQ( log.getTimeStamp(), 1 );
+        log.record( Log::Write( Log::eInfo, "1" ) );
+        log.cycle();
+        ASSERT_EQ( log.getTimeStamp(), 2 );
+        log.record( Log::Write( Log::eInfo, "2" ) );
+        log.cycle();
+        ASSERT_EQ( log.getTimeStamp(), 3 );
+        log.record( Log::Write( Log::eInfo, "3" ) );
+        log.cycle();
+    }
+
+    {
+        FileStorage log( logPath, true );
+        ASSERT_EQ( log.getTimeStamp(), 4 );
+
+        {
+            int iCounter = 0;
+            for( auto i = log.begin< Log::Read >(), iEnd = log.end< Log::Read >(); i != iEnd; ++i, ++iCounter )
+            {
+                Log::Read r = *i;
+                switch( iCounter )
+                {
+                    case 0:
+                    {
+                        ASSERT_EQ( r.getType(), Log::eInfo );
+                        ASSERT_EQ( r.getMessage(), "0" );
+                    }
+                    break;
+                    case 1:
+                    {
+                        ASSERT_EQ( r.getType(), Log::eInfo );
+                        ASSERT_EQ( r.getMessage(), "1" );
+                    }
+                    break;
+                    case 2:
+                    {
+                        ASSERT_EQ( r.getType(), Log::eInfo );
+                        ASSERT_EQ( r.getMessage(), "2" );
+                    }
+                    break;
+                    case 3:
+                    {
+                        ASSERT_EQ( r.getType(), Log::eInfo );
+                        ASSERT_EQ( r.getMessage(), "3" );
+                    }
+                    break;
+                    default:
+                    {
+                        FAIL();
+                    }
+                    break;
+                }
+            }
+            ASSERT_EQ( iCounter, 4 );
+        }
+        {
+            int iCounter = 0;
+            for( auto i = log.begin< Log::Read >( 1 ), iEnd = log.begin< Log::Read >( 3 ); i != iEnd; ++i, ++iCounter )
+            {
+                Log::Read r = *i;
+                switch( iCounter )
+                {
+                    case 0:
+                    {
+                        ASSERT_EQ( r.getType(), Log::eInfo );
+                        ASSERT_EQ( r.getMessage(), "1" );
+                    }
+                    break;
+                    case 1:
+                    {
+                        ASSERT_EQ( r.getType(), Log::eInfo );
+                        ASSERT_EQ( r.getMessage(), "2" );
+                    }
+                    break;
+                    default:
+                    {
+                        FAIL();
+                    }
+                    break;
+                }
+            }
+            ASSERT_EQ( iCounter, 2 );
+        }
+        {
+            int iCounter = 0;
+            for( auto i = log.begin< Log::Read >( 3 ), iEnd = log.end< Log::Read >(); i != iEnd; ++i, ++iCounter )
+            {
+                Log::Read r = *i;
+                ASSERT_EQ( r.getType(), Log::eInfo );
+                ASSERT_EQ( r.getMessage(), "3" );
+            }
+            ASSERT_EQ( iCounter, 1 );
+        }
+    }
+}
+
 /*
 TEST_F( BasicLogTest, LogMsgMany_ )
 {

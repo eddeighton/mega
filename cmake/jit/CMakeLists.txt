@@ -118,6 +118,7 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/jit/code_gen_decisions.cpp
     ${MEGA_SRC_DIR}/jit/code_gen_instructions.cpp
     ${MEGA_SRC_DIR}/jit/code_gen_operators.cpp
+    ${MEGA_SRC_DIR}/jit/code_gen_dispatcher.cpp
     ${MEGA_SRC_DIR}/jit/code_generator.cpp
     ${MEGA_SRC_DIR}/jit/component_manager.cpp
     ${MEGA_SRC_DIR}/jit/invocation_functions.cxx

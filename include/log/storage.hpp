@@ -190,8 +190,8 @@ private:
     const IndexRecord* getIndexRecord( TimeStamp timestamp ) const
     {
         const BufferType* pBuffer
-            = BufferFactory::m_index.getBuffer( BufferFactory::m_index.toBufferIndex( timestamp ) );
-        const void* pData = pBuffer->read( ( timestamp % IndexType::RecordsPerFile ) * IndexType::RecordSize );
+            = BufferFactory::m_index.getBuffer( IndexType::toBufferIndex( timestamp ) );
+        const void* pData = pBuffer->read( IndexType::toInterBufferOffset( timestamp ) );
         return reinterpret_cast< const IndexRecord* >( pData );
     }
 

@@ -69,6 +69,7 @@ struct InvocationPolicyBase
         }
     };
 
+    using NodePtr      = Derivation::Node*;
     using StepPtr      = Derivation::Step*;
     using EdgePtr      = Derivation::Edge*;
     using OrPtr        = Derivation::Or*;
@@ -77,22 +78,24 @@ struct InvocationPolicyBase
     using AndPtrVector = std::vector< AndPtr >;
     using RootPtr      = Derivation::Root*;
 
-    EdgePtr makeEdge( StepPtr pNext, const GraphEdgeVector& edges ) const
+    EdgePtr makeEdge( NodePtr pFrom, StepPtr pNext, const GraphEdgeVector& edges ) const
     {
         // initially no edges are eliminated
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, edges } );
+        return m_database.construct< Derivation::Edge >(
+            Derivation::Edge::Args{ pFrom, pNext, false, false, 0, edges } );
     }
     OrPtr makeOr( GraphVertex* pVertex ) const
     {
-        return m_database.construct< Derivation::Or >( Derivation::Or::Args{ Derivation::Step::Args{ pVertex, {} } } );
+        return m_database.construct< Derivation::Or >(
+            Derivation::Or::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pVertex } } );
     }
     RootPtr makeRoot( const GraphVertexVector& context ) const
     {
-        return m_database.construct< Derivation::Root >( Derivation::Root::Args{ context, {} } );
+        return m_database.construct< Derivation::Root >( Derivation::Root::Args{ Derivation::Node::Args{ {} }, context } );
     }
-    EdgePtr makeRootEdge( OrPtr pNext ) const
+    EdgePtr makeRootEdge( RootPtr pFrom, OrPtr pNext ) const
     {
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, {} } );
+        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pFrom, pNext, false, false, 0, {} } );
     }
 
     InvocationPolicyBase( Database& database )

@@ -35,7 +35,6 @@
 #include "database/FinalStage.hxx"
 #include "database/manifest.hxx"
 
-
 namespace mega::runtime
 {
 
@@ -63,19 +62,20 @@ public:
     const FinalStage::Operations::Invocation* tryGetInvocation( const InvocationID& invocation ) const;
     void addDynamicInvocation( const InvocationID& invocation, const FinalStage::Operations::Invocation* pInvocation );
 
-    TypeID                                       getInterfaceTypeID( TypeID concreteTypeID ) const;
-    TypeID                                       getSingularConcreteTypeID( TypeID interfaceTypeID ) const;
-    std::vector< TypeID >                        getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
-    FinalStage::Concrete::Object*                getObject( TypeID objectType ) const;
-    FinalStage::Interface::Action*               getAction( TypeID interfaceTypeID ) const;
-    FinalStage::Decision::DecisionProcedure*     getDecision( TypeID concreteTypeID ) const;
-    const FinalStage::Components::Component*     getComponent( TypeID objectType ) const;
-    const FinalStage::Components::Component*     getOperationComponent( TypeID interfaceTypeID ) const;
-    std::vector< FinalStage::Concrete::Object* > getObjects() const;
-    std::vector< FinalStage::Concrete::Action* > getActions() const;
+    TypeID                                         getInterfaceTypeID( TypeID concreteTypeID ) const;
+    TypeID                                         getSingularConcreteTypeID( TypeID interfaceTypeID ) const;
+    std::vector< TypeID >                          getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
+    FinalStage::Concrete::Object*                  getObject( TypeID objectType ) const;
+    FinalStage::Interface::Action*                 getAction( TypeID interfaceTypeID ) const;
+    FinalStage::Decision::DecisionProcedure*       getDecision( TypeID concreteTypeID ) const;
+    const FinalStage::Components::Component*       getComponent( TypeID objectType ) const;
+    const FinalStage::Components::Component*       getOperationComponent( TypeID interfaceTypeID ) const;
+    std::vector< FinalStage::Concrete::Object* >   getObjects() const;
+    std::vector< FinalStage::Concrete::Action* >   getActions() const;
+    std::vector< FinalStage::Concrete::Interupt* > getInterupts() const;
 
-    std::vector< FinalStage::Concrete::Dimensions::User* >       getUserDimensions() const;
-    std::vector< FinalStage::Concrete::Dimensions::Link* >       getLinkDimensions() const;
+    std::vector< FinalStage::Concrete::Dimensions::User* > getUserDimensions() const;
+    std::vector< FinalStage::Concrete::Dimensions::Link* > getLinkDimensions() const;
 
     using ConcreteToInterface = std::vector< std::pair< TypeID, TypeID > >;
     void getConcreteToInterface( ConcreteToInterface& concreteToInterface ) const;
@@ -88,14 +88,14 @@ private:
     io::Manifest                                      m_manifest;
     FinalStage::Database                              m_database;
     std::vector< FinalStage::Components::Component* > m_components;
-    
-    FinalStage::Symbols::SymbolTable*                 m_pSymbolTable;
-    ConcreteTypeIDMap                                 m_concreteTypeIDs;
-    InterfaceTypeIDMap                                m_interfaceTypeIDs;
 
-    FinalStage::Concrete::Object*                     m_pConcreteRoot;
-    DynamicInvocationsMap                             m_dynamicInvocations;
-    RelationMap                                       m_relations;
+    FinalStage::Symbols::SymbolTable* m_pSymbolTable;
+    ConcreteTypeIDMap                 m_concreteTypeIDs;
+    InterfaceTypeIDMap                m_interfaceTypeIDs;
+
+    FinalStage::Concrete::Object* m_pConcreteRoot;
+    DynamicInvocationsMap         m_dynamicInvocations;
+    RelationMap                   m_relations;
 };
 
 } // namespace mega::runtime

@@ -18,7 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-namespace Invocations
+namespace Instructions
 {
     namespace Variables
     {
@@ -53,7 +53,7 @@ namespace Invocations
         }
     }
 
-    namespace Instructions
+    namespace Calculation
     {
         object Instruction -> OperationsStage::Operations
         {
@@ -106,9 +106,9 @@ namespace Invocations
         }
     }
 
-    namespace Operations
+    namespace Application
     {
-        object Operation : Instructions::Instruction -> OperationsStage::Operations
+        object Operation : Calculation::Instruction -> OperationsStage::Operations
         {
             ref< Variables::Variable >      variable;
             ref< Concrete::Graph::Vertex >  context;

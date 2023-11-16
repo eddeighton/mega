@@ -41,6 +41,7 @@ set( BASIC_UNIT_TESTS_DIR ${MEGA_TEST_DIR}/basic_tests )
 set( BASIC_UNIT_TESTS
 	${BASIC_UNIT_TESTS_DIR}/ring_allocator_tests.cpp
 	${BASIC_UNIT_TESTS_DIR}/scheduler_tests.cpp
+	${BASIC_UNIT_TESTS_DIR}/hashed_string.cpp
 	)
 
 enable_testing()

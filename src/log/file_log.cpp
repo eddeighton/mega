@@ -63,57 +63,70 @@ FileBufferFactory::FileBufferFactory( const boost::filesystem::path logFolderPat
 
     if( bLoad )
     {
-        // collect all index files in order of BufferIndex
-        std::map< BufferIndex, TrackID > files;
-        {
-            for( boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator( m_logFolderPath ) )
-            {
-                const boost::filesystem::path& filePath = entry.path();
-                std::string                    diskFileName;
-                BufferIndex                    diskFileIndex;
-                if( fromFilePath( filePath, diskFileName, diskFileIndex ) )
-                {
-                    if( diskFileName == toName( TrackID::TOTAL ) )
-                    {
-                        VERIFY_RTE( files.insert( { diskFileIndex, TrackID::TOTAL } ).second );
-                    }
-                }
-            }
-        }
-
-        // now iterator through all index files in order and attempt to determine the
-        // first point a cycle record was not written
-        BufferIndex nextFileIndex;
-        bool        bFoundLastCycle = false;
-        for( auto i = files.begin(), iEnd = files.end(); i != iEnd && !bFoundLastCycle; ++i )
-        {
-            if( i->first != nextFileIndex )
-                break;
-            nextFileIndex = BufferIndex( nextFileIndex.get() + 1 );
-
-            BufferType::Ptr pBuffer = std::make_unique< BufferType >( *this, i->second, i->first );
-
-            m_timestamp = IndexType::RecordsPerFile * i->first.get();
-            for( InterBufferOffset offset = 0; offset != InterBufferOffset{ LogFileSize };
-                 offset += IndexType::RecordSize )
-            {
-                auto pRecord = reinterpret_cast< const IndexRecord* >( pBuffer->read( offset ) );
-                if( *pRecord < m_iterator )
-                {
-                    bFoundLastCycle = true;
-                    break;
-                }
-                ++m_timestamp;
-                m_iterator = *pRecord;
-            }
-        }
+        loadIterator();
     }
     else
     {
         // create first cycle at timestamp 0
-        BufferType*             pBuffer = m_index.getBuffer( m_index.toBufferIndex( m_timestamp ) );
+        BufferType*             pBuffer = m_index.getBuffer( IndexType::toBufferIndex( m_timestamp ) );
         const InterBufferOffset offset  = pBuffer->write( &m_iterator, IndexType::RecordSize );
         ASSERT( offset.get() == IndexType::RecordSize );
+    }
+}
+
+void FileBufferFactory::loadIterator()
+{
+    // collect all index files in order of BufferIndex
+    std::map< BufferIndex, TrackID > files;
+    {
+        for( boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator( m_logFolderPath ) )
+        {
+            const boost::filesystem::path& filePath = entry.path();
+            std::string                    diskFileName;
+            BufferIndex                    diskFileIndex;
+            if( fromFilePath( filePath, diskFileName, diskFileIndex ) )
+            {
+                if( diskFileName == toName( TrackID::TOTAL ) )
+                {
+                    VERIFY_RTE( files.insert( { diskFileIndex, TrackID::TOTAL } ).second );
+                }
+            }
+        }
+    }
+
+    // now iterator through all index files in order and attempt to determine the
+    // first point a cycle record was not written
+    BufferIndex nextFileIndex;
+    bool        bFoundLastCycle = false;
+    for( auto i = files.begin(), iEnd = files.end(); i != iEnd && !bFoundLastCycle; ++i )
+    {
+        if( i->first != nextFileIndex )
+            break;
+        nextFileIndex = BufferIndex( nextFileIndex.get() + 1 );
+
+        BufferType::Ptr pBuffer = std::make_unique< BufferType >( *this, i->second, i->first );
+
+        m_timestamp = IndexType::RecordsPerFile * i->first.get();
+        bool bFirst = true;
+        for( InterBufferOffset offset = 0; offset != InterBufferOffset{ LogFileSize };
+                offset += IndexType::RecordSize )
+        {
+            auto pRecord = reinterpret_cast< const IndexRecord* >( pBuffer->read( offset ) );
+            if( *pRecord < m_iterator )
+            {
+                bFoundLastCycle = true;
+                break;
+            }
+            if( bFirst )
+            {
+                bFirst = false;
+            }
+            else
+            {
+                ++m_timestamp;
+            }
+            m_iterator = *pRecord;
+        }
     }
 }
 

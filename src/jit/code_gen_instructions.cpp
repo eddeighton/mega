@@ -33,6 +33,9 @@ namespace FinalStage
 namespace mega::runtime
 {
 
+using namespace FinalStage;
+using namespace FinalStage::Instructions;
+
 struct Args
 {
     const JITDatabase&                database;
@@ -42,14 +45,13 @@ struct Args
     Indent&                           indent;
     Inja&                             inja;
 
-    static std::string get( const CodeGenerator::VariableMap&                   variables,
-                            const FinalStage::Invocations::Variables::Variable* pVar )
+    static std::string get( const CodeGenerator::VariableMap& variables, const Variables::Variable* pVar )
     {
         auto iFind = variables.find( pVar );
         VERIFY_RTE( iFind != variables.end() );
         return iFind->second;
     }
-    std::string get( const FinalStage::Invocations::Variables::Variable* pVar )
+    std::string get( const Variables::Variable* pVar )
     {
         auto iFind = variables.find( pVar );
         VERIFY_RTE( iFind != variables.end() );
@@ -62,11 +64,8 @@ namespace
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // ParentDerivation
-void gen( Args args, const FinalStage::Invocations::Instructions::ParentDerivation* pParentDerivation )
+void gen( Args args, const Calculation::ParentDerivation* pParentDerivation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     std::ostringstream os;
     os << args.indent << "// ParentDerivation\n";
 
@@ -87,11 +86,8 @@ void gen( Args args, const FinalStage::Invocations::Instructions::ParentDerivati
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // ChildDerivation
-void gen( Args args, const FinalStage::Invocations::Instructions::ChildDerivation* pChildDerivation )
+void gen( Args args, const Calculation::ChildDerivation* pChildDerivation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     std::ostringstream os;
     os << args.indent << "// ChildDerivation\n";
 
@@ -128,11 +124,8 @@ void gen( Args args, const FinalStage::Invocations::Instructions::ChildDerivatio
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Dereference
-void gen( Args args, const FinalStage::Invocations::Instructions::Dereference* pDereference )
+void gen( Args args, const Calculation::Dereference* pDereference )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -189,12 +182,8 @@ R"TEMPLATE(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Call
-void gen( Args args, const FinalStage::Operations::Call* pCall,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::Call* pCall, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -224,12 +213,8 @@ R"TEMPLATE(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Signal
-void gen( Args args, const FinalStage::Operations::Signal* pSignal,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::Signal* pSignal, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -265,12 +250,8 @@ R"TEMPLATE(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Start
-void gen( Args args, const FinalStage::Operations::Start* pStart,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::Start* pStart, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -306,12 +287,8 @@ R"TEMPLATE(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // GetContext
-void gen( Args args, const FinalStage::Operations::GetContext* pGet,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::GetContext* pGet, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -337,12 +314,8 @@ R"TEMPLATE(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Read
-void gen( Args args, const FinalStage::Operations::Read* pRead,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::Read* pRead, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -385,12 +358,8 @@ R"TEMPLATE(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Write
-void gen( Args args, const FinalStage::Operations::Write* pWrite,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::Write* pWrite, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -448,12 +417,8 @@ R"TEMPLATE(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // LinkRead
-void gen( Args args, const FinalStage::Operations::LinkRead* pLinkRead,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::LinkRead* pLinkRead, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -496,12 +461,8 @@ R"TEMPLATE(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // LinkAdd
-void gen( Args args, const FinalStage::Operations::LinkAdd* pLinkAdd,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::LinkAdd* pLinkAdd, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -538,12 +499,8 @@ mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // LinkRemove
-void gen( Args args, const FinalStage::Operations::LinkRemove* pLinkRemove,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::LinkRemove* pLinkRemove, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -580,12 +537,8 @@ mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // LinkClear
-void gen( Args args, const FinalStage::Operations::LinkClear* pLinkClear,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::LinkClear* pLinkClear, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -620,23 +573,15 @@ mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Range
-void gen( Args args, const FinalStage::Operations::Range* pRange,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::Range* pRange, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     THROW_TODO;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Move
-void gen( Args args, const FinalStage::Operations::Move* pMove,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
+void gen( Args args, const Operations::Move* pMove, const Application::Operation* pOperation )
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     THROW_TODO;
     /*
         // clang-format off
@@ -753,33 +698,28 @@ void gen( Args args, const FinalStage::Operations::Move* pMove,
 }
 } // namespace
 
-void CodeGenerator::generateInstructions( const JITDatabase&                                        database,
-                                          const FinalStage::Operations::Invocation*                 pInvocation,
-                                          const FinalStage::Invocations::Instructions::Instruction* pInstruction,
-                                          const VariableMap& variables, FunctionDeclarations& functions,
-                                          nlohmann::json& data, Indent& indent ) const
+void CodeGenerator::generateInstructions( const JITDatabase& database, const Operations::Invocation* pInvocation,
+                                          const Calculation::Instruction* pInstruction, const VariableMap& variables,
+                                          FunctionDeclarations& functions, nlohmann::json& data, Indent& indent ) const
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     try
     {
-        if( auto pInstructionGroup = db_cast< Instructions::InstructionGroup >( pInstruction ) )
+        if( auto pInstructionGroup = db_cast< Calculation::InstructionGroup >( pInstruction ) )
         {
             bool bTailRecursion = true;
-            if( auto pParentDerivation = db_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
+            if( auto pParentDerivation = db_cast< Calculation::ParentDerivation >( pInstructionGroup ) )
             {
                 gen( Args{ database, variables, functions, data, indent, *m_pInja }, pParentDerivation );
             }
-            else if( auto pChildDerivation = db_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
+            else if( auto pChildDerivation = db_cast< Calculation::ChildDerivation >( pInstructionGroup ) )
             {
                 gen( Args{ database, variables, functions, data, indent, *m_pInja }, pChildDerivation );
             }
-            else if( auto pDereference = db_cast< Instructions::Dereference >( pInstructionGroup ) )
+            else if( auto pDereference = db_cast< Calculation::Dereference >( pInstructionGroup ) )
             {
                 gen( Args{ database, variables, functions, data, indent, *m_pInja }, pDereference );
             }
-            else if( auto pLinkBranch = db_cast< Instructions::LinkBranch >( pInstructionGroup ) )
+            else if( auto pLinkBranch = db_cast< Calculation::LinkBranch >( pInstructionGroup ) )
             {
                 bTailRecursion = false;
 
@@ -816,7 +756,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
                     data[ "assignments" ].push_back( os.str() );
                 }
             }
-            else if( auto pPolyReference = db_cast< Instructions::PolyBranch >( pInstructionGroup ) )
+            else if( auto pPolyReference = db_cast< Calculation::PolyBranch >( pInstructionGroup ) )
             {
                 bTailRecursion = false;
 
@@ -851,7 +791,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
                     data[ "assignments" ].push_back( os.str() );
                 }
             }
-            else if( auto pPolyCase = db_cast< Instructions::PolyCase >( pInstructionGroup ) )
+            else if( auto pPolyCase = db_cast< Calculation::PolyCase >( pInstructionGroup ) )
             {
                 bTailRecursion = false;
 
@@ -913,7 +853,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
                 --indent;
             }
         }
-        else if( auto pOperation = db_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
+        else if( auto pOperation = db_cast< Application::Operation >( pInstruction ) )
         {
             using namespace FinalStage::Operations;
 
@@ -984,13 +924,8 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
 }
 
 CodeGenerator::VariableMap CodeGenerator::generateVariables(
-    const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
-    nlohmann::json&                                                       data,
-    Indent&                                                               indent ) const
+    const std::vector< Variables::Variable* >& invocationVariables, nlohmann::json& data, Indent& indent ) const
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
     VariableMap variables;
 
     int iVariableCounter = 0;

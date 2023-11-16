@@ -135,7 +135,9 @@ TEST_P( LinkFixtureType, LinkParameterizedTest )
     for( const auto& e : data.typePath )
         std::cout << " " << e;
     std::cout << "\n";
-    printDerivationStep( pInvocation->get_derivation(), false, std::cout );
+    auto  pRoot = db_cast< Derivation::Root >( pInvocation->get_derivation() );
+    VERIFY_RTE( pRoot );
+    printDerivationStep( pRoot, false, std::cout );
 }
 
 using namespace std::string_literals;

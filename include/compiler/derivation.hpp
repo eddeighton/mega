@@ -42,11 +42,10 @@ struct ExamplePolicy
     using OrPtrVector = int;
     using AndPtr      = int;
 
-    EdgePtr makeEdge( StepPtr pNext, const GraphEdgeVector& edges );
-    OrPtr   makeOr( Vertex* pVertex );
-    AndPtr  makeAnd( Vertex* pVertex );
-    AndPtr  makeRoot();
-    EdgePtr makeRootEdge( AndPtr pNext );
+    EdgePtr makeEdge( NodePtr pFrom, StepPtr pNext, const GraphEdgeVector& edges );
+    OrPtr   makeOr( GraphVertex* pVertex );
+    AndPtr  makeRoot( const GraphVertexVector& context );
+    EdgePtr makeRootEdge( RootPtr pFrom, OrPtr pNext );
 
     // enumerate actual polymorphic branches of a given link
     GraphEdgeVector enumerateLink( Vertex* pLink ) const;
@@ -77,7 +76,7 @@ static typename TPolicy::OrPtrVector solveStep( typename TPolicy::OrPtr         
         else if( policy.commonRootDerivation( pCurrentVertex, pTypePathVertex, edges ) )
         {
             typename TPolicy::OrPtr   pNextStep = policy.makeOr( pTypePathVertex );
-            typename TPolicy::EdgePtr pEdge     = policy.makeEdge( pNextStep, edges );
+            typename TPolicy::EdgePtr pEdge     = policy.makeEdge( pCurrentFrontierStep, pNextStep, edges );
             pCurrentFrontierStep->push_back_edges( pEdge );
             nextFrontier.push_back( pNextStep );
         }
@@ -95,7 +94,7 @@ static typename TPolicy::OrPtrVector solveStep( typename TPolicy::OrPtr         
                 // if( policy.commonRootDerivation( pCurrentVertex, pLinkContextVertex, edges ) )
                 // {
                 //     pStep = policy.makeOr( pLinkContextVertex );
-                //     pCurrentFrontierStep->push_back_edges( policy.makeEdge( pStep, edges ) );
+                //     pCurrentFrontierStep->push_back_edges( policy.makeEdge( pCurrentFrontierStep, pStep, edges ) );
                 // }
                 // else
                 {
@@ -118,7 +117,7 @@ static typename TPolicy::OrPtrVector solveStep( typename TPolicy::OrPtr         
                         for( auto pLinkEdge : linkEdges )
                         {
                             typename TPolicy::OrPtr pLinkedObjectToTarget = policy.makeOr( pLinkEdge->get_target() );
-                            pBranch->push_back_edges( policy.makeEdge(
+                            pBranch->push_back_edges( policy.makeEdge( pCurrentFrontierStep, 
                                 pLinkedObjectToTarget, typename TPolicy::GraphEdgeVector{ pLinkEdge } ) );
 
                             typename TPolicy::OrPtrVector recursiveResult
@@ -145,7 +144,7 @@ static typename TPolicy::RootPtr solveContextFree( const typename TPolicy::Spec&
     {
         typename TPolicy::OrPtr p = policy.makeOr( pVert );
         frontier.push_back( p );
-        pSolutionRoot->push_back_edges( policy.makeRootEdge( p ) );
+        pSolutionRoot->push_back_edges( policy.makeRootEdge( pSolutionRoot, p ) );
     }
 
     for( auto i = spec.path.begin(), iNext = spec.path.begin(), iEnd = spec.path.end(); i != iEnd; ++i )

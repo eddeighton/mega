@@ -95,7 +95,7 @@ public:
         return database.construct< Identifier >( Identifier::Args{ str } );
     }
 
-    Identifier* generate_unamedIdentifier( Database& database )
+    Identifier* generate_unamedIdentifier( Database& database, const char* pszPrefix )
     {
         const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
         const mega::U64   szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
@@ -103,7 +103,7 @@ public:
         std::string strName;
         {
             std::ostringstream osName;
-            osName << "_anon_" << szLineNumber;
+            osName << "_" << pszPrefix << "_" << szLineNumber;
             strName = osName.str();
             boost::replace_all( strName, "/", "_" );
             boost::replace_all( strName, ".", "_" );
@@ -155,13 +155,13 @@ public:
             ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
     }
 
-    ScopedIdentifier* generate_unamedScopeIdentifier( Database& database )
+    ScopedIdentifier* generate_unamedScopeIdentifier( Database& database, const char* pszPrefix )
     {
         const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
         const mega::U64   szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
 
         std::vector< Identifier* > identifiers;
-        identifiers.push_back( generate_unamedIdentifier( database ) );
+        identifiers.push_back( generate_unamedIdentifier( database, pszPrefix ) );
         return database.construct< ScopedIdentifier >(
             ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
     }
@@ -940,7 +940,7 @@ public:
         }
         else
         {
-            pScopedIdentifier = generate_unamedScopeIdentifier( database );
+            pScopedIdentifier = generate_unamedScopeIdentifier( database, "int" );
         }
 
         parse_comment();
@@ -980,7 +980,7 @@ public:
         }
         else
         {
-            pScopedIdentifier = generate_unamedScopeIdentifier( database );
+            pScopedIdentifier = generate_unamedScopeIdentifier( database, "req" );
         }
 
         parse_comment();
@@ -1066,7 +1066,7 @@ public:
         }
         else
         {
-            pScopedIdentifier = generate_unamedScopeIdentifier( database );
+            pScopedIdentifier = generate_unamedScopeIdentifier( database, "dec" );
         }
 
         parse_comment();

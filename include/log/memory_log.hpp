@@ -65,7 +65,7 @@ public:
     void cycle()
     {
         ++m_timestamp;
-        BufferType*             pBuffer = m_index.getBuffer( m_index.toBufferIndex( m_timestamp ) );
+        BufferType*             pBuffer = m_index.getBuffer( IndexType::toBufferIndex( m_timestamp ) );
         const InterBufferOffset offset  = pBuffer->write( &m_iterator, IndexType::RecordSize );
         ASSERT( offset.get() % IndexType::RecordSize == 0U );
         // this looks wierd but is correct - the timestamp record has identity that matches

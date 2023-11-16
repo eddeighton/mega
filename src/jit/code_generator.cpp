@@ -47,6 +47,7 @@ namespace FinalStage
 
 namespace mega::runtime
 {
+using namespace FinalStage;
 
 CodeGenerator::CodeGenerator( const mega::MegastructureInstallation& megastructureInstallation,
                               const mega::Project&                   project )
@@ -63,10 +64,7 @@ nlohmann::json CodeGenerator::generate( const JITDatabase& database, const mega:
 
     try
     {
-        using namespace FinalStage;
-        using namespace FinalStage::Invocations;
-
-        const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocationID );
+        const Operations::Invocation* pInvocation = database.getInvocation( invocationID );
 
         Indent indent;
 
@@ -113,8 +111,6 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                                        const RelationID& relationID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_relation" );
-
-    using namespace FinalStage;
 
     auto pRelation = database.getRelation( relationID );
 
@@ -382,7 +378,46 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
 
     // event_types
     {
-        using namespace FinalStage;
+        // interupt handlers
+        using EventHandlers = std::multimap< TypeID, nlohmann::json >;
+
+        EventHandlers eventHandlers;
+        /*{
+            for( const Concrete::Interupt* pInterupt : database.getInterupts() )
+            {
+                for( auto pDispatch : pInterupt->get_dispatches() )
+                {
+                    auto pContext = db_cast< Concrete::Context >( pDispatch->get_vertex() );
+                    VERIFY_RTE( pContext );
+
+                    std::ostringstream osDispatcher;
+                    generate_dispatcher( compiler, database, pInterupt, pDispatch, osDispatcher );
+
+                    nlohmann::json eventHandler( {
+
+                        { "type_name", Concrete::printContextFullType( pContext ) },
+                        { "comment", Concrete::printContextFullType( pContext ) },
+                        { "has_dispatch", true },
+                        { "has_transition", false },
+                        { "transition_sub_type", pInterupt->get_concrete_id().getSubObjectID() },
+                        { "transition_divider", 1 },
+                        { "code", osDispatcher.str() }
+
+                    } );
+
+                    auto transitionDecisionOpt = pInterupt->get_transition_decision();
+                    if( transitionDecisionOpt.has_value() )
+                    {
+                        auto pTransitionDecision             = transitionDecisionOpt.value();
+                        eventHandler[ "has_transition" ]     = true;
+                        eventHandler[ "transition_divider" ] = pTransitionDecision->get_instance_divider();
+                    }
+
+                    eventHandlers.insert( { pContext->get_concrete_id(), eventHandler } );
+                }
+            }
+        }*/
+
         // completion handlers
         for( const Concrete::Action* pAction : database.getActions() )
         {
@@ -401,19 +436,16 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
                         transitionDivider = transitionDivider * pIter->get_local_size();
                     }
 
-                    nlohmann::json eventData( {
+                    nlohmann::json eventHandler( {
 
-                        { "type_id", printTypeID( pAction->get_concrete_id() ) },
-                        { "type_name", Concrete::printContextFullType( pAction ) },
                         { "comment", Concrete::printContextFullType( pInterupt ) },
-
+                        { "has_dispatch", false },
                         { "has_transition", true },
                         { "transition_sub_type", pInterupt->get_concrete_id().getSubObjectID() },
                         { "transition_divider", transitionDivider }
 
                     } );
-
-                    data[ "event_types" ].push_back( eventData );
+                    eventHandlers.insert( { pAction->get_concrete_id(), eventHandler } );
                 }
                 else if( auto pState = db_cast< Concrete::State >( pHandler ) )
                 {
@@ -423,25 +455,33 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
                         transitionDivider = transitionDivider * pIter->get_local_size();
                     }
 
-                    nlohmann::json eventData( {
+                    nlohmann::json eventHandler( {
 
-                        { "type_id", printTypeID( pAction->get_concrete_id() ) },
-                        { "type_name", Concrete::printContextFullType( pAction ) },
                         { "comment", Concrete::printContextFullType( pState ) },
-
+                        { "has_dispatch", false },
                         { "has_transition", true },
                         { "transition_sub_type", pState->get_concrete_id().getSubObjectID() },
                         { "transition_divider", transitionDivider }
 
                     } );
-
-                    data[ "event_types" ].push_back( eventData );
+                    eventHandlers.insert( { pAction->get_concrete_id(), eventHandler } );
                 }
                 else
                 {
                     THROW_RTE( "Unknown handler type" );
                 }
             }
+        }
+
+        for( auto i = eventHandlers.begin(), iEnd = eventHandlers.end(); i != iEnd; )
+        {
+            nlohmann::json eventType(
+                { { "type_id", printTypeID( i->first ) }, { "handlers", nlohmann::json::array() } } );
+            for( auto iNext = eventHandlers.upper_bound( i->first ); i != iNext; ++i )
+            {
+                eventType[ "handlers" ].push_back( i->second );
+            }
+            data[ "event_types" ].push_back( eventType );
         }
     }
 
@@ -450,7 +490,6 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
         std::set< std::string > record_types;
         for( auto pUserDimension : database.getUserDimensions() )
         {
-            using namespace FinalStage;
             using namespace FinalStage::Concrete;
 
             {
@@ -470,7 +509,6 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
         }
         for( auto pLinkDimension : database.getLinkDimensions() )
         {
-            using namespace FinalStage;
             using namespace FinalStage::Concrete;
 
             std::string strMangled;

@@ -80,8 +80,7 @@ mega::reports::Table legend()
     return legend;
 }
 
-void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges,
-               reports::Graph& graph )
+void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges, reports::Graph& graph )
 {
     using namespace std::string_literals;
     using namespace mega::reports;
@@ -92,7 +91,15 @@ void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation
         auto pVertex   = pNextStep->get_vertex();
         auto iNext     = graph.m_nodes.size();
 
-        if( db_cast< Derivation::Or >( pNextStep ) )
+        if( db_cast< Derivation::Select >( pNextStep ) )
+        {
+            graph.m_nodes.push_back( Graph::Node{ { { "SELECT:"s, Concrete::printContextFullType( pVertex ) },
+                                                    { "TypeID:"s, pVertex->get_concrete_id() } },
+                                                  Colour::lightyellow,
+                                                  std::nullopt,
+                                                  pVertex->get_concrete_id() } );
+        }
+        else if( db_cast< Derivation::Or >( pNextStep ) )
         {
             graph.m_nodes.push_back( Graph::Node{
                 { { "OR:"s, Concrete::printContextFullType( pVertex ) }, { "TypeID:"s, pVertex->get_concrete_id() } },
@@ -199,6 +206,21 @@ void generateDerivationGraph( FinalStage::Derivation::Root* pRoot, reports::Grap
     addEdges( 0, pRoot->get_edges(), graph );
 }
 
+void generateDerivationGraph( FinalStage::Derivation::Dispatch* pDispatch, reports::Graph& graph )
+{
+    using namespace std::string_literals;
+    using namespace mega::reports;
+
+    auto pVertex = pDispatch->get_vertex();
+
+    graph.m_nodes.push_back( Graph::Node{
+        { { "Dispatch:"s, Concrete::printContextFullType( pVertex ) }, { "TypeID:"s, pVertex->get_concrete_id() } },
+        Colour::lightgreen,
+        std::nullopt,
+        pVertex->get_concrete_id() } );
+    addEdges( 0, pDispatch->get_edges(), graph );
+}
+
 mega::reports::Container DerivationReporter::generate( const mega::reports::URL& url )
 {
     using namespace std::string_literals;
@@ -243,7 +265,9 @@ mega::reports::Container DerivationReporter::generate( const mega::reports::URL&
                 }
                 {
                     Graph graph;
-                    generateDerivationGraph( pInvocation->get_derivation(), graph );
+                    auto  pRoot = db_cast< Derivation::Root >( pInvocation->get_derivation() );
+                    VERIFY_RTE( pRoot );
+                    generateDerivationGraph( pRoot, graph );
                     invocationBranch.m_elements.push_back( graph );
                 }
                 contextBranch.m_elements.push_back( invocationBranch );
@@ -291,15 +315,25 @@ mega::reports::Container DerivationReporter::generate( const mega::reports::URL&
                 }
 
                 {
-                    auto   events = pInterupt->get_events();
                     Branch event{ { "Interupt Event"s } };
-                    for( auto pRoot : events )
+                    for( auto pRoot : pInterupt->get_events() )
                     {
                         Graph graph;
                         generateDerivationGraph( pRoot, graph );
                         event.m_elements.push_back( graph );
                     }
                     contextBranch.m_elements.push_back( event );
+                }
+
+                {
+                    Branch dispatches{ { "Interupt Dispatch"s } };
+                    for( auto pDispatch : pInterupt->get_dispatches() )
+                    {
+                        Graph graph;
+                        generateDerivationGraph( pDispatch, graph );
+                        dispatches.m_elements.push_back( graph );
+                    }
+                    contextBranch.m_elements.push_back( dispatches );
                 }
             }
             else if( auto pDecider = db_cast< Concrete::Decider >( pContext ) )

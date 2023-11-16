@@ -26,6 +26,8 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/steady_timer.hpp>
 
 #include <vector>
 #include <string>
@@ -34,16 +36,135 @@
 namespace driver::log
 {
 
-void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+namespace
 {
-    boost::filesystem::path logFolderPath;
-
+struct Options
+{
     bool bShowLogRecords       = false;
     bool bShowStructureRecords = false;
     bool bShowEvents           = false;
     bool bShowTransitions      = false;
     bool bShowMemoryRecords    = false;
-    bool bShowAll              = false;
+
+    void configure( bool bShowAll )
+    {
+        if( bShowAll )
+        {
+            bShowLogRecords       = true;
+            bShowStructureRecords = true;
+            bShowEvents           = true;
+            bShowTransitions      = true;
+            bShowMemoryRecords    = true;
+        }
+        // if nothing then show log messages
+        else if( !bShowStructureRecords && !bShowEvents && !bShowTransitions && !bShowMemoryRecords )
+        {
+            bShowLogRecords = true;
+        }
+    }
+};
+
+void printLog( mega::log::FileStorage& log, const Options& options, mega::TimeStamp timestamp )
+{
+    if( options.bShowLogRecords )
+    {
+        using namespace mega::log::Log;
+        for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
+        {
+            const Read&        logMsg = *i;
+            std::ostringstream os;
+            os << std::setw( 15 ) << std::setfill( ' ' ) << toString( logMsg.getType() ) << ": " << logMsg.getMessage();
+            switch( logMsg.getType() )
+            {
+                case eTrace:
+                    SPDLOG_TRACE( os.str() );
+                    break;
+                case eDebug:
+                    SPDLOG_DEBUG( os.str() );
+                    break;
+                case eInfo:
+                    SPDLOG_INFO( os.str() );
+                    break;
+                case eWarn:
+                    SPDLOG_WARN( os.str() );
+                    break;
+                case eError:
+                    SPDLOG_ERROR( os.str() );
+                    break;
+                case eFatal:
+                    SPDLOG_CRITICAL( os.str() );
+                    break;
+            }
+        }
+    }
+    if( options.bShowStructureRecords )
+    {
+        using namespace mega::log::Structure;
+        for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
+        {
+            const Read&        record = *i;
+            std::ostringstream os;
+            os << std::setw( 15 ) << std::setfill( ' ' ) << toString( record.getType() ) << ": " << record.getSource()
+               << ": " << record.getTarget() << ": " << record.getRelation();
+            SPDLOG_INFO( os.str() );
+        }
+    }
+    if( options.bShowEvents )
+    {
+        using namespace mega::log::Event;
+        for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
+        {
+            const Read&        eventRecord = *i;
+            std::ostringstream os;
+            os << std::setw( 15 ) << std::setfill( ' ' ) << toString( eventRecord.getType() ) << ": "
+               << eventRecord.getRef();
+            SPDLOG_INFO( os.str() );
+        }
+    }
+    if( options.bShowTransitions )
+    {
+        using namespace mega::log::Transition;
+        for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
+        {
+            const Read&        transitionRecord = *i;
+            std::ostringstream os;
+            os << std::setw( 17 ) << std::setfill( ' ' ) << "Transition: " << transitionRecord.getRef();
+            SPDLOG_INFO( os.str() );
+        }
+    }
+    if( options.bShowMemoryRecords )
+    {
+        using namespace mega::log::Memory;
+        for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
+        {
+            const Read& memoryRecord = *i;
+            const auto& data         = memoryRecord.getData();
+
+            std::ostringstream osMem;
+            osMem << memoryRecord.getRef();
+
+            int x = 0;
+            for( auto i = data.begin(), iEnd = data.end(); i != iEnd; ++i, ++x )
+            {
+                if( x % 4 == 0 )
+                    osMem << ' ';
+                osMem << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast< unsigned >( *i );
+            }
+
+            SPDLOG_INFO( osMem.str() );
+        }
+    }
+}
+} // namespace
+
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+{
+    boost::filesystem::path logFolderPath;
+
+    Options options;
+    bool    bShowAll = false;
+
+    float fSeconds = 0.0f;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Simulation Commands" );
@@ -52,12 +173,14 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         commandOptions.add_options()
             ( "folder",     po::value( &logFolderPath ),                "Log folder path. ( Default argumnet )" )
             
-            ( "msgs",       po::bool_switch( &bShowLogRecords ),        "Show log message records." )
-            ( "structure",  po::bool_switch( &bShowStructureRecords ),  "Show structure records." )
-            ( "event",      po::bool_switch( &bShowEvents ),            "Show event records." )
-            ( "transition", po::bool_switch( &bShowTransitions ),       "Show transition records." )
-            ( "memory",     po::bool_switch( &bShowMemoryRecords ),     "Show memory records." )
+            ( "msgs",       po::bool_switch( &options.bShowLogRecords ),        "Show log message records." )
+            ( "structure",  po::bool_switch( &options.bShowStructureRecords ),  "Show structure records." )
+            ( "event",      po::bool_switch( &options.bShowEvents ),            "Show event records." )
+            ( "transition", po::bool_switch( &options.bShowTransitions ),       "Show transition records." )
+            ( "memory",     po::bool_switch( &options.bShowMemoryRecords ),     "Show memory records." )
             ( "all",        po::bool_switch( &bShowAll ),               "Show all records." )
+
+            ( "sec",        po::value( &fSeconds ),                     "Stream to output at rate in seconds" )
             ;
         // clang-format on
     }
@@ -69,19 +192,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
-    if( bShowAll )
-    {
-        bShowLogRecords       = true;
-        bShowStructureRecords = true;
-        bShowEvents           = true;
-        bShowTransitions      = true;
-        bShowMemoryRecords    = true;
-    }
-    // if nothing then show log messages
-    else if( !bShowStructureRecords && !bShowEvents && !bShowTransitions && !bShowMemoryRecords )
-    {
-        bShowLogRecords = true;
-    }
+    options.configure( bShowAll );
 
     if( bHelp )
     {
@@ -93,97 +204,47 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         {
             VERIFY_RTE_MSG(
                 boost::filesystem::exists( logFolderPath ), "Failed to locate folder: " << logFolderPath.string() );
-            mega::log::FileStorage log( logFolderPath, true );
-            SPDLOG_INFO( "Loading event log: {}", logFolderPath.string() );
+            SPDLOG_TRACE( "Loading event log: {}", logFolderPath.string() );
 
-            if( bShowLogRecords )
+            if( fSeconds > 0.0f )
             {
-                using namespace mega::log::Log;
-                for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
+                const auto rate    = std::chrono::milliseconds( static_cast< int >( fSeconds * 1000.0f ) );
+                using Milliseconds = decltype( rate );
+
+                mega::TimeStamp timestamp = 0;
+
+                boost::asio::io_context   io;
+                boost::asio::steady_timer timer( io );
+                timer.expires_from_now( rate );
+
+                struct TimerCallback
                 {
-                    const Read&        logMsg = *i;
-                    std::ostringstream os;
-                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( logMsg.getType() ) << ": "
-                       << logMsg.getMessage();
-                    switch( logMsg.getType() )
+                    boost::asio::io_context&   io;
+                    boost::asio::steady_timer& timer;
+                    Milliseconds               rate;
+                    mega::TimeStamp&           timestamp;
+                    boost::filesystem::path&   logFolderPath;
+                    Options&                   options;
+
+                    void operator()() const
                     {
-                        case eTrace:
-                            SPDLOG_TRACE( os.str() );
-                            break;
-                        case eDebug:
-                            SPDLOG_DEBUG( os.str() );
-                            break;
-                        case eInfo:
-                            SPDLOG_INFO( os.str() );
-                            break;
-                        case eWarn:
-                            SPDLOG_WARN( os.str() );
-                            break;
-                        case eError:
-                            SPDLOG_ERROR( os.str() );
-                            break;
-                        case eFatal:
-                            SPDLOG_CRITICAL( os.str() );
-                            break;
+                        mega::log::FileStorage log( logFolderPath, true );
+                        printLog( log, options, timestamp );
+                        timestamp = log.getTimeStamp();
+
+                        timer.expires_from_now( rate );
+                        timer.async_wait( [ next = *this ]( boost::system::error_code ec )
+                                          { boost::asio::post( next.io, next ); } );
                     }
-                }
-            }
-            if( bShowStructureRecords )
-            {
-                using namespace mega::log::Structure;
-                for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
-                {
-                    const Read&        record = *i;
-                    std::ostringstream os;
-                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( record.getType() ) << ": "
-                       << record.getSource() << ": " << record.getTarget() << ": " << record.getRelation();
-                    SPDLOG_INFO( os.str() );
-                }
-            }
-            if( bShowEvents )
-            {
-                using namespace mega::log::Event;
-                for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
-                {
-                    const Read&        eventRecord = *i;
-                    std::ostringstream os;
-                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( eventRecord.getType() ) << ": "
-                       << eventRecord.getRef();
-                    SPDLOG_INFO( os.str() );
-                }
-            }
-            if( bShowTransitions )
-            {
-                using namespace mega::log::Transition;
-                for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
-                {
-                    const Read&        transitionRecord = *i;
-                    std::ostringstream os;
-                    os << std::setw( 17 ) << std::setfill( ' ' ) << "Transition: " << transitionRecord.getRef();
-                    SPDLOG_INFO( os.str() );
-                }
-            }
-            if( bShowMemoryRecords )
-            {
-                using namespace mega::log::Memory;
-                for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
-                {
-                    const Read& memoryRecord = *i;
-                    const auto& data         = memoryRecord.getData();
+                } callback{ io, timer, rate, timestamp, logFolderPath, options };
 
-                    std::ostringstream osMem;
-                    osMem << memoryRecord.getRef();
-
-                    int x = 0;
-                    for( auto i = data.begin(), iEnd = data.end(); i != iEnd; ++i, ++x )
-                    {
-                        if( x % 4 == 0 )
-                            osMem << ' ';
-                        osMem << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast< unsigned >( *i );
-                    }
-
-                    SPDLOG_INFO( osMem.str() );
-                }
+                boost::asio::post( io, callback );
+                io.run();
+            }
+            else
+            {
+                mega::log::FileStorage log( logFolderPath, true );
+                printLog( log, options, 0 );
             }
         }
         else

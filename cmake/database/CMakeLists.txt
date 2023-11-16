@@ -75,7 +75,7 @@ set( DATABASE_SCHEMAS
     ${MEGA_SRC_DIR}/schema/stages.dbs
     ${MEGA_SRC_DIR}/schema/parser.dbs
     ${MEGA_SRC_DIR}/schema/interface.dbs
-    ${MEGA_SRC_DIR}/schema/invocation.dbs
+    ${MEGA_SRC_DIR}/schema/instructions.dbs
     ${MEGA_SRC_DIR}/schema/concrete.dbs
     ${MEGA_SRC_DIR}/schema/operations.dbs
     ${MEGA_SRC_DIR}/schema/analysis.dbs

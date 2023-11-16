@@ -36,7 +36,11 @@ static void printDerivationStep( Edge* pEdge, std::string& strIndent, bool bShow
 
     Step* pStep = pEdge->get_next();
     {
-        if( db_cast< And >( pStep ) )
+        if( db_cast< Select >( pStep ) )
+        {
+            os << strIndent << "SELECT (";
+        }
+         else if( db_cast< And >( pStep ) )
         {
             os << strIndent << "AND (";
         }

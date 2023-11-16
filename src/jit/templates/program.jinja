@@ -290,10 +290,15 @@ void dispatch( const mega::reference& event )
 {
     switch( event.getType() )
     {
-{% for event in event_types %}
-        case {{ event.type_id }}: // {{ event.type_name }}
+{%  for event in event_types %}
+        case {{ event.type_id }}:
         {
-{% if event.has_transition %}
+{%      for handler in event.handlers %}
+{%          if handler.has_dispatch %}
+            {
+                {{ handler.code }}
+            }
+{%          else if handler.has_transition %}
             mega::mangle::transition
             ( 
                 mega::reference::make
@@ -302,15 +307,16 @@ void dispatch( const mega::reference& event )
                     mega::TypeInstance
                     ( 
                         event.getType().getObjectID(), 
-                        mega::SubTypeInstance{ {{ event.transition_sub_type }}, 
-                            static_cast< mega::SubType >( event.getInstance() / {{ event.transition_divider }}U ) } 
+                        mega::SubTypeInstance{ {{ handler.transition_sub_type }}, 
+                            static_cast< mega::SubType >( event.getInstance() / {{ handler.transition_divider }}U ) } 
                     ) 
                 ) 
-            ); // {{ event.comment }}
-{% endif %}  
+            ); // {{ handler.comment }}
+{%          endif %}  
         }
         break;
-{% endfor %}
+{%      endfor %}
+{%  endfor %}
         default:
         {
         }
