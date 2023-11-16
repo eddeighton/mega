@@ -6,10 +6,10 @@
 namespace mega
 {
 
-}
-
 std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequence& typeIDSequence )
 {
     common::delimit( typeIDSequence.begin(), typeIDSequence.end(), ".", os );
     return os;
 }
+}
+

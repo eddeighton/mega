@@ -114,7 +114,6 @@ struct SimpleDimension
 
     static inline void print( std::ostream& os, const T& value )
     {
-        using ::operator<<;
         os << value;
     }
 };
@@ -187,7 +186,6 @@ struct NonSimpleDimension
 
     static inline void print( std::ostream& os, const T& value )
     {
-        using ::operator<<;
         os << value;
     }
 };

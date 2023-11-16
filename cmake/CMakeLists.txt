@@ -85,6 +85,8 @@ set_property(GLOBAL PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 #ensure language runtimes and other system libs are copied to installation folder
 include (InstallRequiredSystemLibraries)
 
+add_subdirectory(pch)
+
 add_subdirectory(inja)
 
 add_subdirectory(mega)

@@ -39,7 +39,6 @@ MPO ExecutorRequestLogicalThread::SimCreate( boost::asio::yield_context& yield_c
 network::Message ExecutorRequestLogicalThread::MPODown( const network::Message& request, const MPO& mpo,
                                                         boost::asio::yield_context& yield_ctx )
 {
-    using ::operator<<;
     if( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
     {
         network::ReceivedMessage receivedMsg{ shared_from_this(), request };

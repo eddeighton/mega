@@ -316,7 +316,6 @@ void* PythonModule::getOperator( const OperatorFunction& operatorFunction )
         if( exceptionPtrOpt.has_value() )
         {
             std::ostringstream osError;
-            using ::           operator<<;
             osError << "Exception compiling operator: " << operatorFunction.second;
             SPDLOG_ERROR( "PythonModule::invoke rethrowing exception for invocation: {}", osError.str() );
             std::rethrow_exception( exceptionPtrOpt.value() );

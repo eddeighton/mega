@@ -145,16 +145,13 @@ public:
 
 #ifndef MEGAJIT
 static_assert( sizeof( TypeID ) == 4U, "Invalid TypeID Size" );
+std::ostream& operator<<( std::ostream& os, const mega::TypeID& typeID );
+std::istream& operator>>( std::istream& is, mega::TypeID& typeID );
 #endif
 
 static constexpr TypeID ROOT_SYMBOL_ID = TypeID( -1 );
 static constexpr TypeID ROOT_TYPE_ID   = TypeID::make_context( 1, 0 );
 
 } // namespace mega
-
-#ifndef MEGAJIT
-std::ostream& operator<<( std::ostream& os, const mega::TypeID& typeID );
-std::istream& operator>>( std::istream& is, mega::TypeID& typeID );
-#endif
 
 #endif // GUARD_2023_January_09_type_id

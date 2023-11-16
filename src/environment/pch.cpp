@@ -18,15 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "reports/value.hpp"
-
-namespace mega::reports
+const char* pchWasHere()
 {
-
-std::string toString( const Value& value )
-{
-    std::ostringstream osValue;
-    boost::apply_visitor( [ & ]( const auto& arg ) { osValue << arg; }, value );
-    return osValue.str();
+    return "pchWasHere";
 }
-} // namespace mega::reports

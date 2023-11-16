@@ -180,7 +180,6 @@ struct formatter< mega::TypeID >
     inline auto format( const mega::TypeID& typeID, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
-        using ::           operator<<;
         os << typeID;
         return fmt::format_to( ctx.out(), "{}", os.str() );
     }
@@ -194,7 +193,6 @@ struct formatter< mega::TypeInstance >
     inline auto format( const mega::TypeInstance& typeInstance, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
-        using ::           operator<<;
         os << typeInstance;
         return fmt::format_to( ctx.out(), "{}", os.str() );
     }
@@ -208,7 +206,6 @@ struct formatter< mega::MP >
     inline auto format( const mega::MP& mp, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
-        using ::           operator<<;
         os << mp;
         return fmt::format_to( ctx.out(), "{}", os.str() );
     }
@@ -222,7 +219,6 @@ struct formatter< mega::MPO >
     inline auto format( const mega::MPO& mpo, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
-        using ::           operator<<;
         os << mpo;
         return fmt::format_to( ctx.out(), "{}", os.str() );
     }
@@ -236,7 +232,6 @@ struct formatter< mega::reference >
     inline auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
-        using ::           operator<<;
         os << ref;
         return fmt::format_to( ctx.out(), "{}", os.str() );
     }

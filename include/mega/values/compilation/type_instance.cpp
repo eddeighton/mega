@@ -24,16 +24,17 @@
 #include <ostream>
 #include <sstream>
 
+namespace mega
+{
 std::ostream& operator<<( std::ostream& os, const mega::TypeInstance& typeInstance )
 {
-    using ::operator<<;
     return os << std::dec << '[' << typeInstance.type << "." << std::setw( 4 ) << std::setfill( '0' ) << std::hex
               << typeInstance.instance << std::dec << ']';
 }
 std::istream& operator>>( std::istream& is, mega::TypeInstance& typeInstance )
 {
-    using ::operator>>;
     char    c;
     return is >> std::dec >> c >> typeInstance.type >> c >> std::setw( 4 ) >> std::hex >> typeInstance.instance
            >> std::dec >> c;
+}
 }

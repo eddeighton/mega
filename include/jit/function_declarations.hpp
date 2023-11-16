@@ -43,7 +43,6 @@ struct FunctionDeclarations
     nlohmann::json init( const InvocationID& invocationID, std::string& strName ) const
     {
         {
-            using ::           operator<<;
             std::ostringstream osName;
             osName << invocationID;
             strName = osName.str();

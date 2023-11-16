@@ -182,7 +182,6 @@ network::Message RootRequestLogicalThread::MPDown( const network::Message& reque
     }
     else
     {
-        using ::operator<<;
         THROW_RTE( "Failed to route to mp: " << mp );
     }
     UNREACHABLE;
@@ -203,7 +202,6 @@ network::Message RootRequestLogicalThread::MPODown( const network::Message&     
     }
     else
     {
-        using ::operator<<;
         THROW_RTE( "Failed to route to mpo: " << mpo );
     }
     UNREACHABLE;
@@ -224,7 +222,6 @@ TimeStamp RootRequestLogicalThread::SimLockRead( const MPO& requestingMPO, const
     }
     else
     {
-        using ::operator<<;
         THROW_RTE( "Failed to route to mpo: " << targetMPO );
     }
     UNREACHABLE;
@@ -240,7 +237,6 @@ TimeStamp RootRequestLogicalThread::SimLockWrite( const MPO& requestingMPO, cons
     }
     else
     {
-        using ::operator<<;
         THROW_RTE( "Failed to route to mpo: " << targetMPO );
     }
     UNREACHABLE;
@@ -258,7 +254,6 @@ void RootRequestLogicalThread::SimLockRelease( const MPO&                  reque
     }
     else
     {
-        using ::operator<<;
         THROW_RTE( "Failed to route to mpo: " << targetMPO );
     }
     UNREACHABLE;

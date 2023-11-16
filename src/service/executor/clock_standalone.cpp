@@ -86,7 +86,6 @@ void ProcessClockStandalone::requestMove( network::LogicalThreadBase* pSender, M
 
 void ProcessClockStandalone::registerMPOImpl( network::SenderRef sender )
 {
-    using ::operator<<;
     SPDLOG_TRACE( "ProcessClockStandalone::registerMPOImpl mpo:{}", sender.m_mpo );
     VERIFY_RTE_MSG( m_mpos.insert( { sender.m_mpo, State{ true, false, true, sender.m_pSender } } ).second,
                     "Duplicate MPO when registering: " << sender.m_mpo );
@@ -95,7 +94,6 @@ void ProcessClockStandalone::registerMPOImpl( network::SenderRef sender )
 
 void ProcessClockStandalone::unregisterMPOImpl( network::SenderRef sender )
 {
-    using ::operator<<;
     SPDLOG_TRACE( "ProcessClockStandalone::unregisterMPOImpl mpo:{}", sender.m_mpo );
     auto iFind = m_mpos.find( sender.m_mpo );
     VERIFY_RTE_MSG( iFind != m_mpos.end(), "Failed to locate mpo when unregister: " << sender.m_mpo );
@@ -105,7 +103,6 @@ void ProcessClockStandalone::unregisterMPOImpl( network::SenderRef sender )
 
 void ProcessClockStandalone::requestMoveImpl( network::LogicalThreadBase* pSender, MPO mpo )
 {
-    using ::operator<<;
     {
         auto iFind = m_mpos.find( mpo );
         VERIFY_RTE_MSG( iFind != m_mpos.end(), "Failed to locate mpo when unregister: " << mpo );
@@ -117,7 +114,6 @@ void ProcessClockStandalone::requestMoveImpl( network::LogicalThreadBase* pSende
 
 void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSender, MPO mpo )
 {
-    using ::operator<<;
     {
         auto iFind = m_mpos.find( mpo );
         VERIFY_RTE_MSG( iFind != m_mpos.end(), "Failed to locate mpo when unregister: " << mpo );
@@ -129,7 +125,6 @@ void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSend
 
 bool ProcessClockStandalone::unrequestClockImpl( network::LogicalThreadBase* pSender, MPO mpo )
 {
-    using ::operator<<;
     // allow to unrequest if there is any other thread waiting
     bool bOtherThreadWaiting = false;
     for( auto& [ mpo_, state ] : m_mpos )

@@ -327,7 +327,6 @@ public:
 
                             {
                                 auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
-                                using ::operator<<;
                                 VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                                 "Duplicate Interface Type ID Sequnce found: "
                                                     << idSeq << " : " << New::Interface::getIdentifier( pContext ) );
@@ -348,7 +347,6 @@ public:
                         {
                             {
                                 auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
-                                using ::operator<<;
                                 VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                                 "Duplicate Interface Type ID Sequnce found: "
                                                     << idSeq << " : " << New::Interface::getIdentifier( pContext ) );
@@ -372,7 +370,6 @@ public:
                         Old::Symbols::InterfaceTypeID* pOldInterfaceTypeID = iFind->second;
 
                         auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
-                        using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                         "Duplicate Interface Type ID Sequnce found: "
                                             << idSeq << " : " << New::Interface::getIdentifier( pDimension ) );
@@ -387,7 +384,6 @@ public:
                     else
                     {
                         auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
-                        using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                         "Duplicate Interface Type ID Sequnce found: "
                                             << idSeq << " : " << New::Interface::getIdentifier( pDimension ) );
@@ -408,7 +404,6 @@ public:
                         Old::Symbols::InterfaceTypeID* pOldInterfaceTypeID = iFind->second;
 
                         auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
-                        using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                         "Duplicate Interface Type ID Sequnce found: "
                                             << idSeq << " : " << New::Interface::getIdentifier( pLink ) );
@@ -423,7 +418,6 @@ public:
                     else
                     {
                         auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
-                        using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                         "Duplicate Interface Type ID Sequnce found: "
                                             << idSeq << " : " << New::Interface::getIdentifier( pLink ) );

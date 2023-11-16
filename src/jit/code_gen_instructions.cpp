@@ -669,7 +669,6 @@ void gen( Args args, const Operations::Move* pMove, const Application::Operation
                 {
                     const mega::RelationID& relationID = pRelation->get_id();
                     osRelationID << relationID.getLower() << ',' << relationID.getUpper();
-                    using ::operator<<;
                     osRelationIDAsInt << relationID;
                 }
                 // is the move WITHIN the same MPO ?

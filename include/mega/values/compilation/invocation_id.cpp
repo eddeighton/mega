@@ -55,6 +55,8 @@ namespace detail
     }
 }
 
+namespace mega
+{
 std::ostream& operator<<( std::ostream& os, const mega::InvocationID& invocationID )
 {
     os << "c";
@@ -63,4 +65,4 @@ std::ostream& operator<<( std::ostream& os, const mega::InvocationID& invocation
     detail::delimit( invocationID.m_type_path.begin(), invocationID.m_type_path.end(), "_", os );
     return os << mega::getOperationString( invocationID.m_operation );
 }
-
+}

@@ -20,6 +20,8 @@
 
 #include "mega/values/compilation/cardinality.hpp"
 
+namespace mega
+{
 std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardinalityRange )
 {
     if( cardinalityRange.minimum().isMany() )
@@ -32,4 +34,5 @@ std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardin
     else
         os << cardinalityRange.maximum().getNumber();
     return os;
+}
 }

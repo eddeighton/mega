@@ -53,11 +53,11 @@ struct Version
     }
 };
 
-} // namespace mega
-
 inline std::ostream& operator<<( std::ostream& os, const mega::Version& version )
 {
     return os << version.major << "." << version.minor << "." << version.revision << "." << version.date;
 }
+
+} // namespace mega
 
 #endif // VERSION_4_JUNE_2022

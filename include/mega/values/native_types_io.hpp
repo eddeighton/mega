@@ -29,10 +29,12 @@
 #include <ostream>
 
 // generate serialization routines for native types using xmacros
-
+namespace std
+{
 #define NATIVE_TYPE( Type ) \
     std::ostream& operator<<( std::ostream& os, const std::vector< Type >& value );
 #include "mega/values/native_types.hxx"
 #undef NATIVE_TYPE
+}
 
 #endif // GUARD_2023_September_02_native_types_io

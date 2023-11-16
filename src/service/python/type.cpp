@@ -246,7 +246,6 @@ PyObject* Type::createReference( const reference& ref, const Type::TypeIDVector&
     {
         std::ostringstream os;
         {
-            using ::operator<<;
             os << "Invalid symbol for reference: " << ref;
             if( !typePath.empty() )
             {

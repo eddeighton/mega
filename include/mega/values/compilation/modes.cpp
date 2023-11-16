@@ -58,9 +58,9 @@ CompilationMode CompilationMode::fromStr( const char* psz )
     return CompilationMode( static_cast< CompilationMode::Value >( std::distance( g_pszModes.cbegin(), iFind ) ) );
 }
 
-} // namespace mega
-
 std::ostream& operator<<( std::ostream& os, mega::CompilationMode compilationMode )
 {
     return os << compilationMode.str();
 }
+
+} // namespace mega

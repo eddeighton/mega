@@ -41,12 +41,11 @@ const OperatorID::Array OperatorID::names =
 };
 // clang-format om
 
-}
-
 std::ostream& operator<<( std::ostream& os, const mega::OperatorID& operatorID )
 {
-    using ::operator<<;
     return os << mega::OperatorID::names[ operatorID.m_operator ].second << '.' << operatorID.m_typeID;
+}
+
 }
 
 #endif //GUARD_2023_October_03_operator_io

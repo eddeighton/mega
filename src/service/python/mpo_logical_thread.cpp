@@ -173,7 +173,6 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
         for( const auto& msg : m_messageQueue )
         {
             SPDLOG_ERROR( "Unexpected pending message when starting up MPOLogicalThread: {}", msg.msg );
-            using ::operator<<;
             THROW_RTE( "Unexpected pending message when starting up MPOLogicalThread: " << msg.msg );
         }
 

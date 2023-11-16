@@ -112,8 +112,9 @@ private:
     Cardinality m_minimum, m_maximum;
 };
 
+std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardinalityRange );
+
 } // namespace mega
 
-std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardinalityRange );
 
 #endif // CARDINALITY_13_MAY_2022

@@ -115,7 +115,6 @@ void compileTransitions( OperationsStage::Database& database, const mega::io::me
                     if( result != Derivation::eSuccess )
                     {
                         std::ostringstream os;
-                        using ::           operator<<;
                         if( result == Derivation::eAmbiguous )
                             os << "Derivation disambiguation was ambiguous for: "
                                 << Concrete::printContextFullType( pContextVert ) << "\n";

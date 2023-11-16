@@ -205,7 +205,6 @@ network::Message DaemonRequestLogicalThread::MPDown( const network::Message&    
                                                      const MP&                   mp,
                                                      boost::asio::yield_context& yield_ctx )
 {
-    using ::operator<<;
     network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp );
     VERIFY_RTE_MSG( pConnection, "Failed to locate connection for mp: " << mp );
     network::mpo::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
@@ -238,7 +237,6 @@ network::Message DaemonRequestLogicalThread::MPODown( const network::Message&   
     }
     else
     {
-        using ::operator<<;
         THROW_RTE( "Routing error cannot locate mpo: " << mpo );
         return network::Message{};
     }

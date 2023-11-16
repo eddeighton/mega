@@ -60,9 +60,8 @@ public:
 private:
     Value m_value;
 };
+std::ostream& operator<<( std::ostream& os, mega::CompilationMode compilationMode );
 
 } // namespace mega
-
-std::ostream& operator<<( std::ostream& os, mega::CompilationMode compilationMode );
 
 #endif // MODES_10_MAY_2022

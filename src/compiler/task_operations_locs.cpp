@@ -133,7 +133,6 @@ public:
                     std::string        strView( i, iEnd );
                     std::istringstream is( strView );
                     TypeID             typeID;
-                    using ::           operator>>;
                     is >> typeID;
                     return typeID;
                 },

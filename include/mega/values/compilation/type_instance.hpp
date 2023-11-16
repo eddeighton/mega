@@ -103,13 +103,10 @@ struct TypeInstance
 
 #ifndef MEGAJIT
 static_assert( sizeof( TypeInstance ) == 6U, "Invalid TypeInstance Size" );
-#endif
-
-} // namespace mega
-
-#ifndef MEGAJIT
 std::ostream& operator<<( std::ostream& os, const mega::TypeInstance& subTypeInstance );
 std::istream& operator>>( std::istream& is, mega::TypeInstance& subTypeInstance );
 #endif
+
+} // namespace mega
 
 #endif // GUARD_2023_January_07_type_instance

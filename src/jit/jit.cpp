@@ -258,7 +258,6 @@ std::string JIT::getReturnTypeMangleType( FinalStage::Operations::ReturnTypes::R
                                           const mega::InvocationID&                        invocationID )
 {
     using namespace FinalStage;
-    using ::operator<<;
 
     std::optional< std::string > strTypeOpt;
 
@@ -312,7 +311,6 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
                                                             const mega::InvocationID& invocationID, void** ppFunction )
 {
     using namespace FinalStage;
-    using ::operator<<;
     SPDLOG_TRACE( "JIT: compileInvocationFunction: {} {}", pszUnitName, invocationID );
 
     const Operations::Invocation* pInvocationFinal = m_database.tryGetInvocation( invocationID );

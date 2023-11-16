@@ -110,7 +110,6 @@ TEST_P( SubTypeInstanceBinArchiveTest, SubTypeInstanceBinArchive )
         std::string str;
         {
             std::ostringstream os;
-            using ::           operator<<;
             os << data.expected;
             str = os.str();
         }
@@ -118,7 +117,6 @@ TEST_P( SubTypeInstanceBinArchiveTest, SubTypeInstanceBinArchive )
         mega::SubTypeInstance result;
         {
             std::istringstream is( str );
-            using ::           operator>>;
             is >> result;
         }
 

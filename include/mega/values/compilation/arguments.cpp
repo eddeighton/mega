@@ -39,8 +39,57 @@
 
 namespace mega
 {
-
 using Identifier = std::string;
+}
+
+using MegaIdentifier = mega::Identifier;
+
+struct _Type
+{
+    mega::Identifier     id;
+    std::vector< _Type > args;
+};
+
+std::ostream& operator<<( std::ostream& os, const _Type& type )
+{
+    os << type.id;
+    if( !type.args.empty() )
+    {
+        os << "< ";
+        bool bFirst = true;
+        for( const auto& a : type.args )
+        {
+            if( bFirst )
+                bFirst = false;
+            else
+                os << ", ";
+            os << a;
+        }
+        os << " >";
+    }
+    return os;
+}
+
+// clang-format off
+BOOST_FUSION_ADAPT_STRUCT( _Type,
+    ( MegaIdentifier, id )
+    ( std::vector< _Type >, args ) )
+// clang-format on
+
+struct _TypeName
+{
+    _Type                             type;
+    std::optional< mega::Identifier > name;
+
+    using Vector = std::vector< _TypeName >;
+};
+
+// clang-format off
+BOOST_FUSION_ADAPT_STRUCT( _TypeName,
+    ( _Type, type )
+    ( std::optional< MegaIdentifier >, name ) )
+
+// clang-format on
 
 namespace
 {
@@ -121,7 +170,7 @@ inline ParseResult parse_impl( const std::string& strInput, ResultType& result, 
 }
 
 template < typename Iterator >
-class IdentifierGrammar : public boost::spirit::qi::grammar< Iterator, Identifier() >
+class IdentifierGrammar : public boost::spirit::qi::grammar< Iterator, mega::Identifier() >
 {
 public:
     IdentifierGrammar()
@@ -134,53 +183,13 @@ public:
                               >> *( char_( "a-zA-Z0-9_:." )[ push_back( _val, qi::_1 ) ] ) ];
     }
 
-    boost::spirit::qi::rule< Iterator, Identifier() > m_main_rule;
+    boost::spirit::qi::rule< Iterator, mega::Identifier() > m_main_rule;
 };
 
-ParseResult parse( const std::string& strInput, Identifier& code, std::ostream& errorStream )
+ParseResult parse( const std::string& strInput, mega::Identifier& code, std::ostream& errorStream )
 {
     return parse_impl< IdentifierGrammar >( strInput, code, errorStream );
 }
-
-} // namespace
-
-struct _Type
-{
-    Identifier           id;
-    std::vector< _Type > args;
-};
-
-std::ostream& operator<<( std::ostream& os, const _Type& type )
-{
-    os << type.id;
-    if( !type.args.empty() )
-    {
-        os << "< ";
-        bool bFirst = true;
-        for( const auto& a : type.args )
-        {
-            if( bFirst )
-                bFirst = false;
-            else
-                os << ", ";
-            os << a;
-        }
-        os << " >";
-    }
-    return os;
-}
-} // namespace mega
-
-// clang-format off
-BOOST_FUSION_ADAPT_STRUCT( mega::_Type,
-    ( mega::Identifier, id )
-    ( std::vector< mega::_Type >, args ) )
-// clang-format on
-
-namespace mega
-{
-namespace
-{
 
 template < typename Iterator >
 class TypeGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, _Type() >
@@ -204,28 +213,6 @@ public:
     boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, std::vector< _Type >() > m_type_list_rule;
     boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, _Type() >                m_main_rule;
 };
-} // namespace
-
-struct _TypeName
-{
-    _Type                       type;
-    std::optional< Identifier > name;
-
-    using Vector = std::vector< _TypeName >;
-};
-} // namespace mega
-
-// clang-format off
-BOOST_FUSION_ADAPT_STRUCT( mega::_TypeName,
-    ( mega::_Type, type )
-    ( std::optional< mega::Identifier >, name ) )
-
-// clang-format on
-
-namespace mega
-{
-namespace
-{
 
 template < typename Iterator >
 class TypeNameListGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, _TypeName::Vector() >
@@ -251,6 +238,9 @@ public:
     boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, _TypeName::Vector() > m_main_rule;
 };
 } // namespace
+
+namespace mega
+{
 
 void parse( const std::string& str, TypeName::Vector& args )
 {
@@ -283,6 +273,13 @@ void parse( const std::string& str, Type::Vector& args )
         os << a.type;
         args.push_back( Type( os.str() ) );
     }
+}
+
+std::string TypeName::str() const
+{
+    std::ostringstream os;
+    os << *this;
+    return os.str();
 }
 
 std::ostream& operator<<( std::ostream& os, const mega::Type& arg )
@@ -327,13 +324,4 @@ std::ostream& operator<<( std::ostream& os, const mega::Type::Vector& arguments 
     }
     return os;
 }
-
-std::string TypeName::str() const
-{
-    using ::           operator<<;
-    std::ostringstream os;
-    os << *this;
-    return os.str();
-}
-
 } // namespace mega

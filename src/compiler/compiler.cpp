@@ -200,11 +200,9 @@ public:
 
         // check the version is latest
         // const auto actualVersion = Version::getVersion();
-        // using ::   operator<<;
         // VERIFY_RTE_MSG( actualVersion == m_configuration->header.version,
         //                 "Pipeine version mismatch: Configuration version: " << m_configuration->header.version
-        //                                                                    << " Actual Version: " << actualVersion );
-        using ::operator<<;
+        //                   
         osLog << "SUCCESS: Initialised pipeline: " << m_configuration->header.pipelineID
               << " with version: " << m_configuration->header.version;
     }

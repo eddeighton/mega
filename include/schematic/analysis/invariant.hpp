@@ -41,7 +41,7 @@
 
 #define INVARIANT_THROW( exceptionType, msg )                  \
     DO_STUFF_AND_REQUIRE_SEMI_COLON(                 \
-        using ::operator<<; std::ostringstream _os2; \
+        std::ostringstream _os2; \
         _os2 << "Analysis Invariant failed. FILE " << __FILE__ << ":" << __LINE__ << "\nMSG:" << msg; \
         throw exceptionType( _os2.str() ); )
 

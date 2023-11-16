@@ -127,8 +127,6 @@ void MPOContext::destroyExecutor( MP mp )
 
 reference MPOContext::allocate( TypeID objectTypeID )
 {
-    using ::operator<<;
-
     VERIFY_RTE_MSG( m_pMemoryManager, "Memory manager not instantiated" );
 
     reference allocated = m_pMemoryManager->New( objectTypeID );
@@ -140,8 +138,6 @@ reference MPOContext::allocate( TypeID objectTypeID )
 
 reference MPOContext::allocateRemote( const MPO& remote, TypeID objectTypeID )
 {
-    using ::operator<<;
-
     reference allocated;
     if( remote == getThisMPO() )
     {
@@ -178,8 +174,6 @@ void MPOContext::networkToHeap( reference& ref )
 
 void MPOContext::readLock( reference& ref )
 {
-    using ::operator<<;
-
     SPDLOG_TRACE( "MPOContext::readLock: {}", ref );
 
     VERIFY_RTE_MSG( ref.getMPO() != getThisMPO(), "readLock used when matching MPO" );
@@ -201,7 +195,6 @@ void MPOContext::readLock( reference& ref )
 
 void MPOContext::writeLock( reference& ref )
 {
-    using ::operator<<;
     SPDLOG_TRACE( "MPOContext::writeLock: {}", ref );
 
     VERIFY_RTE_MSG( ref.getMPO() != getThisMPO(), "writeLock used when matching MPO" );
@@ -222,7 +215,6 @@ void MPOContext::writeLock( reference& ref )
 
 void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
 {
-    using ::operator<<;
     // initialise event log
     {
         boost::filesystem::path logFolder;
@@ -240,7 +232,6 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
         }
         std::ostringstream os;
         {
-            using ::operator<<;
             os << "events/ev_" << mpo.getMachineID() << "-" << mpo.getProcessID() << "-"
                << static_cast< mega::U32 >( mpo.getOwnerID() ) << "_" << m_logicalthreadIDRef << "/";
         }
@@ -296,8 +287,6 @@ void MPOContext::yield()
 
 void MPOContext::applyTransaction( const network::Transaction& transaction )
 {
-    using ::operator<<;
-
     // NOTE: can context switch when call get_load_record
     static thread_local mega::runtime::program::RecordLoadBin recordLoadBin;
     static thread_local mega::runtime::program::RecordMake    recordMake;
@@ -346,8 +335,8 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
     {
         for( const log::Transition::DataIO& transition : data.m_transition )
         {
-            //SPDLOG_TRACE( "SIM::SimLockRelease Got transition record: {} {}", transition.m_data.m_Ref,
-            //    transition.m_data.m_Transition );
+            // SPDLOG_TRACE( "SIM::SimLockRelease Got transition record: {} {}", transition.m_data.m_Ref,
+            //     transition.m_data.m_Transition );
             m_pLog->record( log::Transition::Write( transition.m_data.m_Ref ) );
         }
     }
@@ -362,8 +351,6 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
 
 void MPOContext::cycleComplete()
 {
-    using ::operator<<;
-
     m_pLog->cycle();
 
     network::TransactionProducer::MPOTransactions transactions;
@@ -449,7 +436,7 @@ void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::T
 
     auto reportType     = getReportType( url );
     bool bDoBasicReport = true;
-    
+
     if( reportType.has_value() )
     {
         if( reportType.value() == "memory" )
@@ -462,7 +449,6 @@ void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::T
 
     if( bDoBasicReport )
     {
-
         {
             Table                   logTable;
             const log::IndexRecord& iter = getLog().getIterator();

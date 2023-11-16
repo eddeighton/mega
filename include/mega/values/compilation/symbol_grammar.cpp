@@ -37,21 +37,28 @@
 
 #include <boost/fusion/include/adapt_struct.hpp>
 
-BOOST_FUSION_ADAPT_STRUCT( mega::Symbol, ( std::string, m_identifier ) )
+using MegaSymbol                         = mega::Symbol;
+using MegaSymbolVariant                  = mega::SymbolVariant;
+using MegaSymbolVariantPath              = mega::SymbolVariantPath;
+using MegaSymbolVariantPathSequence      = mega::SymbolVariantPathSequence;
+using MegaNamedSymbolVariantPath         = mega::NamedSymbolVariantPath;
+using MegaNamedSymbolVariantPathSequence = mega::NamedSymbolVariantPathSequence;
 
-BOOST_FUSION_ADAPT_STRUCT( mega::SymbolVariant, ( std::vector< mega::Symbol >, m_symbols ) )
+BOOST_FUSION_ADAPT_STRUCT( MegaSymbol, ( std::string, m_identifier ) )
 
-BOOST_FUSION_ADAPT_STRUCT( mega::SymbolVariantPath, ( std::vector< mega::SymbolVariant >, m_symbolVariants ) )
+BOOST_FUSION_ADAPT_STRUCT( MegaSymbolVariant, ( std::vector< MegaSymbol >, m_symbols ) )
 
-BOOST_FUSION_ADAPT_STRUCT( mega::SymbolVariantPathSequence,
-                           ( std::vector< mega::SymbolVariantPath >, m_symbolVariantPaths ) )
+BOOST_FUSION_ADAPT_STRUCT( MegaSymbolVariantPath, ( std::vector< MegaSymbolVariant >, m_symbolVariants ) )
 
-BOOST_FUSION_ADAPT_STRUCT( mega::NamedSymbolVariantPath,
-                           ( mega::SymbolVariantPath, m_symbolVariantPath ),
-                           ( std::optional< mega::Symbol >, m_name ) )
+BOOST_FUSION_ADAPT_STRUCT( MegaSymbolVariantPathSequence,
+                           ( std::vector< MegaSymbolVariantPath >, m_symbolVariantPaths ) )
 
-BOOST_FUSION_ADAPT_STRUCT( mega::NamedSymbolVariantPathSequence,
-                           ( std::vector< mega::NamedSymbolVariantPath >, m_symbolVariantPaths ) )
+BOOST_FUSION_ADAPT_STRUCT( MegaNamedSymbolVariantPath,
+                           ( MegaSymbolVariantPath, m_symbolVariantPath ),
+                           ( std::optional< MegaSymbol >, m_name ) )
+
+BOOST_FUSION_ADAPT_STRUCT( MegaNamedSymbolVariantPathSequence,
+                           ( std::vector< MegaNamedSymbolVariantPath >, m_symbolVariantPaths ) )
 
 namespace mega
 {
@@ -253,7 +260,7 @@ public:
         using namespace boost::spirit::qi;
         using namespace boost::phoenix;
 
-        m_main_rule = -m_named_symbol_variant_path_sequence_grammar[ _val =  qi::_1 ];
+        m_main_rule = -m_named_symbol_variant_path_sequence_grammar[ _val = qi::_1 ];
     }
 
     NamedSymbolVariantPathSequenceGrammar< Iterator > m_named_symbol_variant_path_sequence_grammar;
@@ -344,7 +351,7 @@ std::string SymbolVariant::str() const
         os << ">";
     }
     return os.str();
-}
+}   
 
 SymbolVariantPath SymbolVariantPath::parse( const std::string& str )
 {
@@ -416,8 +423,6 @@ std::string NamedSymbolVariantPathSequence::str() const
     return os.str();
 }
 
-} // namespace mega
-
 std::ostream& operator<<( std::ostream& os, const mega::Symbol& value )
 {
     return os << value.str();
@@ -442,3 +447,5 @@ std::ostream& operator<<( std::ostream& os, const mega::NamedSymbolVariantPathSe
 {
     return os << value.str();
 }
+
+} // namespace mega

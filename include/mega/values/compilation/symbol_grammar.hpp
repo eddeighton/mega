@@ -131,13 +131,13 @@ struct NamedSymbolVariantPathSequence
     std::vector< NamedSymbolVariantPath > m_symbolVariantPaths;
 };
 
-} // namespace mega
-
 std::ostream& operator<<( std::ostream& os, const mega::Symbol& value );
 std::ostream& operator<<( std::ostream& os, const mega::SymbolVariant& value );
 std::ostream& operator<<( std::ostream& os, const mega::SymbolVariantPath& value );
 std::ostream& operator<<( std::ostream& os, const mega::SymbolVariantPathSequence& value );
 std::ostream& operator<<( std::ostream& os, const mega::NamedSymbolVariantPath& value );
 std::ostream& operator<<( std::ostream& os, const mega::NamedSymbolVariantPathSequence& value );
+
+} // namespace mega
 
 #endif // GUARD_2023_November_14_symbol_grammar

@@ -108,7 +108,6 @@ void compileDeciders( OperationsStage::Database& database, const mega::io::megaF
                 if( result != Derivation::eSuccess )
                 {
                     std::ostringstream os;
-                    using ::           operator<<;
                     if( result == Derivation::eAmbiguous )
                         os << "Derivation disambiguation was ambiguous for: "
                             << Concrete::printContextFullType( pDecider ) << "\n";

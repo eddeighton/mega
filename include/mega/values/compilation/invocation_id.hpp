@@ -93,8 +93,8 @@ public:
     }
 };
 
-} // namespace mega
-
 std::ostream& operator<<( std::ostream& os, const mega::InvocationID& invocationID );
+
+} // namespace mega
 
 #endif // INVOCATION_ID_12_AUG_2022

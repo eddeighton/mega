@@ -26,6 +26,8 @@
 #include <vector>
 #include <ostream>
 
+namespace std
+{
 // generate serialization routines for native types using xmacros
 #define NATIVE_TYPE( Type )                                                        \
     std::ostream& operator<<( std::ostream& os, const std::vector< Type >& value ) \
@@ -37,3 +39,4 @@
     }
 #include "mega/values/native_types.hxx"
 #undef NATIVE_TYPE
+}

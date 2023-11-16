@@ -92,7 +92,6 @@ public:
 
         // set process description
         {
-            using ::           operator<<;
             std::ostringstream os;
             os << m_leaf.m_nodeType << " " << m_leaf.m_mp;
             common::ProcessID::setDescription( os.str().c_str() );

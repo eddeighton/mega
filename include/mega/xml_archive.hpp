@@ -78,7 +78,6 @@ public:
             }
             else
             {
-                using ::operator<<;
                 os << ref;
             }
             strEncode = os.str();
@@ -273,7 +272,6 @@ public:
         }
         else
         {
-            using ::operator>>;
             is >> ref;
         }
 

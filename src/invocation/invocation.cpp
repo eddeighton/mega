@@ -276,7 +276,6 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
         }
     }
 
-    using ::operator<<;
     VERIFY_RTE_MSG( !operationIDOpt.has_value() || ( id.m_operation == operationIDOpt.value() ),
                     "Mismatching operation type in invocation: " << id );
 }
@@ -315,8 +314,6 @@ class OperationBuilder
 
     void classifyOperations()
     {
-        using ::operator<<;
-
         std::vector< Concrete::Graph::Vertex* > operationContexts;
         for( auto pOperation : m_pInvocation->get_operations() )
         {
@@ -391,7 +388,6 @@ class OperationBuilder
             }
         }
 
-        using ::operator<<;
         VERIFY_RTE_MSG( namespaces.empty(), "Invalid invocation on namespace: " << m_pInvocation->get_id() );
         VERIFY_RTE_MSG( interupts.empty(), "Invalid invocation on interupt: " << m_pInvocation->get_id() );
         VERIFY_RTE_MSG( m_targetType != eUNSET, "No targe type for invocation: " << m_pInvocation->get_id() );
@@ -405,8 +401,6 @@ class OperationBuilder
 
     void buildNoParams()
     {
-        using ::operator<<;
-
         switch( m_targetType )
         {
             case eObjects:
@@ -583,8 +577,6 @@ class OperationBuilder
 
     void buildParams()
     {
-        using ::operator<<;
-
         switch( m_targetType )
         {
             case eObjects:
@@ -687,8 +679,6 @@ class OperationBuilder
 
     void buildGet()
     {
-        using ::operator<<;
-
         switch( m_targetType )
         {
             case eObjects:
@@ -801,8 +791,6 @@ class OperationBuilder
 
     void buildRemove()
     {
-        using ::operator<<;
-
         switch( m_targetType )
         {
             case eObjects:
@@ -868,8 +856,6 @@ class OperationBuilder
 
     void buildClear()
     {
-        using ::operator<<;
-
         switch( m_targetType )
         {
             case eObjects:
@@ -920,7 +906,6 @@ class OperationBuilder
 
     void buildMove()
     {
-        using ::operator<<;
         THROW_TODO;
         switch( m_targetType )
         {
@@ -943,7 +928,6 @@ class OperationBuilder
 
     void buildRange()
     {
-        using ::operator<<;
         THROW_TODO;
         switch( m_targetType )
         {
@@ -973,8 +957,6 @@ public:
 
     void build()
     {
-        using ::operator<<;
-
         classifyOperations();
 
         m_pInvocation->set_explicit_operation( HIGHEST_EXPLICIT_OPERATION_TYPE );
@@ -1034,8 +1016,6 @@ public:
 Operations::Invocation* compileInvocation( Database& database, const SymbolTables& symbolTables,
                                            const mega::InvocationID& id )
 {
-    using ::operator<<;
-
     // determine the derivation of the invocationID
     std::vector< Concrete::Graph::Vertex* > contextTypes;
     InvocationPolicy::Spec                  derivationSpec;
@@ -1055,7 +1035,6 @@ Operations::Invocation* compileInvocation( Database& database, const SymbolTable
         if( result != Derivation::eSuccess )
         {
             std::ostringstream os;
-            using ::           operator<<;
             if( result == Derivation::eAmbiguous )
                 os << "Derivation disambiguation was ambiguous for: " << id << "\n";
             else if( result == Derivation::eFailure )

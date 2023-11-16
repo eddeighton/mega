@@ -95,12 +95,9 @@ private:
 #ifndef MEGAJIT
 static_assert( sizeof( RelationID ) == 8U, "Invalid RelationID Size" );
 static_assert( sizeof( RelationID ) == sizeof( RelationID::ValueType ), "Invalid RelationID Size" );
+std::ostream& operator<<( std::ostream& os, const mega::RelationID& relationID );
 #endif
 
 } // namespace mega
-
-#ifndef MEGAJIT
-std::ostream& operator<<( std::ostream& os, const mega::RelationID& relationID );
-#endif
 
 #endif // GUARD_2023_January_19_relation_id

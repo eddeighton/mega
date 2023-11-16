@@ -135,7 +135,6 @@ public:
     {
         ASSERT( networkAddress.isNetworkAddress() );
         auto    iFind = m_netMap.find( networkAddress.getObjectAddress() );
-        using ::operator<<;
         VERIFY_RTE_MSG( iFind != m_netMap.end(),
                         "Failed to locate network address entry for reference: " << networkAddress.getObjectAddress() );
         return reference::make( iFind->second, networkAddress.getTypeInstance() );
@@ -144,7 +143,6 @@ public:
 private:
     inline reference construct( const reference& networkAddress, PtrVariant&& memory, Allocator::Ptr pAllocator )
     {
-        using ::operator<<;
         VERIFY_RTE_MSG( networkAddress.isNetworkAddress(), "construct given heap address: " << networkAddress );
 
         const reference objectNetAddress = networkAddress.getObjectAddress();
@@ -200,7 +198,6 @@ public:
         // remove the network address entry
         {
             auto    iFind2 = m_netMap.find( ref.getHeaderAddress() );
-            using ::operator<<;
             VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for reference: " << ref );
             m_netMap.erase( iFind2 );
         }
@@ -233,7 +230,6 @@ public:
         // remove the network address entry
         {
             auto    iFind2 = m_netMap.find( ref.getHeaderAddress() );
-            using ::operator<<;
             VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for reference: " << ref );
             m_netMap.erase( iFind2 );
         }

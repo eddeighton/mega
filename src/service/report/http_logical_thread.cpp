@@ -266,7 +266,6 @@ void HTTPLogicalThread::RootSimRun( const Project&              project,
         for( const auto& msg : m_messageQueue )
         {
             SPDLOG_ERROR( "Unexpected pending message when starting up HTTPLogicalThread: {}", msg.msg );
-            using ::operator<<;
             THROW_RTE( "Unexpected pending message when starting up HTTPLogicalThread: " << msg.msg );
         }
 

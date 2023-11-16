@@ -42,7 +42,7 @@
 
 namespace protocol::schema
 {
-    
+
 template < typename Iterator >
 struct error_handler
 {
@@ -63,7 +63,7 @@ struct error_handler
         // Iterator eol = err_pos;
         // int line = calculateLineNumber( first, err_pos );
         int line = boost::spirit::get_line( err_pos );
-        if ( line != -1 )
+        if( line != -1 )
             errorStream << '(' << line << ')';
         else
             errorStream << "( unknown )";
@@ -161,7 +161,7 @@ ParseResult parse( const std::string& strInput, IdentifierList& idlist, std::ost
 {
     return parse_impl< IdentifierListGrammar< IteratorType > >( strInput, idlist, errorStream );
 }
-} // namespace protocol
+} // namespace protocol::schema
 
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Type,
@@ -198,7 +198,7 @@ ParseResult parse( const std::string& strInput, Type& type, std::ostream& errorS
 {
     return parse_impl< TypeGrammar< IteratorType > >( strInput, type, errorStream );
 }
-} // namespace protocol
+} // namespace protocol::schema
 
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Parameter,
@@ -233,7 +233,7 @@ ParseResult parse( const std::string& strInput, Parameter& parameter, std::ostre
 {
     return parse_impl< ParameterGrammar< IteratorType > >( strInput, parameter, errorStream );
 }
-} // namespace protocol
+} // namespace protocol::schema
 
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT( protocol::schema::PointToPointRequest,
@@ -303,7 +303,7 @@ ParseResult parse( const std::string& strInput, Response& response, std::ostream
     return parse_impl< MessageGrammar< Response, IteratorType, eRESPONSE > >( strInput, response, errorStream );
 }
 
-} // namespace protocol
+} // namespace protocol::schema
 
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Transaction,
@@ -358,7 +358,7 @@ ParseResult parse( const std::string& strInput, Transaction& msg, std::ostream& 
     return parse_impl< TransactionGrammar< IteratorType > >( strInput, msg, errorStream );
 }
 
-} // namespace protocol
+} // namespace protocol::schema
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Schema,
     ( std::vector< protocol::schema::Transaction >, m_transactions )  )
@@ -391,7 +391,6 @@ ParseResult parse( const std::string& strInput, Schema& schema, std::ostream& er
 {
     return parse_impl< SchemaGrammar< IteratorType > >( strInput, schema, errorStream );
 }
-} // namespace protocol
 
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Identifier& identifier )
 {
@@ -409,7 +408,7 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::Type& type )
 {
     using namespace protocol::schema;
     os << type.m_idList;
-    if ( !type.m_children.empty() )
+    if( !type.m_children.empty() )
     {
         os << '<';
         common::delimit( type.m_children.begin(), type.m_children.end(), ",", os );
@@ -473,9 +472,10 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::Transaction&
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Schema& schema )
 {
     using namespace protocol::schema;
-    for ( const Transaction& transaction : schema.m_transactions )
+    for( const Transaction& transaction : schema.m_transactions )
     {
         os << transaction << "\n";
     }
     return os;
 }
+} // namespace protocol::schema

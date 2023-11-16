@@ -436,7 +436,6 @@ public:
                             = mega::invocation::compileInvocation( m_database, m_symbolTables, invocationID.value() );
                         m_invocationsMap.insert( std::make_pair( invocationID.value(), pInvocation ) );
                         bNewInvocation = true;
-                        using ::operator<<;
                         CLANG_PLUGIN_LOG( "Compiled invocation: " << invocationID.value() );
                     }
                 }
@@ -506,7 +505,6 @@ public:
                     auto            invocationID  = getInvocationID( beginLoc, context, typePath, operationType );
                     if( invocationID.has_value() )
                     {
-                        using ::operator<<;
                         CLANG_PLUGIN_LOG( "Found invocation id: " << invocationID.value() );
                         using namespace OperationsStage;
 
@@ -768,7 +766,6 @@ public:
                     }
                     catch( std::exception& ex )
                     {
-                        using ::           operator<<;
                         std::ostringstream osError;
                         osError << "Failed to determine file offsets for invocation: " << id;
                         pASTContext->getDiagnostics().Report( SourceLocation(), clang::diag::err_mega_generic_error )

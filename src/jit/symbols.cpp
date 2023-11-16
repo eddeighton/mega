@@ -152,28 +152,24 @@ Symbol::Symbol( const char* prefix, Symbol::Parameters params )
 }
 Symbol::Symbol( const char* prefix, RelationID relationID, Symbol::Parameters params )
 {
-    using ::           operator<<;
     std::ostringstream osTypeID;
     osTypeID << prefix << relationID;
     m_symbolName = toSymbolName( osTypeID.str(), params );
 }
 Symbol::Symbol( const char* prefix, mega::TypeID objectTypeID, Symbol::Parameters params )
 {
-    using ::           operator<<;
     std::ostringstream osTypeID;
     osTypeID << prefix << printTypeID( objectTypeID );
     m_symbolName = toSymbolName( osTypeID.str(), params );
 }
 Symbol::Symbol( const mega::InvocationID& invocationID, Symbol::Parameters params )
 {
-    using ::           operator<<;
     std::ostringstream osTypeID;
     osTypeID << invocationID;
     m_symbolName = toSymbolName( osTypeID.str(), params );
 }
 Symbol::Symbol( const char* prefix, mega::TypeID objectTypeID, mega::TypeID objectTypeID2 )
 {
-    using ::           operator<<;
     std::ostringstream osTypeID;
     osTypeID << prefix << printTypeID( objectTypeID ) << '_' << printTypeID( objectTypeID2 );
     m_symbolName = toSymbolName( osTypeID.str(), None );

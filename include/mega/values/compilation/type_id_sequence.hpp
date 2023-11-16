@@ -31,8 +31,8 @@ namespace mega
 
 using TypeIDSequence = std::vector< TypeID >;
 
-}
-
 std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequence& typeIDSequence );
+
+}
 
 #endif // GUARD_2023_October_20_type_id_sequence

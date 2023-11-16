@@ -735,7 +735,6 @@ public:
                             ++iFoundOther;
                         }
                     }
-                    using ::operator<<;
                     VERIFY_RTE_MSG( ( iFoundOther == 0 ) || ( iFoundRoot == 0 ),
                                     "Relation to Root also used in other concrete types: " << id );
                     return iFoundRoot != 0;
@@ -744,7 +743,6 @@ public:
                 bTargetIsRoot = lambda( pRelation->get_targets(), pRelation->get_id() );
             }
 
-            using ::operator<<;
             VERIFY_RTE_MSG(
                 !( bSourceIsRoot && bTargetIsRoot ), "Relation is from Root to Root: " << pRelation->get_id() );
 

@@ -53,9 +53,9 @@ Ownership Ownership::fromStr( const char* psz )
     VERIFY_RTE_MSG( iFind != g_pszModes.end(), "Unknown ownership mode: " << psz );
     return Ownership{ static_cast< Ownership::Value >( std::distance( g_pszModes.cbegin(), iFind ) ) };
 }
-} // namespace mega
-
 std::ostream& operator<<( std::ostream& os, mega::Ownership ownership )
 {
     return os << ownership.str();
 }
+
+} // namespace mega

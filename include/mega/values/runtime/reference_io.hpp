@@ -37,48 +37,50 @@
 #include <iostream>
 #include <iomanip>
 
-inline std::istream& operator>>( std::istream& is, mega::MP& mp )
+namespace mega
 {
-    mega::U32 m;
-    mega::U32 p;
+inline std::istream& operator>>( std::istream& is, MP& mp )
+{
+    U32 m;
+    U32 p;
     char      c;
     is >> std::dec >> m >> c >> p;
-    mp = mega::MP( m, p );
+    mp = MP( m, p );
     return is;
 }
 
-inline std::ostream& operator<<( std::ostream& os, const mega::MP& mp )
+inline std::ostream& operator<<( std::ostream& os, const MP& mp )
 {
-    return os << std::dec << std::setw( 8 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mp.getMachineID() )
-              << '.' << std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mp.getProcessID() );
+    return os << std::dec << std::setw( 8 ) << std::setfill( '0' ) << static_cast< U32 >( mp.getMachineID() )
+              << '.' << std::setw( 4 ) << std::setfill( '0' ) << static_cast< U32 >( mp.getProcessID() );
 }
 
-inline std::istream& operator>>( std::istream& is, mega::MPO& mpo )
+inline std::istream& operator>>( std::istream& is, MPO& mpo )
 {
-    mega::U32 m;
-    mega::U32 p;
-    mega::U32 o;
+    U32 m;
+    U32 p;
+    U32 o;
     char      c;
     is >> std::dec >> m >> c >> p >> c >> o;
-    mpo = mega::MPO( m, p, o );
+    mpo = MPO( m, p, o );
     return is;
 }
 
-inline std::ostream& operator<<( std::ostream& os, const mega::MPO& mpo )
+inline std::ostream& operator<<( std::ostream& os, const MPO& mpo )
 {
     return os <<
 
-           std::dec << std::setw( 8 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getMachineID() ) << '.'
-              << std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getProcessID() ) << '.'
-              << std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getOwnerID() );
+           std::dec << std::setw( 8 ) << std::setfill( '0' ) << static_cast< U32 >( mpo.getMachineID() ) << '.'
+              << std::setw( 4 ) << std::setfill( '0' ) << static_cast< U32 >( mpo.getProcessID() ) << '.'
+              << std::setw( 2 ) << std::setfill( '0' ) << static_cast< U32 >( mpo.getOwnerID() );
 }
 
-inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
+inline std::ostream& operator<<( std::ostream& os, const reference& ref )
 {
     if( ref.isHeapAddress() )
     {
         return os << std::hex << "x" << std::setw( 16 ) << std::setfill( '0' )
-                  << reinterpret_cast< mega::U64 >( ref.getHeap() ) << "." << ref.getTypeInstance();
+                  << reinterpret_cast< U64 >( ref.getHeap() ) << "." << ref.getTypeInstance();
     }
     else
     {
@@ -87,7 +89,7 @@ inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
     }
 }
 
-inline std::ostream& operator<<( std::ostream& os, const std::vector< mega::reference >& refVector )
+inline std::ostream& operator<<( std::ostream& os, const std::vector< reference >& refVector )
 {
     for( auto p = refVector.begin(), pNext = refVector.begin(); p != refVector.end(); ++p )
     {
@@ -105,31 +107,32 @@ inline std::ostream& operator<<( std::ostream& os, const std::vector< mega::refe
     return os;
 }
 
-inline std::istream& operator>>( std::istream& is, mega::reference& ref )
+inline std::istream& operator>>( std::istream& is, reference& ref )
 {
     char c;
     if( is.peek() == 'x' )
     {
-        mega::HeapAddress  heapAddress;
-        mega::TypeInstance typeInstance;
+        HeapAddress  heapAddress;
+        TypeInstance typeInstance;
 
         is >> std::dec >> c >> std::setw( 16 ) >> heapAddress >> std::setw( 1 ) >> c >> typeInstance;
-        ref = mega::reference( typeInstance, heapAddress );
+        ref = reference( typeInstance, heapAddress );
     }
     else
     {
-        mega::AllocationID allocationID;
-        mega::MachineID    machineID;
-        mega::U32          processID;
-        mega::U32          ownerID;
-        mega::TypeInstance typeInstance;
+        AllocationID allocationID;
+        MachineID    machineID;
+        U32          processID;
+        U32          ownerID;
+        TypeInstance typeInstance;
 
         is >> std::dec >> allocationID >> c >> std::setw( 8 ) >> machineID >> c >> std::setw( 4 ) >> processID >> c
             >> std::setw( 2 ) >> ownerID >> c >> typeInstance;
-        ref = mega::reference( typeInstance, mega::MPO( machineID, processID, ownerID ), allocationID );
+        ref = reference( typeInstance, MPO( machineID, processID, ownerID ), allocationID );
     }
     return is;
 }
+} // namespace mega
 
 namespace boost::serialization
 {

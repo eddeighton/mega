@@ -166,7 +166,6 @@ public:
                         std::ostringstream os;
                         for( const auto& i : idSeq )
                         {
-                            using ::operator<<;
                             os << i << " ";
                         }
                         THROW_RTE( "Failed to insert concrete symbol for: "

@@ -105,13 +105,10 @@ public:
 
 #ifndef MEGAJIT
 static_assert( sizeof( SubTypeInstance ) == 4U, "Invalid SubTypeInstance Size" );
-#endif
-
-} // namespace mega
-
-#ifndef MEGAJIT
 std::ostream& operator<<( std::ostream& os, const mega::SubTypeInstance& subTypeInstance );
 std::istream& operator>>( std::istream& is, mega::SubTypeInstance& subTypeInstance );
 #endif
+
+} // namespace mega
 
 #endif // GUARD_2023_sub_type_instance

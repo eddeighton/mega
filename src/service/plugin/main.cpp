@@ -60,7 +60,6 @@ void update()
         for( mega::U64 iter = pRange->m_memory.m_begin; iter != pRange->m_memory.m_end; )
         {
             const MemoryRecordHeader* pRecord = reinterpret_cast< const MemoryRecordHeader* >( iter );
-            using ::operator<<;
             std::cout << "Found memory record: " << pRecord->ref << std::endl;
             iter += pRecord->size;
         }

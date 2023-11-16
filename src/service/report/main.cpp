@@ -96,7 +96,6 @@ int main( int argc, char* argv[] )
             const auto& projectOpt = reportService.getProject();
             if( projectOpt.has_value() )
             {
-                using ::operator<<;
                 SPDLOG_INFO( "Reporting node started with MP: {} Project: {}",
                              reportService.getMP(),
                              projectOpt.value().getProjectInstallPath().string() );

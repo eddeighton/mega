@@ -112,7 +112,6 @@ class TransactionMachine : public TransactionMsgTraits
                         }
                         else
                         {
-                            using ::operator<<;
                             THROW_RTE( "Invalid release: " << id );
                         }
                     }

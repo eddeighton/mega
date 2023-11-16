@@ -78,12 +78,8 @@ private:
     Value m_value;
 };
 
-} // namespace mega
-
 std::ostream& operator<<( std::ostream& os, mega::EdgeType edgeType );
 
-namespace mega
-{
 inline EdgeType fromCardinality( bool bMonoMorphic, const CardinalityRange& cardinality )
 {
     if( cardinality.isOptional() )

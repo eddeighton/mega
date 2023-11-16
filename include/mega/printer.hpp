@@ -52,7 +52,6 @@ class LogicalTreePrinter
 
     void line( std::ostream& os, const char* pszMetaType, const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
         os << ref.typeInstance << indent << pszMetaType << ": " << lastType( pszType );
     }
 
@@ -141,7 +140,6 @@ public:
     }
     void on_dimension( const char* pszType, const LogicalReference& ref, const mega::Any& value )
     {
-        using ::operator<<;
         line( os, "dim", pszType, ref );
         os << " " << value << "\n";
     }

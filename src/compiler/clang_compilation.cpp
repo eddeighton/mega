@@ -39,8 +39,6 @@ static const std::string g_PCH_Out_Flags
 
 common::Command Compilation::generatePCHVerificationCMD() const
 {
-    using ::operator<<;
-
     std::ostringstream osCmd;
 
     // the compiler itself
@@ -111,8 +109,6 @@ common::Command Compilation::generatePCHVerificationCMD() const
 
 common::Command Compilation::generateCompilationCMD( Compilation::CompilerCacheOptions cacheOptions ) const
 {
-    using ::operator<<;
-
     common::Command::EnvironmentMap environmentVars;
     std::ostringstream osCmd;
 

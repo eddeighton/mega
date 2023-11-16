@@ -118,7 +118,6 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
 
     std::ostringstream osRelationID;
     {
-        using ::operator<<;
         osRelationID << relationID;
     }
     std::ostringstream osModuleName;

@@ -17,13 +17,25 @@
 ##  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 ##  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-cmake_minimum_required( VERSION 3.1...3.16 )
+cmake_minimum_required( VERSION 3.16 )
 
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
+#get spdlog
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
+
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
+#get pybind11
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/pybind11/pybind11_include.cmake )
 
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
@@ -149,13 +161,24 @@ set( MEGA_VALUES_SRC
 
 add_library( mega_values STATIC ${MEGA_VALUES_HEADERS} ${MEGA_VALUES_SRC} )
 
-target_include_directories( mega_values PUBLIC ${MEGA_API_DIR} )
-
-link_boost( mega_values system )
+link_boost( mega_values atomic )
 link_boost( mega_values filesystem )
+link_boost( mega_values iostreams )
 link_boost( mega_values serialization )
+link_boost( mega_values system )
+link_boost( mega_values timer )
 link_boost( mega_values url )
+
+link_fmt( mega_values )
+link_spdlog( mega_values )
+link_json( mega_values )
+link_inja( mega_values )
+link_pybind11( mega_values )
 link_common( mega_values )
+
+# target_precompile_headers( mega_values REUSE_FROM mega_pch )
+
+target_include_directories( mega_values PUBLIC ${MEGA_API_DIR} )
 
 install( TARGETS mega_values EXPORT mega_values DESTINATION bin)
 install( EXPORT mega_values NAMESPACE MEGA:: FILE mega_values-config.cmake DESTINATION share )

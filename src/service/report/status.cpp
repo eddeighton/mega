@@ -112,7 +112,6 @@ network::Status ReportRequestLogicalThread::GetStatus( const std::vector< networ
 
 std::string ReportRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
-    using ::           operator<<;
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();

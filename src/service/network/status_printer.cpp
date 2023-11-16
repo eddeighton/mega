@@ -84,8 +84,6 @@ std::ostream& StatusPrinter::dash( std::ostream& os, int iIndent ) const
 
 void StatusPrinter::printNodeInfo( const network::Status& status, std::ostream& os )
 {
-    using ::operator<<; //( std::ostream&, const mega::MP& );
-
     int indent = 4;
 
     if( m_config.m_bLog )
@@ -165,7 +163,6 @@ void StatusPrinter::printNodeInfo( const network::Status& status, std::ostream& 
 
     if( m_config.m_bLogicalThreads )
     {
-        using ::mega::network::operator<<;
         for( const auto& threadID : status.getLogicalThreads() )
         {
             line( os, indent ) << "ThreadID: " << threadID << "\n";
@@ -191,7 +188,6 @@ void StatusPrinter::printNode( const network::Status& status, std::ostream& os, 
     {
         std::string strID;
         {
-            using ::           operator<<; //( std::ostream&, const mega::MP& );
             std::ostringstream osID;
             // generate padding
             if( status.getMPO().has_value() )

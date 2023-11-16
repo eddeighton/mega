@@ -50,7 +50,6 @@ network::Status DaemonRequestLogicalThread::GetStatus( const std::vector< networ
 std::string DaemonRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
-    using ::           operator<<;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }

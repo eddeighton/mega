@@ -24,10 +24,10 @@
 #include <ostream>
 #include <sstream>
 
+namespace mega
+{
 std::ostream& operator<<( std::ostream& os, const mega::SubTypeInstance& subTypeInstance )
 {
-    using ::operator<<;
-
     return os << '<' << std::hex <<
 
            std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U32 >( subTypeInstance.getSubType() )
@@ -41,10 +41,10 @@ std::ostream& operator<<( std::ostream& os, const mega::SubTypeInstance& subType
 
 std::istream& operator>>( std::istream& is, mega::SubTypeInstance& subTypeInstance )
 {
-    using ::  operator>>;
     mega::U32 subType, instance;
     char      c;
     is >> c >> std::hex >> subType >> c >> instance >> c;
     subTypeInstance = mega::SubTypeInstance( subType, instance );
     return is;
 }
+} // namespace mega

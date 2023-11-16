@@ -23,8 +23,6 @@
 namespace mega
 {
 
-}
-
 std::ostream& operator<<( std::ostream& os, const mega::TransitionID& transitionID )
 {
     return os;
@@ -33,4 +31,6 @@ std::ostream& operator<<( std::ostream& os, const mega::TransitionID& transition
 std::istream& operator>>( std::istream& is, mega::TransitionID& transitionID )
 {
     return is;
+}
+
 }

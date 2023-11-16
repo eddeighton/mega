@@ -210,7 +210,6 @@ TEST_P( TypeIDIOTest, TypeIDIO )
     std::string str;
     {
         std::ostringstream os;
-        using ::           operator<<;
         os << data.expected;
         str = os.str();
     }
@@ -218,7 +217,6 @@ TEST_P( TypeIDIOTest, TypeIDIO )
     mega::TypeID result;
     {
         std::istringstream is( str );
-        using ::           operator>>;
         is >> result;
     }
 

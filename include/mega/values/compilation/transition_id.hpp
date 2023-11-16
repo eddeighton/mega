@@ -61,11 +61,11 @@ private:
     U64 m_value;
 };
 
-}
-
 #ifndef MEGAJIT
 std::ostream& operator<<( std::ostream& os, const mega::TransitionID& transitionID );
 std::istream& operator>>( std::istream& is, mega::TransitionID& transitionID );
 #endif
+
+}
 
 #endif //GUARD_2023_October_28_transition_id
