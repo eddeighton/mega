@@ -61,13 +61,11 @@ add_library( leaf SHARED
                     ${MEGA_LEAF_API}
 					${MEGA_LEAF_SRC}
 				)
+target_precompile_headers( leaf REUSE_FROM mega_pch )
 
-IF( ${WIN32} )
-target_compile_options( leaf PUBLIC "/await:strict" )
-set_property(TARGET leaf PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-ELSE( ${WIN32} )
-target_compile_options( leaf PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
+#IF( ${WIN32} )
+#set_property(TARGET leaf PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+#ENDIF( ${WIN32} )
 
 #target_compile_definitions( leaf PUBLIC -DMEGA_CONTEXT_IMPLEMENTOR )
 

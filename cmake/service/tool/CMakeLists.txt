@@ -61,13 +61,11 @@ add_library( tool
                     ${TOOL_LIB_API}
 					${TOOL_LIB_SRC}
 				)
+target_precompile_headers( tool REUSE_FROM mega_pch )
 
-IF( ${WIN32} )
-target_compile_options( tool PUBLIC "/await:strict" )
-target_compile_options( tool PRIVATE "/bigobj" )
-ELSE( ${WIN32} )
-target_compile_options( tool PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
+#IF( ${WIN32} )
+#target_compile_options( tool PRIVATE "/bigobj" )
+#ENDIF( ${WIN32} )
 
 target_link_libraries( tool protocol )
 target_link_libraries( tool network )

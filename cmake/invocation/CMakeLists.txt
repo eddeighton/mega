@@ -46,17 +46,17 @@ add_library( invocation
     ${INVOCATION_HEADERS} 
     ${INVOCATION_SOURCE}
 )
+target_precompile_headers( invocation REUSE_FROM mega_pch )
 
 set_target_properties( invocation PROPERTIES FOLDER compiler )
 
 target_link_libraries( invocation mega_values )
 target_link_libraries( invocation database )
 
-IF( ${WIN32} )
-set_property(TARGET invocation PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-ELSE( ${WIN32} )
-set_property(TARGET invocation PROPERTY POSITION_INDEPENDENT_CODE ON)
-ENDIF( ${WIN32} )
+#IF( ${WIN32} )
+#set_property(TARGET invocation PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+#ELSE( ${WIN32} )
+#ENDIF( ${WIN32} )
 
 target_include_directories( invocation PUBLIC ${MEGA_API_DIR} )
 

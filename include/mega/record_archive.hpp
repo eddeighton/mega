@@ -81,7 +81,7 @@ public:
         base::save( value );
     }
 
-    inline void save( const mega::reference& ref ) 
+    inline void save( const ::mega::reference& ref ) 
     { 
         if( ref.isHeapAddress() )
         {

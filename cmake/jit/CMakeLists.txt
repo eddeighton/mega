@@ -136,6 +136,7 @@ add_library( jit SHARED
     ${RUNTIME_HEADERS} 
     ${RUNTIME_SOURCE}
 )
+target_precompile_headers( jit REUSE_FROM mega_pch )
 
 set_target_properties( jit PROPERTIES FOLDER service )
 
@@ -153,7 +154,6 @@ ELSE( ${WIN32} )
 # target_link_options( jit PUBLIC -export-dynamic )
 set_property(TARGET jit PROPERTY C_VISIBILITY_PRESET hidden)
 set_property(TARGET jit PROPERTY VISIBILITY_INLINES_HIDDEN ON)
-set_property(TARGET jit PROPERTY POSITION_INDEPENDENT_CODE ON)
 ENDIF( ${WIN32} )
 
 target_include_directories( jit PUBLIC ${MEGA_API_DIR} )

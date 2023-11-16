@@ -49,13 +49,11 @@ set( MEGA_PROTOCOL_COMPILER
 add_library( protocol_compiler
                     ${MEGA_PROTOCOL_COMPILER}
 				)
+target_precompile_headers( protocol_compiler REUSE_FROM mega_pch )
 
-IF( ${WIN32} )
-target_compile_options( protocol_compiler PUBLIC "/await:strict" )
-set_property(TARGET protocol_compiler PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-ELSE( ${WIN32} )
-target_compile_options( protocol_compiler PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
+#IF( ${WIN32} )
+#set_property(TARGET protocol_compiler PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+#ENDIF( ${WIN32} )
 
 set_target_properties( protocol_compiler PROPERTIES FOLDER service/protocol )
 

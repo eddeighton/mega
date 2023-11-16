@@ -47,9 +47,11 @@ struct FileNameID
 } // namespace mega::log
 
 // clang-format off
-BOOST_FUSION_ADAPT_STRUCT( mega::log::FileNameID,
+using MegaLogFileNameID = mega::log::FileNameID;
+using MegaU32 = mega::U32;
+BOOST_FUSION_ADAPT_STRUCT( MegaLogFileNameID,
     ( std::string, filename )
-    ( mega::U32, id ) )
+    ( MegaU32, id ) )
 // clang-format on
 
 namespace mega::log

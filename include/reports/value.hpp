@@ -32,6 +32,7 @@
 #include "mega/values/compilation/type_id.hpp"
 #include "mega/values/compilation/size_alignment.hpp"
 #include "mega/values/compilation/sub_type_instance.hpp"
+#include "mega/values/compilation/type_id_sequence.hpp"
 
 #include "mega/values/runtime/reference.hpp"
 #include "mega/values/runtime/reference_io.hpp"

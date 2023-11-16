@@ -50,6 +50,7 @@ add_definitions(-DMEGA_PARSER_MODULE)
 add_library( parser MODULE
                     ${CLANG_PLUGIN_API}
                     ${CLANG_PLUGIN_SOURCES} )
+target_precompile_headers( parser REUSE_FROM mega_pch )
 
 target_link_libraries( parser mega_values )
 
@@ -81,7 +82,6 @@ ELSE( ${WIN32} )
 #target_link_options( parser PUBLIC -export-dynamic )
 set_property(TARGET parser PROPERTY C_VISIBILITY_PRESET hidden)
 set_property(TARGET parser PROPERTY VISIBILITY_INLINES_HIDDEN ON)
-set_property(TARGET parser PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 add_dependencies( parser database )
 

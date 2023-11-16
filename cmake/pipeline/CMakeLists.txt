@@ -45,6 +45,7 @@ add_library( pipeline
     ${PIPELINE_HEADERS} 
     ${PIPELINE_SOURCE}
 )
+target_precompile_headers( pipeline REUSE_FROM mega_pch )
 
 set_target_properties( pipeline PROPERTIES FOLDER service )
 
@@ -52,7 +53,6 @@ IF( ${WIN32} )
 target_compile_options(pipeline PRIVATE /bigobj)
 set_property(TARGET pipeline PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 ELSE( ${WIN32} )
-set_property(TARGET pipeline PROPERTY POSITION_INDEPENDENT_CODE ON)
 ENDIF( ${WIN32} )
 
 target_include_directories( pipeline PUBLIC ${MEGA_API_DIR} )

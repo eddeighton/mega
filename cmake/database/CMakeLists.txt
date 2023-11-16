@@ -116,6 +116,7 @@ add_library( database SHARED
     ${DATABASE_GENERATED_FILES} 
     ${ENVIRONMENT_HEADERS} ${ENVIRONMENT_SRC}
 )
+target_precompile_headers( database REUSE_FROM mega_pch )
 
 target_include_directories( database PUBLIC ${MEGA_API_DIR} )
 

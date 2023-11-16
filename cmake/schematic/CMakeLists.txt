@@ -135,6 +135,7 @@ add_library( schematic
     ${SCHEMATIC_HEADERS} 
     ${SCHEMATIC_SOURCE}
 )
+target_precompile_headers( schematic REUSE_FROM mega_pch )
 
 set_target_properties( schematic PROPERTIES FOLDER schematic )
 

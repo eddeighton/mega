@@ -65,13 +65,11 @@ add_library( network
                     ${MEGA_NETWORK_API}
 					${MEGA_NETWORK_SRC}
 				)
+target_precompile_headers( network REUSE_FROM mega_pch )
 
-IF( ${WIN32} )
-target_compile_options( network PUBLIC "/await:strict" )
-set_property(TARGET network PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-ELSE( ${WIN32} )
-target_compile_options( network PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
+#IF( ${WIN32} )
+#set_property(TARGET network PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+#ENDIF( ${WIN32} )
 
 target_link_libraries( network protocol )
 

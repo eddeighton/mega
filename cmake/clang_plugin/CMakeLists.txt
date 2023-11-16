@@ -48,6 +48,7 @@ add_definitions(-DMEGA_CLANG_PLUGIN_MODULE)
 add_library( clang_plugin MODULE
                     ${CLANG_PLUGIN_API}
                     ${CLANG_PLUGIN_SOURCES} )
+target_precompile_headers( clang_plugin REUSE_FROM mega_pch )
 
 set_target_properties( clang_plugin PROPERTIES FOLDER clang_plugin )
 

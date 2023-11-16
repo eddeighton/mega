@@ -52,6 +52,7 @@ add_library( database_reporters SHARED
     ${DATABASE_REPORTERS_HEADERS} 
     ${DATABASE_REPORTERS_SRC} 
 )
+target_precompile_headers( database_reporters REUSE_FROM mega_pch )
 
 target_include_directories( database_reporters PUBLIC ${MEGA_API_DIR} )
 

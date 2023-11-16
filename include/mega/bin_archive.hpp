@@ -50,7 +50,7 @@ class SnapshotIArchive
     friend class boost::archive::load_access;
 
 public:
-    SnapshotIArchive( std::streambuf& bsb, const mega::Snapshot& snapshot )
+    SnapshotIArchive( std::streambuf& bsb, const ::mega::Snapshot& snapshot )
         : base( bsb, boostBINArchiveFlags )
         , m_snapshot( snapshot )
     {
@@ -62,15 +62,15 @@ public:
         base::load( value );
     }
 
-    inline void load( mega::reference& ref )
+    inline void load( ::mega::reference& ref )
     {
-        mega::AddressTable::Index index;
+        ::mega::AddressTable::Index index;
         base::load( index );
         ref = m_snapshot.getTable().indexToRef( index );
     }
 
 private:
-    const mega::Snapshot& m_snapshot;
+    const ::mega::Snapshot& m_snapshot;
 };
 
 class SnapshotOArchive
@@ -95,14 +95,14 @@ public:
         base::save( value );
     }
 
-    inline void save( const mega::reference& ref ) { base::save( m_snapshot.refToIndex( ref ) ); }
+    inline void save( const ::mega::reference& ref ) { base::save( m_snapshot.refToIndex( ref ) ); }
 
-    void beginObject( const mega::reference& ref ) { m_snapshot.beginObject( ref ); }
+    void beginObject( const ::mega::reference& ref ) { m_snapshot.beginObject( ref ); }
 
-    mega::Snapshot& getSnapshot() { return m_snapshot; }
+    ::mega::Snapshot& getSnapshot() { return m_snapshot; }
 
 private:
-    mega::Snapshot m_snapshot;
+    ::mega::Snapshot m_snapshot;
 };
 
 } // namespace boost::archive

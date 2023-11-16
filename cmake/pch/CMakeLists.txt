@@ -43,22 +43,20 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 add_library( mega_pch STATIC ${MEGA_SRC_DIR}/environment/pch.cpp )
 
-#set_target_properties( mega_pch PROPERTIES LINKER_LANGUAGE CXX )
+#link_boost( mega_pch atomic )
+#link_boost( mega_pch timer )
+#link_boost( mega_pch filesystem )
+#link_boost( mega_pch iostreams )
+#link_boost( mega_pch serialization )
+#link_boost( mega_pch program_options )
 
-link_boost( mega_pch atomic )
-link_boost( mega_pch program_options )
-link_boost( mega_pch timer )
-link_boost( mega_pch filesystem )
-link_boost( mega_pch iostreams )
-link_boost( mega_pch serialization )
+#link_fmt( mega_pch )
+#link_spdlog( mega_pch )
+#link_json( mega_pch )
+#link_inja( mega_pch )
+#link_pybind11( mega_pch )
 
-link_fmt( mega_pch )
-link_spdlog( mega_pch )
-link_json( mega_pch )
-link_inja( mega_pch )
-link_pybind11( mega_pch )
-
-link_common( mega_pch )
+#link_common( mega_pch )
 
 target_precompile_headers( mega_pch
 PRIVATE
@@ -141,120 +139,120 @@ PRIVATE
     <valarray>
     <vector>
 
-    <boost/algorithm/string/detail/formatter.hpp>
-    <boost/algorithm/string.hpp>
-    <boost/archive/archive_exception.hpp>
-    <boost/archive/basic_binary_iarchive.hpp>
-    <boost/archive/basic_binary_iprimitive.hpp>
-    <boost/archive/basic_binary_oarchive.hpp>
-    <boost/archive/basic_binary_oprimitive.hpp>
-    <boost/archive/basic_xml_archive.hpp>
-    <boost/archive/basic_xml_iarchive.hpp>
-    <boost/archive/basic_xml_oarchive.hpp>
-    <boost/archive/binary_iarchive.hpp>
-    <boost/archive/binary_iarchive_impl.hpp>
-    <boost/archive/binary_oarchive.hpp>
-    <boost/archive/binary_oarchive_impl.hpp>
-    <boost/archive/text_oarchive.hpp>
-    <boost/archive/xml_iarchive.hpp>
-    <boost/archive/xml_oarchive.hpp>
-    <boost/asio/associated_allocator.hpp>
-    <boost/asio/buffer.hpp>
-    <boost/asio/connect.hpp>
-    <boost/asio/detached.hpp>
-    <boost/asio/experimental/channel_error.hpp>
-    <boost/asio/experimental/channel.hpp>
-    <boost/asio/experimental/concurrent_channel.hpp>
-    <boost/asio/io_context.hpp>
-    <boost/asio/io_service.hpp>
-    <boost/asio/ip/host_name.hpp>
-    <boost/asio/ip/tcp.hpp>
-    <boost/asio/ip/udp.hpp>
-    <boost/asio/placeholders.hpp>
-    <boost/asio/read.hpp>
-    <boost/asio/signal_set.hpp>
-    <boost/asio/spawn.hpp>
-    <boost/asio/steady_timer.hpp>
-    <boost/asio/strand.hpp>
-    <boost/asio/this_coro.hpp>
-    <boost/asio/thread_pool.hpp>
-    <boost/asio/use_future.hpp>
-    <boost/asio/write.hpp>
-    <boost/beast/core.hpp>
-    <boost/beast/http.hpp>
-    <boost/beast/version.hpp>
-    <boost/bind/bind.hpp>
-    <boost/chrono.hpp>
-    <boost/circular_buffer.hpp>
-    <boost/config.hpp>
-    <boost/current_function.hpp>
-    <boost/date_time/posix_time/posix_time.hpp>
-    <boost/dll/alias.hpp>
-    <boost/dll.hpp>
-    <boost/dll/import.hpp>
-    <boost/dll/library_info.hpp>
-    <boost/dll/runtime_symbol_info.hpp>
-    <boost/dll/shared_library.hpp>
-    <boost/dll/shared_library_load_mode.hpp>
-    <boost/dynamic_bitset.hpp>
-    <boost/dynamic_bitset/serialization.hpp>
-    <boost/enable_shared_from_this.hpp>
-    <boost/filesystem/file_status.hpp>
-    <boost/filesystem.hpp>
-    <boost/filesystem/operations.hpp>
-    <boost/filesystem/path.hpp>
-    <boost/function.hpp>
-    <boost/geometry/geometries/box.hpp>
-    <boost/geometry/geometries/point.hpp>
-    <boost/geometry/geometries/segment.hpp>
-    <boost/geometry.hpp>
-    <boost/geometry/index/rtree.hpp>
-    <boost/graph/adjacency_list.hpp>
-    <boost/graph/connected_components.hpp>
-    <boost/graph/graph_traits.hpp>
-    <boost/interprocess/file_mapping.hpp>
-    <boost/interprocess/interprocess_fwd.hpp>
-    <boost/interprocess/mapped_region.hpp>
-    <boost/interprocess/streams/bufferstream.hpp>
-    <boost/interprocess/streams/vectorstream.hpp>
-    <boost/optional.hpp>
-    <boost/phoenix/core.hpp>
-    <boost/phoenix/fusion.hpp>
-    <boost/phoenix/object.hpp>
-    <boost/phoenix/operator.hpp>
-    <boost/phoenix/stl.hpp>
-    <boost/process/environment.hpp>
-    <boost/process.hpp>
-    <boost/qvm/all.hpp>
-    <boost/scoped_ptr.hpp>
-    <boost/serialization/array.hpp>
-    <boost/serialization/array_wrapper.hpp>
-    <boost/serialization/map.hpp>
-    <boost/serialization/nvp.hpp>
-    <boost/serialization/serialization.hpp>
-    <boost/serialization/split_member.hpp>
-    <boost/serialization/unordered_map.hpp>
-    <boost/serialization/variant.hpp>
-    <boost/serialization/vector.hpp>
-    <boost/shared_ptr.hpp>
-    <boost/spirit/home/support/iterators/line_pos_iterator.hpp>
-    <boost/spirit/include/qi_eoi.hpp>
-    <boost/spirit/include/qi.hpp>
-    <boost/spirit/include/support_istream_iterator.hpp>
-    <boost/spirit/include/support_line_pos_iterator.hpp>
-    <boost/spirit/include/support_multi_pass.hpp>
-    <boost/stacktrace.hpp>
-    <boost/system/detail/error_code.hpp>
-    <boost/timer/timer.hpp>
-    <boost/tokenizer.hpp>
-    <boost/url.hpp>
-    <boost/uuid/random_generator.hpp>
-    <boost/uuid/uuid_generators.hpp>
-    <boost/uuid/uuid.hpp>
-    <boost/uuid/uuid_io.hpp>
-    <boost/variant/detail/apply_visitor_unary.hpp>
-    <boost/variant.hpp>
-    <boost/weak_ptr.hpp>
+    #<boost/algorithm/string/detail/formatter.hpp>
+    #<boost/algorithm/string.hpp>
+    #<boost/archive/archive_exception.hpp>
+    #<boost/archive/basic_binary_iarchive.hpp>
+    #<boost/archive/basic_binary_iprimitive.hpp>
+    #<boost/archive/basic_binary_oarchive.hpp>
+    #<boost/archive/basic_binary_oprimitive.hpp>
+    #<boost/archive/basic_xml_archive.hpp>
+    #<boost/archive/basic_xml_iarchive.hpp>
+    #<boost/archive/basic_xml_oarchive.hpp>
+    #<boost/archive/binary_iarchive.hpp>
+    #<boost/archive/binary_iarchive_impl.hpp>
+    #<boost/archive/binary_oarchive.hpp>
+    #<boost/archive/binary_oarchive_impl.hpp>
+    #<boost/archive/text_oarchive.hpp>
+    #<boost/archive/xml_iarchive.hpp>
+    #<boost/archive/xml_oarchive.hpp>
+    #<boost/asio/associated_allocator.hpp>
+    #<boost/asio/buffer.hpp>
+    #<boost/asio/connect.hpp>
+    #<boost/asio/detached.hpp>
+    #<boost/asio/experimental/channel_error.hpp>
+    #<boost/asio/experimental/channel.hpp>
+    #<boost/asio/experimental/concurrent_channel.hpp>
+    #<boost/asio/io_context.hpp>
+    #<boost/asio/io_service.hpp>
+    #<boost/asio/ip/host_name.hpp>
+    #<boost/asio/ip/tcp.hpp>
+    #<boost/asio/ip/udp.hpp>
+    #<boost/asio/placeholders.hpp>
+    #<boost/asio/read.hpp>
+    #<boost/asio/signal_set.hpp>
+    #<boost/asio/spawn.hpp>
+    #<boost/asio/steady_timer.hpp>
+    #<boost/asio/strand.hpp>
+    #<boost/asio/this_coro.hpp>
+    #<boost/asio/thread_pool.hpp>
+    #<boost/asio/use_future.hpp>
+    #<boost/asio/write.hpp>
+    #<boost/beast/core.hpp>
+    #<boost/beast/http.hpp>
+    #<boost/beast/version.hpp>
+    #<boost/bind/bind.hpp>
+    #<boost/chrono.hpp>
+    #<boost/circular_buffer.hpp>
+    #<boost/config.hpp>
+    #<boost/current_function.hpp>
+    #<boost/date_time/posix_time/posix_time.hpp>
+    #<boost/dll/alias.hpp>
+    #<boost/dll.hpp>
+    #<boost/dll/import.hpp>
+    #<boost/dll/library_info.hpp>
+    #<boost/dll/runtime_symbol_info.hpp>
+    #<boost/dll/shared_library.hpp>
+    #<boost/dll/shared_library_load_mode.hpp>
+    #<boost/dynamic_bitset.hpp>
+    #<boost/dynamic_bitset/serialization.hpp>
+    #<boost/enable_shared_from_this.hpp>
+    #<boost/filesystem/file_status.hpp>
+    #<boost/filesystem.hpp>
+    #<boost/filesystem/operations.hpp>
+    #<boost/filesystem/path.hpp>
+    #<boost/function.hpp>
+    #<boost/geometry/geometries/box.hpp>
+    #<boost/geometry/geometries/point.hpp>
+    #<boost/geometry/geometries/segment.hpp>
+    #<boost/geometry.hpp>
+    #<boost/geometry/index/rtree.hpp>
+    #<boost/graph/adjacency_list.hpp>
+    #<boost/graph/connected_components.hpp>
+    #<boost/graph/graph_traits.hpp>
+    #<boost/interprocess/file_mapping.hpp>
+    #<boost/interprocess/interprocess_fwd.hpp>
+    #<boost/interprocess/mapped_region.hpp>
+    #<boost/interprocess/streams/bufferstream.hpp>
+    #<boost/interprocess/streams/vectorstream.hpp>
+    #<boost/optional.hpp>
+    #<boost/phoenix/core.hpp>
+    #<boost/phoenix/fusion.hpp>
+    #<boost/phoenix/object.hpp>
+    #<boost/phoenix/operator.hpp>
+    #<boost/phoenix/stl.hpp>
+    #<boost/process/environment.hpp>
+    #<boost/process.hpp>
+    #<boost/qvm/all.hpp>
+    #<boost/scoped_ptr.hpp>
+    #<boost/serialization/array.hpp>
+    #<boost/serialization/array_wrapper.hpp>
+    #<boost/serialization/map.hpp>
+    #<boost/serialization/nvp.hpp>
+    #<boost/serialization/serialization.hpp>
+    #<boost/serialization/split_member.hpp>
+    #<boost/serialization/unordered_map.hpp>
+    #<boost/serialization/variant.hpp>
+    #<boost/serialization/vector.hpp>
+    #<boost/shared_ptr.hpp>
+    #<boost/spirit/home/support/iterators/line_pos_iterator.hpp>
+    #<boost/spirit/include/qi_eoi.hpp>
+    #<boost/spirit/include/qi.hpp>
+    #<boost/spirit/include/support_istream_iterator.hpp>
+    #<boost/spirit/include/support_line_pos_iterator.hpp>
+    #<boost/spirit/include/support_multi_pass.hpp>
+    #<boost/stacktrace.hpp>
+    #<boost/system/detail/error_code.hpp>
+    #<boost/timer/timer.hpp>
+    #<boost/tokenizer.hpp>
+    #<boost/url.hpp>
+    #<boost/uuid/random_generator.hpp>
+    #<boost/uuid/uuid_generators.hpp>
+    #<boost/uuid/uuid.hpp>
+    #<boost/uuid/uuid_io.hpp>
+    #<boost/variant/detail/apply_visitor_unary.hpp>
+    #<boost/variant.hpp>
+    #<boost/weak_ptr.hpp>
 
     #<llvm/ADT/APSInt.h>
     #<llvm/ExecutionEngine/ExecutionEngine.h>
@@ -331,46 +329,46 @@ PRIVATE
     #<clang/Sema/Sema.h>
     #<clang/Tooling/Refactoring.h>
 
-    <pybind11/pybind11.h>
-    <pybind11/stl.h>
-    <pybind11/iostream.h>
-    <pybind11/operators.h>
+    #<pybind11/pybind11.h>
+    #<pybind11/stl.h>
+    #<pybind11/iostream.h>
+    #<pybind11/operators.h>
 
-    <spdlog/spdlog.h>
-    <spdlog/async.h>
-    <spdlog/common.h>
-    <spdlog/sinks/daily_file_sink.h>
-    <spdlog/sinks/stdout_color_sinks.h>
-    <spdlog/stopwatch.h>
+    #<spdlog/spdlog.h>
+    #<spdlog/async.h>
+    #<spdlog/common.h>
+    #<spdlog/sinks/daily_file_sink.h>
+    #<spdlog/sinks/stdout_color_sinks.h>
+    #<spdlog/stopwatch.h>
 
-    <inja/inja.hpp>
-    <inja/environment.hpp>
-    <inja/template.hpp>
+    #<inja/inja.hpp>
+    #<inja/environment.hpp>
+    #<inja/template.hpp>
 
-    <common/angle.hpp>
-    <common/assert_verify.hpp>
-    <common/astar.hpp>
-    <common/backtrace.hpp>
-    <common/clang_warnings.hpp>
-    <common/compose.hpp>
-    <common/file.hpp>
-    <common/grammar.hpp>
-    <common/hash.hpp>
-    <common/math.hpp>
-    <common/optimisation.hpp>
-    <common/process.hpp>
-    <common/processID.hpp>
-    <common/requireSemicolon.hpp>
-    <common/rounding.hpp>
-    <common/serialisation.hpp>
-    <common/stash.hpp>
-    <common/stl.hpp>
-    <common/string.hpp>
-    <common/terminal.hpp>
-    <common/tick.hpp>
-    <common/time.hpp>
-    <common/unreachable.hpp>
-    <common/variant_utils.hpp>
+    #<common/angle.hpp>
+    #<common/assert_verify.hpp>
+    #<common/astar.hpp>
+    #<common/backtrace.hpp>
+    #<common/clang_warnings.hpp>
+    #<common/compose.hpp>
+    #<common/file.hpp>
+    #<common/grammar.hpp>
+    #<common/hash.hpp>
+    #<common/math.hpp>
+    #<common/optimisation.hpp>
+    #<common/process.hpp>
+    #<common/processID.hpp>
+    #<common/requireSemicolon.hpp>
+    #<common/rounding.hpp>
+    #<common/serialisation.hpp>
+    #<common/stash.hpp>
+    #<common/stl.hpp>
+    #<common/string.hpp>
+    #<common/terminal.hpp>
+    #<common/tick.hpp>
+    #<common/time.hpp>
+    #<common/unreachable.hpp>
+    #<common/variant_utils.hpp>
     
 )
 #${MEGA_API_DIR}/environment/include.hpp

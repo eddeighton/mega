@@ -59,14 +59,6 @@ set( ROOT_SOURCE
 
 add_executable( root ${ROOT_SOURCE} )
 
-IF( ${WIN32} )
-target_compile_options( root PUBLIC "/await:strict" )
-ELSE( ${WIN32} )
-target_compile_options( root PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
-
-#target_compile_definitions( daemon PUBLIC -DMEGA_CONTEXT_IMPLEMENTOR )
-
 target_link_libraries( root protocol )
 target_link_libraries( root network )
 target_link_libraries( root pipeline )

@@ -53,10 +53,8 @@ set( REPORT_SOURCE
 add_executable( report ${REPORT_SOURCE} )
 
 IF( ${WIN32} )
-target_compile_options( report PUBLIC "/await:strict" )
 target_compile_options( report PRIVATE "/bigobj" )
 ELSE( ${WIN32} )
-target_compile_options( report PUBLIC "-fcoroutines" )
 target_link_options( report PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 

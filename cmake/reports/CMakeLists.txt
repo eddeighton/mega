@@ -84,6 +84,7 @@ add_library( reports
     ${REPORTS_HEADERS}
     ${REPORTS_SOURCE}
 )
+target_precompile_headers( reports REUSE_FROM mega_pch )
 
 add_dependencies( reports generate_mega_mangle_meta )
 
@@ -93,7 +94,6 @@ IF( ${WIN32} )
 target_compile_options(reports PRIVATE /bigobj)
 set_property(TARGET reports PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 ELSE( ${WIN32} )
-#set_property(TARGET reports PROPERTY POSITION_INDEPENDENT_CODE ON)
 ENDIF( ${WIN32} )
 
 target_link_libraries( reports mega_values )

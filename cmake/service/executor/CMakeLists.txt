@@ -76,14 +76,14 @@ add_library( executorLib
                     ${EXECUTOR_LIB_API}
 					${EXECUTOR_LIB_SRC}
 				)
+target_precompile_headers( executorLib REUSE_FROM mega_pch )
 
-IF( ${WIN32} )
-target_compile_options( executorLib PUBLIC "/await:strict" )
-target_compile_options( executorLib PRIVATE "/bigobj" )
-set_property(TARGET executorLib PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-ELSE( ${WIN32} )
-target_compile_options( executorLib PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
+#IF( ${WIN32} )
+#target_compile_options( executorLib PUBLIC "/await:strict" )
+#target_compile_options( executorLib PRIVATE "/bigobj" )
+#set_property(TARGET executorLib PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+#ELSE( ${WIN32} )
+#ENDIF( ${WIN32} )
 
 target_include_directories( executorLib PUBLIC ${MEGA_API_DIR} )
 target_include_directories( executorLib PUBLIC ${MEGA_SRC_DIR} )
@@ -125,7 +125,6 @@ IF( ${WIN32} )
 target_compile_options( executor PUBLIC "/await:strict" )
 target_compile_options( executor PRIVATE "/bigobj" )
 ELSE( ${WIN32} )
-target_compile_options( executor PUBLIC "-fcoroutines" )
 target_link_options( executor PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 

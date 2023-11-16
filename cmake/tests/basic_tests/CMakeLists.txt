@@ -48,14 +48,9 @@ enable_testing()
 
 add_executable( basic_tests ${BASIC_UNIT_TESTS} ${BASIC_UNIT_TESTS_DIR}/main_test_runner.cpp )
 
-IF( ${WIN32} )
-target_compile_options( basic_tests PUBLIC "/await:strict" )
-target_compile_options( basic_tests PRIVATE "/bigobj" )
-ELSE( ${WIN32} )
-target_compile_options( basic_tests PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
-
-target_compile_definitions( basic_tests PUBLIC -DBOOST_PHOENIX_STL_TUPLE_H_ )
+#IF( ${WIN32} )
+#target_compile_options( basic_tests PRIVATE "/bigobj" )
+#ENDIF( ${WIN32} )
 
 # allow access to source folder for tests
 target_include_directories(basic_tests PUBLIC ${MEGA_SRC_DIR})

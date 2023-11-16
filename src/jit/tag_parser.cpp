@@ -46,10 +46,12 @@
 #include <utility>
 
 // clang-format off
-BOOST_FUSION_ADAPT_STRUCT(  mega::XMLTag,
-                           ( std::string,                                   key )
-                           ( std::optional< mega::AddressTable::Index >,    indexOpt )
-                           ( std::vector< mega::XMLTag >,                   children ) 
+using MegaXMLTag            =  mega::XMLTag;
+using MegaAddressTableIndex =  mega::AddressTable::Index;
+BOOST_FUSION_ADAPT_STRUCT( MegaXMLTag,
+                           ( std::string,                               key )
+                           ( std::optional< MegaAddressTableIndex >,    indexOpt )
+                           ( std::vector< MegaXMLTag >,                 children ) 
                         )
 
 // clang-format on

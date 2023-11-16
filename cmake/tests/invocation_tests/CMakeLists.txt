@@ -45,14 +45,9 @@ enable_testing()
 
 add_executable( invocation_tests ${INVOCATION_UNIT_TESTS} ${INVOCATION_TESTS_DIR}/main_test_runner.cpp )
 
-IF( ${WIN32} )
-target_compile_options( invocation_tests PUBLIC "/await:strict" )
-target_compile_options( invocation_tests PRIVATE "/bigobj" )
-ELSE( ${WIN32} )
-target_compile_options( invocation_tests PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
-
-target_compile_definitions( invocation_tests PUBLIC -DBOOST_PHOENIX_STL_TUPLE_H_ )
+#IF( ${WIN32} )
+#target_compile_options( invocation_tests PRIVATE "/bigobj" )
+#ENDIF( ${WIN32} )
 
 # allow access to source folder for tests
 target_include_directories(invocation_tests PUBLIC ${MEGA_SRC_DIR})

@@ -143,6 +143,7 @@ add_library( protocol
 					${MEGA_PROTOCOL_GENERATED_HEADERS}
 					${MEGA_PROTOCOL_GENERATED_SOURCES}
 				)
+target_precompile_headers( protocol REUSE_FROM mega_pch )
 
 target_link_libraries( protocol mega_interface )
 target_link_libraries( protocol mega_values )
@@ -156,10 +157,7 @@ target_compile_options(protocol PRIVATE /bigobj)
 # for windows need to work around limit of 65K symbols - /Ob2 appears to achieve this
 # target_compile_options(protocol PRIVATE /Ob2)
 
-target_compile_options( protocol PUBLIC "/await:strict" )
 set_property(TARGET protocol PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-ELSE( ${WIN32} )
-target_compile_options( protocol PUBLIC "-fcoroutines" )
 ENDIF( ${WIN32} )
 
 add_dependencies( protocol protocol_compiler_driver )

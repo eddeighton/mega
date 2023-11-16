@@ -84,6 +84,7 @@ set( MEGA_PYTHON_MANGLE
 )
 
 add_library( megastructure SHARED ${MEGA_PYTHON_API} ${MEGA_PYTHON_SOURCE} ${MEGA_PYTHON_MANGLE} )
+target_precompile_headers( megastructure REUSE_FROM mega_pch )
 
 ##############################################################
 # NOT DOING THIS: pybind11_add_module( megastructure SHARED ${MEGA_PYTHON_SOURCE} )
@@ -99,10 +100,8 @@ pybind11_extension( megastructure )
 ##############################################################
 
 IF( ${WIN32} )
-target_compile_options( megastructure PUBLIC "/await:strict" )
 target_compile_options( megastructure PRIVATE "/bigobj" )
 ELSE( ${WIN32} )
-target_compile_options( megastructure PUBLIC "-fcoroutines" )
 target_link_options( megastructure PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 

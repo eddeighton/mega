@@ -54,13 +54,11 @@ add_library( reporters
                     ${REPORTERS_LIB_API}
 					${REPORTERS_LIB_SRC}
 				)
+target_precompile_headers( reporters REUSE_FROM mega_pch )
 
 IF( ${WIN32} )
-target_compile_options( reporters PUBLIC "/await:strict" )
 target_compile_options( reporters PRIVATE "/bigobj" )
 set_property(TARGET reporters PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-ELSE( ${WIN32} )
-target_compile_options( reporters PUBLIC "-fcoroutines" )
 ENDIF( ${WIN32} )
 
 target_include_directories( reporters PUBLIC ${MEGA_API_DIR} )

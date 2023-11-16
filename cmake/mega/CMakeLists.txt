@@ -160,6 +160,7 @@ set( MEGA_VALUES_SRC
 )
 
 add_library( mega_values STATIC ${MEGA_VALUES_HEADERS} ${MEGA_VALUES_SRC} )
+target_precompile_headers( mega_values REUSE_FROM mega_pch )
 
 link_boost( mega_values atomic )
 link_boost( mega_values filesystem )
@@ -176,7 +177,6 @@ link_inja( mega_values )
 link_pybind11( mega_values )
 link_common( mega_values )
 
-# target_precompile_headers( mega_values REUSE_FROM mega_pch )
 
 target_include_directories( mega_values PUBLIC ${MEGA_API_DIR} )
 
@@ -258,7 +258,6 @@ set_target_properties( generate_mangle_types PROPERTIES FOLDER service )
 set_target_properties( generate_python_mangle_types PROPERTIES FOLDER service )
 set_target_properties( generate_mega_mangle_meta PROPERTIES FOLDER service )
 
-
 ################################################################################
 ################################################################################
 
@@ -320,6 +319,7 @@ set( MEGA_LIBRARY
  )
  
  add_library( mega_mangle SHARED ${MEGA_MANGLE_SRC} )
+ target_precompile_headers( mega_mangle REUSE_FROM mega_pch )
  
  set_target_properties( mega_mangle PROPERTIES FOLDER service )
  

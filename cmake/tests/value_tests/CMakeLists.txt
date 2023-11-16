@@ -58,14 +58,9 @@ add_executable( value_tests ${VALUE_UNIT_TESTS} ${VALUE_TESTS_DIR}/main_test_run
 target_link_libraries( value_tests mega_values )
 target_link_libraries( value_tests reports )
 
-IF( ${WIN32} )
-target_compile_options( value_tests PUBLIC "/await:strict" )
-target_compile_options( value_tests PRIVATE "/bigobj" )
-ELSE( ${WIN32} )
-target_compile_options( value_tests PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
-
-target_compile_definitions( value_tests PUBLIC -DBOOST_PHOENIX_STL_TUPLE_H_ )
+#IF( ${WIN32} )
+#target_compile_options( value_tests PRIVATE "/bigobj" )
+#ENDIF( ${WIN32} )
 
 # allow access to source folder for tests
 target_include_directories(value_tests PUBLIC ${MEGA_SRC_DIR})

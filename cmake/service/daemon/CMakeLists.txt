@@ -51,12 +51,6 @@ set( DAEMON_SOURCE
     )
 
 add_executable( daemon ${DAEMON_HEADERS} ${DAEMON_SOURCE}  )
- 
-IF( ${WIN32} )
-target_compile_options( daemon PUBLIC "/await:strict" )
-ELSE( ${WIN32} )
-target_compile_options( daemon PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
 
 target_link_libraries( daemon protocol )
 target_link_libraries( daemon network )

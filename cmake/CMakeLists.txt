@@ -34,37 +34,40 @@ set( CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE true )
 
 ######################################
 #win32 specific settings
-IF( ${WIN32} )
-
-add_definitions(-D_WIN32_WINNT=0x0601)
-add_definitions(-DNOMINMAX -D_NOMINMAX)
-add_definitions(-DMTd )
-
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /O2 /Ob1 /D NDEBUG ")
-set( CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /Zi /O2 /Ob1 /D NDEBUG ")
-
-string(APPEND CMAKE_EXE_LINKER_FLAGS " /DEBUG /OPT:ICF /OPT:REF")
-string(APPEND CMAKE_SHARED_LINKER_FLAGS " /DEBUG /OPT:ICF /OPT:REF")
-
-# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:DebugDLL>")
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-
-#enable folders within generated IDE build systems
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(GLOBAL PROPERTY CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
-# add_compile_options(/W4 /WX)
-add_compile_options( /MP ) #Build with multiple processes
-
-ELSE( ${WIN32} )
+#IF( ${WIN32} )
+#add_compile_options("/await:strict" )
+#add_compile_options( "/bigobj" )
+#
+#add_definitions(-D_WIN32_WINNT=0x0601)
+#add_definitions(-DNOMINMAX -D_NOMINMAX)
+#add_definitions(-DMTd )
+#
+#set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /O2 /Ob1 /D NDEBUG ")
+#set( CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /Zi /O2 /Ob1 /D NDEBUG ")
+#
+#string(APPEND CMAKE_EXE_LINKER_FLAGS " /DEBUG /OPT:ICF /OPT:REF")
+#string(APPEND CMAKE_SHARED_LINKER_FLAGS " /DEBUG /OPT:ICF /OPT:REF")
+#
+## set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:DebugDLL>")
+#set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+#
+##enable folders within generated IDE build systems
+#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+#set_property(GLOBAL PROPERTY CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+#
+## add_compile_options(/W4 /WX)
+#add_compile_options( /MP ) #Build with multiple processes
+#
+#ELSE( ${WIN32} )
 
 #add_compile_options("-Wshadow")
 add_compile_options("-Wfatal-errors")
+add_compile_options("-fcoroutines")
 #add_compile_options("-Werror")
 #add_compile_options("-Wall")
 #add_compile_options("-Wextra")
 
-ENDIF( ${WIN32} )
+#ENDIF( ${WIN32} )
 
 set_property(GLOBAL PROPERTY LLVM_ENABLE_RTTI ON )
 set_property(GLOBAL PROPERTY LLVM_ENABLE_EH ON )

@@ -60,14 +60,9 @@ enable_testing()
 
 add_executable( mega_tests ${MEGA_UNIT_TESTS} ${COMPILER_SRC} ${MEGA_UNIT_TESTS_DIR}/main_test_runner.cpp )
 
-IF( ${WIN32} )
-target_compile_options( mega_tests PUBLIC "/await:strict" )
-target_compile_options( mega_tests PRIVATE "/bigobj" )
-ELSE( ${WIN32} )
-target_compile_options( mega_tests PUBLIC "-fcoroutines" )
-ENDIF( ${WIN32} )
-
-target_compile_definitions( mega_tests PUBLIC -DBOOST_PHOENIX_STL_TUPLE_H_ )
+#IF( ${WIN32} )
+#target_compile_options( mega_tests PRIVATE "/bigobj" )
+#ENDIF( ${WIN32} )
 
 # allow access to source folder for tests
 target_include_directories(mega_tests PUBLIC ${MEGA_SRC_DIR})
