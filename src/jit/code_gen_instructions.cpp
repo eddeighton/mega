@@ -94,25 +94,7 @@ void gen( Args args, const Calculation::ChildDerivation* pChildDerivation )
     const Variables::Variable* pFrom = pChildDerivation->get_from();
     const Variables::Stack*    pTo   = pChildDerivation->get_to();
 
-    mega::TypeID targetType;
-    {
-        if( auto pContext = db_cast< Concrete::Context >( pTo->get_concrete() ) )
-        {
-            targetType = pContext->get_concrete_id();
-        }
-        else if( auto pDim = db_cast< Concrete::Dimensions::User >( pTo->get_concrete() ) )
-        {
-            targetType = pDim->get_concrete_id();
-        }
-        else if( auto pLink = db_cast< Concrete::Dimensions::Link >( pTo->get_concrete() ) )
-        {
-            targetType = pLink->get_concrete_id();
-        }
-        else
-        {
-            THROW_RTE( "Unknown child derivation target" );
-        }
-    }
+    mega::TypeID targetType = pTo->get_concrete()->get_concrete_id();
 
     os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
        << ", mega::TypeInstance{ " << printTypeID( targetType ) << ", " << args.get( pFrom ) << ".getInstance() } );\n";

@@ -36,10 +36,21 @@
 
 #include "service/network/log.hpp"
 
+#include "common/requireSemicolon.hpp"
+
 #include <utility>
 
 namespace mega::runtime
 {
+    
+#define TRACE_TIMER( msg, code )\
+DO_STUFF_AND_REQUIRE_SEMI_COLON\
+(\
+    auto _timer__ = std::chrono::steady_clock::now();\
+    code\
+    SPDLOG_TRACE( msg, std::chrono::steady_clock::now() - _timer__ );\
+)
+
 JIT::JIT( const mega::MegastructureInstallation& megastructureInstallation, const mega::Project& project )
     : m_megastructureInstallation( megastructureInstallation )
     , m_project( project )
@@ -110,9 +121,12 @@ mega::TypeID JIT::getInterfaceTypeID( TypeID concreteTypeID ) const
 
 JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
 {
-    // auto startTime = std::chrono::steady_clock::now();
-    JITCompiler::Module::Ptr pModule = m_jitCompiler.compile( strCode );
-    // SPDLOG_TRACE( "JIT: JIT Compilation time: {}", std::chrono::steady_clock::now() - startTime );
+    JITCompiler::Module::Ptr pModule;
+    TRACE_TIMER( "JIT: compile {}",
+
+        pModule = m_jitCompiler.compile( strCode );
+
+    );
     return pModule;
 }
 
@@ -128,11 +142,15 @@ Allocator::Ptr JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler, c
         }
         else
         {
-            std::ostringstream osModule;
-            m_codeGenerator.generate_alllocator( compiler, m_database, objectTypeID, osModule );
-            JITCompiler::Module::Ptr pModule = compile( osModule.str() );
-            pAllocator                       = std::make_shared< Allocator >( objectTypeID, m_database, pModule );
-            m_allocators.insert( { objectTypeID, pAllocator } );
+            TRACE_TIMER( "JIT: Allocator {}",
+
+                std::ostringstream osModule;
+                m_codeGenerator.generate_alllocator( compiler, m_database, objectTypeID, osModule );
+                JITCompiler::Module::Ptr pModule = compile( osModule.str() );
+                pAllocator                       = std::make_shared< Allocator >( objectTypeID, m_database, pModule );
+                m_allocators.insert( { objectTypeID, pAllocator } );
+
+            );
         }
     }
     return pAllocator;
@@ -149,11 +167,15 @@ Relation::Ptr JIT::getRelation( const CodeGenerator::LLVMCompiler& compiler, con
         }
         else
         {
-            std::ostringstream osModule;
-            m_codeGenerator.generate_relation( compiler, m_database, relationID, osModule );
-            JITCompiler::Module::Ptr pModule = compile( osModule.str() );
-            pRelation                        = std::make_shared< Relation >( relationID, m_database, pModule );
-            m_relations.insert( { relationID, pRelation } );
+            TRACE_TIMER( "JIT: Relation: {}",
+
+                std::ostringstream osModule;
+                m_codeGenerator.generate_relation( compiler, m_database, relationID, osModule );
+                JITCompiler::Module::Ptr pModule = compile( osModule.str() );
+                pRelation                        = std::make_shared< Relation >( relationID, m_database, pModule );
+                m_relations.insert( { relationID, pRelation } );
+
+            );
         }
     }
     return pRelation;
@@ -163,10 +185,14 @@ Program::Ptr JIT::getProgram( const CodeGenerator::LLVMCompiler& compiler )
 {
     if( !m_pProgram )
     {
-        std::ostringstream osModule;
-        m_codeGenerator.generate_program( compiler, m_database, osModule );
-        auto pModule = compile( osModule.str() );
-        m_pProgram   = std::make_unique< Program >( m_database, pModule );
+        TRACE_TIMER( "JIT: Program: {}",
+
+            std::ostringstream osModule;
+            m_codeGenerator.generate_program( compiler, m_database, osModule );
+            auto pModule = compile( osModule.str() );
+            m_pProgram   = std::make_unique< Program >( m_database, pModule );
+
+        );
     }
     return m_pProgram;
 }
@@ -417,10 +443,14 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
 
     if( !pModule )
     {
-        std::ostringstream osModule;
-        m_codeGenerator.generate_invocation( compiler, m_database, invocationID, functionType, osModule );
-        pModule = compile( osModule.str() );
-        m_invocations.insert( std::make_pair( invocationID, pModule ) );
+        TRACE_TIMER( "JIT: Invocation: {}",
+
+            std::ostringstream osModule;
+            m_codeGenerator.generate_invocation( compiler, m_database, invocationID, functionType, osModule );
+            pModule = compile( osModule.str() );
+            m_invocations.insert( std::make_pair( invocationID, pModule ) );
+
+        );
     }
 
     switch( functionType )
@@ -671,14 +701,18 @@ void JIT::getDecisionFunction( void* pLLVMCompiler, TypeID concreteTypeID, void*
 
     if( !pModule )
     {
-        std::ostringstream osModule;
-        m_codeGenerator.generate_decision( compiler, m_database, concreteTypeID, osModule );
-        pModule = compile( osModule.str() );
-        m_decisions.insert( std::make_pair( concreteTypeID, pModule ) );
+        TRACE_TIMER( "JIT: Decision: {}",
+
+            std::ostringstream osModule;
+            m_codeGenerator.generate_decision( compiler, m_database, concreteTypeID, osModule );
+            pModule = compile( osModule.str() );
+            m_decisions.insert( std::make_pair( concreteTypeID, pModule ) );
+
+        );
     }
-    
-    *ppFunction
-        = ( void* )pModule->get< void (*)( const mega::reference& ) >( Symbol( "decision_", concreteTypeID, Symbol::RefCR ) );
+
+    *ppFunction = ( void* )pModule->get< void ( * )( const mega::reference& ) >(
+        Symbol( "decision_", concreteTypeID, Symbol::RefCR ) );
 }
 
 void JIT::getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction, void* pPythonCaster )
@@ -714,10 +748,14 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
     const auto functionType = static_cast< operators::FunctionType >( fType );
     if( !pModule )
     {
-        std::ostringstream osModule;
-        m_codeGenerator.generate_operator( compiler, m_database, target, functionType, osModule );
-        pModule = compile( osModule.str() );
-        m_operators.insert( std::make_pair( operatorID, pModule ) );
+        TRACE_TIMER( "JIT: Operator: {}",
+
+            std::ostringstream osModule;
+            m_codeGenerator.generate_operator( compiler, m_database, target, functionType, osModule );
+            pModule = compile( osModule.str() );
+            m_operators.insert( std::make_pair( operatorID, pModule ) );
+
+        );
     }
 
     switch( functionType )

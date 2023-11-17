@@ -294,6 +294,7 @@ void dispatch( const mega::reference& event )
         case {{ event.type_id }}:
         {
 {%      for handler in event.handlers %}
+            // {{ handler.comment }}
 {%          if handler.has_dispatch %}
             {
                 {{ handler.code }}
@@ -311,7 +312,7 @@ void dispatch( const mega::reference& event )
                             static_cast< mega::SubType >( event.getInstance() / {{ handler.transition_divider }}U ) } 
                     ) 
                 ) 
-            ); // {{ handler.comment }}
+            );
 {%          endif %}  
         }
         break;

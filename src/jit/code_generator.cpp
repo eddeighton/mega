@@ -381,7 +381,7 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
         using EventHandlers = std::multimap< TypeID, nlohmann::json >;
 
         EventHandlers eventHandlers;
-        /*{
+        {
             for( const Concrete::Interupt* pInterupt : database.getInterupts() )
             {
                 for( auto pDispatch : pInterupt->get_dispatches() )
@@ -398,24 +398,14 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
                         { "comment", Concrete::printContextFullType( pContext ) },
                         { "has_dispatch", true },
                         { "has_transition", false },
-                        { "transition_sub_type", pInterupt->get_concrete_id().getSubObjectID() },
-                        { "transition_divider", 1 },
                         { "code", osDispatcher.str() }
 
                     } );
 
-                    auto transitionDecisionOpt = pInterupt->get_transition_decision();
-                    if( transitionDecisionOpt.has_value() )
-                    {
-                        auto pTransitionDecision             = transitionDecisionOpt.value();
-                        eventHandler[ "has_transition" ]     = true;
-                        eventHandler[ "transition_divider" ] = pTransitionDecision->get_instance_divider();
-                    }
-
                     eventHandlers.insert( { pContext->get_concrete_id(), eventHandler } );
                 }
             }
-        }*/
+        }
 
         // completion handlers
         for( const Concrete::Action* pAction : database.getActions() )
