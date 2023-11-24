@@ -36,13 +36,13 @@ TEST( IL, Basic )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    Type< Value > interfaceType = makeValueType( Mutable{ eInterfaceType } );
-    Type< Const > stringType    = makeType< Const >( eCharStar );
+    ValueType interfaceType = Mutable{ eInterfaceType };
+    Const     stringType{ eCharStar };
 
-    Variable param1{ interfaceType, "p1"s };
-    Variable param2{ makeValueType( Const{ eCharStar } ), "p2"s };
-    Variable result{ interfaceType, "result"s };
-    Literal  lit{ stringType, "\"This is a string constant\"" };
+    Variable< ValueType > param1{ interfaceType, "p1"s };
+    Variable< ValueType > param2{ Const{ eCharStar }, "p2"s };
+    Variable              result{ interfaceType, "result"s };
+    Literal               lit{ stringType, "\"This is a string constant\"" };
 
     FunctionDefinition func{
 
@@ -50,9 +50,9 @@ TEST( IL, Basic )
         interfaceType,
         { param1, param2 },
         {
-            Assignment{ result, Read{ param1 } },                                     //
-            ExpressionStatement{ Call{ makeType< Log >(), { ReadLiteral{ lit } } } }, //
-            Return{ result }                                                          //
+            Assignment{ result, Read{ param1 } },                         //
+            ExpressionStatement{ Call{ Log{}, { ReadLiteral{ lit } } } }, //
+            Return{ result }                                              //
         } };
     std::cout << generate( func ) << std::endl;
 }
@@ -62,13 +62,13 @@ TEST( IL, Switch )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    Type< Const > stringType = makeType< Const >( eCharStar );
-    auto          voidType   = makeValueType( Mutable{ eVoid } );
-    auto          intType    = makeValueType( Mutable{ eInt32 } );
-    auto          log        = makeType< Log >();
+    Const   stringType{ eCharStar };
+    Mutable voidType{ eVoid };
+    Mutable intType{ eInt32 };
+    Log     log;
 
-    Variable param1{ intType, "type"s };
-    Variable result{ voidType, "result"s };
+    Variable< ValueType > param1{ intType, "type"s };
+    Variable              result{ voidType, "result"s };
 
     FunctionDefinition func{
 
@@ -77,10 +77,10 @@ TEST( IL, Switch )
         { param1 },
         { Switch{ Read{ param1 },
                   {
-                      Switch::Case{ Literal{ makeType< Const >( eInt32 ), "1" },
+                      Switch::Case{ Literal{ eInt32, "1" },
                                     { ExpressionStatement{
                                         Call{ log, { ReadLiteral{ Literal{ stringType, "\"Testing 1\"" } } } } } } }, //
-                      Switch::Case{ Literal{ makeType< Const >( eInt32 ), "2" },
+                      Switch::Case{ Literal{ eInt32, "2" },
                                     { ExpressionStatement{
                                         Call{ log, { ReadLiteral{ Literal{ stringType, "\"Testing 2\"" } } } } } } } //
                   } } } };
@@ -93,14 +93,14 @@ TEST( IL, If )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    Type< Const > stringType = makeType< Const >( eCharStar );
-    auto          voidType   = makeValueType( Mutable{ eVoid } );
-    auto          boolType   = makeValueType( Mutable{ eBool } );
-    auto          log        = makeType< Log >();
+    Const   stringType{ eCharStar };
+    Mutable voidType{ eVoid };
+    Mutable boolType{ eBool };
+    Log     log;
 
-    Variable param1{ boolType, "test1"s };
-    Variable param2{ boolType, "test2"s };
-    Variable result{ voidType, "result"s };
+    Variable< ValueType > param1{ boolType, "test1"s };
+    Variable< ValueType > param2{ boolType, "test2"s };
+    Variable              result{ voidType, "result"s };
 
     FunctionDefinition func{
 
@@ -131,13 +131,13 @@ TEST( IL, ForLoop )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    auto voidType = makeValueType( Mutable{ eVoid } );
-    auto intType  = makeValueType( Mutable{ eInt32 } );
-    auto log      = makeType< Log >();
+    Mutable voidType{ eVoid };
+    Mutable intType{ eInt32 };
+    Log     log;
 
-    Variable param1{ intType, "start"s };
-    Variable param2{ intType, "end"s };
-    Variable iterator{ intType, "iter"s };
+    Variable< ValueType > param1{ intType, "start"s };
+    Variable< ValueType > param2{ intType, "end"s };
+    Variable< ValueType > iterator{ intType, "iter"s };
 
     FunctionDefinition func{
 
@@ -160,23 +160,22 @@ TEST( IL, Materialiser )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    auto voidType = makeValueType( Mutable{ eVoid } );
-    auto typeID   = makeValueType( Mutable{ eConcreteType } );
-    auto log      = makeType< Log >();
+    Mutable  voidType{ eVoid };
+    Mutable  typeID{ eConcreteType };
+    Log      log;
+    Ptr      voidStar{ eVoid };
+    Mutable  boolType{ eBool };
+    ConstRef constRefReference{ eReference };
 
-    auto voidStar          = makeValueType( Ptr{ eVoid } );
-    auto boolType          = makeValueType( Mutable{ eBool } );
-    auto constRefReference = makeValueType( ConstRef{ eReference } );
+    Variable< ValueType > param1{ typeID, "typeID"s };
+    Variable< ValueType > param2{ constRefReference, "ref"s };
+    Variable< ValueType > param3{ voidStar, "pBuffer"s };
+    Variable< ValueType > param4{ boolType, "bLinkReset"s };
 
-    Variable param1{ typeID, "typeID"s };
-    Variable param2{ constRefReference, "ref"s };
-    Variable param3{ voidStar, "pBuffer"s };
-    Variable param4{ boolType, "bLinkReset"s };
-
-    auto                     mat = makeType< ObjectMaterialiser >();
+    ObjectMaterialiser       mat;
     Variable< Materialiser > objectMat{ mat, "objectMat"s };
 
-    const FunctionTemplate& jitFunctionType = mat->getFunctionTemplate( ObjectMaterialiser::ObjectDtor );
+    const FunctionTemplate& jitFunctionType = mat.getFunctionTemplate( ObjectMaterialiser::ObjectDtor );
 
     FunctionDefinition func{
 
@@ -205,12 +204,12 @@ TEST( IL, Mangle )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    auto voidType = makeValueType( Mutable{ eVoid } );
-    auto voidStar = makeValueType( Ptr{ eVoid } );
-    auto typeID   = makeValueType( Mutable{ eConcreteType } );
-    auto log      = makeType< Log >();
+    Mutable voidType{ eVoid };
+    Ptr     voidStar{ eVoid };
+    Mutable typeID{ eConcreteType };
+    Log     log;
 
-    Variable param1{ voidStar, "pBuffer"s };
+    Variable< ValueType > param1{ voidStar, "pBuffer"s };
 
     FunctionDefinition func{
 
@@ -220,7 +219,7 @@ TEST( IL, Mangle )
         { ExpressionStatement //
           { Call              //
             {
-                makeType< MangleCTor >( "int"s ), { Read{ param1 } } //
+                MangleCTor{ "int"s }, { Read{ param1 } } //
             } } } };
 
     std::cout << generate( func ) << std::endl;
@@ -231,16 +230,16 @@ TEST( IL, Assignment )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    auto voidType = makeValueType( Mutable{ eVoid } );
-    auto voidStar = makeValueType( Ptr{ eVoid } );
-    auto intType  = makeValueType( Mutable{ eU64 } );
+    Mutable voidType{ eVoid };
+    Ptr     voidStar{ eVoid };
+    Mutable intType{ eU64 };
 
-    Variable param1{ intType, "param"s };
-    Variable localVar1{ intType, "localVar"s };
+    Variable< ValueType > param1{ intType, "param"s };
+    Variable< ValueType > localVar1{ intType, "localVar"s };
 
     FunctionDefinition func{
 
-        "Mangle"s,
+        "Assignment"s,
         intType,
         { param1 },
         {

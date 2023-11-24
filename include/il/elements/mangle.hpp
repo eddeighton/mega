@@ -40,7 +40,7 @@ struct MangleFunction : ExternFunction
     MangleFunction( std::string&& mangleType )
         : mangleType( std::move( mangleType ) )
     {
-        returnType = makeType< Value >( Mutable{ eVoid } );
+        returnType = Mutable{ eVoid };
     }
 };
 
@@ -51,7 +51,7 @@ struct MangleCTor : MangleFunction
     {
         using namespace std::string_literals;
         setName( "new_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
     }
 };
 
@@ -62,7 +62,7 @@ struct MangleDTor : MangleFunction
     {
         using namespace std::string_literals;
         setName( "delete_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
     }
 };
 
@@ -73,8 +73,8 @@ struct MangleCopy : MangleFunction
     {
         using namespace std::string_literals;
         setName( "copy_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
     }
 };
 
@@ -85,9 +85,9 @@ struct MangleSaveXML : MangleFunction
     {
         using namespace std::string_literals;
         setName( "save_xml_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
-        parameterTypes.emplace_back( makeType< Value >( Const{ eCharStar } ) );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
+        parameterTypes.emplace_back( Const{ eCharStar } );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
     }
 };
 
@@ -98,9 +98,9 @@ struct MangleLoadXML : MangleFunction
     {
         using namespace std::string_literals;
         setName( "load_xml_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
-        parameterTypes.emplace_back( makeType< Value >( Const{ eCharStar } ) );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
+        parameterTypes.emplace_back( Const{ eCharStar } );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
     }
 };
 
@@ -111,8 +111,8 @@ struct MangleSaveBin : MangleFunction
     {
         using namespace std::string_literals;
         setName( "save_bin_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
     }
 };
 
@@ -123,8 +123,8 @@ struct MangleLoadBin : MangleFunction
     {
         using namespace std::string_literals;
         setName( "load_bin_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
     }
 };
 
@@ -135,8 +135,8 @@ struct MangleSaveRecord : MangleFunction
     {
         using namespace std::string_literals;
         setName( "save_record_"s );
-        parameterTypes.emplace_back( makeType< Value >( ConstRef{ eReference } ) );
-        parameterTypes.emplace_back( makeType< Value >( ConstPtr{ eVoid } ) );
+        parameterTypes.emplace_back( ConstRef{ eReference } );
+        parameterTypes.emplace_back( ConstPtr{ eVoid } );
     }
 };
 
@@ -147,9 +147,9 @@ struct MangleLoadRecord : MangleFunction
     {
         using namespace std::string_literals;
         setName( "load_record_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
-        parameterTypes.emplace_back( makeType< Value >( Mutable{ eU64 } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
+        parameterTypes.emplace_back( Mutable{ eU64 } );
     }
 };
 
@@ -160,7 +160,7 @@ struct MangleReadAny : MangleFunction
     {
         using namespace std::string_literals;
         setName( "read_any_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
     }
 };
 
@@ -171,8 +171,8 @@ struct MangleWriteAny : MangleFunction
     {
         using namespace std::string_literals;
         setName( "write_any_"s );
-        parameterTypes.emplace_back( makeType< Value >( Ptr{ eVoid } ) );
-        parameterTypes.emplace_back( makeType< Value >( Mutable{ eAny } ) );
+        parameterTypes.emplace_back( Ptr{ eVoid } );
+        parameterTypes.emplace_back( Mutable{ eAny } );
     }
 };
 

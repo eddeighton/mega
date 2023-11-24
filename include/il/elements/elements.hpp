@@ -30,21 +30,43 @@
 
 namespace mega::il
 {
-template < typename T >
+template < typename TValueType >
 class Variable
 {
-    Type< T >   type;
+    TValueType  value;
     std::string name;
 
 public:
-    inline Variable( Type< T > type, std::string name )
-        : type( std::move( type ) )
+    inline Variable( TValueType value, std::string name )
+        : value( std::move( value ) )
         , name( std::move( name ) )
     {
     }
+
+    template < typename TOtherValueType >
+    inline Variable( TOtherValueType value, std::string name )
+        : value( std::move( value ) )
+        , name( std::move( name ) )
+    {
+    }
+
     inline Variable( const Variable& ) = default;
 
-    const Type< T >&   getType() const { return type; }
+    template < typename TOtherValueType >
+    inline Variable( const Variable& cpy )
+        : value( cpy.value )
+        , name( cpy.name )
+    {
+    }
+
+    template < typename TOtherValueType >
+    inline Variable( Variable&& cpy )
+        : value( std::move( cpy.value ) )
+        , name( std::move( cpy.name ) )
+    {
+    }
+
+    const TValueType&  getValueType() const { return value; }
     const std::string& getName() const { return name; }
 };
 
@@ -53,19 +75,24 @@ using ConstVar   = Variable< Const >;
 
 class Literal
 {
-    Type< Const > type;
-    std::string   text;
+    Const       type;
+    std::string text;
 
 public:
-    inline Literal( Type< Const > type, std::string text )
+    inline Literal( Const type, std::string text )
         : type( std::move( type ) )
+        , text( std::move( text ) )
+    {
+    }
+    inline Literal( DataType dataType, std::string text )
+        : type{ dataType }
         , text( std::move( text ) )
     {
     }
     inline Literal( const Literal& ) = default;
 
-    const Type< Const >& getType() const { return type; }
-    const std::string&   getText() const { return text; }
+    const Const&       getValueType() const { return type; }
+    const std::string& getText() const { return text; }
 };
 
 /////////////////////////////////////////////////
@@ -81,7 +108,7 @@ using Expression = std::variant< Read, ReadLiteral, Call, CallFunctor, Operator 
 
 struct Read
 {
-    Variable< Value > variable;
+    Variable< ValueType > variable;
 };
 
 struct ReadLiteral
@@ -91,14 +118,14 @@ struct ReadLiteral
 
 struct Call
 {
-    Type< Function >          function;
+    Function                  function;
     std::vector< Expression > arguments;
 };
 
 struct CallFunctor
 {
     Variable< Materialiser >  functor;
-    Type< Function >          function;
+    Function                  function;
     std::vector< Expression > arguments;
 };
 
@@ -116,8 +143,7 @@ struct Operator
     static Operator makeIncrement( Variable< T > var )
     {
         return Operator{
-            { Read{ var }, ReadLiteral{ Literal{ makeType< Const >( getDataType( *var.getType() ) ), "1" } } },
-            Operator::eAdd };
+            { Read{ var }, ReadLiteral{ Literal{ getDataType( var.getValueType() ), "1" } } }, Operator::eAdd };
     }
 };
 
@@ -134,7 +160,8 @@ struct If;
 struct Switch;
 struct ForLoop;
 
-using Statement = std::variant< ExpressionStatement, VariableDeclaration, Assignment, MaterialiserStatement, Return, If, Switch, ForLoop >;
+using Statement = std::variant< ExpressionStatement, VariableDeclaration, Assignment, MaterialiserStatement, Return, If,
+                                Switch, ForLoop >;
 
 struct ExpressionStatement
 {
@@ -143,26 +170,26 @@ struct ExpressionStatement
 
 struct VariableDeclaration
 {
-    Variable< Value > lValue;
+    Variable< ValueType >       lValue;
     std::optional< Expression > rValue;
 };
 
 struct Assignment
 {
-    Variable< Value > lValue;
-    Expression        rValue;
+    Variable< ValueType > lValue;
+    Expression            rValue;
 };
 
 struct MaterialiserStatement
 {
     Variable< Materialiser >  materialiser;
     std::vector< Expression > arguments;
-    Type< JIT >               function;
+    JIT                       function;
 };
 
 struct Return
 {
-    Variable< Value > rValue;
+    Variable< ValueType > rValue;
 };
 
 struct If
@@ -193,7 +220,7 @@ struct Switch
 
 struct ForLoop
 {
-    Variable< Value >        iterator;
+    Variable< ValueType >    iterator;
     Expression               initialisation;
     Expression               test;
     Expression               increment;
@@ -202,10 +229,10 @@ struct ForLoop
 
 struct FunctionDefinition
 {
-    std::string                      name;
-    Type< Value >                    returnType;
-    std::vector< Variable< Value > > parameters;
-    std::vector< Statement >         statements;
+    std::string                          name;
+    ValueType                            returnType;
+    std::vector< Variable< ValueType > > parameters;
+    std::vector< Statement >             statements;
 };
 
 } // namespace mega::il

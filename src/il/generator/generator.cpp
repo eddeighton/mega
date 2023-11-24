@@ -56,7 +56,7 @@ public:
     std::string str() const { return m_os.str(); }
 };
 
-void generate( const Type< Value >& valueType, Printer& print )
+void generate( const ValueType& valueType, Printer& print )
 {
     struct Visitor
     {
@@ -69,13 +69,13 @@ void generate( const Type< Value >& valueType, Printer& print )
         void     operator()( const ConstRef& type ) const { print() << "const " << typeName( type.type ) << "&"; }
 
     } visitor{ print };
-    std::visit( visitor, *valueType );
+    std::visit( visitor, valueType );
 }
 
 template < typename T >
 void generate( const Variable< T >& var, Printer& print )
 {
-    generate( var.getType(), print );
+    generate( var.getValueType(), print );
     print() << ' ';
     print() << var.getName();
 }
@@ -99,12 +99,11 @@ void generate( const Expression& exp, Printer& print )
 
         void operator()( const Call& call ) const
         {
-            VERIFY_RTE_MSG( call.function, "Function with no type" );
-            VERIFY_RTE_MSG( !call.function->name.empty(), "Function with no name" );
-            print() << call.function->name << '(';
+            VERIFY_RTE_MSG( !call.function.name.empty(), "Function with no name" );
+            print() << call.function.name << '(';
 
             VERIFY_RTE_MSG(
-                call.function->parameterTypes.size() == call.arguments.size(), "Function call parameters mismatch" );
+                call.function.parameterTypes.size() == call.arguments.size(), "Function call parameters mismatch" );
             bool bFirst = true;
             for( const auto& arg : call.arguments )
             {
@@ -126,9 +125,9 @@ void generate( const Expression& exp, Printer& print )
             VERIFY_RTE_MSG( !callFunctor.functor.getName().empty(), "Functor with no name" );
             print() << callFunctor.functor.getName() << '(';
 
-            VERIFY_RTE_MSG( callFunctor.function->parameterTypes.size() == callFunctor.arguments.size(),
+            VERIFY_RTE_MSG( callFunctor.function.parameterTypes.size() == callFunctor.arguments.size(),
                             "Functor call parameters count mismatch function type: "
-                                << callFunctor.function->parameterTypes.size()
+                                << callFunctor.function.parameterTypes.size()
                                 << " arguments: " << callFunctor.arguments.size() );
 
             bool bFirst = true;
@@ -191,7 +190,7 @@ void generate( const Statement& statement, Printer& print )
         {
             print.line();
             print() << "static thread_local ";
-            generate( materialiserStatement.materialiser, *materialiserStatement.function, print );
+            generate( materialiserStatement.materialiser, materialiserStatement.function, print );
             print() << "(";
 
             bool bFirst = true;
