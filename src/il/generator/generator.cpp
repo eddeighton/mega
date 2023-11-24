@@ -80,6 +80,13 @@ void generate( const Variable< T >& var, Printer& print )
     print() << var.getName();
 }
 
+void generate( const Variable< Materialiser >& var, const JIT& function, Printer& print )
+{
+    print() << function.name;
+    print() << ' ';
+    print() << var.getName();
+}
+
 void generate( const Expression& exp, Printer& print )
 {
     struct Visitor
@@ -92,6 +99,7 @@ void generate( const Expression& exp, Printer& print )
 
         void operator()( const Call& call ) const
         {
+            VERIFY_RTE_MSG( call.function, "Function with no type" );
             VERIFY_RTE_MSG( !call.function->name.empty(), "Function with no name" );
             print() << call.function->name << '(';
 
@@ -99,6 +107,32 @@ void generate( const Expression& exp, Printer& print )
                 call.function->parameterTypes.size() == call.arguments.size(), "Function call parameters mismatch" );
             bool bFirst = true;
             for( const auto& arg : call.arguments )
+            {
+                if( bFirst )
+                {
+                    bFirst = false;
+                }
+                else
+                {
+                    print() << ',';
+                }
+                generate( arg, print );
+            }
+            print() << ')';
+        }
+
+        void operator()( const CallFunctor& callFunctor ) const
+        {
+            VERIFY_RTE_MSG( !callFunctor.functor.getName().empty(), "Functor with no name" );
+            print() << callFunctor.functor.getName() << '(';
+
+            VERIFY_RTE_MSG( callFunctor.function->parameterTypes.size() == callFunctor.arguments.size(),
+                            "Functor call parameters count mismatch function type: "
+                                << callFunctor.function->parameterTypes.size()
+                                << " arguments: " << callFunctor.arguments.size() );
+
+            bool bFirst = true;
+            for( const auto& arg : callFunctor.arguments )
             {
                 if( bFirst )
                 {
@@ -153,6 +187,29 @@ void generate( const Statement& statement, Printer& print )
             print() << ";";
         }
 
+        void operator()( const MaterialiserStatement& materialiserStatement ) const
+        {
+            print.line();
+            print() << "static thread_local ";
+            generate( materialiserStatement.materialiser, *materialiserStatement.function, print );
+            print() << "(";
+
+            bool bFirst = true;
+            for( const auto& param : materialiserStatement.arguments )
+            {
+                if( bFirst )
+                {
+                    bFirst = false;
+                }
+                else
+                {
+                    print() << ',';
+                }
+                generate( param, print );
+            }
+            print() << ");";
+        }
+
         void operator()( const Return& returnStatement ) const
         {
             print.line() << "return " << returnStatement.rValue.getName() << ";";
@@ -201,11 +258,21 @@ void generate( const Statement& statement, Printer& print )
             }
         }
 
-        void operator()( const Assignment& assignment ) const
+        void operator()( const VariableDeclaration& varDecl ) const
         {
             print.line();
-            generate( assignment.lValue, print );
-            print() << " = ";
+            generate( varDecl.lValue, print );
+            if( varDecl.rValue.has_value() )
+            {
+                print() << " = ";
+                generate( varDecl.rValue.value(), print );
+            }
+            print() << ";";
+        }
+
+        void operator()( const Assignment& assignment ) const
+        {
+            print.line() << assignment.lValue.getName() << " = ";
             generate( assignment.rValue, print );
             print() << ";";
         }

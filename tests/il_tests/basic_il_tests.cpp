@@ -23,6 +23,7 @@
 #include "il/elements/types.hpp"
 #include "il/elements/functions.hxx"
 #include "il/elements/elements.hpp"
+#include "il/elements/mangle.hpp"
 
 #include <limits>
 #include <sstream>
@@ -149,6 +150,105 @@ TEST( IL, ForLoop )
                    Operator::makeIncrement( iterator ),
                    { ExpressionStatement{ Call{ log, { Read{ iterator } } } } } } }
         //
+    };
+
+    std::cout << generate( func ) << std::endl;
+}
+
+TEST( IL, Materialiser )
+{
+    using namespace mega::il;
+    using namespace std::string_literals;
+
+    auto voidType = makeValueType( Mutable{ eVoid } );
+    auto typeID   = makeValueType( Mutable{ eConcreteType } );
+    auto log      = makeType< Log >();
+
+    auto voidStar          = makeValueType( Ptr{ eVoid } );
+    auto boolType          = makeValueType( Mutable{ eBool } );
+    auto constRefReference = makeValueType( ConstRef{ eReference } );
+
+    Variable param1{ typeID, "typeID"s };
+    Variable param2{ constRefReference, "ref"s };
+    Variable param3{ voidStar, "pBuffer"s };
+    Variable param4{ boolType, "bLinkReset"s };
+
+    auto                     mat = makeType< ObjectMaterialiser >();
+    Variable< Materialiser > objectMat{ mat, "objectMat"s };
+
+    const FunctionTemplate& jitFunctionType = mat->getFunctionTemplate( ObjectMaterialiser::ObjectDtor );
+
+    FunctionDefinition func{
+
+        "Materialiser"s,
+        voidType,
+        { param1, param2, param3, param4 },
+        { MaterialiserStatement //
+          { objectMat, { Read{ param1 } }, jitFunctionType.function },
+          ExpressionStatement //
+          { CallFunctor{ objectMat,
+                         jitFunctionType.function,
+                         {
+                             Read{ param2 }, //
+                             Read{ param3 }, //
+                             Read{ param4 }  //
+                         } } } }
+
+        //
+    };
+
+    std::cout << generate( func ) << std::endl;
+}
+
+TEST( IL, Mangle )
+{
+    using namespace mega::il;
+    using namespace std::string_literals;
+
+    auto voidType = makeValueType( Mutable{ eVoid } );
+    auto voidStar = makeValueType( Ptr{ eVoid } );
+    auto typeID   = makeValueType( Mutable{ eConcreteType } );
+    auto log      = makeType< Log >();
+
+    Variable param1{ voidStar, "pBuffer"s };
+
+    FunctionDefinition func{
+
+        "Mangle"s,
+        voidType,
+        { param1 },
+        { ExpressionStatement //
+          { Call              //
+            {
+                makeType< MangleCTor >( "int"s ), { Read{ param1 } } //
+            } } } };
+
+    std::cout << generate( func ) << std::endl;
+}
+
+TEST( IL, Assignment )
+{
+    using namespace mega::il;
+    using namespace std::string_literals;
+
+    auto voidType = makeValueType( Mutable{ eVoid } );
+    auto voidStar = makeValueType( Ptr{ eVoid } );
+    auto intType  = makeValueType( Mutable{ eU64 } );
+
+    Variable param1{ intType, "param"s };
+    Variable localVar1{ intType, "localVar"s };
+
+    FunctionDefinition func{
+
+        "Mangle"s,
+        intType,
+        { param1 },
+        {
+            VariableDeclaration{ localVar1, Read{ param1 } },           //
+            Assignment{ localVar1, Operator::makeIncrement( param1 ) }, //
+            Return{ localVar1 }                                         //
+        }
+
     };
 
     std::cout << generate( func ) << std::endl;
