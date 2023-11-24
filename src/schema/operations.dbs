@@ -162,17 +162,16 @@ namespace Operations
     {
     }
 
-    object DerivationCompilation -> OperationsStage::Operations
+    object EventDispatch -> OperationsStage::Operations
     {
-        ref< Derivation::Node >                                 derivation;
-        array< ref< Instructions::Variables::Variable > >       variables;
-        array< ref< Instructions::Application::Operation > >    operations;
-
-        late< ref< Instructions::Calculation::Root > >      root_instruction;
+        ref< Derivation::Dispatch > derivation;
+        ref< Concrete::Context >    event;
+        ref< Concrete::Interupt >   interupt;
     }
 
-    object Invocation : DerivationCompilation -> OperationsStage::Operations
+    object Invocation -> OperationsStage::Operations
     {
+        ref< Derivation::Root >                         derivation;
         value< mega::InvocationID >                     id;
         
         late< value< mega::ExplicitOperationID > >      explicit_operation;
@@ -184,7 +183,6 @@ namespace Operations
         late< value< std::string > >                    canonical_type_path;
         late< value< std::string > >                    canonical_operation;
     }
-
 
     object Start : Invocation -> OperationsStage::Operations
     {

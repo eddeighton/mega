@@ -20,7 +20,7 @@
 
 #ifndef GUARD_2023_November_16_derivation_compiler
 #define GUARD_2023_November_16_derivation_compiler
-
+/*
 class DerivationBuilder
 {
     Instructions::Variables::Stack* make_stack_variable( Instructions::Variables::Variable* pParentVariable,
@@ -384,5 +384,5 @@ private:
 public:
     Operations::DerivationCompilation* getDerivationCompilation() const { return m_pDerivationCompilation; }
 };
-
+*/
 #endif // GUARD_2023_November_16_derivation_compiler

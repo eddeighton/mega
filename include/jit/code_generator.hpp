@@ -47,8 +47,6 @@ class JIT_EXPORT CodeGenerator
     class Pimpl;
 
 public:
-    using VariableMap = std::map< const FinalStage::Instructions::Variables::Variable*, std::string >;
-
     class LLVMCompiler
     {
     public:
@@ -78,19 +76,19 @@ public:
                             std::ostream& os );
 
     void generate_dispatcher( const LLVMCompiler& compiler, const JITDatabase& database,
-                              const FinalStage::Concrete::Interupt*   pInterupt,
-                              const FinalStage::Derivation::Dispatch* pDispatch, std::ostream& os );
+                              const FinalStage::Concrete::Interupt*        pInterupt,
+                              const FinalStage::Operations::EventDispatch* pDispatch, std::ostream& os );
 
 private:
-    VariableMap
+    /*VariableMap
     generateVariables( const std::vector< ::FinalStage::Instructions::Variables::Variable* >& invocationVariables,
-                       nlohmann::json&                                                       data,
-                       Indent&                                                               indent ) const;
+                       nlohmann::json&                                                        data,
+                       Indent&                                                                indent ) const;
 
     void generateInstructions( const JITDatabase& database, const FinalStage::Operations::Invocation* pInvocation,
                                const FinalStage::Instructions::Calculation::Instruction* pInstruction,
                                const VariableMap& variables, FunctionDeclarations& functions, nlohmann::json& data,
-                               Indent& indent ) const;
+                               Indent& indent ) const;*/
 
     nlohmann::json generate( const JITDatabase& database, const mega::InvocationID& invocationID,
                              std::string& strName ) const;
@@ -98,6 +96,7 @@ private:
 private:
     Inja::Ptr m_pInja;
 };
+
 } // namespace mega::runtime
 
 #endif // CODE_GENERATOR_16_AUG_2022

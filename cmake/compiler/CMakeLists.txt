@@ -71,7 +71,6 @@ set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/common_ancestor.hpp
     ${MEGA_API_DIR}/compiler/concrete_printer.hpp
     ${MEGA_API_DIR}/compiler/concrete.hpp
-    ${MEGA_API_DIR}/compiler/derivation_compiler.hpp
     ${MEGA_API_DIR}/compiler/derivation_printer.hpp
     ${MEGA_API_DIR}/compiler/derivation.hpp
     ${MEGA_API_DIR}/compiler/interface_printer.hpp

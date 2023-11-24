@@ -42,6 +42,7 @@ namespace OperationsStage
 #include "compiler/common_ancestor.hpp"
 #include "compiler/invocation_policy.hpp"
 #include "compiler/symbol_variant_printer.hpp"
+#include "compiler/derivation_compiler.hpp"
 namespace Derivation
 {
 #include "compiler/derivation_printer.hpp"
@@ -50,7 +51,6 @@ namespace Derivation
 } // namespace OperationsStage
 
 using namespace OperationsStage;
-
 
 namespace mega
 {
@@ -327,8 +327,8 @@ void compileInterupts( Database& database, const mega::io::megaFilePath& sourceF
 {
     for( auto pInterupt : database.many< Concrete::Interupt >( sourceFile ) )
     {
-        std::vector< InvocationPolicy::RootPtr > derivations;
-        std::vector< Derivation::Dispatch* >     eventDispatches;
+        std::vector< InvocationPolicy::RootPtr >  derivations;
+        std::vector< Operations::EventDispatch* > eventDispatches;
 
         auto pEventTraitOpt = pInterupt->get_interface_interupt()->get_events_trait_opt();
         if( pEventTraitOpt.has_value() )
@@ -356,7 +356,18 @@ void compileInterupts( Database& database, const mega::io::megaFilePath& sourceF
                 try
                 {
                     // analysis inverse event dispatches ...
-                    buildEventDispatches( database, pRoot, eventDispatches );
+                    std::vector< Derivation::Dispatch* > dispatches;
+                    buildEventDispatches( database, pRoot, dispatches );
+
+                    for( auto pDispatch : dispatches )
+                    {
+                        auto pEvent = db_cast< Concrete::Context >( pDispatch->get_vertex() );
+                        VERIFY_RTE( pEvent );
+                        auto pEventDispatch
+                            = database.construct< Operations::EventDispatch >( Operations::EventDispatch::Args{
+                                pDispatch, pEvent, pInterupt } );
+                        eventDispatches.push_back( pEventDispatch );
+                    }
                 }
                 catch( std::exception& ex )
                 {
@@ -371,7 +382,7 @@ void compileInterupts( Database& database, const mega::io::megaFilePath& sourceF
         }
 
         pInterupt->set_events( derivations );
-        pInterupt->set_dispatches( eventDispatches );
+        pInterupt->set_event_dispatches( eventDispatches );
     }
 }
 

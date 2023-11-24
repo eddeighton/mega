@@ -36,11 +36,11 @@
 
 #include "mega/mangle/traits.hpp"
 
-#include "mega/decider.hpp"
 #include "mega/clock.hpp"
 #include "mega/iterators.hpp" // has array and vector and defines __mega_vector std::vector type alias
 #include "mega/coroutine.hpp" // has stl dependencies
 #include "mega/resumption.hpp" // has stl dependencies
+#include "mega/macros.hpp" // has stl dependencies
 
 #include <boost/dynamic_bitset.hpp>
 

@@ -19,16 +19,4 @@
 
 
 
-
-# compile test databases
-set( MEGA_TEST_DIR ${MEGA_ROOT_DIR}/tests )
-
-add_subdirectory( value_tests )
-# add_subdirectory(database)
-add_subdirectory(basic_tests)
-add_subdirectory(unit_tests)
-add_subdirectory(orc_tests)
-# add_subdirectory(system_tests)
-add_subdirectory(invocation_tests)
-add_subdirectory(il_tests)
-
+add_subdirectory(generator)

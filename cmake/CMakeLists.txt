@@ -92,6 +92,8 @@ add_subdirectory(pch)
 
 add_subdirectory(inja)
 
+add_subdirectory(il)
+
 add_subdirectory(mega)
 
 add_subdirectory(database)

@@ -196,7 +196,7 @@ void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation
     }
 }
 
-void generateDerivationGraph( FinalStage::Derivation::Root* pRoot, reports::Graph& graph )
+void generateDerivationGraph( Derivation::Root* pRoot, reports::Graph& graph )
 {
     using namespace std::string_literals;
     using namespace mega::reports;
@@ -206,7 +206,7 @@ void generateDerivationGraph( FinalStage::Derivation::Root* pRoot, reports::Grap
     addEdges( 0, pRoot->get_edges(), graph );
 }
 
-void generateDerivationGraph( FinalStage::Derivation::Dispatch* pDispatch, reports::Graph& graph )
+void generateDerivationGraph( Derivation::Dispatch* pDispatch, reports::Graph& graph )
 {
     using namespace std::string_literals;
     using namespace mega::reports;
@@ -219,6 +219,22 @@ void generateDerivationGraph( FinalStage::Derivation::Dispatch* pDispatch, repor
         std::nullopt,
         pVertex->get_concrete_id() } );
     addEdges( 0, pDispatch->get_edges(), graph );
+}
+
+void generateDerivationGraph( FinalStage::Derivation::Node* pNode, reports::Graph& graph )
+{
+    if( auto pDispatch = db_cast< Derivation::Dispatch >( pNode ) )
+    {
+        generateDerivationGraph( pDispatch, graph );
+    }
+    else if( auto pRoot = db_cast< Derivation::Root >( pNode ) )
+    {
+        generateDerivationGraph( pRoot, graph );
+    }
+    else
+    {
+        THROW_RTE( "Unknown derivation node type" );
+    }
 }
 
 mega::reports::Container DerivationReporter::generate( const mega::reports::URL& url )
@@ -265,9 +281,7 @@ mega::reports::Container DerivationReporter::generate( const mega::reports::URL&
                 }
                 {
                     Graph graph;
-                    auto  pRoot = db_cast< Derivation::Root >( pInvocation->get_derivation() );
-                    VERIFY_RTE( pRoot );
-                    generateDerivationGraph( pRoot, graph );
+                    generateDerivationGraph( pInvocation->get_derivation(), graph );
                     invocationBranch.m_elements.push_back( graph );
                 }
                 contextBranch.m_elements.push_back( invocationBranch );
@@ -327,10 +341,10 @@ mega::reports::Container DerivationReporter::generate( const mega::reports::URL&
 
                 {
                     Branch dispatches{ { "Interupt Dispatch"s } };
-                    for( auto pDispatch : pInterupt->get_dispatches() )
+                    for( auto pDispatch : pInterupt->get_event_dispatches() )
                     {
                         Graph graph;
-                        generateDerivationGraph( pDispatch, graph );
+                        generateDerivationGraph( pDispatch->get_derivation(), graph );
                         dispatches.m_elements.push_back( graph );
                     }
                     contextBranch.m_elements.push_back( dispatches );

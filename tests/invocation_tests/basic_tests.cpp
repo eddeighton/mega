@@ -96,8 +96,6 @@ TEST_P( BasicFixtureType, BasicParameterizedTest )
 
     Operations::Invocation* pInvocation = mega::invocation::compileInvocation( database, symbolTables, id );
     ASSERT_TRUE( pInvocation );
-
-    ASSERT_EQ( pInvocation->get_operations().size(), 1 );
 }
 
 using namespace std::string_literals;

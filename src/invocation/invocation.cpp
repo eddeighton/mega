@@ -49,7 +49,6 @@ namespace Derivation
 } // namespace OperationsStage
 
 using namespace OperationsStage;
-using namespace OperationsStage::Instructions;
 using namespace OperationsStage::Operations;
 
 namespace mega::invocation
@@ -312,13 +311,32 @@ class OperationBuilder
     std::vector< Concrete::Dimensions::Link*    > linkDimensions;
     // clang-format on
 
+    void findOperationVertices( Derivation::Node* pNode, std::vector< Concrete::Graph::Vertex* >& vertices )
+    {
+        auto edges = pNode->get_edges();
+        if( edges.empty() )
+        {
+            auto pStep = db_cast< Derivation::Step >( pNode );
+            VERIFY_RTE( pStep );
+            vertices.push_back( pStep->get_vertex() );
+        }
+        else
+        {
+            for( auto pEdge : edges )
+            {
+                if( !pEdge->get_eliminated() )
+                {
+                    findOperationVertices( pEdge->get_next(), vertices );
+                }
+            }
+        }
+
+    }
+
     void classifyOperations()
     {
         std::vector< Concrete::Graph::Vertex* > operationContexts;
-        for( auto pOperation : m_pInvocation->get_operations() )
-        {
-            operationContexts.push_back( pOperation->get_context() );
-        }
+        findOperationVertices( m_pInvocation->get_derivation(), operationContexts );
 
         for( auto pVert : operationContexts )
         {
@@ -1072,12 +1090,7 @@ Operations::Invocation* compileInvocation( Database& database, const SymbolTable
         }*/
 
         {
-            DerivationBuilder builder( database, pRoot, contextTypes );
-            builder.build();
-            Operations::DerivationCompilation* pDerivationCompilation = builder.getDerivationCompilation();
-
-            pInvocation = database.construct< Operations::Invocation >(
-                Operations::Invocation::Args{ pDerivationCompilation, id } );
+            pInvocation = database.construct< Operations::Invocation >( Operations::Invocation::Args{ pRoot, id } );
         }
 
         {

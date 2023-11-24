@@ -64,7 +64,7 @@ nlohmann::json CodeGenerator::generate( const JITDatabase& database, const mega:
 
     try
     {
-        const Operations::Invocation* pInvocation = database.getInvocation( invocationID );
+        /*const Operations::Invocation* pInvocation = database.getInvocation( invocationID );
 
         Indent indent;
 
@@ -73,7 +73,7 @@ nlohmann::json CodeGenerator::generate( const JITDatabase& database, const mega:
         for( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
             generateInstructions( database, pInvocation, pInstruction, variables, functions, data, indent );
-        }
+        }*/
     }
     catch( inja::InjaError& ex )
     {
@@ -97,7 +97,7 @@ void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const JIT
     std::ostringstream osCPPCode;
     try
     {
-        m_pInja->render_invocation( data, osCPPCode );
+        //m_pInja->render_invocation( data, osCPPCode );
     }
     catch( inja::InjaError& ex )
     {
@@ -384,13 +384,13 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
         {
             for( const Concrete::Interupt* pInterupt : database.getInterupts() )
             {
-                for( auto pDispatch : pInterupt->get_dispatches() )
+                for( auto pEventDispatch : pInterupt->get_event_dispatches() )
                 {
-                    auto pContext = db_cast< Concrete::Context >( pDispatch->get_vertex() );
+                    auto pContext = db_cast< Concrete::Context >( pEventDispatch->get_event() );
                     VERIFY_RTE( pContext );
 
                     std::ostringstream osDispatcher;
-                    generate_dispatcher( compiler, database, pInterupt, pDispatch, osDispatcher );
+                    generate_dispatcher( compiler, database, pInterupt, pEventDispatch, osDispatcher );
 
                     nlohmann::json eventHandler( {
 

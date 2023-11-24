@@ -129,7 +129,7 @@ TEST_P( LinkFixtureType, LinkParameterizedTest )
     }
     ASSERT_TRUE( pInvocation );
 
-    ASSERT_EQ( pInvocation->get_operations().size(), data.expectedOperations );
+    ASSERT_EQ( pInvocation->get_explicit_operation(), data.expectedOperationType );
 
     std::cout << "Link Test: " << data.context;
     for( const auto& e : data.typePath )

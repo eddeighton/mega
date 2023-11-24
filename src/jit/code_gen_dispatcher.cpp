@@ -82,7 +82,7 @@ std::string recurseStep( Inja& inja, Indent& indent, const Derivation::Step* pSt
 
 void CodeGenerator::generate_dispatcher( const LLVMCompiler& compiler, const JITDatabase& database,
                                          const FinalStage::Concrete::Interupt*   pInterupt,
-                                         const FinalStage::Derivation::Dispatch* pDispatch, std::ostream& os )
+                                         const FinalStage::Operations::EventDispatch* pDispatch, std::ostream& os )
 {
     // clang-format off
 static const char* szTemplate =
@@ -97,7 +97,7 @@ R"TEMPLATE(
         Indent indent;
         ++indent;
 
-        nlohmann::json templateData( { { "code", recurseStep( *m_pInja, indent, pDispatch ) } } );
+        nlohmann::json templateData( { { "code", "" } } ); // recurseStep( *m_pInja, indent, pDispatch )
         osCPPCode << m_pInja->render( szTemplate, templateData );
     }
     catch( inja::InjaError& ex )

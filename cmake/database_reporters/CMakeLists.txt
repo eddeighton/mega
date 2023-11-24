@@ -37,14 +37,15 @@ set( DATABASE_REPORTERS_SRC
     ${DATABASE_REPORTERS_SRC}/reporters.hpp
 
     ${DATABASE_REPORTERS_SRC}/and_or_tree.cpp
+    ${DATABASE_REPORTERS_SRC}/bdd.cpp
     ${DATABASE_REPORTERS_SRC}/derivation.cpp
     ${DATABASE_REPORTERS_SRC}/enum.cpp
     ${DATABASE_REPORTERS_SRC}/factory.cpp
     ${DATABASE_REPORTERS_SRC}/inheritance.cpp
     ${DATABASE_REPORTERS_SRC}/interface.cpp
     ${DATABASE_REPORTERS_SRC}/symbols.cpp
-    ${DATABASE_REPORTERS_SRC}/bdd.cpp
     ${DATABASE_REPORTERS_SRC}/truth_table.cpp
+    ${DATABASE_REPORTERS_SRC}/functions.cpp
 )
 
 

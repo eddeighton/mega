@@ -120,6 +120,14 @@ public:
     reports::Container               generate( const reports::URL& url );
 };
 
+class FunctionsReporter
+{
+public:
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
+};
+
 } // namespace mega::reporters
 
 #endif // REPORTERS_24_OCT_2023

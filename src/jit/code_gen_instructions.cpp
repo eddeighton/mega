@@ -32,7 +32,7 @@ namespace FinalStage
 
 namespace mega::runtime
 {
-
+/*
 using namespace FinalStage;
 using namespace FinalStage::Instructions;
 
@@ -565,7 +565,7 @@ void gen( Args args, const Operations::Range* pRange, const Application::Operati
 void gen( Args args, const Operations::Move* pMove, const Application::Operation* pOperation )
 {
     THROW_TODO;
-    /*
+    
         // clang-format off
     static const char* szTemplate =
     R"TEMPLATE(
@@ -675,7 +675,7 @@ void gen( Args args, const Operations::Move* pMove, const Application::Operation
         }
 
         args.data[ "assignments" ].push_back( os.str() );
-        args.data[ "has_parameter_context" ] = true;*/
+        args.data[ "has_parameter_context" ] = true;
 }
 } // namespace
 
@@ -973,5 +973,5 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
         }
     }
     return variables;
-}
+}*/
 } // namespace mega::runtime
