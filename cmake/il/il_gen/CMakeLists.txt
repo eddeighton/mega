@@ -1,0 +1,98 @@
+##  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+##  Author: Edward Deighton
+##  License: Please see license.txt in the project root folder.
+
+##  Use and copying of this software and preparation of derivative works
+##  based upon this software are permitted. Any copy of this software or
+##  of any derivative work must include the above copyright notice, this
+##  paragraph and the one after it.  Any distribution of this software or
+##  derivative works must comply with all applicable laws.
+
+##  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+##  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+##  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+##  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+##  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+##  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+##  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+##  OF THE POSSIBILITY OF SUCH DAMAGES.
+
+cmake_minimum_required( VERSION 3.1...3.16 )
+
+#get boost
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
+
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
+#get spdlog
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
+
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
+#get clang
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
+
+#get common
+include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
+
+include_directories( ${MEGA_API_DIR} )
+include_directories( ${MEGA_SRC_DIR} )
+
+#get the source code
+set( IL_SOURCE_DIR ${MEGA_SRC_DIR}/il/il_gen )
+
+set( IL_SOURCES
+		${IL_SOURCE_DIR}/main.cpp
+	)
+	
+source_group( src FILES ${IL_SOURCES} )
+
+add_executable( il_gen ${IL_SOURCES} )
+
+link_boost( il_gen atomic )
+link_boost( il_gen program_options )
+link_boost( il_gen timer )
+link_boost( il_gen filesystem )
+link_boost( il_gen iostreams )
+link_boost( il_gen serialization )
+link_fmt( il_gen )
+link_spdlog( il_gen )
+link_json( il_gen )
+link_inja( il_gen )
+link_clang_tooling( il_gen )
+link_common( il_gen )
+
+install( TARGETS il_gen DESTINATION bin)
+
+###########################################################
+###########################################################
+
+set( INLINE_FILES
+	${MEGA_API_DIR}/mega/mangle/traits.cpp
+)
+
+set( EXTERN_FILES
+    #/home/foobar/test_Release/test.cpp
+	${MEGA_API_DIR}/mega/mangle/traits.cpp
+)
+
+set( TEMPLATE_FILES
+	${MEGA_API_DIR}/mega/mangle/traits.cpp
+)
+
+add_custom_target( run_il_gen
+    COMMAND il_gen
+        --inline \"${INLINE_FILES}\"
+        --extern \"${EXTERN_FILES}\"
+        --template \"${TEMPLATE_FILES}\"
+    DEPENDS ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES} il_gen
+    # BYPRODUCTS  ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
+    COMMENT "Running IL Gen" 
+    SOURCES ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES}
+)
+add_dependencies( run_il_gen il_gen )

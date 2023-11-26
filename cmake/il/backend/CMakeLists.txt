@@ -40,36 +40,36 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( IL_GEN_API
 
-    ${MEGA_API_DIR}/il/generator/generator.hpp
+    ${MEGA_API_DIR}/il/backend/backend.hpp
 )
 
 set( IL_GEN_SRC
 
-    ${MEGA_SRC_DIR}/il/generator/generator.cpp
+    ${MEGA_SRC_DIR}/il/backend/cpp.cpp
 )
 
-add_library( il_generator
+add_library( il_backend
     ${IL_GEN_API}
     ${IL_GEN_SRC} 
 )
 
-target_include_directories( il_generator PUBLIC ${MEGA_API_DIR})
+target_include_directories( il_backend PUBLIC ${MEGA_API_DIR})
 
-target_precompile_headers( il_generator REUSE_FROM mega_pch )
+target_precompile_headers( il_backend REUSE_FROM mega_pch )
 
-link_boost( il_generator system )
-link_boost( il_generator filesystem )
-link_boost( il_generator serialization )
-link_json( il_generator )
-link_inja( il_generator )
-link_common( il_generator )
+link_boost( il_backend system )
+link_boost( il_backend filesystem )
+link_boost( il_backend serialization )
+link_json( il_backend )
+link_inja( il_backend )
+link_common( il_backend )
 
 #################################################################
 #################################################################
 ## install everything
-install( FILES ${IL_GEN_API} DESTINATION include/il/generator )
-install( TARGETS il_generator EXPORT il_generator DESTINATION bin)
-install( EXPORT il_generator NAMESPACE MEGA:: FILE il_generator-config.cmake DESTINATION share )
+install( FILES ${IL_GEN_API} DESTINATION include/il/backend )
+install( TARGETS il_backend EXPORT il_backend DESTINATION bin)
+install( EXPORT il_backend NAMESPACE MEGA:: FILE il_backend-config.cmake DESTINATION share )
 
-install( TARGETS il_generator DESTINATION bin)
+install( TARGETS il_backend DESTINATION bin)
 

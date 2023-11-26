@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "il/generator/generator.hpp"
+#include "il/backend/backend.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -26,7 +26,8 @@
 
 namespace mega::il
 {
-
+namespace
+{
 class Printer
 {
     int                m_indentSize = 2;
@@ -325,8 +326,9 @@ void generate( const Statement& statement, Printer& print )
     } visitor{ print };
     std::visit( visitor, statement );
 }
+} // namespace
 
-std::string generate( const FunctionDefinition& functionDef )
+std::string generateCPP( const FunctionDefinition& functionDef )
 {
     Printer print;
 

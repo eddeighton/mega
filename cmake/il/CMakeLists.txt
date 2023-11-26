@@ -19,4 +19,5 @@
 
 
 
-add_subdirectory(generator)
+add_subdirectory(il_gen)
+add_subdirectory(backend)

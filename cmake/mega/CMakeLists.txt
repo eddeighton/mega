@@ -318,6 +318,9 @@ set( MEGA_LIBRARY
  )
  
  add_library( mega_mangle SHARED ${MEGA_MANGLE_SRC} )
+
+ add_dependencies( mega_mangle run_il_gen )
+
  target_precompile_headers( mega_mangle REUSE_FROM mega_pch )
  
  set_target_properties( mega_mangle PROPERTIES FOLDER service )

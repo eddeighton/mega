@@ -96,7 +96,7 @@ struct AOT : Function
 {
 };
 
-struct InlineFunction : AOT
+struct InlineFunction : JIT
 {
 };
 

@@ -29,7 +29,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "il/generator/generator.hpp"
+#include "il/backend/backend.hpp"
 
 TEST( IL, Basic )
 {
@@ -54,7 +54,7 @@ TEST( IL, Basic )
             ExpressionStatement{ Call{ Log{}, { ReadLiteral{ lit } } } }, //
             Return{ result }                                              //
         } };
-    std::cout << generate( func ) << std::endl;
+    std::cout << generateCPP( func ) << std::endl;
 }
 
 TEST( IL, Switch )
@@ -85,7 +85,7 @@ TEST( IL, Switch )
                                         Call{ log, { ReadLiteral{ Literal{ stringType, "\"Testing 2\"" } } } } } } } //
                   } } } };
 
-    std::cout << generate( func ) << std::endl;
+    std::cout << generateCPP( func ) << std::endl;
 }
 
 TEST( IL, If )
@@ -123,7 +123,7 @@ TEST( IL, If )
         //
     };
 
-    std::cout << generate( func ) << std::endl;
+    std::cout << generateCPP( func ) << std::endl;
 }
 
 TEST( IL, ForLoop )
@@ -152,7 +152,7 @@ TEST( IL, ForLoop )
         //
     };
 
-    std::cout << generate( func ) << std::endl;
+    std::cout << generateCPP( func ) << std::endl;
 }
 
 TEST( IL, Materialiser )
@@ -196,7 +196,7 @@ TEST( IL, Materialiser )
         //
     };
 
-    std::cout << generate( func ) << std::endl;
+    std::cout << generateCPP( func ) << std::endl;
 }
 
 TEST( IL, Mangle )
@@ -222,7 +222,7 @@ TEST( IL, Mangle )
                 MangleCTor{ "int"s }, { Read{ param1 } } //
             } } } };
 
-    std::cout << generate( func ) << std::endl;
+    std::cout << generateCPP( func ) << std::endl;
 }
 
 TEST( IL, Assignment )
@@ -250,5 +250,5 @@ TEST( IL, Assignment )
 
     };
 
-    std::cout << generate( func ) << std::endl;
+    std::cout << generateCPP( func ) << std::endl;
 }

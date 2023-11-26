@@ -39,7 +39,7 @@ include_directories( ${MEGA_SRC_DIR} )
 set( IL_TESTS_DIR ${MEGA_TEST_DIR}/il_tests )
 
 set( IL_UNIT_TESTS
-	${IL_TESTS_DIR}/basic_il_tests.cpp
+	${IL_TESTS_DIR}/cpp_tests.cpp
 
 	)
 
@@ -48,7 +48,7 @@ enable_testing()
 add_executable( il_tests ${IL_UNIT_TESTS} ${IL_TESTS_DIR}/main_test_runner.cpp )
 
 
-target_link_libraries( il_tests il_generator )
+target_link_libraries( il_tests il_backend )
 
 #IF( ${WIN32} )
 #target_compile_options( il_tests PRIVATE "/bigobj" )

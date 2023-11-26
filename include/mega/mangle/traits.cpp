@@ -40,8 +40,6 @@
 #include <algorithm>
 #include <iostream>
 
-namespace mega::mangle
-{
 namespace
 {
 template < typename T >
@@ -56,6 +54,8 @@ inline const T& reify( const void* p )
 }
 } // namespace
 
+namespace mega::mangle
+{
 void log( const char* pszMsg )
 {
     mega::log::FileStorage& log = mega::Context::get()->getLog();
