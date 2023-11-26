@@ -65,7 +65,11 @@ struct ConstRef
     DataType type;
 };
 
-using ValueType = std::variant< Mutable, Const, Ptr, ConstPtr, Ref, ConstRef >;
+using ValueType        = std::variant< Mutable, Const, Ptr, ConstPtr, Ref, ConstRef >;
+using ConstValueType   = std::variant< Const, ConstPtr, ConstRef >;
+using MutableValueType = std::variant< Mutable, Ptr, Ref >;
+using PtrValueType     = std::variant< Ptr, ConstPtr >;
+using RefValueType     = std::variant< Ref, ConstRef >;
 
 template < typename... TArgs >
 inline auto makeValueType( TArgs... args )
