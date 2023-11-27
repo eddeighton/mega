@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,19 +18,37 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef DATABASE_COMPILER_GENERATOR_4_APRIL_2022
-#define DATABASE_COMPILER_GENERATOR_4_APRIL_2022
+#ifndef GUARD_2023_November_24_types_hxx
+#define GUARD_2023_November_24_types_hxx
 
-#include <boost/filesystem/path.hpp>
+#include <string>
+#include <array>
 
-namespace protocol::gen
+namespace mega::il
 {
-struct Environment
+
+enum DataType
 {
-    boost::filesystem::path apiDir, srcDir, dataDir, injaDir;
-};
+{% for dataType in dataTypes %}
+    {{ dataType.enum }}, // {{ dataType.comment }}
+{% endfor %}
 
-void generate( const Environment& env );
-} // namespace protocol::gen
+    TOTAL_DATA_TYPES
+}; 
 
-#endif // DATABASE_COMPILER_GENERATOR_4_APRIL_2022
+inline const std::string& typeName( DataType type )
+{
+    using namespace std::string_literals;
+
+    static const std::array< std::string, TOTAL_DATA_TYPES > dataTypeNames =
+    {
+{% for dataType in dataTypes %}
+        "{{ dataType.name }}"s, // {{ dataType.comment }}
+{% endfor %}
+    };
+    return dataTypeNames[ type ];
+}
+
+} // namespace mega::il
+
+#endif // GUARD_2023_November_24_types_hxx

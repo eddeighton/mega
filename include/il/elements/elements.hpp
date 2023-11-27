@@ -75,24 +75,24 @@ using ConstVar   = Variable< Const >;
 
 class Literal
 {
-    Const       type;
-    std::string text;
+    ConstValueType type;
+    std::string    text;
 
 public:
-    inline Literal( Const type, std::string text )
+    inline Literal( ConstValueType type, std::string text )
         : type( std::move( type ) )
         , text( std::move( text ) )
     {
     }
     inline Literal( DataType dataType, std::string text )
-        : type{ dataType }
+        : type{ Const{ dataType } }
         , text( std::move( text ) )
     {
     }
     inline Literal( const Literal& ) = default;
 
-    const Const&       getValueType() const { return type; }
-    const std::string& getText() const { return text; }
+    const ConstValueType& getValueType() const { return type; }
+    const std::string&    getText() const { return text; }
 };
 
 /////////////////////////////////////////////////

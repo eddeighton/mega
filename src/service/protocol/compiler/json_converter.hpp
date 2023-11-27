@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef JSON_CONVERTER_4_APRIL_2022
 #define JSON_CONVERTER_4_APRIL_2022
 
@@ -30,15 +27,12 @@
 #include <vector>
 #include <map>
 
-namespace protocol
+namespace protocol::jsonconv
 {
-namespace jsonconv
-{
-    void toJSON( const boost::filesystem::path& dataDir, const std::string& strFileName, const schema::Schema& schema );
+void toJSON( const boost::filesystem::path& dataDir, const std::string& strFileName, const schema::Schema& schema );
 
-    void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std::string, schema::Schema >& schemas );
+void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std::string, schema::Schema >& schemas );
 
-}
-} // namespace db
+} // namespace protocol::jsonconv
 
 #endif // JSON_CONVERTER_4_APRIL_2022

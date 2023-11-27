@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,19 +18,22 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef DATABASE_COMPILER_GENERATOR_4_APRIL_2022
-#define DATABASE_COMPILER_GENERATOR_4_APRIL_2022
+#ifndef GUARD_2023_November_27_generator
+#define GUARD_2023_November_27_generator
+
+#include "model.hpp"
+
+#include <inja/inja.hpp>
+#include <inja/environment.hpp>
 
 #include <boost/filesystem/path.hpp>
 
-namespace protocol::gen
+namespace il_gen
 {
-struct Environment
-{
-    boost::filesystem::path apiDir, srcDir, dataDir, injaDir;
-};
 
-void generate( const Environment& env );
-} // namespace protocol::gen
+void generateTypes( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile );
+void generateFunctions( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile );
 
-#endif // DATABASE_COMPILER_GENERATOR_4_APRIL_2022
+} // namespace il_gen
+
+#endif // GUARD_2023_November_27_generator

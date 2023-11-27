@@ -22,17 +22,18 @@
 
 namespace mega
 {
+using Void = void;
+using Char = char;
+using Bool = bool;
 
-using U8        = unsigned char;
-using I8        = signed char;
-using U16       = unsigned short;
-using I16       = signed short;
-using U32       = unsigned int;
-using I32       = signed int;
-using F32       = float;
-using F64       = double;
-using TimeStamp = U32;
-using RefCount  = U16;
+using U8  = unsigned char;
+using I8  = signed char;
+using U16 = unsigned short;
+using I16 = signed short;
+using U32 = unsigned int;
+using I32 = signed int;
+using F32 = float;
+using F64 = double;
 
 #ifdef _WIN64
 using U64 = unsigned long long;
@@ -55,6 +56,8 @@ static_assert( sizeof( F32 ) == 4U, "Invalid F32 Size" );
 static_assert( sizeof( F64 ) == 8U, "Invalid F64 Size" );
 #endif
 
+using TimeStamp = U32;
+using RefCount  = U16;
 using Instance  = U16;
 using SubType   = U16;
 using MachineID = U32;

@@ -45,9 +45,12 @@ include_directories( ${MEGA_SRC_DIR} )
 
 #get the source code
 set( IL_SOURCE_DIR ${MEGA_SRC_DIR}/il/il_gen )
+set( IL_TEMPLATES_DIR ${IL_SOURCE_DIR}/templates )
 
 set( IL_SOURCES
 		${IL_SOURCE_DIR}/main.cpp
+		${IL_SOURCE_DIR}/parser.cpp
+		${IL_SOURCE_DIR}/generator.cpp
 	)
 	
 source_group( src FILES ${IL_SOURCES} )
@@ -72,12 +75,15 @@ install( TARGETS il_gen DESTINATION bin)
 ###########################################################
 ###########################################################
 
+set( NATIVE_FILES
+	${MEGA_API_DIR}/mega/values/native_types.hpp
+)
+
 set( INLINE_FILES
-	${MEGA_API_DIR}/mega/mangle/traits.cpp
+	${MEGA_API_DIR}/mega/values/inline_types.hpp
 )
 
 set( EXTERN_FILES
-    #/home/foobar/test_Release/test.cpp
 	${MEGA_API_DIR}/mega/mangle/traits.cpp
 )
 
@@ -87,9 +93,14 @@ set( TEMPLATE_FILES
 
 add_custom_target( run_il_gen
     COMMAND il_gen
+        --native \"${NATIVE_FILES}\"
         --inline \"${INLINE_FILES}\"
         --extern \"${EXTERN_FILES}\"
         --template \"${TEMPLATE_FILES}\"
+        --inja ${IL_TEMPLATES_DIR}
+        --il_types ${MEGA_API_DIR}/il/elements/types.hxx
+        --il_functions ${MEGA_API_DIR}/il/elements/functions.hxx
+        
     DEPENDS ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES} il_gen
     # BYPRODUCTS  ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
     COMMENT "Running IL Gen" 

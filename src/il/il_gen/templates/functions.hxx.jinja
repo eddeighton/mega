@@ -1,0 +1,87 @@
+
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
+
+#ifndef GUARD_2023_November_24_functions
+#define GUARD_2023_November_24_functions
+
+#include "il/elements/types.hpp"
+
+namespace mega::il
+{
+
+{% for inline in inlines %}
+struct {{ inline.element_name }} : InlineFunction
+{
+    {{ inline.element_name }}()
+    {
+        using namespace std::string_literals;
+        name = "{{ inline.function_name }}"s;
+{% for parameter in inline.parameters %}
+        parameterTypes.emplace_back( {{ parameter.variable_type }}{ {{ parameter.data_type }} } );
+{% endfor %}
+        returnType = {{ inline.return_variable_type }}{ {{ inline.return_data_type }} };
+    }
+};
+{% endfor %}
+
+{% for extern in externs %}
+struct {{ extern.element_name }} : ExternFunction
+{
+    {{ extern.element_name }}()
+    {
+        using namespace std::string_literals;
+        name = "{{ extern.function_name }}"s;
+{% for parameter in extern.parameters %}
+        parameterTypes.emplace_back( {{ parameter.variable_type }}{ {{ parameter.data_type }} } );
+{% endfor %}
+        returnType = {{ extern.return_variable_type }}{ {{ extern.return_data_type }} };
+    }
+};
+{% endfor %}
+
+struct ObjectMaterialiser : Materialiser
+{
+    enum FunctionTypes
+    {
+        ObjectCtor,
+        ObjectDtor
+    };
+    ObjectMaterialiser()
+    {
+        using namespace std::string_literals;
+
+        Mutable  voidType{ e_void };
+        Ptr      voidStar{ e_void };
+        Mutable  boolType{ e_bool };
+        ConstRef constRefReference{ e_reference };
+
+        parameterTypes.emplace_back( Const{ e_TypeID } );
+
+        auto ctor = JIT{ Function{ "ObjectCtor"s, { voidStar }, voidType } };
+        auto dtor = JIT{ Function{ "ObjectDtor"s, { constRefReference, voidStar, boolType }, voidType } };
+
+        functionTemplates.insert( { ObjectCtor, FunctionTemplate{ ctor } } );
+        functionTemplates.insert( { ObjectDtor, FunctionTemplate{ dtor } } );
+    }
+};
+
+} // namespace mega::il
+
+#endif // GUARD_2023_November_24_functions

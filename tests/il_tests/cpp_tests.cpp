@@ -36,11 +36,11 @@ TEST( IL, Basic )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    ValueType interfaceType = Mutable{ eInterfaceType };
-    Const     stringType{ eCharStar };
+    ValueType interfaceType = Mutable{ e_TypeID };
+    ConstPtr  stringType{ e_char };
 
     Variable< ValueType > param1{ interfaceType, "p1"s };
-    Variable< ValueType > param2{ Const{ eCharStar }, "p2"s };
+    Variable< ValueType > param2{ ConstPtr{ e_char }, "p2"s };
     Variable              result{ interfaceType, "result"s };
     Literal               lit{ stringType, "\"This is a string constant\"" };
 
@@ -51,7 +51,7 @@ TEST( IL, Basic )
         { param1, param2 },
         {
             Assignment{ result, Read{ param1 } },                         //
-            ExpressionStatement{ Call{ Log{}, { ReadLiteral{ lit } } } }, //
+            ExpressionStatement{ Call{ log{}, { ReadLiteral{ lit } } } }, //
             Return{ result }                                              //
         } };
     std::cout << generateCPP( func ) << std::endl;
@@ -62,10 +62,10 @@ TEST( IL, Switch )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    Const   stringType{ eCharStar };
-    Mutable voidType{ eVoid };
-    Mutable intType{ eInt32 };
-    Log     log;
+    ConstPtr stringType{ e_char };
+    Mutable  voidType{ e_void };
+    Mutable  intType{ e_int };
+    log      log;
 
     Variable< ValueType > param1{ intType, "type"s };
     Variable              result{ voidType, "result"s };
@@ -77,10 +77,10 @@ TEST( IL, Switch )
         { param1 },
         { Switch{ Read{ param1 },
                   {
-                      Switch::Case{ Literal{ eInt32, "1" },
+                      Switch::Case{ Literal{ e_int, "1" },
                                     { ExpressionStatement{
                                         Call{ log, { ReadLiteral{ Literal{ stringType, "\"Testing 1\"" } } } } } } }, //
-                      Switch::Case{ Literal{ eInt32, "2" },
+                      Switch::Case{ Literal{ e_int, "2" },
                                     { ExpressionStatement{
                                         Call{ log, { ReadLiteral{ Literal{ stringType, "\"Testing 2\"" } } } } } } } //
                   } } } };
@@ -93,10 +93,10 @@ TEST( IL, If )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    Const   stringType{ eCharStar };
-    Mutable voidType{ eVoid };
-    Mutable boolType{ eBool };
-    Log     log;
+    ConstPtr stringType{ e_char };
+    Mutable  voidType{ e_void };
+    Mutable  boolType{ e_bool };
+    log      log;
 
     Variable< ValueType > param1{ boolType, "test1"s };
     Variable< ValueType > param2{ boolType, "test2"s };
@@ -131,9 +131,9 @@ TEST( IL, ForLoop )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    Mutable voidType{ eVoid };
-    Mutable intType{ eInt32 };
-    Log     log;
+    Mutable voidType{ e_void };
+    Mutable intType{ e_int };
+    log     log;
 
     Variable< ValueType > param1{ intType, "start"s };
     Variable< ValueType > param2{ intType, "end"s };
@@ -160,12 +160,12 @@ TEST( IL, Materialiser )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    Mutable  voidType{ eVoid };
-    Mutable  typeID{ eConcreteType };
-    Log      log;
-    Ptr      voidStar{ eVoid };
-    Mutable  boolType{ eBool };
-    ConstRef constRefReference{ eReference };
+    Mutable  voidType{ e_void };
+    Mutable  typeID{ e_TypeID };
+    log      log;
+    Ptr      voidStar{ e_void };
+    Mutable  boolType{ e_bool };
+    ConstRef constRefReference{ e_reference };
 
     Variable< ValueType > param1{ typeID, "typeID"s };
     Variable< ValueType > param2{ constRefReference, "ref"s };
@@ -204,10 +204,10 @@ TEST( IL, Mangle )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    Mutable voidType{ eVoid };
-    Ptr     voidStar{ eVoid };
-    Mutable typeID{ eConcreteType };
-    Log     log;
+    Mutable voidType{ e_void };
+    Ptr     voidStar{ e_void };
+    Mutable typeID{ e_TypeID };
+    log     log;
 
     Variable< ValueType > param1{ voidStar, "pBuffer"s };
 
@@ -230,9 +230,9 @@ TEST( IL, Assignment )
     using namespace mega::il;
     using namespace std::string_literals;
 
-    Mutable voidType{ eVoid };
-    Ptr     voidStar{ eVoid };
-    Mutable intType{ eU64 };
+    Mutable voidType{ e_void };
+    Ptr     voidStar{ e_void };
+    Mutable intType{ e_unsignedlong };
 
     Variable< ValueType > param1{ intType, "param"s };
     Variable< ValueType > localVar1{ intType, "localVar"s };

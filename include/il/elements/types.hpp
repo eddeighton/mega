@@ -23,6 +23,8 @@
 
 #include "types.hxx"
 
+#include "common/assert_verify.hpp"
+
 #include <vector>
 #include <variant>
 #include <string>

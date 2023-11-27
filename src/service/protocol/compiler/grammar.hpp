@@ -58,7 +58,7 @@ public:
         }
     };
 
-    Identifier() {}
+    Identifier() = default;
     Identifier( const std::string& str )
         : std::string( str )
     {

@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,19 +18,32 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef DATABASE_COMPILER_GENERATOR_4_APRIL_2022
-#define DATABASE_COMPILER_GENERATOR_4_APRIL_2022
+#ifndef GUARD_2023_November_27_time_stamp_h
+#define GUARD_2023_November_27_time_stamp_h
 
-#include <boost/filesystem/path.hpp>
+#include "mega/values/native_types.hpp"
 
-namespace protocol::gen
+namespace mega
 {
-struct Environment
-{
-    boost::filesystem::path apiDir, srcDir, dataDir, injaDir;
-};
 
-void generate( const Environment& env );
-} // namespace protocol::gen
+    struct MTimeStamp
+    {
+        U32 m_value;
+    };
 
-#endif // DATABASE_COMPILER_GENERATOR_4_APRIL_2022
+    inline MTimeStamp increment( MTimeStamp t )
+    {
+        return MTimeStamp{ t.m_value + 1 };
+    }
+
+    inline bool less_than( MTimeStamp left, MTimeStamp right )
+    {
+        return left.m_value < right.m_value;
+    }
+    inline bool equal_to( MTimeStamp left, MTimeStamp right )
+    {
+        return left.m_value == right.m_value;
+    }
+}
+
+#endif //GUARD_2023_November_27_time_stamp_h

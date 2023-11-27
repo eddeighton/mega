@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,19 +18,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef DATABASE_COMPILER_GENERATOR_4_APRIL_2022
-#define DATABASE_COMPILER_GENERATOR_4_APRIL_2022
+#ifndef GUARD_2023_November_27_inline_types
+#define GUARD_2023_November_27_inline_types
 
-#include <boost/filesystem/path.hpp>
+#include "native_types.hpp"
 
-namespace protocol::gen
-{
-struct Environment
-{
-    boost::filesystem::path apiDir, srcDir, dataDir, injaDir;
-};
+#include "mega/values/runtime/time_stamp.h"
 
-void generate( const Environment& env );
-} // namespace protocol::gen
-
-#endif // DATABASE_COMPILER_GENERATOR_4_APRIL_2022
+#endif //GUARD_2023_November_27_inline_types
