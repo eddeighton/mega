@@ -39,7 +39,7 @@ msg RootExe
 // special case for registering MPO and running simulation
 msg RootSimRun
 {
-    request( mega::Project project, mega::MPO mpo );
+    request( mega::MPO mpo );
     response();
 }
 

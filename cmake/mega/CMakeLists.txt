@@ -76,6 +76,7 @@ set( MEGA_VALUES_COMPILATION_HEADERS
     ${MEGA_VALUES_COMPILATION_DIR}/source_location.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/sub_type_instance.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/symbol_grammar.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/symbol_table.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/tool_chain_hash.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/transition_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/type_id_sequence.hpp
@@ -133,6 +134,7 @@ set( MEGA_VALUES_SERVICE_DIR ${MEGA_VALUES_DIR}/service )
 set( MEGA_VALUES_SERVICE_HEADERS
     ${MEGA_VALUES_SERVICE_DIR}/logical_thread_id.hpp
     ${MEGA_VALUES_SERVICE_DIR}/node.hpp
+    ${MEGA_VALUES_SERVICE_DIR}/program.hpp
     ${MEGA_VALUES_SERVICE_DIR}/project.hpp
     ${MEGA_VALUES_SERVICE_DIR}/root_config.hpp
     ${MEGA_VALUES_SERVICE_DIR}/status.hpp
@@ -140,8 +142,9 @@ set( MEGA_VALUES_SERVICE_HEADERS
 
 )
 set( MEGA_VALUES_SERVICE_SRC
-    ${MEGA_VALUES_SERVICE_DIR}/project.cpp
     ${MEGA_VALUES_SERVICE_DIR}/node.cpp
+    ${MEGA_VALUES_SERVICE_DIR}/program.cpp
+    ${MEGA_VALUES_SERVICE_DIR}/project.cpp
     ${MEGA_VALUES_SERVICE_DIR}/root_config.cpp
     ${MEGA_VALUES_SERVICE_DIR}/url.cpp
 )
@@ -265,10 +268,10 @@ set( MEGA_LIBRARY
  
     ${MEGA_API_DIR}/mega/address_table.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
-    ${MEGA_API_DIR}/mega/boost_serialization_workaround.hpp
-    ${MEGA_API_DIR}/mega/boost_serialization_xml_workaround.hpp
     ${MEGA_API_DIR}/mega/bin_archive.hpp
     ${MEGA_API_DIR}/mega/bitset_io.hpp
+    ${MEGA_API_DIR}/mega/boost_serialization_workaround.hpp
+    ${MEGA_API_DIR}/mega/boost_serialization_xml_workaround.hpp
     ${MEGA_API_DIR}/mega/clock.hpp
     ${MEGA_API_DIR}/mega/common_strings.hpp
     ${MEGA_API_DIR}/mega/coroutine.hpp
@@ -293,7 +296,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/ring_allocator.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
-    ${MEGA_API_DIR}/mega/tag_parser.hpp
     ${MEGA_API_DIR}/mega/tree_traversal.hpp
     ${MEGA_API_DIR}/mega/tree_visitor.hpp
     ${MEGA_API_DIR}/mega/xml_archive.hpp
@@ -314,12 +316,12 @@ set( MEGA_LIBRARY
      ${MEGA_API_DIR}/mega/mangle/any.cxx
      ${MEGA_API_DIR}/mega/mangle/mangle_types.cxx
      
-     ${MEGA_SRC_DIR}/jit/tag_parser.cpp
+     #${MEGA_SRC_DIR}/jit/tag_parser.cpp
  )
  
  add_library( mega_mangle SHARED ${MEGA_MANGLE_SRC} )
 
- add_dependencies( mega_mangle run_il_gen )
+ # add_dependencies( mega_mangle run_il_gen )
 
  target_precompile_headers( mega_mangle REUSE_FROM mega_pch )
  

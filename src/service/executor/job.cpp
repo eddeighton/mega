@@ -142,6 +142,16 @@ bool JobLogicalThread::restore( const boost::filesystem::path& file, task::Deter
     return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).StashRestore( file, code );
 }
 
+mega::SymbolTable JobLogicalThread::getSymbolTable() 
+{
+    return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).BuildGetSymbolTable();
+}
+
+mega::SymbolTable JobLogicalThread::newSymbols( const mega::SymbolRequest& request ) 
+{
+    return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).BuildNewSymbols( request );
+}
+
 void JobLogicalThread::run( boost::asio::yield_context& yield_ctx )
 {
     m_pYieldCtx = &yield_ctx;

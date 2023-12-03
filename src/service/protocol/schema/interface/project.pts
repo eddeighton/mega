@@ -17,24 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg GetProject
-{
-    request();
-    response( mega::Project project );
-}
-
-msg SetProject
-{
-    request( mega::Project project );
-    response();
-}
-
-msg SetUnityProject
-{
-    request( mega::Project project, mega::U64 dbHash );
-    response();
-}
-
 msg GetMegastructureInstallation
 {
     request();

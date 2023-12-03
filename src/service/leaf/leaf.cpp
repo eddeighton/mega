@@ -21,6 +21,8 @@
 
 #include "request.hpp"
 
+#include "runtime/llvm.hpp"
+
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/enrole.hxx"
@@ -72,22 +74,18 @@ public:
         }
 
         // allocate remote object memory manager
-        {
+        /*{
             m_leaf.m_pRemoteMemoryManager = std::make_unique< runtime::RemoteMemoryManager >(
                 m_leaf.m_mp,
-                [ leaf = &m_leaf ]( TypeID typeID, runtime::CodeGenerator::LLVMCompiler& llvmCompiler )
+                [ leaf = &m_leaf ]( TypeID typeID, runtime::LLVMCompiler& llvmCompiler )
                 { return leaf->getJIT().getAllocator( llvmCompiler, typeID ); } );
-        }
+        }*/
 
         // determine the current project and stuff and initialise the runtime
         {
             network::project::Request_Encoder projectRequest(
                 [ &daemonSender ]( const network::Message& msg ) { return daemonSender.LeafRoot( msg ); }, getID() );
-
-            const Project currentProject          = projectRequest.GetProject();
             m_leaf.m_megastructureInstallationOpt = projectRequest.GetMegastructureInstallation();
-
-            m_leaf.setActiveProject( currentProject );
         }
 
         // set process description
@@ -120,9 +118,9 @@ void Leaf::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
     using namespace mega::reports;
     using namespace std::string_literals;
 
-    VERIFY_RTE( m_pRemoteMemoryManager );
-
-    const network::MemoryStatus remoteMemStatus = m_pRemoteMemoryManager->getStatus();
+    // THROW_TODO;
+    // VERIFY_RTE( m_pRemoteMemoryManager );
+    // const network::MemoryStatus remoteMemStatus = m_pRemoteMemoryManager->getStatus();
 
     Table tables;
     {
@@ -131,20 +129,21 @@ void Leaf::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
         table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
         table.m_rows.push_back( { Line{ "   Node Type: "s }, Line{ m_nodeType } } );
         table.m_rows.push_back( { Line{ "          MP: "s }, Line{ m_mp } } );
-        table.m_rows.push_back( { Line{ "  Remote Mem: "s }, Line{ std::to_string( remoteMemStatus.m_heap ) } } );
-        table.m_rows.push_back( { Line{ "  Remote Obj: "s }, Line{ std::to_string( remoteMemStatus.m_object ) } } );
+        // table.m_rows.push_back( { Line{ "  Remote Mem: "s }, Line{ std::to_string( remoteMemStatus.m_heap ) } } );
+        // table.m_rows.push_back( { Line{ "  Remote Obj: "s }, Line{ std::to_string( remoteMemStatus.m_object ) } } );
         // clang-format on
 
-        if( m_unityDatabaseHashCode.has_value() )
-        {
-            table.m_rows.push_back(
-                { Line{ "Unity DBHash: "s }, Line{ m_unityDatabaseHashCode.value().toHexString() } } );
-        }
+        // THROW_TODO;
+        // if( m_unityDatabaseHashCode.has_value() )
+        // {
+        //     table.m_rows.push_back(
+        //         { Line{ "Unity DBHash: "s }, Line{ m_unityDatabaseHashCode.value().toHexString() } } );
+        // }
 
         tables.m_rows.push_back( { table } );
     }
 
-    if( m_pJIT )
+   /* if( m_pJIT )
     {
         const network::JITStatus jitStatus = m_pJIT->getStatus();
 
@@ -168,19 +167,17 @@ void Leaf::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
         // clang-format on
 
         tables.m_rows.back().push_back( jitStatusTable );
-    }
+    }*/
 
     report.m_elements.push_back( tables );
 }
 
-std::optional< Project > Leaf::startup()
+void Leaf::startup()
 {
-    network::ConcurrentChannel completionChannel( m_io_context );
     std::promise< void >       promise;
     std::future< void >        future = promise.get_future();
     logicalthreadInitiated( std::make_shared< LeafEnrole >( *this, promise ) );
     future.get();
-    return m_activeProject;
 }
 
 Leaf::~Leaf()
@@ -190,7 +187,7 @@ Leaf::~Leaf()
     m_work_guard.reset();
     m_io_thread.join();
 }
-
+/*
 void Leaf::setActiveProject( const Project& currentProject )
 {
     switch( m_nodeType )
@@ -285,7 +282,7 @@ void Leaf::setActiveProject( const Project& currentProject )
             break;
     }
 }
-
+*/
 // network::LogicalThreadManager
 network::LogicalThreadBase::Ptr Leaf::joinLogicalThread( const network::Message& msg )
 {

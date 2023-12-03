@@ -59,9 +59,6 @@ public:
     virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
                                                 const std::vector< mega::reports::Container >& report,
                                                 boost::asio::yield_context&                    yield_ctx ) override;
-                                                
-    // network::project::Impl
-    virtual void SetProject( const mega::Project& project, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

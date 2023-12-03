@@ -27,19 +27,4 @@
 namespace mega::service
 {
 
-// network::project::Impl
-void ExecutorRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
-{
-    {
-        std::vector< Simulation::Ptr > simulations;
-        m_executor.getSimulations( simulations );
-        for( Simulation::Ptr pSim : simulations )
-        {
-            network::project::Request_Sender rq( *this, pSim, yield_ctx );
-            rq.SetProject( project );
-        }
-    }
-    m_executor.updateActiveProjectToClock();
-}
-
 } // namespace mega::service

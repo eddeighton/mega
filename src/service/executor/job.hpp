@@ -34,29 +34,29 @@ namespace mega::service
 class Executor;
 
 class JobLogicalThread : public ExecutorRequestLogicalThread,
-                        public pipeline::Progress,
-                        public pipeline::Stash,
-                        public pipeline::DependencyProvider
+                         public pipeline::Progress,
+                         public pipeline::Stash,
+                         public pipeline::DependencyProvider
 {
     const network::LogicalThreadID m_rootLogicalThreadID;
-    mega::pipeline::Pipeline::Ptr m_pPipeline;
-    boost::asio::yield_context*   m_pYieldCtx = nullptr;
+    mega::pipeline::Pipeline::Ptr  m_pPipeline;
+    boost::asio::yield_context*    m_pYieldCtx = nullptr;
 
     std::optional< pipeline::PipelineResult > m_resultOpt;
-    std::optional< std::string > m_lastMsg;
+    std::optional< std::string >              m_lastMsg;
 
 public:
     using Ptr = std::shared_ptr< JobLogicalThread >;
 
     JobLogicalThread( Executor& executor, const network::LogicalThreadID& logicalthreadID,
-                     mega::pipeline::Pipeline::Ptr pPipeline, const network::LogicalThreadID& rootLogicalThreadID );
+                      mega::pipeline::Pipeline::Ptr pPipeline, const network::LogicalThreadID& rootLogicalThreadID );
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl,
     virtual pipeline::PipelineResult JobStartTask( const mega::pipeline::TaskDescriptor& task,
-                                                  boost::asio::yield_context&           yield_ctx ) override;
+                                                   boost::asio::yield_context&           yield_ctx ) override;
 
     // pipeline::DependencyProvider
     virtual EG_PARSER_INTERFACE* getParser() override;
@@ -72,6 +72,8 @@ public:
     virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) override;
     virtual void stash( const boost::filesystem::path& file, task::DeterminantHash code ) override;
     virtual bool restore( const boost::filesystem::path& file, task::DeterminantHash code ) override;
+    virtual mega::SymbolTable getSymbolTable() override;
+    virtual mega::SymbolTable newSymbols( const mega::SymbolRequest& request ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,

@@ -20,7 +20,7 @@
 #ifndef TOOL_16_JUNE_2022
 #define TOOL_16_JUNE_2022
 
-#include "service/leaf.hpp"
+#include "service/host.hpp"
 
 #include "service/network/client.hpp"
 #include "service/network/logical_thread_manager.hpp"
@@ -55,7 +55,7 @@ public:
 
     void run( Functor& function );
 
-    network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
+    network::Sender::Ptr getLeafSender() { return m_host.getLeafSender(); }
 
     MPO getMPO() const
     {
@@ -68,7 +68,7 @@ private:
     network::Log               m_log;
     boost::asio::io_context    m_io_context;
     network::ReceiverChannel   m_receiverChannel;
-    Leaf                       m_leaf;
+    Host                       m_host;
     std::optional< mega::MPO > m_mpo;
 };
 

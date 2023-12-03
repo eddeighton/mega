@@ -91,19 +91,19 @@ set( TEMPLATE_FILES
 	${MEGA_API_DIR}/mega/mangle/traits.cpp
 )
 
-add_custom_target( run_il_gen
-    COMMAND il_gen
-        --native \"${NATIVE_FILES}\"
-        --inline \"${INLINE_FILES}\"
-        --extern \"${EXTERN_FILES}\"
-        --template \"${TEMPLATE_FILES}\"
-        --inja ${IL_TEMPLATES_DIR}
-        --il_types ${MEGA_API_DIR}/il/elements/types.hxx
-        --il_functions ${MEGA_API_DIR}/il/elements/functions.hxx
-        
-    DEPENDS ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES} il_gen
-    # BYPRODUCTS  ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
-    COMMENT "Running IL Gen" 
-    SOURCES ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES}
-)
-add_dependencies( run_il_gen il_gen )
+# add_custom_target( run_il_gen
+#     COMMAND il_gen
+#         --native \"${NATIVE_FILES}\"
+#         --inline \"${INLINE_FILES}\"
+#         --extern \"${EXTERN_FILES}\"
+#         --template \"${TEMPLATE_FILES}\"
+#         --inja ${IL_TEMPLATES_DIR}
+#         --il_types ${MEGA_API_DIR}/il/elements/types.hxx
+#         --il_functions ${MEGA_API_DIR}/il/elements/functions.hxx
+#         
+#     DEPENDS ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES} il_gen
+#     # BYPRODUCTS  ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
+#     COMMENT "Running IL Gen" 
+#     SOURCES ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES}
+# )
+# add_dependencies( run_il_gen il_gen )

@@ -183,16 +183,7 @@ MegastructureInstallation Terminal::GetMegastructureInstallation()
     //
     return getRootRequest< network::project::Request_Encoder >().GetMegastructureInstallation();
 }
-Project Terminal::GetProject()
-{
-    //
-    return getRootRequest< network::project::Request_Encoder >().GetProject();
-}
-void Terminal::SetProject( const Project& project )
-{
-    //
-    getRootRequest< network::project::Request_Encoder >().SetProject( project );
-}
+
 void Terminal::ClearStash()
 {
     //

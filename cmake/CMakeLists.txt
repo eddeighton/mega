@@ -62,6 +62,7 @@ set( CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE true )
 
 #add_compile_options("-Wshadow")
 add_compile_options("-Wfatal-errors")
+add_compile_options("-Wpessimizing-move")
 add_compile_options("-fcoroutines")
 #add_compile_options("-Werror")
 #add_compile_options("-Wall")
@@ -106,13 +107,14 @@ add_subdirectory(compiler)
 add_subdirectory(reports)
 add_subdirectory(database_reporters)
 
+add_subdirectory(runtime)
+
 add_subdirectory(map)
 add_subdirectory(schematic)
 
 add_subdirectory(service)
 add_subdirectory(log)
-add_subdirectory(orc)
-add_subdirectory(jit)
+
 add_subdirectory(driver)
 
 add_subdirectory(editor)

@@ -44,11 +44,6 @@ ProcessClockStandalone::ProcessClockStandalone( boost::asio::io_context&        
 {
 }
 
-void ProcessClockStandalone::setActiveProject( const Project& project, U64 unityDBHashCode )
-{
-    // ignor
-}
-
 void ProcessClockStandalone::registerMPO( network::SenderRef sender )
 {
     boost::asio::post( m_strand, [ this, sender ]() { registerMPOImpl( sender ); } );

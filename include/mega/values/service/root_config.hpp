@@ -32,17 +32,11 @@ class RootConfig
 public:
     RootConfig();
 
-    const Project& getProject() const { return m_project; }
-    void           setProject( const Project& project ) { m_project = project; }
-
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& boost::serialization::make_nvp( "project", m_project );
     }
 
-private:
-    Project m_project;
 };
 
 } // namespace mega::network

@@ -22,10 +22,4 @@
 namespace mega::service
 {
 
-// network::project::Impl
-void TerminalRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_INFO( "SetProject received with: {}", project.getProjectInstallPath().string() );
-}
-
 } // namespace mega::service

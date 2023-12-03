@@ -49,7 +49,7 @@ set( MEGA_UNIT_TESTS
 	${MEGA_UNIT_TESTS_DIR}/schematic_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/sim_state_machine_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/visitor_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/xml_tag_parser_tests.cpp
+	# ${MEGA_UNIT_TESTS_DIR}/xml_tag_parser_tests.cpp
 	)
 
 set( MEGA_UNIT_TESTS_DATA

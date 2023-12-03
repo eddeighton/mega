@@ -19,7 +19,7 @@
 
 #include "request.hpp"
 
-#include "jit/program_functions.hxx"
+// #include "jit/program_functions.hxx"
 
 #include "service/network/log.hpp"
 
@@ -40,10 +40,11 @@ namespace mega::service
 // network::memory::Impl
 void LeafRequestLogicalThread::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    if( m_leaf.m_pJIT.get() && m_leaf.m_pRemoteMemoryManager.get() )
+    // THROW_TODO;
+    /*if( m_leaf.m_pRemoteMemoryManager.get() )
     {
         m_leaf.m_pRemoteMemoryManager->MPODestroyed( mpo );
-    }
+    }*/
 }
 
 reference LeafRequestLogicalThread::NetworkAllocate( const MPO& parent, const TypeID& objectTypeID,
@@ -73,7 +74,8 @@ reference LeafRequestLogicalThread::NetworkAllocate( const MPO& parent, const Ty
     }
 
     auto llvm = getLLVMCompiler( yield_ctx );
-    return m_leaf.m_pRemoteMemoryManager->networkToHeap( result, llvm );
+    THROW_TODO;
+    // return m_leaf.m_pRemoteMemoryManager->networkToHeap( result, llvm );
 }
 
 reference LeafRequestLogicalThread::NetworkToHeap( const reference& ref, const TimeStamp& lockCycle,
@@ -95,7 +97,8 @@ reference LeafRequestLogicalThread::NetworkToHeap( const reference& ref, const T
         if( ref.isNetworkAddress() )
         {
             // if not already heap address then get or construct heap object
-            heapAddress = m_leaf.m_pRemoteMemoryManager->networkToHeap( ref, llvm );
+            THROW_TODO;
+            // heapAddress = m_leaf.m_pRemoteMemoryManager->networkToHeap( ref, llvm );
         }
         else
         {
@@ -126,16 +129,18 @@ reference LeafRequestLogicalThread::NetworkToHeap( const reference& ref, const T
                     reference remoteAddress = addressTable.indexToRef( objectIndex );
                     ASSERT( remoteAddress.isNetworkAddress() );
 
-                    if( m_leaf.m_pRemoteMemoryManager->tryNetworkToHeap( remoteAddress ) )
-                    {
-                        addressTable.remap( objectIndex, remoteAddress );
-                    }
+                    THROW_TODO;
+                    // if( m_leaf.m_pRemoteMemoryManager->tryNetworkToHeap( remoteAddress ) )
+                    // {
+                    //     addressTable.remap( objectIndex, remoteAddress );
+                    // }
                 }
             }
 
-            auto           allocator = m_leaf.getJIT().getAllocator( llvm, heapAddress.getType() );
-            BinLoadArchive archive( objectSnapshot );
-            allocator->getLoadBin()( heapAddress.getHeap(), &archive );
+            THROW_TODO;
+            // auto           allocator = m_leaf.getJIT().getAllocator( llvm, heapAddress.getType() );
+            // BinLoadArchive archive( objectSnapshot );
+            // allocator->getLoadBin()( heapAddress.getHeap(), &archive );
         }
         heapAddress.setLockCycle( lockCycle );
     }

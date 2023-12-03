@@ -47,13 +47,6 @@ Plugin::~Plugin()
 }
 
 // ProcessClock
-void Plugin::setActiveProject( const Project& project, U64 unityDBHashCode )
-{
-    using namespace network::project;
-    send( MSG_SetUnityProject_Request::make(
-        m_logicalThreadID, MSG_SetUnityProject_Request{ project, unityDBHashCode } ) );
-}
-
 void Plugin::registerMPO( network::SenderRef sender )
 {
     using namespace network::sim;
@@ -196,16 +189,16 @@ void Plugin::dispatch( const network::Message& msg )
         break;
 
         // project
-        case MSG_SetUnityProject_Request::ID:
-        {
-            const MSG_SetUnityProject_Request& projectMsg = MSG_SetUnityProject_Request::get( msg );
-            SPDLOG_INFO( "plugin::dispatch: Set project request received for project: {} {}",
-                         projectMsg.project.getProjectInstallPath().string(),
-                         projectMsg.dbHash );
-            m_strDatabasePath  = projectMsg.project.getProjectUnityDatabase().string();
-            m_databaseHashcode = projectMsg.dbHash;
-        }
-        break;
+        // case MSG_SetUnityProject_Request::ID:
+        // {
+        //     const MSG_SetUnityProject_Request& projectMsg = MSG_SetUnityProject_Request::get( msg );
+        //     SPDLOG_INFO( "plugin::dispatch: Set project request received for project: {} {}",
+        //                  projectMsg.project.getProjectInstallPath().string(),
+        //                  projectMsg.dbHash );
+        //     m_strDatabasePath  = projectMsg.project.getProjectUnityDatabase().string();
+        //     m_databaseHashcode = projectMsg.dbHash;
+        // }
+        // break;
 
         // errors
         case network::MSG_Error_Response::ID:

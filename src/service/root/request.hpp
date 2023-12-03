@@ -115,8 +115,6 @@ public:
                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
-    virtual Project GetProject( boost::asio::yield_context& yield_ctx ) override;
-    virtual void    SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
     virtual MegastructureInstallation GetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
@@ -143,18 +141,21 @@ public:
                                                        boost::asio::yield_context& yield_ctx ) override;
 
     // network::stash::Impl
-    virtual void           StashClear( boost::asio::yield_context& yield_ctx ) override;
-    virtual void           StashStash( const boost::filesystem::path& filePath,
-                                       const task::DeterminantHash&   determinant,
-                                       boost::asio::yield_context&    yield_ctx ) override;
-    virtual bool           StashRestore( const boost::filesystem::path& filePath,
-                                         const task::DeterminantHash&   determinant,
-                                         boost::asio::yield_context&    yield_ctx ) override;
-    virtual task::FileHash BuildGetHashCode( const boost::filesystem::path& filePath,
-                                             boost::asio::yield_context&    yield_ctx ) override;
-    virtual void           BuildSetHashCode( const boost::filesystem::path& filePath,
-                                             const task::FileHash&          hashCode,
-                                             boost::asio::yield_context&    yield_ctx ) override;
+    virtual void              StashClear( boost::asio::yield_context& yield_ctx ) override;
+    virtual void              StashStash( const boost::filesystem::path& filePath,
+                                          const task::DeterminantHash&   determinant,
+                                          boost::asio::yield_context&    yield_ctx ) override;
+    virtual bool              StashRestore( const boost::filesystem::path& filePath,
+                                            const task::DeterminantHash&   determinant,
+                                            boost::asio::yield_context&    yield_ctx ) override;
+    virtual task::FileHash    BuildGetHashCode( const boost::filesystem::path& filePath,
+                                                boost::asio::yield_context&    yield_ctx ) override;
+    virtual void              BuildSetHashCode( const boost::filesystem::path& filePath,
+                                                const task::FileHash&          hashCode,
+                                                boost::asio::yield_context&    yield_ctx ) override;
+    virtual mega::SymbolTable BuildGetSymbolTable( boost::asio::yield_context& yield_ctx ) override;
+    virtual mega::SymbolTable BuildNewSymbols( const mega::SymbolRequest&  request,
+                                               boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl
     virtual std::vector< network::LogicalThreadID >

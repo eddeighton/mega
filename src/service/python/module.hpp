@@ -32,7 +32,7 @@
 #include "mega/values/compilation/invocation_id.hpp"
 #include "mega/mangle/python_mangle.hpp"
 
-#include "jit/jit_exception.hpp"
+#include "runtime/exception.hpp"
 
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/python.hxx"
@@ -74,7 +74,7 @@ public:
         void*                                      pFunctionPtr = nullptr;
         mega::runtime::JITBase::InvocationTypeInfo typeInfo;
     };
-    using OperatorFunction = std::pair< mega::runtime::operators::FunctionType, mega::TypeID >;
+    //using OperatorFunction = std::pair< mega::runtime::operators::FunctionType, mega::TypeID >;
 
     struct WrapperInfo
     {
@@ -101,7 +101,7 @@ public:
     // Python Dynamic Invocations
     mega::TypeID                           getInterfaceTypeID( const mega::TypeID concreteTypeID );
     const InvocationInfo&                  invoke( const mega::InvocationID& invocationID );
-    void*                                  getOperator( const OperatorFunction& operatorFunction );
+    //void*                                  getOperator( const OperatorFunction& operatorFunction );
     PythonReference::PythonWrapperFunction getPythonFunctionWrapper( TypeID interfaceTypeID );
 
     template < typename Functor >
@@ -119,7 +119,7 @@ public:
             {
                 exceptionPtrOpt = std::current_exception();
             }
-            catch( mega::runtime::JITException& )
+            catch( mega::runtime::RuntimeException& )
             {
                 exceptionPtrOpt = std::current_exception();
             }
@@ -192,7 +192,7 @@ public:
 
 private:
     using FunctionTable = std::map< mega::InvocationID, InvocationInfo >;
-    using OperatorTable = std::map< OperatorFunction, void* >;
+    //using OperatorTable = std::map< OperatorFunction, void* >;
     using WrapperTable  = std::map< TypeID, WrapperInfo >;
 
     LogConfig                           m_logConfig;
@@ -200,7 +200,7 @@ private:
     Python                              m_python;
     network::ExternalLogicalThread::Ptr m_pExternalLogicalThread;
     network::LogicalThread::Ptr         m_mpoLogicalThread;
-    OperatorTable                       m_operatorTable;
+    //OperatorTable                       m_operatorTable;
     FunctionTable                       m_functionTable;
     WrapperTable                        m_wrapperTable;
     mega::mangle::PythonMangle          m_pythonMangle;

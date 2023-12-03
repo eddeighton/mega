@@ -170,7 +170,7 @@ public:
             pDimensionReturnType->get_homogeneous(), "Non-homogeneous dimension return types NOT supported" );
 
         auto dimensions = pDimensionReturnType->get_dimensions();
-        VERIFY_RTE_MSG( dimensions.size() == 1, "Non-homogeneous dimension return types NOT supported" );
+        VERIFY_RTE_MSG( dimensions.size() != 0, "Invalid dimension return type" );
 
         Interface::DimensionTrait* pTargetDimension = dimensions.front();
 

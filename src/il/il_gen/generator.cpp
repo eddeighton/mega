@@ -20,7 +20,7 @@
 
 #include "generator.hpp"
 
-#include "jit/symbol_utils.hpp"
+#include "runtime/mangle.hpp"
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"

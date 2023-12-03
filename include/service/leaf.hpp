@@ -28,8 +28,6 @@
 #include "mega/values/service/logical_thread_id.hpp"
 #include "mega/values/service/node.hpp"
 
-#include "jit/jit.hpp"
-
 #include <boost/asio/io_service.hpp>
 
 #include <memory>
@@ -56,8 +54,8 @@ public:
     ~Leaf();
 
     void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
-    
-    std::optional< Project > startup();
+
+    void startup();
 
     // void shutdown();
     bool running() { return !m_io_context.stopped(); }
@@ -71,42 +69,35 @@ public:
     network::Sender::Ptr getLeafSender() { return m_pSelfSender; }
 
     // network::Sender
-    void setActiveProject( const Project& project );
 
     const MegastructureInstallation& getMegastructureInstallation() const
     {
         VERIFY_RTE_MSG( m_megastructureInstallationOpt.has_value(), "Megastructure Installation not found" );
         return m_megastructureInstallationOpt.value();
     }
-    const Project& getActiveProject() const
-    {
-        VERIFY_RTE_MSG( m_activeProject.has_value(), "No active project" );
-        return m_activeProject.value();
-    }
-    std::optional< task::FileHash > getUnityDBHashCode() const { return m_unityDatabaseHashCode; }
 
-    mega::MP               getMP() const { return m_mp; }
-    HeapMemory&            getHeapMemory();
+    // std::optional< task::FileHash > getUnityDBHashCode() const { return m_unityDatabaseHashCode; }
+
+    mega::MP getMP() const { return m_mp; }
+    // HeapMemory&            getHeapMemory();
     std::set< mega::MPO >& getMPOs() { return m_mpos; }
-    runtime::JIT&          getJIT() { return *m_pJIT; }
 
 private:
-    network::Sender::Ptr     m_pSender;
-    network::Sender::Ptr     m_pSelfSender;
-    network::Node            m_nodeType;
-    boost::asio::io_context  m_io_context;
-    network::ReceiverChannel m_receiverChannel;
-    network::Client          m_client;
-    using ExecutorType = decltype( m_io_context.get_executor() );
-    boost::asio::executor_work_guard< ExecutorType > m_work_guard;
-    std::thread                                      m_io_thread;
-    mega::MP                                         m_mp;
-    std::set< mega::MPO >                            m_mpos;
-    std::unique_ptr< runtime::JIT >                  m_pJIT;
-    std::optional< MegastructureInstallation >       m_megastructureInstallationOpt;
-    std::optional< Project >                         m_activeProject;
-    std::optional< task::FileHash >                  m_unityDatabaseHashCode;
-    std::unique_ptr< runtime::RemoteMemoryManager >  m_pRemoteMemoryManager;
+    network::Sender::Ptr    m_pSender;
+    network::Sender::Ptr    m_pSelfSender;
+    network::Node           m_nodeType;
+    boost::asio::io_context m_io_context;
+
+    using ExecutorType  = decltype( m_io_context.get_executor() );
+    using WorkGuardType = boost::asio::executor_work_guard< ExecutorType >;
+
+    network::ReceiverChannel                   m_receiverChannel;
+    network::Client                            m_client;
+    WorkGuardType                              m_work_guard;
+    std::thread                                m_io_thread;
+    mega::MP                                   m_mp;
+    std::set< mega::MPO >                      m_mpos;
+    std::optional< MegastructureInstallation > m_megastructureInstallationOpt;
 };
 
 } // namespace mega::service

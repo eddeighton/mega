@@ -21,9 +21,11 @@
 #ifndef GUARD_2023_January_09_remote_memory_manager
 #define GUARD_2023_January_09_remote_memory_manager
 
-#include "jit/allocator.hpp"
-#include "jit/object_header.hpp"
-#include "jit/code_generator.hpp"
+// #include "jit/allocator.hpp"
+// #include "jit/object_header.hpp"
+// #include "jit/code_generator.hpp"
+
+#include "runtime/llvm.hpp"
 
 #include "mega/values/runtime/reference_io.hpp"
 #include "mega/values/service/status.hpp"
@@ -36,14 +38,14 @@
 
 namespace mega::runtime
 {
-
+/*
 class RemoteMemoryManager
 {
     using HeapMap = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
     using NetMap  = std::unordered_map< reference, reference, reference::Hash >;
 
 public:
-    using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID, runtime::CodeGenerator::LLVMCompiler& ) >;
+    using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID, runtime::LLVMCompiler& ) >;
 
     template < typename TFunctor >
     inline RemoteMemoryManager( MP mp, TFunctor&& getAllocatorFunction )
@@ -115,7 +117,7 @@ public:
         return false;
     }
 
-    inline reference networkToHeap( const reference& networkAddress, runtime::CodeGenerator::LLVMCompiler& llvmCompiler )
+    inline reference networkToHeap( const reference& networkAddress, runtime::LLVMCompiler& llvmCompiler )
     {
         reference objectAddress = networkAddress.getObjectAddress();
         if( tryNetworkToHeap( objectAddress ) )
@@ -152,7 +154,7 @@ private:
     GetAllocatorFPtr m_getAllocatorFPtr;
     HeapMap          m_heapMap;
     NetMap           m_netMap;
-};
+};*/
 } // namespace mega::runtime
 
 #endif // GUARD_2023_January_09_remote_memory_manager

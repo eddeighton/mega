@@ -9,6 +9,7 @@ LOCAL_DIR="/home/${USER}/test_${CFG_TYPE}"
 cleanup_folder "${LOCAL_DIR}/log*"
 cleanup_folder "${LOCAL_DIR}/events"
 cleanup_folder "${LOCAL_DIR}/stash"
+cleanup_files  "${LOCAL_DIR}" "symbols.xml"
 
 # echo "Clearing temporary files"
 

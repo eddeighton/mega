@@ -123,7 +123,7 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant : public mega::refere
     inline __eg_variant( const T& from )
         :   mega::reference( from )
     {
-        static_assert( mega::is_convertible_many< T, Ts... >::value, "Incompatible mega type conversion" );
+        //static_assert( mega::is_convertible_many< T, Ts... >::value, "Incompatible mega type conversion" );
     }
 
     inline __eg_variant& operator=( const Event& from )
@@ -143,7 +143,7 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant : public mega::refere
     template < class T >
     inline __eg_variant& operator=( const T& from )
     {
-        static_assert( mega::is_convertible_many< T, Ts... >::value, "Incompatible mega type conversion" );
+        //static_assert( mega::is_convertible_many< T, Ts... >::value, "Incompatible mega type conversion" );
         *this = static_cast< const mega::reference& >( from );
         return *this;
     }

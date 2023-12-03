@@ -24,8 +24,9 @@
 
 #include "module.hpp"
 
-#include "jit/invocation_functions.hxx"
-#include "jit/jit_exception.hpp"
+// #include "jit/invocation_functions.hxx"
+#include "runtime/function_ptr.hpp"
+#include "runtime/exception.hpp"
 
 #include "service/mpo_visitor.hpp"
 
@@ -129,7 +130,8 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 
             SPDLOG_TRACE( "PythonReference::call: {} {}", invocationID,
                           mega::getExplicitOperationString( functionInfo.typeInfo.operationType ) );
-            switch( functionInfo.typeInfo.operationType )
+            THROW_TODO;
+            /*switch( functionInfo.typeInfo.operationType )
             {
                 case id_exp_Read:
                 {
@@ -300,16 +302,16 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 case HIGHEST_EXPLICIT_OPERATION_TYPE:
                     THROW_RTE( "Unsupported operation type: " << functionInfo.typeInfo.operationType );
                     break;
-            }
+            }*/
         }
-        catch( mega::runtime::JITException& ex )
+        catch( mega::runtime::RuntimeException& ex )
         {
             SPDLOG_ERROR( "JIT Exception: {}", ex.what() );
         }
-        catch( mega::io::DatabaseVersionException& ex )
+        /*catch( mega::io::DatabaseVersionException& ex )
         {
             SPDLOG_ERROR( "Database version exception: {}", ex.what() );
-        }
+        }*/
         catch( std::exception& ex )
         {
             SPDLOG_ERROR( "Exception: {}", ex.what() );

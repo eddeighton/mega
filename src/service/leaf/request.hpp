@@ -93,8 +93,9 @@ public:
 
     LLVMCompilerImpl getLLVMCompiler( boost::asio::yield_context& yield_ctx )
     {
-        return { *this, m_leaf.getDaemonSender(), m_leaf.getMegastructureInstallation(), m_leaf.getActiveProject(),
-                 yield_ctx };
+        THROW_TODO;
+        // return { *this, m_leaf.getDaemonSender(), m_leaf.getMegastructureInstallation(), m_leaf.getActiveProject(),
+        //          yield_ctx };
     }
 
     // network::term_leaf::Impl
@@ -142,7 +143,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
 
@@ -187,9 +188,6 @@ public:
     virtual void   ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
     virtual TypeID GetInterfaceTypeID( const mega::TypeID&         concreteTypeID,
                                        boost::asio::yield_context& yield_ctx ) override;
-
-    // network::project::Impl
-    virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

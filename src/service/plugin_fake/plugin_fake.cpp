@@ -20,7 +20,7 @@
 
 #include "service/plugin/api.hpp"
 
-#include "service/executor/clock.hpp"
+#include "service/clock.hpp"
 #include "service/executor/executor.hpp"
 
 #include "mega/values/native_types.hpp"
@@ -60,10 +60,6 @@ public:
     FakePlugin& operator=( FakePlugin&& )      = delete;
 
     // ProcessClock
-    void setActiveProject( const Project& project, U64 dbHashCode ) override
-    {
-        // do nothing
-    }
     void registerMPO( network::SenderRef sender ) override
     {
         // do nothing

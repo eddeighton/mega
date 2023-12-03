@@ -38,7 +38,6 @@ ToolChain::ToolChain( const std::string& strClangCompilerVersion,
                       const boost::filesystem::path& path_clangCompiler,
                       const boost::filesystem::path& path_clangPlugin,
                       const boost::filesystem::path& database,
-                      const boost::filesystem::path& jit,
                       const boost::filesystem::path& megaMangle,
                       const boost::filesystem::path& leaf )
 
@@ -49,7 +48,6 @@ ToolChain::ToolChain( const std::string& strClangCompilerVersion,
     , clangPluginPath( path_clangPlugin )
     , databasePath( database )
 
-    , jitPath( jit )
     , megaManglePath( megaMangle )
     , leafPath( leaf )
 

@@ -57,7 +57,7 @@ public:
     RootPipelineLogicalThread( Root& root, const network::LogicalThreadID& logicalthreadID );
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
 
     // pipeline::Stash implement pipeline::Stash so that can create schedule - not actually used
     virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath ) override
@@ -73,6 +73,11 @@ public:
         THROW_RTE( "Root: Unreachable" );
     }
     virtual bool restore( const boost::filesystem::path& filePath, task::DeterminantHash determinant ) override
+    {
+        THROW_RTE( "Root: Unreachable" );
+    }
+    virtual mega::SymbolTable getSymbolTable() override { THROW_RTE( "Root: Unreachable" ); }
+    virtual mega::SymbolTable newSymbols( const mega::SymbolRequest& request ) override
     {
         THROW_RTE( "Root: Unreachable" );
     }

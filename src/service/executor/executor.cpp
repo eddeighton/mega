@@ -51,29 +51,24 @@ Executor::Executor( boost::asio::io_context& io_context, network::Log log, U64 n
     , m_numThreads( numThreads )
     , m_processClock( processClock )
     , m_receiverChannel( m_io_context, *this )
-    , m_leaf( m_receiverChannel.getSender(), nodeType, daemonPortNumber )
+    , m_player( m_receiverChannel.getSender(), nodeType, daemonPortNumber, processClock )
 {
-    m_receiverChannel.run( m_leaf.getLeafSender() );
-    m_leaf.startup();
+    m_receiverChannel.run( m_player.getLeafSender() );
+    m_player.startup();
 
     m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
-        m_leaf.getMegastructureInstallation().getParserPath(), "g_parserSymbol" );
+        m_player.getMegastructureInstallation().getParserPath(), "g_parserSymbol" );
 
-    updateActiveProjectToClock();
-}
-
-void Executor::updateActiveProjectToClock()
-{
     // fire and forget to the plugin the active project
-    mega::U64 unityDBHashCode = 0U;
+    /*mega::U64 unityDBHashCode = 0U;
     {
-        if( auto dbHashCodeOpt = m_leaf.getUnityDBHashCode() )
+        if( auto dbHashCodeOpt = m_player.getUnityDBHashCode() )
         {
             unityDBHashCode = dbHashCodeOpt.value().get();
         }
-    }
-    m_processClock.setActiveProject( m_leaf.getActiveProject(), unityDBHashCode );
+    }*/
 }
+
 
 Executor::~Executor()
 {

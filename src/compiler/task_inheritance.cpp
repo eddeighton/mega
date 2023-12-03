@@ -265,7 +265,7 @@ public:
         } hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
         bool bReusedOldDatabase = false;
-        if( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
+        /*if( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
         {
             try
             {
@@ -390,7 +390,7 @@ public:
             {
                 bReusedOldDatabase = false;
             }
-        }
+        }*/
 
         if( !bReusedOldDatabase )
         {

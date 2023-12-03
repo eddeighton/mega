@@ -442,20 +442,20 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                         const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
                         const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
                         const TskDesc initialiserObj    = encode( Task{ eTask_InitialiserObject, sourceFilePath } );
-                        const TskDesc pythonWrapper     = encode( Task{ eTask_PythonWrapper, sourceFilePath } );
-                        const TskDesc pythonObj         = encode( Task{ eTask_PythonObject, sourceFilePath } );
-                        const TskDesc initialiser       = encode( Task{ eTask_Initialiser, sourceFilePath } );
+                        //const TskDesc pythonWrapper     = encode( Task{ eTask_PythonWrapper, sourceFilePath } );
+                        //const TskDesc pythonObj         = encode( Task{ eTask_PythonObject, sourceFilePath } );
+                        //const TskDesc initialiser       = encode( Task{ eTask_Initialiser, sourceFilePath } );
 
-                        dependencies.add( pythonWrapper, globalMemoryRolloutTasks );
-                        dependencies.add( initialiser, globalMemoryRolloutTasks );
+                        //dependencies.add( pythonWrapper, globalMemoryRolloutTasks );
+                        //dependencies.add( initialiser, globalMemoryRolloutTasks );
                         dependencies.add( implementation, valueSpaceTasks );
                         dependencies.add( implementationObj, TskDescVec{ implementation } );
-                        dependencies.add( pythonObj, TskDescVec{ pythonWrapper } );
-                        dependencies.add( initialiserObj, TskDescVec{ initialiser } );
+                        //dependencies.add( pythonObj, TskDescVec{ pythonWrapper } );
+                        //dependencies.add( initialiserObj, TskDescVec{ initialiser } );
 
                         binaryTasks.push_back( implementationObj );
-                        binaryTasks.push_back( pythonObj );
-                        binaryTasks.push_back( initialiserObj );
+                        //binaryTasks.push_back( pythonObj );
+                        //binaryTasks.push_back( initialiserObj );
                     }
                 }
                 const TskDesc interfaceComponent = encode( Task{ eTask_InterfaceComponent, pComponent->get_name() } );

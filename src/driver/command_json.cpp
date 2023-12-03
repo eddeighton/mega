@@ -40,7 +40,6 @@
 #include "database/OperationsStage.hxx"
 #include "database/ParserStage.hxx"
 #include "database/SymbolAnalysis.hxx"
-#include "database/SymbolAnalysisView.hxx"
 #include "database/SymbolRollout.hxx"
     
 #include "database/component_info.hpp"
@@ -115,7 +114,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         "DependencyAnalysis\n" << 
         "DependencyAnalysisView\n" << 
         "SymbolAnalysis\n" << 
-        "SymbolAnalysisView\n" << 
         "SymbolRollout\n" << 
         "InterfaceAnalysisStage\n" << 
         "ConcreteStage\n" << 
@@ -146,7 +144,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         STAGE_DUMP( DependencyAnalysis )
         STAGE_DUMP( DependencyAnalysisView )
         STAGE_DUMP( SymbolAnalysis )
-        STAGE_DUMP( SymbolAnalysisView )
         STAGE_DUMP( SymbolRollout )
         STAGE_DUMP( InterfaceAnalysisStage )
         STAGE_DUMP( ConcreteStage )

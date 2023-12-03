@@ -27,7 +27,6 @@
 
 #include "mega/values/runtime/maths_types_io.hpp"
 
-#include "mega/xml_archive.hpp"
 #include "mega/record_archive.hpp"
 #include "mega/bin_archive.hpp"
 
@@ -242,6 +241,7 @@ void bitset_unset( void* pBitset, mega::U32 position, mega::U32 length )
 }
 
 /////////////////////////////////////////////////////////////
+/*
 void xml_save_begin_structure( const mega::reference& ref, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
@@ -261,8 +261,8 @@ void xml_save_end_data( const mega::reference& ref, const char* pszName, bool bI
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
     archive.endData( pszName, bIsObject, ref.getNetworkAddress() );
-}
-
+}*/
+/*
 void xml_load_begin_structure( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
@@ -301,7 +301,7 @@ mega::U64 xml_load_tag_count( void* pSerialiser )
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
     return archive.tag_count();
 }
-
+*/
 // iterator routines
 mega::TypeID iterator_state( void* pIterator )
 {

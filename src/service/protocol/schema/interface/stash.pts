@@ -46,3 +46,15 @@ msg BuildSetHashCode
     request( boost::filesystem::path filePath, task::FileHash hashCode );
     response();
 }
+
+msg BuildGetSymbolTable
+{
+    request();
+    response( mega::SymbolTable symbolTable );
+}
+
+msg BuildNewSymbols
+{
+    request( mega::SymbolRequest newSymbols );
+    response( mega::SymbolTable symbolTable );
+}

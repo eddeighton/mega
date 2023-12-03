@@ -42,11 +42,11 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     {
         // clang-format off
         commandOptions.add_options()
-        ( "set",    po::value< boost::filesystem::path >( &projectPath ),       "Set project" )
-        ( "get",    po::bool_switch( &bGetProject ),                            "Get current project" )
-        ( "reset",  po::bool_switch( &bResetProject ),                          "Unload any active project" )
-        ( "update",  po::bool_switch( &bUpdateProject ),                        "Indicate a project update ( new build ) has occured" )
-        ( "new_build",  po::value< boost::filesystem::path >( &projectPath ),   "Indicate a new build has completed" )
+        // ( "set",    po::value< boost::filesystem::path >( &projectPath ),       "Set project" )
+        // ( "get",    po::bool_switch( &bGetProject ),                            "Get current project" )
+        // ( "reset",  po::bool_switch( &bResetProject ),                          "Unload any active project" )
+        // ( "update",  po::bool_switch( &bUpdateProject ),                        "Indicate a project update ( new build ) has occured" )
+        // ( "new_build",  po::value< boost::filesystem::path >( &projectPath ),   "Indicate a new build has completed" )
         ;
         // clang-format on
     }
@@ -61,58 +61,25 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     }
     else
     {
-        if( !projectPath.empty() )
-        {
-            mega::service::Terminal terminal( log );
-            const mega::Project     project( projectPath );
-            terminal.SetProject( project );
-        }
-        else if( bUpdateProject )
-        {
-            mega::service::Terminal terminal( log );
-            const mega::Project     project = terminal.GetProject();
-            if( project.isEmpty() )
-            {
-                std::cout << "No active project found" << std::endl;
-            }
-            else
-            {
-                terminal.SetProject( project );
-            }
-        }
-        else if( bGetProject )
-        {
-            mega::service::Terminal terminal( log );
-            const mega::Project     project = terminal.GetProject();
-            std::cout << project.getProjectInstallPath().string() << std::endl;
-        }
-        else if( bResetProject )
-        {
-            mega::service::Terminal terminal( log );
-            const mega::Project     project;
-            terminal.SetProject( project );
-        }
-        else // if ( bGetInstallInfo )
         {
             mega::service::Terminal          terminal( log );
-            const mega::Project              project   = terminal.GetProject();
             const auto                       result    = terminal.GetMegastructureInstallation();
             const mega::utilities::ToolChain toolChain = result.getToolchain();
 
             std::ostringstream osProject;
-            {
-                if( project.isEmpty() )
-                {
-                    osProject << "NO PROJECT";
-                }
-                else
-                {
-                    osProject << "Project Install:    " << project.getProjectInstallPath().string() << "\n";
-                    osProject << "Project Bin:        " << project.getProjectBin().string() << "\n";
-                    osProject << "Project Database:   " << project.getProjectDatabase().string() << "\n";
-                    osProject << "Project Temp Dir:   " << project.getProjectTempDir().string() << "\n";
-                }
-            }
+            // {
+            //     if( project.isEmpty() )
+            //     {
+            //         osProject << "NO PROJECT";
+            //     }
+            //     else
+            //     {
+            //         osProject << "Project Install:    " << project.getProjectInstallPath().string() << "\n";
+            //         osProject << "Project Bin:        " << project.getProjectBin().string() << "\n";
+            //         osProject << "Project Database:   " << project.getProjectDatabase().string() << "\n";
+            //         osProject << "Project Temp Dir:   " << project.getProjectTempDir().string() << "\n";
+            //     }
+            // }
 
             // clang-format off
             std::cout   << "Installation:       " << result.getInstallationPath().string() << "\n"
@@ -126,7 +93,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                         << "clangPluginPath:    " << toolChain.clangPluginPath.string() << "\n"
                         << "databasePath:       " << toolChain.databasePath.string() << "\n"
 
-                        << "jitPath:            " << toolChain.jitPath.string() << "\n"
                         << "megaManglePath:     " << toolChain.megaManglePath.string() << "\n"
                         << "leafPath:           " << toolChain.leafPath.string() << "\n"
 

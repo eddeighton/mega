@@ -110,9 +110,6 @@ public:
     // network::sim::Impl
     virtual MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
 
-    // network::project::Impl
-    virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
-
     // network::enrole::Impl
     virtual void EnroleDestroy( boost::asio::yield_context& yield_ctx ) override;
 };

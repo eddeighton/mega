@@ -24,17 +24,4 @@
 namespace mega::service
 {
 
-// network::project::Impl
-
-void DaemonRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
-{
-    for ( auto pConnection : m_daemon.m_server.getConnections() )
-    {
-        network::project::Request_Sender rq( *this, pConnection->getSender(), yield_ctx );
-        rq.SetProject( project );
-    }
-
-    m_daemon.setActiveProject( project );
-}
-
 } // namespace mega::service

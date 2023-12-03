@@ -19,8 +19,8 @@
 
 #include <memory>
 
-#include "jit/program_functions.hxx"
-#include "jit/jit_exception.hpp"
+// #include "jit/program_functions.hxx"
+#include "runtime/exception.hpp"
 
 #include "mega/values/service/url.hpp"
 
@@ -78,7 +78,7 @@ Cycle::~Cycle()
             pContext->cycleComplete();
         }
     }
-    catch( mega::runtime::JITException& ex )
+    catch( mega::runtime::RuntimeException& ex )
     {
         SPDLOG_ERROR( "Cycle::~Cycle JIT exception: {}", ex.what() );
     }
@@ -127,13 +127,14 @@ void MPOContext::destroyExecutor( MP mp )
 
 reference MPOContext::allocate( TypeID objectTypeID )
 {
-    VERIFY_RTE_MSG( m_pMemoryManager, "Memory manager not instantiated" );
+    THROW_TODO;
+    /*VERIFY_RTE_MSG( m_pMemoryManager, "Memory manager not instantiated" );
 
     reference allocated = m_pMemoryManager->New( objectTypeID );
     m_pLog->record(
         mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
 
-    return allocated;
+    return allocated;*/
 }
 
 reference MPOContext::allocateRemote( const MPO& remote, TypeID objectTypeID )
@@ -161,7 +162,8 @@ reference MPOContext::allocateRemote( const MPO& remote, TypeID objectTypeID )
 // networkToHeap ONLY called when MPO matches
 void MPOContext::networkToHeap( reference& ref )
 {
-    SPDLOG_TRACE( "MPOContext::networkToHeap: {}", ref );
+    THROW_TODO;
+    /*SPDLOG_TRACE( "MPOContext::networkToHeap: {}", ref );
 
     VERIFY_RTE_MSG( ref.getMPO() == getThisMPO(), "networkToHeap used when not matching MPO" );
 
@@ -169,7 +171,7 @@ void MPOContext::networkToHeap( reference& ref )
     {
         VERIFY_RTE_MSG( m_pMemoryManager, "MPOContext::networkToHeap: Memory manager not allocated" );
         ref = m_pMemoryManager->networkToHeap( ref );
-    }
+    }*/
 }
 
 void MPOContext::readLock( reference& ref )
@@ -213,7 +215,7 @@ void MPOContext::writeLock( reference& ref )
     }
 }
 
-void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
+void MPOContext::createRoot( const mega::MPO& mpo )
 {
     // initialise event log
     {
@@ -237,8 +239,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
         }
 
         const boost::filesystem::path eventLogFolder = logFolder / os.str();
-        SPDLOG_TRACE( "MPOContext::createRoot: mpo: {} project: {} event log: {}", mpo,
-                      project.getProjectInstallPath().string(), eventLogFolder.string() );
+        SPDLOG_TRACE( "MPOContext::createRoot: mpo: {} event log: {}", mpo, eventLogFolder.string() );
 
         m_pLog                 = std::make_unique< log::FileStorage >( eventLogFolder, false );
         m_pTransactionProducer = std::make_unique< network::TransactionProducer >( *m_pLog );
@@ -246,10 +247,12 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
 
     m_mpo = mpo;
 
-    m_pDatabase.reset();
-    m_pMemoryManager.reset();
+    //m_pDatabase.reset();
+    //THROW_TODO;
+    //m_pMemoryManager.reset();
 
-    if( boost::filesystem::exists( project.getProjectDatabase() ) )
+    //THROW_TODO;
+    /*if( boost::filesystem::exists( project.getProjectDatabase() ) )
     {
         m_pDatabase = std::make_unique< runtime::MPODatabase >( project.getProjectDatabase() );
 
@@ -264,7 +267,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
             } );
 
         // instantiate the root
-        m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
+        //m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
         VERIFY_RTE_MSG( m_root.valid(), "Root allocation failed" );
         SPDLOG_INFO( "Created Root: {} net: {}", m_root.getObjectAddress(), m_root.getNetworkAddress() );
         m_pLog->record(
@@ -273,7 +276,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     else
     {
         SPDLOG_WARN( "Could not create root - no database found at: {}", project.getProjectDatabase().string() );
-    }
+    }*/
 }
 
 void MPOContext::jit( runtime::JITFunctor func )
@@ -288,11 +291,12 @@ void MPOContext::yield()
 void MPOContext::applyTransaction( const network::Transaction& transaction )
 {
     // NOTE: can context switch when call get_load_record
-    static thread_local mega::runtime::program::RecordLoadBin recordLoadBin;
-    static thread_local mega::runtime::program::RecordMake    recordMake;
-    static thread_local mega::runtime::program::RecordBreak   recordBreak;
+    THROW_TODO;
+    // static thread_local mega::runtime::program::RecordLoadBin recordLoadBin;
+    // static thread_local mega::runtime::program::RecordMake    recordMake;
+    // static thread_local mega::runtime::program::RecordBreak   recordBreak;
 
-    const network::Transaction::In& data = transaction.m_in.value();
+    /*const network::Transaction::In& data = transaction.m_in.value();
     {
         for( const log::Structure::DataIO& structure : data.m_structure )
         {
@@ -346,7 +350,7 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
             SPDLOG_TRACE( "SIM::SimLockRelease Got memory record: {} {}", memory.m_data.m_Ref, memory.m_Data );
             recordLoadBin( memory.m_data.m_Ref, ( void* )memory.m_Data.data(), memory.m_Data.size() );
         }
-    }
+    }*/
 }
 
 void MPOContext::cycleComplete()
@@ -357,7 +361,8 @@ void MPOContext::cycleComplete()
     network::TransactionProducer::UnparentedSet   unparentedObjects;
     m_pTransactionProducer->generate( transactions, unparentedObjects, m_movedObjects );
 
-    if( m_pMemoryManager )
+    THROW_TODO;
+    /*if( m_pMemoryManager )
     {
         m_pMemoryManager->Garbage();
 
@@ -381,7 +386,7 @@ void MPOContext::cycleComplete()
                     deleteRef, deleteRef.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
             }
         }
-    }
+    }*/
 
     for( const auto& [ writeLockMPO, lockCycle ] : m_lockTracker.getWrites() )
     {
@@ -442,8 +447,9 @@ void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::T
         if( reportType.value() == "memory" )
         {
             // do service request...
-            MemoryReporter memoryReporter( *m_pMemoryManager, *m_pDatabase );
-            table.m_rows.push_back( { Line{ "     Memory: "s }, memoryReporter.generate( url ) } );
+            // THROW_TODO;
+            // MemoryReporter memoryReporter( *m_pMemoryManager, *m_pDatabase );
+            // table.m_rows.push_back( { Line{ "     Memory: "s }, memoryReporter.generate( url ) } );
         }
     }
 
@@ -476,12 +482,13 @@ void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::T
             table.m_rows.push_back( { Line{ "    In Locks: "s }, locks } );
         }
 
-        if( m_pMemoryManager )
-        {
-            const network::MemoryStatus memStatus = m_pMemoryManager->getStatus();
-            table.m_rows.push_back( { Line{ "         Mem: "s }, Line{ std::to_string( memStatus.m_heap ) } } );
-            table.m_rows.push_back( { Line{ "         Obj: "s }, Line{ std::to_string( memStatus.m_object ) } } );
-        }
+        // THROW_TODO;
+        // if( m_pMemoryManager )
+        // {
+        //     const network::MemoryStatus memStatus = m_pMemoryManager->getStatus();
+        //     table.m_rows.push_back( { Line{ "         Mem: "s }, Line{ std::to_string( memStatus.m_heap ) } } );
+        //     table.m_rows.push_back( { Line{ "         Obj: "s }, Line{ std::to_string( memStatus.m_object ) } } );
+        // }
     }
 }
 

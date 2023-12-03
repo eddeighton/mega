@@ -25,33 +25,48 @@ namespace mega::service
 {
 
 // network::stash::Impl
-void RootRequestLogicalThread::StashClear( boost::asio::yield_context& yield_ctx ) { m_root.m_stash.clear(); }
+void RootRequestLogicalThread::StashClear( boost::asio::yield_context& yield_ctx )
+{
+    m_root.m_stash.clear();
+}
 
 void RootRequestLogicalThread::StashStash( const boost::filesystem::path& filePath,
-                                          const task::DeterminantHash&   determinant,
-                                          boost::asio::yield_context&    yield_ctx )
+                                           const task::DeterminantHash&   determinant,
+                                           boost::asio::yield_context&    yield_ctx )
 {
     m_root.m_stash.stash( filePath, determinant );
 }
 
 bool RootRequestLogicalThread::StashRestore( const boost::filesystem::path& filePath,
-                                            const task::DeterminantHash&   determinant,
-                                            boost::asio::yield_context&    yield_ctx )
+                                             const task::DeterminantHash&   determinant,
+                                             boost::asio::yield_context&    yield_ctx )
 {
     return m_root.m_stash.restore( filePath, determinant );
 }
 
 task::FileHash RootRequestLogicalThread::BuildGetHashCode( const boost::filesystem::path& filePath,
-                                                          boost::asio::yield_context&    yield_ctx )
+                                                           boost::asio::yield_context&    yield_ctx )
 {
     return m_root.m_buildHashCodes.get( filePath );
 }
 
 void RootRequestLogicalThread::BuildSetHashCode( const boost::filesystem::path& filePath,
-                                                const task::FileHash&          hashCode,
-                                                boost::asio::yield_context&    yield_ctx )
+                                                 const task::FileHash&          hashCode,
+                                                 boost::asio::yield_context&    yield_ctx )
 {
     m_root.m_buildHashCodes.set( filePath, hashCode );
+}
+
+mega::SymbolTable RootRequestLogicalThread::BuildGetSymbolTable( boost::asio::yield_context& yield_ctx )
+{
+    return m_root.m_symbolTable;
+}
+mega::SymbolTable RootRequestLogicalThread::BuildNewSymbols( const mega::SymbolRequest&  request,
+                                                             boost::asio::yield_context& yield_ctx )
+{
+    m_root.m_symbolTable.add( request );
+    m_root.saveConfig();
+    return m_root.m_symbolTable;
 }
 
 } // namespace mega::service

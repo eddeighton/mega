@@ -120,7 +120,7 @@ public:
         mega::pipeline::PipelineResult runPipeline()
         {
             return mega::pipeline::runPipelineLocally(
-                g_stashDir, g_toolChain, m_pipeline, "Task_OperationsPCH", "", {}, false, true, std::cout );
+                g_stashDir, std::nullopt, g_toolChain, m_pipeline, "Task_OperationsPCH", "", {}, false, true, std::cout );
         };
     };
 

@@ -107,7 +107,7 @@ void ToolMPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
     m_tool.runComplete();
 }
 
-void ToolMPOLogicalThread::RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void ToolMPOLogicalThread::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     m_tool.setMPO( mpo );
 
@@ -117,7 +117,7 @@ void ToolMPOLogicalThread::RootSimRun( const Project& project, const MPO& mpo, b
     // note the runtime will query getThisMPO while creating the root
     SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", mpo );
     {
-        createRoot( project, mpo );
+        createRoot( mpo );
         m_functor( yield_ctx );
     }
     SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", mpo );
@@ -162,7 +162,8 @@ network::Status ToolMPOLogicalThread::GetStatus( const std::vector< network::Sta
         status.setLogIterator( getLog().getIterator() );
         status.setLogFolder( getLog().getLogFolderPath().string() );
 
-        status.setMemory( m_pMemoryManager->getStatus() );
+        THROW_TODO;
+        // status.setMemory( m_pMemoryManager->getStatus() );
     }
 
     return status;

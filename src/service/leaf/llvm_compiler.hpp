@@ -21,7 +21,7 @@
 #ifndef GUARD_2022_October_22_LLVMComiler
 #define GUARD_2022_October_22_LLVMComiler
 
-#include "jit/code_generator.hpp"
+#include "runtime/llvm.hpp"
 
 #include "service/network/logical_thread.hpp"
 
@@ -37,7 +37,7 @@ class Sender;
 namespace service
 {
 
-class LLVMCompilerImpl : public runtime::CodeGenerator::LLVMCompiler
+class LLVMCompilerImpl : public runtime::LLVMCompiler
 {
 public:
     LLVMCompilerImpl( network::LogicalThread& logicalthread, std::shared_ptr< mega::network::Sender > pSender,

@@ -23,7 +23,7 @@
 
 #include "service/plugin/plugin_state_machine.hpp"
 
-#include "service/executor/clock.hpp"
+#include "service/clock.hpp"
 #include "service/executor/executor.hpp"
 
 #include <boost/asio/io_context.hpp>
@@ -58,7 +58,6 @@ public:
     void send( const network::Message& msg );
 
     // ProcessClock
-    virtual void setActiveProject( const Project& project, U64 dbHashCode ) override;
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
     virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) override;

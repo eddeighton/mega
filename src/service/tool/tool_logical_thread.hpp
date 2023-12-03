@@ -57,7 +57,7 @@ public:
     virtual network::mpo::Request_Sender     getMPRequest() override;
 
     void         run( boost::asio::yield_context& yield_ctx ) override;
-    virtual void RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     virtual network::Status          GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                 boost::asio::yield_context&           yield_ctx ) override;

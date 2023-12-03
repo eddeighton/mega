@@ -66,7 +66,7 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx ) override;
     virtual void
-    RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     bool isRunComplete() const { return m_bRunComplete; }
 

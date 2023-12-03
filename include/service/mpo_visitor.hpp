@@ -26,7 +26,7 @@
 #include "mega/values/runtime/reference.hpp"
 #include "mega/values/runtime/any.hpp"
 
-#include "jit/program_functions.hxx"
+// #include "jit/program_functions.hxx"
 
 #include <unordered_map>
 
@@ -84,20 +84,23 @@ struct MPORealToLogicalVisitor
         if( !bOwning )
             return 0U;
 
-        static thread_local mega::runtime::program::LinkSize linkSizeFPtr;
-        return linkSizeFPtr( fromLogical( logicalRef ) );
+        THROW_TODO;
+        // static thread_local mega::runtime::program::LinkSize linkSizeFPtr;
+        //return linkSizeFPtr( fromLogical( logicalRef ) );
     }
 
     LogicalObject linkGet( const LogicalReference& logicalRef, U64 index )
     {
-        static thread_local mega::runtime::program::LinkGet linkGetFptr;
-        return toLogicalObject( linkGetFptr( fromLogical( logicalRef ), index ) );
+        THROW_TODO;
+        // static thread_local mega::runtime::program::LinkGet linkGetFptr;
+        //return toLogicalObject( linkGetFptr( fromLogical( logicalRef ), index ) );
     }
 
     Any read( const LogicalReference& logicalRef )
     {
-        static thread_local mega::runtime::program::ReadAny readAny;
-        return readAny( fromLogical( logicalRef ) );
+        THROW_TODO;
+        // static thread_local mega::runtime::program::ReadAny readAny;
+        //return readAny( fromLogical( logicalRef ) );
     }
 };
 
@@ -121,33 +124,37 @@ struct MPORealVisitor
         if( !bOwning )
             return 0U;
 
-        static thread_local mega::runtime::program::LinkSize linkSizeFPtr;
-        return linkSizeFPtr( ref );
+        THROW_TODO;
+        // static thread_local mega::runtime::program::LinkSize linkSizeFPtr;
+        // return linkSizeFPtr( ref );
     }
 
     reference linkGet( const reference& ref, U64 index )
     {
-        static thread_local mega::runtime::program::LinkGet linkGetFptr;
-        return linkGetFptr( ref, index );
+        THROW_TODO;
+        // static thread_local mega::runtime::program::LinkGet linkGetFptr;
+        // return linkGetFptr( ref, index );
     }
 
     Any read( const reference& ref )
     {
-        static thread_local mega::runtime::program::ReadAny readAny;
-        return readAny( ref );
+        THROW_TODO;
+        // static thread_local mega::runtime::program::ReadAny readAny;
+        // return readAny( ref );
     }
 };
 
 template < typename Traversal >
 inline void traverse( Traversal& traversal )
 {
-    static thread_local mega::runtime::program::Traverse programTraverse;
+    THROW_TODO;
+    // static thread_local mega::runtime::program::Traverse programTraverse;
 
-    Iterator iterator( [ &progTraverse = programTraverse ]( void* pIter ) { progTraverse( pIter ); }, traversal );
-    while( iterator )
-    {
-        ++iterator;
-    }
+    // Iterator iterator( [ &progTraverse = programTraverse ]( void* pIter ) { progTraverse( pIter ); }, traversal );
+    // while( iterator )
+    // {
+    //     ++iterator;
+    // }
 }
 
 } // namespace mega

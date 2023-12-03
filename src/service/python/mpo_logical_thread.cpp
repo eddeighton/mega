@@ -158,7 +158,7 @@ void MPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
     m_bRunComplete = true;
 }
 
-void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+void MPOLogicalThread::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     m_mpo = mpo;
     m_python.setMPO( mpo );
@@ -168,7 +168,7 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
 
     SPDLOG_TRACE( "PYTHON RootSimRun: Acquired mpo context: {}", mpo );
     {
-        createRoot( project, mpo );
+        createRoot( mpo );
 
         for( const auto& msg : m_messageQueue )
         {

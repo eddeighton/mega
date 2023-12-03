@@ -36,7 +36,6 @@
 
 #include "mega/bitset_io.hpp"
 #include "mega/bin_archive.hpp"
-#include "mega/xml_archive.hpp"
 #include "mega/record_archive.hpp"
 
 #include "service/protocol/common/context.hpp"
@@ -67,16 +66,16 @@ struct SimpleDimension
         object.~T();
     }
 
-    static inline void save_xml( mega::XMLSaveArchive& archive, const char* pszName, const T& value )
-    {
-        //
-        archive.save( pszName, value );
-    }
-    static inline void load_xml( mega::XMLLoadArchive& archive, const char* pszName, T& value )
-    {
-        //
-        archive.load( pszName, value );
-    }
+    // static inline void save_xml( mega::XMLSaveArchive& archive, const char* pszName, const T& value )
+    // {
+    //     //
+    //     archive.save( pszName, value );
+    // }
+    // static inline void load_xml( mega::XMLLoadArchive& archive, const char* pszName, T& value )
+    // {
+    //     //
+    //     archive.load( pszName, value );
+    // }
     static inline void save_bin( mega::BinSaveArchive& archive, const T& value )
     {
         //
@@ -134,15 +133,15 @@ struct NonSimpleDimension
         object.~T();
     }
 
-    static inline void save_xml( mega::XMLSaveArchive& archive, const char* pszName, const T& value )
-    {
-        archive.save( pszName, value );
-    }
-    static inline void load_xml( mega::XMLLoadArchive& archive, const char* pszName, T& value )
-    {
-        //
-        archive.load( pszName, value );
-    }
+    // static inline void save_xml( mega::XMLSaveArchive& archive, const char* pszName, const T& value )
+    // {
+    //     archive.save( pszName, value );
+    // }
+    // static inline void load_xml( mega::XMLLoadArchive& archive, const char* pszName, T& value )
+    // {
+    //     //
+    //     archive.load( pszName, value );
+    // }
     static inline void save_bin( mega::BinSaveArchive& archive, const T& value )
     {
         //

@@ -20,6 +20,8 @@
 #include "pipeline/pipeline.hpp"
 #include "pipeline/stash.hpp"
 
+#include "mega/values/compilation/symbol_table.hpp"
+
 #include "common/assert_verify.hpp"
 
 #include <boost/dll.hpp>
@@ -31,6 +33,9 @@
 
 #include "common/string.hpp"
 #include "common/file.hpp"
+#include "common/time.hpp"
+
+#include <chrono>
 
 namespace mega::pipeline
 {
@@ -248,7 +253,9 @@ Pipeline::Ptr Registry::getPipeline( const mega::utilities::ToolChain& toolChain
     }
 }
 
-PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, const mega::utilities::ToolChain& toolChain,
+PipelineResult runPipelineLocally( const boost::filesystem::path&           stashDir,
+                                   std::optional< boost::filesystem::path > symbolFile,
+                                   const mega::utilities::ToolChain&        toolChain,
                                    const mega::pipeline::Configuration& pipelineConfig, const std::string& strTaskName,
                                    const std::string&             strSourceFile,
                                    const boost::filesystem::path& inputPipelineResultPath, bool bForceNoStash,
@@ -257,6 +264,14 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
     VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
     task::Stash          stash( stashDir );
     task::BuildHashCodes buildHashCodes;
+    mega::SymbolTable    symbolTable;
+
+    if( symbolFile.has_value() )
+    {
+        auto pInFileStream = boost::filesystem::createBinaryInputFileStream( symbolFile.value() );
+        boost::archive::xml_iarchive archive( *pInFileStream );
+        archive&                     boost::serialization::make_nvp( "symbols", symbolTable );
+    }
 
     // load previous builds hash codes
     if( !inputPipelineResultPath.empty() )
@@ -279,6 +294,9 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
         task::BuildHashCodes&           m_buildHashCodes;
         mega::pipeline::PipelineResult& m_pipelineResult;
         std::ostream&                   m_osLog;
+        using clock = std::chrono::steady_clock;
+        std::chrono::time_point< clock > m_stopWatch;
+
         ProgressReport( mega::pipeline::PipelineResult& pipelineResult, task::Stash& stash,
                         task::BuildHashCodes& buildHashCodes, std::ostream& osLog )
             : m_pipelineResult( pipelineResult )
@@ -287,24 +305,35 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
             , m_osLog( osLog )
         {
         }
-        virtual void onStarted( const std::string& strMsg ) { m_osLog << strMsg << std::endl; }
+        virtual void onStarted( const std::string& strMsg )
+        {
+            m_stopWatch = clock::now();
+            // m_osLog << strMsg << std::endl;
+        }
         virtual void onProgress( const std::string& strMsg ) { m_osLog << strMsg << std::endl; }
         virtual void onFailed( const std::string& strMsg )
         {
-            m_osLog << strMsg << std::endl;
+            m_osLog << common::printDuration( common::elapsed( m_stopWatch ) ) << " " << strMsg << std::endl;
             m_pipelineResult = mega::pipeline::PipelineResult( false, strMsg, m_buildHashCodes.get() );
         }
-        virtual void onCompleted( const std::string& strMsg ) { m_osLog << strMsg << std::endl; }
+        virtual void onCompleted( const std::string& strMsg )
+        {
+            m_osLog << common::printDuration( common::elapsed( m_stopWatch ) ) << " " << strMsg << std::endl;
+        }
     } progressReporter( pipelineResult, stash, buildHashCodes, osLog );
 
     struct StashImpl : public mega::pipeline::Stash
     {
         task::Stash&          m_stash;
         task::BuildHashCodes& m_buildHashCodes;
+        SymbolTable&          m_symbolTable;
         bool                  bForceNoStash;
-        StashImpl( task::Stash& stash, task::BuildHashCodes& buildHashCodes, bool bForceNoStash )
+
+        StashImpl( task::Stash& stash, task::BuildHashCodes& buildHashCodes, SymbolTable& symbolTable,
+                   bool bForceNoStash )
             : m_stash( stash )
             , m_buildHashCodes( buildHashCodes )
+            , m_symbolTable( symbolTable )
             , bForceNoStash( bForceNoStash )
         {
         }
@@ -327,7 +356,13 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
                 return false;
             return m_stash.restore( file, code );
         }
-    } stashImpl( stash, buildHashCodes, bForceNoStash );
+        virtual mega::SymbolTable getSymbolTable() { return m_symbolTable; }
+        virtual mega::SymbolTable newSymbols( const mega::SymbolRequest& request )
+        {
+            m_symbolTable.add( request );
+            return m_symbolTable;
+        }
+    } stashImpl( stash, buildHashCodes, symbolTable, bForceNoStash );
 
     struct Dependencies : public mega::pipeline::DependencyProvider
     {
@@ -378,6 +413,7 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
         while( !schedule.isComplete() && pipelineResult.getSuccess() )
         {
             bool bProgress = false;
+
             for( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
             {
                 pPipeline->execute( task, progressReporter, stashImpl, dependencies );

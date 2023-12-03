@@ -23,7 +23,7 @@
 
 #include "mega/values/runtime/reference.hpp"
 
-#include "jit/functions.hpp"
+#include "runtime/function_ptr.hpp"
 
 #include <pybind11/pybind11.h>
 

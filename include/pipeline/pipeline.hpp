@@ -136,7 +136,9 @@ public:
                                       std::ostream& osLog );
 };
 
-PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, const mega::utilities::ToolChain& toolChain,
+PipelineResult runPipelineLocally( const boost::filesystem::path&           stashDir,
+                                   std::optional< boost::filesystem::path > symbolFile,
+                                   const mega::utilities::ToolChain&        toolChain,
                                    const mega::pipeline::Configuration& pipelineConfig, const std::string& strTaskName,
                                    const std::string&             strSourceFile,
                                    const boost::filesystem::path& inputPipelineResultPath, bool bForceNoStash,

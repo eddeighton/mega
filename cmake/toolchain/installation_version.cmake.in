@@ -25,7 +25,6 @@ execute_process(
 		--clang_plugin "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:clang_plugin>"
 		--database "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:database>"
 
-		--jit "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:jit>"
 		--mega_mangle "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:mega_mangle>"
 		--leaf "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:leaf>"
 	

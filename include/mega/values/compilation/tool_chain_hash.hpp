@@ -43,11 +43,10 @@ struct ToolChain
                const boost::filesystem::path& clangCompiler,
                const boost::filesystem::path& clangPlugin,
                const boost::filesystem::path& database,
-               const boost::filesystem::path& jit,
                const boost::filesystem::path& megaMangle,
                const boost::filesystem::path& leaf );
 
-    boost::filesystem::path parserPath, megaCompilerPath, megaExecutorPath, clangCompilerPath, clangPluginPath, databasePath, jitPath,
+    boost::filesystem::path parserPath, megaCompilerPath, megaExecutorPath, clangCompilerPath, clangPluginPath, databasePath, 
         megaManglePath, leafPath;
     task::FileHash        parserHash, megaCompilerHash, clangPluginHash;
     std::string           strClangCompilerVersion;
@@ -82,7 +81,6 @@ struct ToolChain
         archive& boost::serialization::make_nvp( "clangCompilerPath", clangCompilerPath );
         archive& boost::serialization::make_nvp( "clangPluginPath", clangPluginPath );
         archive& boost::serialization::make_nvp( "databasePath", databasePath );
-        archive& boost::serialization::make_nvp( "jitPath", jitPath );
         archive& boost::serialization::make_nvp( "megaManglePath", megaManglePath );
         archive& boost::serialization::make_nvp( "leafPath", leafPath );
 
@@ -106,7 +104,6 @@ struct ToolChain
         archive& boost::serialization::make_nvp( "clangCompilerPath", clangCompilerPath );
         archive& boost::serialization::make_nvp( "clangPluginPath", clangPluginPath );
         archive& boost::serialization::make_nvp( "databasePath", databasePath );
-        archive& boost::serialization::make_nvp( "jitPath", jitPath );
         archive& boost::serialization::make_nvp( "megaManglePath", megaManglePath );
         archive& boost::serialization::make_nvp( "leafPath", leafPath );
 

@@ -23,11 +23,4 @@
 namespace mega::service
 {
 
-// network::project::Impl
-
-void ToolRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "ToolRequestLogicalThread::SetProject: {}", project.getProjectInstallPath().string() );
-}
-
 } // namespace mega::service

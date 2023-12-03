@@ -20,6 +20,8 @@
 #ifndef STASH_20_MAY_2022
 #define STASH_20_MAY_2022
 
+#include "mega/values/compilation/symbol_table.hpp"
+
 #include "common/stash.hpp"
 
 namespace mega::pipeline
@@ -29,10 +31,12 @@ class Stash
 public:
     virtual ~Stash();
 
-    virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath )                          = 0;
-    virtual void           setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) = 0;
-    virtual void           stash( const boost::filesystem::path& file, task::DeterminantHash code )             = 0;
-    virtual bool           restore( const boost::filesystem::path& file, task::DeterminantHash code )           = 0;
+    virtual task::FileHash    getBuildHashCode( const boost::filesystem::path& filePath )                          = 0;
+    virtual void              setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) = 0;
+    virtual void              stash( const boost::filesystem::path& file, task::DeterminantHash code )             = 0;
+    virtual bool              restore( const boost::filesystem::path& file, task::DeterminantHash code )           = 0;
+    virtual mega::SymbolTable getSymbolTable()                                                                     = 0;
+    virtual mega::SymbolTable newSymbols( const mega::SymbolRequest& request )                                     = 0;
 };
 } // namespace mega::pipeline
 

@@ -45,7 +45,6 @@
 #include "database/OperationsStage.hxx"
 #include "database/ParserStage.hxx"
 #include "database/SymbolAnalysis.hxx"
-#include "database/SymbolAnalysisView.hxx"
 #include "database/SymbolRollout.hxx"
 #include "database/ValueSpaceStage.hxx"
 

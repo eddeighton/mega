@@ -20,6 +20,8 @@
 
 #include "llvm_compiler.hpp"
 
+#include "database/FinalStage.hxx"
+
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/leaf_daemon.hxx"

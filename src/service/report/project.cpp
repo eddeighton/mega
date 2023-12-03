@@ -23,11 +23,4 @@
 namespace mega::service::report
 {
 
-// network::project::Impl
-void ReportRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "ReportRequestLogicalThread::SetProject: {}", project.getProjectInstallPath().string() );
-    m_report.setProject( project );
-}
-
 } // namespace mega::service::report

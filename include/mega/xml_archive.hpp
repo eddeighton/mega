@@ -28,7 +28,7 @@
 #include "mega/values/runtime/maths_types.hpp"
 
 #include "mega/address_table.hpp"
-#include "mega/tag_parser.hpp"
+//#include "mega/tag_parser.hpp"
 
 #include "common/file.hpp"
 #include "common/string.hpp"
@@ -42,7 +42,7 @@
 
 namespace mega
 {
-
+/*
 class XMLSaveArchive
 {
 public:
@@ -206,12 +206,12 @@ public:
     inline void load( const char* name, std::vector< T >& value )
     {
         mega::consumeStart( *m_pFileStream, name );
-        /*for( const auto& v : value )
-        {
-            mega::consumeStart( *m_pFileStream, "element" );
-            load( nullptr, v );
-            mega::consumeEnd( *m_pFileStream, "element" );
-        }*/
+        // for( const auto& v : value )
+        // {
+        //     mega::consumeStart( *m_pFileStream, "element" );
+        //     load( nullptr, v );
+        //     mega::consumeEnd( *m_pFileStream, "element" );
+        // }
         mega::consumeEnd( *m_pFileStream, name );
     }
 
@@ -376,7 +376,7 @@ private:
     mega::XMLTag                    m_rootTag;
     IndexRefMap                     m_indexToRefMap;
     Frame::Stack                    m_stack;
-};
+};*/
 
 } // namespace mega
 

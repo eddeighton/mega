@@ -19,8 +19,8 @@
 
 #include "service/executor/simulation.hpp"
 
-#include "jit/jit_exception.hpp"
-#include "jit/program_functions.hxx"
+#include "runtime/exception.hpp"
+// #include "jit/program_functions.hxx"
 
 #include "service/mpo_visitor.hpp"
 
@@ -121,8 +121,9 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         VERIFY_RTE( m_mpo.has_value() );
         // SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
-        static mega::runtime::program::Enumerate funcEnumerate;
-        static mega::runtime::program::Dispatch  funcDispatch;
+        THROW_TODO;
+        /*static mega::runtime::program::Enumerate funcEnumerate;
+        static mega::runtime::program::Dispatch  funcDispatch;*/
 
         m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
 
@@ -182,24 +183,25 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         for( ; m_iter_events != m_pLog->end< log::Event::Read >(); ++m_iter_events )
                         {
                             const auto& event = *m_iter_events;
-                            funcDispatch( event.getRef() );
+                            THROW_TODO;
+                            // funcDispatch( event.getRef() );
 
-                            /*switch( event.getType() )
-                            {
-                                case log::Event::eComplete:
-                                    SPDLOG_TRACE( "Got completion event: {}", event.getRef() );
-                                    break;
-                                case log::Event::eStart:
-                                    SPDLOG_TRACE( "Got start event: {}", event.getRef() );
-                                    break;
-                                case log::Event::eSignal:
-                                    SPDLOG_TRACE( "Got signal event: {}", event.getRef() );
-                                    break;
-                                default:
-                                {
-                                    THROW_RTE( "Unknown event type" );
-                                }
-                            }*/
+                            // switch( event.getType() )
+                            // {
+                            //     case log::Event::eComplete:
+                            //         SPDLOG_TRACE( "Got completion event: {}", event.getRef() );
+                            //         break;
+                            //     case log::Event::eStart:
+                            //         SPDLOG_TRACE( "Got start event: {}", event.getRef() );
+                            //         break;
+                            //     case log::Event::eSignal:
+                            //         SPDLOG_TRACE( "Got signal event: {}", event.getRef() );
+                            //         break;
+                            //     default:
+                            //     {
+                            //         THROW_RTE( "Unknown event type" );
+                            //     }
+                            // }
                         }
                     }
 
@@ -225,7 +227,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
 
-                        for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
+                        THROW_TODO;
+                        /*for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
                         {
                             reference ref      = i->first;
                             U32       iterator = 0;
@@ -274,7 +277,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                     }
                                 }
                             }
-                        }
+                        }*/
                     }
 
                     // process all structure records
@@ -326,7 +329,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         SPDLOG_WARN( "SIM: LogicalThread: {} exception: {}", getID(), ex.what() );
         getThreadManager().logicalthreadCompleted( shared_from_this() );
     }
-    catch( mega::runtime::JITException& ex )
+    catch( mega::runtime::RuntimeException& ex )
     {
         SPDLOG_WARN( "SIM: LogicalThread: {} exception: {}", getID(), ex.what() );
         getThreadManager().logicalthreadCompleted( shared_from_this() );
@@ -441,7 +444,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
         SPDLOG_ERROR( "SIM::run exception {}", ex.what() );
         m_strSimCreateError = ex.what();
     }
-    catch( mega::runtime::JITException& ex )
+    catch( mega::runtime::RuntimeException& ex )
     {
         SPDLOG_ERROR( "SIM::run JIT exception {}", ex.what() );
         m_strSimCreateError = ex.what();
@@ -467,25 +470,28 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
 
     VERIFY_RTE_MSG( object.getMPO() == getThisMPO(), "SimObjectSnapshot called on bad mpo: " << object );
 
-    static thread_local mega::runtime::program::ObjectSaveBin objectSaveBin;
+    THROW_TODO;
+    // static thread_local mega::runtime::program::ObjectSaveBin objectSaveBin;
 
-    reference heapAddress = m_pMemoryManager->networkToHeap( object );
+    /*reference heapAddress = m_pMemoryManager->networkToHeap( object );
 
     BinSaveArchive archive;
     archive.beginObject( heapAddress.getHeaderAddress() );
     objectSaveBin( object.getType(), heapAddress.getHeap(), &archive );
 
-    return archive.makeSnapshot( getLog().getTimeStamp() );
+    return archive.makeSnapshot( getLog().getTimeStamp() );*/
 }
 
 reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "SIM::SimAllocate: {} {}", getThisMPO(), objectTypeID );
+    THROW_TODO;
+
+    /*SPDLOG_TRACE( "SIM::SimAllocate: {} {}", getThisMPO(), objectTypeID );
     QueueStackDepth queueMsgs( m_queueStack );
     reference       allocated = m_pMemoryManager->New( objectTypeID );
     getLog().record(
         mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
-    return allocated.getHeaderAddress();
+    return allocated.getHeaderAddress();*/
 }
 
 Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx )
@@ -545,15 +551,7 @@ MPO Simulation::SimCreate( boost::asio::yield_context& )
     return m_mpo.value();
 }
 
-void Simulation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "SIM::SetProject: {}", m_mpo.has_value() ? m_mpo.value() : MPO{} );
-
-    m_pDatabase.reset();
-    m_pDatabase = std::make_unique< runtime::MPODatabase >( project.getProjectDatabase() );
-}
-
-void Simulation::RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void Simulation::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::RootSimRun: {}", mpo );
 
@@ -561,7 +559,7 @@ void Simulation::RootSimRun( const Project& project, const MPO& mpo, boost::asio
     setMPOContext( this );
     m_pYieldContext = &yield_ctx;
 
-    createRoot( project, mpo );
+    createRoot( mpo );
 
     runSimulation( yield_ctx );
 
@@ -612,7 +610,8 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
             status.setWrites( MPOTimeStampVec{ writes.begin(), writes.end() } );
         m_stateMachine.status( status );
 
-        status.setMemory( m_pMemoryManager->getStatus() );
+        THROW_TODO;
+        // status.setMemory( m_pMemoryManager->getStatus() );
     }
 
     return status;

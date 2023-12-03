@@ -106,7 +106,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
     virtual network::Message MPRoot( const network::Message& request, const MP& mp,
@@ -138,9 +138,6 @@ public:
 
     // network::memory::Impl
     virtual void MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-
-    // network::project::Impl
-    virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl
     virtual std::vector< network::LogicalThreadID >

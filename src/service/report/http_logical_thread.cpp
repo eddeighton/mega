@@ -248,8 +248,7 @@ void HTTPLogicalThread::spawnTCPStream()
     );
 }
 
-void HTTPLogicalThread::RootSimRun( const Project&              project,
-                                    const mega::MPO&            mpo,
+void HTTPLogicalThread::RootSimRun( const mega::MPO&            mpo,
                                     boost::asio::yield_context& yield_ctx )
 {
     m_mpo = mpo;
@@ -261,7 +260,7 @@ void HTTPLogicalThread::RootSimRun( const Project&              project,
 
     SPDLOG_TRACE( "REPORT RootSimRun: Acquired mpo context: {}", mpo );
     {
-        createRoot( project, mpo );
+        createRoot( mpo );
 
         for( const auto& msg : m_messageQueue )
         {
@@ -444,7 +443,8 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
     // either service request or database
     if( mega::reporters::isCompilationReportType( url ) )
     {
-        auto projectOpt = m_report.getProject();
+        THROW_TODO;
+        /*auto projectOpt = m_report.getProject();
         if( projectOpt.has_value() && boost::filesystem::exists( projectOpt.value().getProjectDatabase() ) )
         {
             VERIFY_RTE_MSG(
@@ -457,7 +457,7 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
             reportContainer = mega::reporters::generateCompilationReport(
                 url, mega::reporters::CompilationReportArgs{ manifest, environment } );
         }
-        else
+        else*/
         {
             SPDLOG_ERROR( "Cannot generated report: {} when no active project", url.c_str() );
         }

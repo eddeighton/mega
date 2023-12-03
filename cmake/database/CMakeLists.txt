@@ -64,7 +64,6 @@ set( MEGA_DATABASE_STAGES
     OperationsStage
     ParserStage
     SymbolAnalysis
-    SymbolAnalysisView
     SymbolRollout
     UnityStage
     UnityStageView

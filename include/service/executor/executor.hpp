@@ -20,9 +20,8 @@
 #ifndef EXECUTOR_27_MAY_2022
 #define EXECUTOR_27_MAY_2022
 
-#include "clock.hpp"
-
-#include "service/leaf.hpp"
+#include "service/clock.hpp"
+#include "service/player.hpp"
 
 #include "service/network/logical_thread_manager.hpp"
 #include "mega/values/compilation/megastructure_installation.hpp"
@@ -73,15 +72,13 @@ public:
     // network::LogicalThreadManager
     network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg ) override;
 
-    network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
+    network::Sender::Ptr getLeafSender() { return m_player.getLeafSender(); }
 
     void                          getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const;
     std::shared_ptr< Simulation > getSimulation( const mega::MPO& mpo ) const;
     mega::MPO createSimulation( network::LogicalThread& callingLogicalThread, boost::asio::yield_context& yield_ctx );
     void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );
     void      logicalthreadCompleted( network::LogicalThreadBase::Ptr pLogicalThread ) override;
-
-    void updateActiveProjectToClock();
 
 private:
     network::Log                             m_log;
@@ -90,7 +87,7 @@ private:
     ProcessClock&                            m_processClock;
     boost::shared_ptr< EG_PARSER_INTERFACE > m_pParser;
     network::ReceiverChannel                 m_receiverChannel;
-    Leaf                                     m_leaf;
+    Player                                   m_player;
     SimulationMap                            m_simulations;
     MegastructureInstallation                m_megastructureInstallation;
 };

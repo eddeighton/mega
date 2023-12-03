@@ -55,8 +55,6 @@ public:
     virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
     MegastructureInstallation getMegastructureInstallation();
-    const Project&            getProject() const { return m_config.getProject(); }
-    void                      setProject( const Project& project ) { m_config.setProject( project ); }
 
     void                setStartupUUIDMP( const std::string& strUUID, MP mp );
     std::optional< MP > getAndResetStartupUUID( const std::string& strUUID );
@@ -75,6 +73,7 @@ private:
     network::Server                            m_server;
     task::BuildHashCodes                       m_buildHashCodes;
     task::Stash                                m_stash;
+    mega::SymbolTable                          m_symbolTable;
     mega::network::RootConfig                  m_config;
     std::optional< MegastructureInstallation > m_megastructureInstallationOpt;
     MPOManager                                 m_mpoManager;

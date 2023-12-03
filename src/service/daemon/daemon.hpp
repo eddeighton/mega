@@ -47,9 +47,6 @@ public:
     // network::LogicalThreadManager
     virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
-    void                           setActiveProject( const Project& project );
-    const std::optional< Project > getActiveProject() const { return m_activeProject; }
-
     void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
 
 private:
@@ -59,7 +56,6 @@ private:
     network::Client          m_rootClient;
     network::Server          m_server;
     MachineID                m_machineID;
-    std::optional< Project > m_activeProject;
 };
 
 } // namespace mega::service

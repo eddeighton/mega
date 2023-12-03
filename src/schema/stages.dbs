@@ -115,17 +115,6 @@ stage SymbolAnalysis
     persource accessor ref< Interface::IContext >;
 }
 
-stage SymbolAnalysisView
-{
-    source .manifest;
-    dependency SymbolAnalysis;
-
-    global accessor ref< Symbols::SymbolTable >;
-    persource accessor ref< Interface::DimensionTrait >;
-    persource accessor ref< Interface::LinkTrait >;
-    persource accessor ref< Interface::IContext >;
-}
-
 stage SymbolRollout
 {
     source .manifest;

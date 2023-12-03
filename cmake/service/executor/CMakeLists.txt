@@ -49,7 +49,6 @@ set( EXECUTOR_SRC_DIR ${MEGA_SRC_DIR}/service/executor )
 set( EXECUTOR_LIB_API 
     ${EXECUTOR_API_DIR}/action_function_cache.hpp
     ${EXECUTOR_API_DIR}/clock_standalone.hpp
-    ${EXECUTOR_API_DIR}/clock.hpp
     ${EXECUTOR_API_DIR}/decision_function_cache.hpp
     ${EXECUTOR_API_DIR}/executor.hpp
     ${EXECUTOR_API_DIR}/request.hpp 
@@ -104,7 +103,7 @@ target_link_libraries( executorLib network )
 target_link_libraries( executorLib leaf )
 target_link_libraries( executorLib pipeline )
 target_link_libraries( executorLib database )
-target_link_libraries( executorLib orc )
+#target_link_libraries( executorLib orc )
 target_link_libraries( executorLib log )
 
 

@@ -33,11 +33,10 @@ namespace mega::compiler
 namespace
 {
 const char* pszStandardIncludes =
-R"INCLUDES(
+    R"INCLUDES(
 
 #include "mega/include.hpp"
 #include "mega/mangle/traits.hpp"
-#include "jit/functions.hpp"
 #include <boost/dll/alias.hpp>
 
 )INCLUDES";
@@ -61,8 +60,8 @@ public:
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
         start( taskProgress, "Task_Include", m_sourceFilePath.path(), includeFilePath.path() );
 
-         const task::DeterminantHash determinant(
-             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( astFile ), pszStandardIncludes } );
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( astFile ), pszStandardIncludes } );
 
         // if ( m_environment.restore( includeFilePath, determinant ) )
         // {
@@ -152,7 +151,6 @@ public:
         {
             cached( taskProgress );
         }
-
     }
 };
 
@@ -191,7 +189,8 @@ public:
 
         if( m_environment.restore( pchPath, determinant ) )
         {
-            if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
+            if( SkipPCHVerification()
+                || ( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) ) )
             {
                 m_environment.setBuildHashCode( pchPath );
                 cached( taskProgress );
@@ -348,7 +347,6 @@ public:
         {
             cached( taskProgress );
         }
-
     }
 };
 
@@ -401,7 +399,8 @@ public:
 
         if( m_environment.restore( pchPath, determinant ) )
         {
-            if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
+            if( SkipPCHVerification()
+                || ( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) ) )
             {
                 m_environment.setBuildHashCode( pchPath );
                 cached( taskProgress );

@@ -32,20 +32,23 @@ void LeafRequestLogicalThread::GetAllocator( const mega::TypeID&         typeID,
                                             const mega::U64&            jitAllocatorPtr,
                                             boost::asio::yield_context& yield_ctx )
 {
-    runtime::Allocator::Ptr* pAllocatorPtr = type_reify< runtime::Allocator::Ptr >( jitAllocatorPtr );
-    *pAllocatorPtr                         = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), typeID );
+    THROW_TODO;
+    //runtime::Allocator::Ptr* pAllocatorPtr = type_reify< runtime::Allocator::Ptr >( jitAllocatorPtr );
+    //*pAllocatorPtr                         = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), typeID );
 }
 
 void LeafRequestLogicalThread::ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx )
 {
-    auto llvmCompiler = getLLVMCompiler( yield_ctx );
-    func( m_leaf.getJIT(), ( void* )&llvmCompiler );
+    THROW_TODO;
+    //auto llvmCompiler = getLLVMCompiler( yield_ctx );
+    //func( m_leaf.getJIT(), ( void* )&llvmCompiler );
 }
 
 TypeID LeafRequestLogicalThread::GetInterfaceTypeID( const mega::TypeID& concreteTypeID, boost::asio::yield_context& )
 {
-    VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
-    return m_leaf.m_pJIT->getInterfaceTypeID( concreteTypeID );
+    THROW_TODO;
+    //VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
+    //return m_leaf.m_pJIT->getInterfaceTypeID( concreteTypeID );
 }
 
 } // namespace mega::service

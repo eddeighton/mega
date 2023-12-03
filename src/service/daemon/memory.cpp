@@ -38,7 +38,7 @@ void DaemonRequestLogicalThread::MPODestroyed( const MPO& mpo, boost::asio::yiel
     }
 }
 
-void DaemonRequestLogicalThread::RootSimRun( const Project& project, const MPO& mpo,
+void DaemonRequestLogicalThread::RootSimRun( const MPO& mpo,
                                              boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::RootSimRun: {}", mpo );
@@ -53,7 +53,7 @@ void DaemonRequestLogicalThread::RootSimRun( const Project& project, const MPO& 
     {
         // network::Server::ConnectionLabelRAII connectionLabel( m_daemon.m_server, mpo, pConnection );
         network::daemon_leaf::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
-        sender.RootSimRun( project, mpo );
+        sender.RootSimRun( mpo );
     }
 }
 

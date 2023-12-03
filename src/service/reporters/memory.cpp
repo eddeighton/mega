@@ -25,7 +25,7 @@
 
 namespace mega::reports
 {
-
+/*
 MemoryReporter::MemoryReporter( mega::runtime::MemoryManager& memoryManager, runtime::MPODatabase& database )
     : m_memoryManager( memoryManager )
     , m_database( database )
@@ -72,7 +72,7 @@ mega::reports::Container MemoryReporter::generate( const mega::reports::URL& url
 
     return test;
 }
-
+*/
 } // namespace mega::reports
 
 #endif // GUARD_2023_October_19_memory

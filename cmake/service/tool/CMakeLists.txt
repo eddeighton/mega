@@ -89,7 +89,7 @@ target_link_libraries( tool protocol )
 target_link_libraries( tool network )
 target_link_libraries( tool leaf )
 target_link_libraries( tool database )
-target_link_libraries( tool orc )
+#target_link_libraries( tool orc )
 target_link_libraries( tool log )
 target_link_libraries( tool mega_mangle )
 

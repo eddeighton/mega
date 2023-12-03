@@ -333,7 +333,7 @@ network::Message LeafRequestLogicalThread::RootExe( const network::Message&     
     }
 }
 
-void LeafRequestLogicalThread::RootSimRun( const Project& project, const MPO& mpo,
+void LeafRequestLogicalThread::RootSimRun( const MPO& mpo,
                                            boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::RootSimRun {}", mpo );
@@ -343,25 +343,25 @@ void LeafRequestLogicalThread::RootSimRun( const Project& project, const MPO& mp
         case network::Node::Executor:
         {
             MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
-            getExeSender( yield_ctx ).RootSimRun( project, mpo );
+            getExeSender( yield_ctx ).RootSimRun( mpo );
         }
         break;
         case network::Node::Tool:
         {
             MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
-            getToolSender( yield_ctx ).RootSimRun( project, mpo );
+            getToolSender( yield_ctx ).RootSimRun( mpo );
         }
         break;
         case network::Node::Python:
         {
             MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
-            getPythonSender( yield_ctx ).RootSimRun( project, mpo );
+            getPythonSender( yield_ctx ).RootSimRun( mpo );
         }
         break;
         case network::Node::Report:
         {
             MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
-            getReportSender( yield_ctx ).RootSimRun( project, mpo );
+            getReportSender( yield_ctx ).RootSimRun( mpo );
         }
         break;
         case network::Node::Terminal:

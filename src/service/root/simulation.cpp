@@ -58,7 +58,7 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
             // network::Server::ConnectionLabelRAII connectionLabel( m_root.m_server, simulationMPO, pConnection );
             network::root_daemon::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
             SPDLOG_TRACE( "RootSimulation::SimStart: sending RootSimRun for {}", simulationMPO );
-            sender.RootSimRun( m_root.getProject(), simulationMPO );
+            sender.RootSimRun( simulationMPO );
         }
 
         // notify to release

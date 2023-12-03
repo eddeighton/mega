@@ -55,7 +55,7 @@ Report::Report( boost::asio::io_context& io_context, network::Log log, short dae
     , m_httpEndPoint( httpEndPoint )
 {
     m_receiverChannel.run( m_leaf.getLeafSender() );
-    m_project                   = m_leaf.startup();
+    m_leaf.startup();
     m_megastructureInstallation = m_leaf.getMegastructureInstallation();
 }
 
@@ -69,11 +69,6 @@ void Report::shutdown()
     // TODO ?
 }
 
-const std::optional< mega::Project >& Report::getProject() const
-{
-    return m_project;
-}
-
 network::LogicalThreadBase::Ptr Report::joinLogicalThread( const network::Message& msg )
 {
     return network::LogicalThreadBase::Ptr( new ReportRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
@@ -84,15 +79,6 @@ void Report::createReport( boost::asio::ip::tcp::socket& socket )
     HTTPLogicalThread::Ptr pMPOLogicalThread
         = std::make_shared< HTTPLogicalThread >( *this, createLogicalThreadID(), socket );
     logicalthreadInitiated( pMPOLogicalThread );
-}
-
-bool Report::isProjectActive() const
-{
-    if( m_project.has_value() )
-    {
-        return boost::filesystem::exists( m_project.value().getProjectInstallPath() );
-    }
-    return false;
 }
 
 } // namespace mega::service::report

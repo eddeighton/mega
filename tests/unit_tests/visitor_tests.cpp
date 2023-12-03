@@ -21,7 +21,7 @@
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 
-#include "jit/jit_exception.hpp"
+#include "runtime/exception.hpp"
 
 #include <gtest/gtest.h>
 
@@ -244,7 +244,7 @@ void traverse_0x10000( void* pIterator )
             break;
 
         default:
-            throw mega::runtime::JITException{ "Unknown concrete type id" };
+            throw mega::runtime::RuntimeException{ "Unknown concrete type id" };
             break;
     }
 }

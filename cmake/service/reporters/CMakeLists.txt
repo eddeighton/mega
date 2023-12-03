@@ -81,7 +81,7 @@ target_link_libraries( reporters protocol )
 target_link_libraries( reporters network )
 target_link_libraries( reporters pipeline )
 target_link_libraries( reporters database )
-target_link_libraries( reporters orc )
+#target_link_libraries( reporters orc )
 target_link_libraries( reporters log )
 
 install( FILES ${REPORTERS_LIB_API} DESTINATION include/service )

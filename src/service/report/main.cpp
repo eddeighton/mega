@@ -93,17 +93,18 @@ int main( int argc, char* argv[] )
         mega::service::report::Report  reportService( ioService, log, daemonPort, timeoutSeconds, endPoint );
 
         {
-            const auto& projectOpt = reportService.getProject();
-            if( projectOpt.has_value() )
-            {
-                SPDLOG_INFO( "Reporting node started with MP: {} Project: {}",
-                             reportService.getMP(),
-                             projectOpt.value().getProjectInstallPath().string() );
-            }
-            else
-            {
-                SPDLOG_INFO( "Reporting node started with MPO: {} Project: {}", reportService.getMP(), "none" );
-            }
+            // THROW_TODO;
+            // const auto& projectOpt = reportService.getProject();
+            // if( projectOpt.has_value() )
+            // {
+            //     SPDLOG_INFO( "Reporting node started with MP: {} Project: {}",
+            //                  reportService.getMP(),
+            //                  projectOpt.value().getProjectInstallPath().string() );
+            // }
+            // else
+            // {
+            //     SPDLOG_INFO( "Reporting node started with MPO: {} Project: {}", reportService.getMP(), "none" );
+            // }
         }
 
         mega::httpserver::ReportFactory reportFactory

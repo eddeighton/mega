@@ -50,9 +50,10 @@ namespace driver::execute_pipeline
 
 void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path stashDir, pipelineXML, outputPipelineResultPath, inputPipelineResultPath, toolchainXML;
-    bool                    bRunLocally = false, bForceNoStash = false, bExecuteUpTo = false;
-    std::string             strTaskName, strSourceFile;
+    boost::filesystem::path stashDir, pipelineXML, outputPipelineResultPath, inputPipelineResultPath, toolchainXML,
+        symbolXML;
+    bool        bRunLocally = false, bForceNoStash = false, bExecuteUpTo = false;
+    std::string strTaskName, strSourceFile;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Execute a Megastructure Pipeline" );
@@ -64,6 +65,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         ( "local",              po::bool_switch( &bRunLocally ),                                    "Run locally" )
         ( "result_in",          po::value< boost::filesystem::path >( &inputPipelineResultPath ),   "Input Pipeline Result XML File ( Local only )" )
         ( "stash_dir",          po::value< boost::filesystem::path >( &stashDir ),                  "Stash directory ( Local only )" )
+        ( "symbol_xml",         po::value< boost::filesystem::path >( &symbolXML ),                 "Optional Symbol XML File ( Local Only )" )
         ( "toolchain_xml",      po::value< boost::filesystem::path >( &toolchainXML ),              "Toolchain XML file ( Local only )" )
         ( "task",               po::value< std::string >( &strTaskName ),                           "Specific task to run. ( Local only )" )
         ( "source",             po::value< std::string >( &strSourceFile ),                         "Source file for specific task. ( Local only )" )
@@ -116,8 +118,14 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                     boost::archive::xml_iarchive ia( *pInStream );
                     ia&                          boost::serialization::make_nvp( "toolchain", toolchain );
                 }
-                pipelineResult = runPipelineLocally( stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile,
-                                                     inputPipelineResultPath, bForceNoStash, bExecuteUpTo, std::cout );
+                std::optional< boost::filesystem::path > symbolXMLOpt;
+                if( !symbolXML.empty() )
+                {
+                    symbolXMLOpt = symbolXML;
+                }
+                pipelineResult
+                    = runPipelineLocally( stashDir, symbolXMLOpt, toolchain, pipelineConfig, strTaskName, strSourceFile,
+                                          inputPipelineResultPath, bForceNoStash, bExecuteUpTo, std::cout );
             }
             else
             {

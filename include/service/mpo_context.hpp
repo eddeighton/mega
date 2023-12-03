@@ -26,7 +26,7 @@
 
 #include "environment/mpo_database.hpp"
 
-#include "jit/functions.hpp"
+// #include "jit/functions.hpp"
 
 #include "service/memory_manager.hpp"
 #include "service/lock_tracker.hpp"
@@ -65,7 +65,7 @@ protected:
     boost::asio::yield_context*                     m_pYieldContext = nullptr;
     reference                                       m_root;
     std::unique_ptr< runtime::MPODatabase >         m_pDatabase;
-    std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
+    // std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
     network::TransactionProducer::MovedObjects      m_movedObjects; // dependency to SimMoveMachine
 
     std::chrono::time_point< std::chrono::system_clock > m_systemStartTime = std::chrono::system_clock::now();
@@ -135,7 +135,7 @@ public:
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
 protected:
-    void createRoot( const Project& project, const mega::MPO& mpo );
+    void createRoot( const mega::MPO& mpo );
 };
 
 } // namespace mega

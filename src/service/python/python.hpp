@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_March_09_python
 #define GUARD_2023_March_09_python
 
-#include "service/leaf.hpp"
+#include "service/host.hpp"
 
 #include "service/network/client.hpp"
 #include "service/network/logical_thread_manager.hpp"
@@ -51,7 +51,7 @@ public:
     // network::LogicalThreadManager
     virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
-    network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
+    network::Sender::Ptr getLeafSender() { return m_host.getLeafSender(); }
 
     bool isMPOInitialised() const { return m_bMPOInitialised; }
     void setMPOInitialised() { m_bMPOInitialised = true; }
@@ -63,17 +63,13 @@ public:
     }
     void setMPO( MPO mpo ) { m_mpo = mpo; }
 
-    const std::optional< mega::Project >& getProject() const;
-    void                                  setProject( const Project& project ) { m_project = project; }
-
 private:
     network::Log                           m_log;
     boost::asio::io_context&               m_io_context;
     network::ReceiverChannel               m_receiverChannel;
-    Leaf                                   m_leaf;
+    Host                                   m_host;
     std::optional< mega::MPO >             m_mpo;
     bool                                   m_bMPOInitialised = false;
-    mutable std::optional< mega::Project > m_project;
 };
 } // namespace mega::service::python
 

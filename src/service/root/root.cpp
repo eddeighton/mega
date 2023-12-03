@@ -96,7 +96,6 @@ void Root::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
     table.m_rows.push_back( { Line{ "          IP: "s }, Line{ m_server.getEndPoint().address().to_string() } } );
     table.m_rows.push_back( { Line{ "        PORT: "s }, Line{ std::to_string( m_server.getEndPoint().port() ) } } );
     table.m_rows.push_back( { Line{ "Installation: "s }, Line{ megaInstall,   makeFileURL( url, megaInstall.getInstallationPath() ) } } );
-    table.m_rows.push_back( { Line{ "     Project: "s }, Line{ getProject(),  makeFileURL( url, getProject().getProjectInstallPath() ) } } );
     table.m_rows.push_back( { Line{ "Stash Folder: "s }, Line{ m_stashFolder, makeFileURL( url, m_stashFolder ) } } );
     table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, makeFileURL( url, m_log.logFile ) } } );
     // clang-format on
@@ -106,27 +105,54 @@ void Root::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
 
 void Root::loadConfig()
 {
-    const boost::filesystem::path configFile = boost::filesystem::current_path() / "config.xml";
-    if( boost::filesystem::exists( configFile ) )
     {
-        std::unique_ptr< boost::filesystem::ifstream > pFileStream
-            = boost::filesystem::createBinaryInputFileStream( configFile );
+        const boost::filesystem::path configFile = boost::filesystem::current_path() / "config.xml";
+        if( boost::filesystem::exists( configFile ) )
         {
-            boost::archive::xml_iarchive xml( *pFileStream );
-            xml&                         boost::serialization::make_nvp( "config", m_config );
+            std::unique_ptr< boost::filesystem::ifstream > pFileStream
+                = boost::filesystem::createBinaryInputFileStream( configFile );
+            {
+                boost::archive::xml_iarchive xml( *pFileStream );
+                xml&                         boost::serialization::make_nvp( "config", m_config );
+            }
+        }
+    }
+
+    {
+        const boost::filesystem::path symbolFile = boost::filesystem::current_path() / "symbols.xml";
+        if( boost::filesystem::exists( symbolFile ) )
+        {
+            std::unique_ptr< boost::filesystem::ifstream > pFileStream
+                = boost::filesystem::createBinaryInputFileStream( symbolFile );
+            {
+                boost::archive::xml_iarchive xml( *pFileStream );
+                xml&                         boost::serialization::make_nvp( "symbols", m_symbolTable );
+            }
         }
     }
 }
 
 void Root::saveConfig()
 {
-    const boost::filesystem::path configFile = boost::filesystem::current_path() / "config.xml";
-
-    std::unique_ptr< boost::filesystem::ofstream > pFileStream
-        = boost::filesystem::createBinaryOutputFileStream( configFile );
     {
-        boost::archive::xml_oarchive xml( *pFileStream );
-        xml&                         boost::serialization::make_nvp( "config", m_config );
+        const boost::filesystem::path configFile = boost::filesystem::current_path() / "config.xml";
+
+        std::unique_ptr< boost::filesystem::ofstream > pFileStream
+            = boost::filesystem::createBinaryOutputFileStream( configFile );
+        {
+            boost::archive::xml_oarchive xml( *pFileStream );
+            xml&                         boost::serialization::make_nvp( "config", m_config );
+        }
+    }
+    {
+        const boost::filesystem::path symbolFile = boost::filesystem::current_path() / "symbols.xml";
+
+        std::unique_ptr< boost::filesystem::ofstream > pFileStream
+            = boost::filesystem::createBinaryOutputFileStream( symbolFile );
+        {
+            boost::archive::xml_oarchive xml( *pFileStream );
+            xml&                         boost::serialization::make_nvp( "symbols", m_symbolTable );
+        }
     }
 }
 

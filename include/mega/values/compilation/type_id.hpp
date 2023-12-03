@@ -149,6 +149,8 @@ std::ostream& operator<<( std::ostream& os, const mega::TypeID& typeID );
 std::istream& operator>>( std::istream& is, mega::TypeID& typeID );
 #endif
 
+static constexpr TypeID NULL_SYMBOL_ID = TypeID( 0 );
+static constexpr TypeID NULL_TYPE_ID   = TypeID::make_context( 0, 0 );
 static constexpr TypeID ROOT_SYMBOL_ID = TypeID( -1 );
 static constexpr TypeID ROOT_TYPE_ID   = TypeID::make_context( 1, 0 );
 

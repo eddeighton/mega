@@ -51,7 +51,7 @@ public:
     void run( boost::asio::yield_context& yield_ctx )
     {
         m_daemon.m_machineID = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleDaemon();
-        m_daemon.setActiveProject( getRootRequest< network::project::Request_Encoder >( yield_ctx ).GetProject() );
+        //m_daemon.setActiveProject( getRootRequest< network::project::Request_Encoder >( yield_ctx ).GetProject() );
 
         std::ostringstream os;
         os << network::Node( network::Node::Daemon ) << " " << m_daemon.m_machineID;
@@ -101,11 +101,6 @@ void Daemon::getGeneralStatusReport( const mega::reports::URL& url, mega::report
     // clang-format on
 
     report.m_elements.push_back( table );
-}
-
-void Daemon::setActiveProject( const Project& project )
-{
-    m_activeProject = project;
 }
 
 void Daemon::onLeafDisconnect( mega::MP leafMP )

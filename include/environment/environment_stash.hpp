@@ -54,7 +54,7 @@ public:
     inline void setBuildHashCodePath( const boost::filesystem::path& filePath ) const
     {
         m_stash.setBuildHashCode( filePath, task::FileHash( filePath ) );
-    } 
+    }
 
     template < typename TFilePathType >
     void setBuildHashCode( const TFilePathType& filePath ) const
@@ -86,6 +86,8 @@ public:
 
     bool restore( const CompilationFilePath& filePath, task::DeterminantHash hashCode ) const;
 
+    virtual mega::SymbolTable getSymbolTable() const { return m_stash.getSymbolTable(); }
+    virtual mega::SymbolTable newSymbols( const mega::SymbolRequest& request ) const { return m_stash.newSymbols( request ); }
 };
 
 } // namespace mega::io

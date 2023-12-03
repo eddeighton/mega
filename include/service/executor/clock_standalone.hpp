@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_July_20_clock_standalone
 #define GUARD_2023_July_20_clock_standalone
 
-#include "clock.hpp"
+#include "service/clock.hpp"
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -54,7 +54,6 @@ public:
 
 public:
     ProcessClockStandalone( boost::asio::io_context& ioContext, FloatTickDuration tickRate );
-    virtual void setActiveProject( const Project& project, U64 dbHashCode ) override;
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
     virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range ) override;

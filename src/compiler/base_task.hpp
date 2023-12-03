@@ -136,6 +136,8 @@ public:
     }
     virtual ~BaseTask() = default;
 
+    bool SkipPCHVerification() const { return true; }
+
     const TaskName& getTaskName() const { return m_taskName; }
     bool            isCompleted() const { return m_bCompleted; }
 
@@ -176,7 +178,8 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress ) = 0;
 
-    int run_cmd( mega::pipeline::Progress& taskProgress, const common::Command& command, bool bTreatFailureAsError = true )
+    int run_cmd( mega::pipeline::Progress& taskProgress, const common::Command& command,
+                 bool bTreatFailureAsError = true )
     {
         std::string strOutput, strError;
 

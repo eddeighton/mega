@@ -563,13 +563,13 @@ public:
                     }
                     else
                     {
-                        REPORT_ERROR( "Invalid type: " << symbolID );
+                        REPORT_ERROR( "Invalid interface type: " << symbolID );
                         return false;
                     }
                 }
                 else
                 {
-                    REPORT_ERROR( "Invalid type: " << symbolID );
+                    REPORT_ERROR( "Invalid symbol type: " << symbolID );
                     return false;
                 }
             }

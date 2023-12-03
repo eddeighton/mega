@@ -43,14 +43,14 @@ namespace mega::mangle
     {
         {{ type.impl }}Dimension< {{ type.canon }} >::copy( reify< {{ type.canon }} >( pFrom ), reify< {{ type.canon }} >( pTo ) );
     }
-    void save_xml_{{ type.mangle }}( void* p, const char* name, void* pArchive )
-    {
-        {{ type.impl }}Dimension< {{ type.canon }} >::save_xml( reify< mega::XMLSaveArchive >( pArchive ), name, reify< {{ type.canon }} >( p ) );
-    }
-    void load_xml_{{ type.mangle }}( void* p, const char* name, void* pArchive )
-    {
-        {{ type.impl }}Dimension< {{ type.canon }} >::load_xml( reify< mega::XMLLoadArchive >( pArchive ), name, reify< {{ type.canon }} >( p ) );
-    }
+    // void save_xml_{{ type.mangle }}( void* p, const char* name, void* pArchive )
+    // {
+    //     {{ type.impl }}Dimension< {{ type.canon }} >::save_xml( reify< mega::XMLSaveArchive >( pArchive ), name, reify< {{ type.canon }} >( p ) );
+    // }
+    // void load_xml_{{ type.mangle }}( void* p, const char* name, void* pArchive )
+    // {
+    //     {{ type.impl }}Dimension< {{ type.canon }} >::load_xml( reify< mega::XMLLoadArchive >( pArchive ), name, reify< {{ type.canon }} >( p ) );
+    // }
     void save_bin_{{ type.mangle }}( void* p, void* pArchive )
     {
         {{ type.impl }}Dimension< {{ type.canon }} >::save_bin( reify< mega::BinSaveArchive >( pArchive ), reify< {{ type.canon }} >( p ) );

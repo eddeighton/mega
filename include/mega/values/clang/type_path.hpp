@@ -28,6 +28,9 @@
 #include <array>
 
 template< typename... Ts >
-struct [[clang::eg_type( mega::id_TypePath )]] __eg_type_path{};
+struct [[clang::eg_type( mega::id_TypePath )]] __eg_type_path
+{
+    
+};
 
 #endif //EG_TYPE_PATH

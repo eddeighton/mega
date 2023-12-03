@@ -23,8 +23,8 @@
 
 // #include "fixed_allocator.hpp"
 
-#include "jit/allocator.hpp"
-#include "jit/object_header.hpp"
+// #include "jit/allocator.hpp"
+// #include "jit/object_header.hpp"
 
 #include "environment/mpo_database.hpp"
 
@@ -41,7 +41,7 @@
 
 namespace mega::runtime
 {
-
+/*
 class MemoryManager
 {
     using PtrVariant = std::variant< HeapBufferPtr
@@ -72,13 +72,13 @@ public:
         status.m_heap   = m_usedHeapMemory;
         status.m_object = m_heapMap.size();
 
-        /*auto i = status.m_allocators.begin();
-        for( const auto& [ typeID, pAllocator ] : m_allocators )
-        {
-            i->typeID = typeID;
-            i->status = pAllocator->getStatus();
-            ++i;
-        }*/
+        // auto i = status.m_allocators.begin();
+        // for( const auto& [ typeID, pAllocator ] : m_allocators )
+        // {
+        //     i->typeID = typeID;
+        //     i->status = pAllocator->getStatus();
+        //     ++i;
+        // }
         return status;
     }
 
@@ -88,45 +88,45 @@ public:
         , m_mpo( mpo )
         , m_getAllocatorFPtr( std::move( getAllocatorFunction ) )
     {
-        /*for( const auto& [ typeID, pMapping ] : database.getMemoryMappings() )
-        {
-            FixedAllocator::Ptr pAllocator = std::make_unique< FixedAllocator >(
-                pMapping->get_block_size(), pMapping->get_fixed_allocation(), pMapping->get_block_alignment() );
-
-            // register with all types
-            for( FinalStage::Concrete::Object* pObject : pMapping->get_concrete() )
-            {
-                // SPDLOG_TRACE( "Fixed allocations for: {} of {}", typeID, pObject->get_concrete_id() );
-                VERIFY_RTE( m_allocatorsMap.insert( { pObject->get_concrete_id(), pAllocator.get() } ).second );
-            }
-
-            m_allocators.insert( { typeID, std::move( pAllocator ) } );
-        }*/
+        //for( const auto& [ typeID, pMapping ] : database.getMemoryMappings() )
+        //{
+        //    FixedAllocator::Ptr pAllocator = std::make_unique< FixedAllocator >(
+        //        pMapping->get_block_size(), pMapping->get_fixed_allocation(), pMapping->get_block_alignment() );
+        
+        //    // register with all types
+        //    for( FinalStage::Concrete::Object* pObject : pMapping->get_concrete() )
+        //    {
+        //        // SPDLOG_TRACE( "Fixed allocations for: {} of {}", typeID, pObject->get_concrete_id() );
+        //        VERIFY_RTE( m_allocatorsMap.insert( { pObject->get_concrete_id(), pAllocator.get() } ).second );
+        //    }
+        
+        //    m_allocators.insert( { typeID, std::move( pAllocator ) } );
+        //}
     }
-    /*
-        inline network::SenderRef::AllocatorBaseArray getAllocators() const
-        {
-            network::SenderRef::AllocatorBaseArray result;
-            auto                                   i = result.begin();
-
-            for( const auto& [ typeID, pAllocator ] : m_allocators )
-            {
-                VERIFY_RTE_MSG( i != result.end(), "Too many allocators for SenderRef::AllocatorBaseArray" );
-                i->type  = typeID;
-                i->pBase = pAllocator->getDoubleBuffer();
-                ++i;
-            }
-
-            return result;
-        }
-
-        inline void doubleBuffer()
-        {
-            for( const auto& [ _, pAllocator ] : m_allocators )
-            {
-                pAllocator->copyToDoubleBuffer();
-            }
-        }*/
+    
+        //inline network::SenderRef::AllocatorBaseArray getAllocators() const
+        //{
+        //    network::SenderRef::AllocatorBaseArray result;
+        //    auto                                   i = result.begin();
+        
+        //    for( const auto& [ typeID, pAllocator ] : m_allocators )
+        //    {
+        //        VERIFY_RTE_MSG( i != result.end(), "Too many allocators for SenderRef::AllocatorBaseArray" );
+        //        i->type  = typeID;
+        //        i->pBase = pAllocator->getDoubleBuffer();
+        //        ++i;
+        //    }
+        
+        //    return result;
+        //}
+        
+        //inline void doubleBuffer()
+        //{
+        //    for( const auto& [ _, pAllocator ] : m_allocators )
+        //    {
+        //        pAllocator->copyToDoubleBuffer();
+        //    }
+        //}
 
     inline AllocationID getAllocationID() const { return m_allocationIDCounter; }
     inline U64          getAllocationCount() const { return m_heapMap.size(); }
@@ -168,15 +168,15 @@ public:
         // must acquire allocator EVERYTIME for now - which means request to JIT
         const TypeID   objectType = TypeID::make_object_from_typeID( typeID );
         Allocator::Ptr pAllocator = m_getAllocatorFPtr( objectType );
-        /*auto           iFind      = m_allocatorsMap.find( objectType );
-        if( iFind != m_allocatorsMap.end() )
-        {
-            // SPDLOG_TRACE( "Memory Manager:New fixed allocation for: {} of {}", typeID, objectType );
-            FixedAllocator::FixedPtr pFixed = iFind->second->allocate();
-            const reference          networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, pFixed.getID() };
-            return construct( networkAddress, PtrVariant{ std::move( pFixed ) }, pAllocator );
-        }
-        else*/
+        // auto           iFind      = m_allocatorsMap.find( objectType );
+        // if( iFind != m_allocatorsMap.end() )
+        // {
+        //     // SPDLOG_TRACE( "Memory Manager:New fixed allocation for: {} of {}", typeID, objectType );
+        //     FixedAllocator::FixedPtr pFixed = iFind->second->allocate();
+        //     const reference          networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, pFixed.getID() };
+        //     return construct( networkAddress, PtrVariant{ std::move( pFixed ) }, pAllocator );
+        // }
+        // else
         {
             // SPDLOG_TRACE( "Memory Manager:New heap allocation for: {} of {}", typeID, objectType );
             auto          sizeAlign = pAllocator->getSizeAlignment();
@@ -250,7 +250,7 @@ private:
     // Allocators       m_allocators;
     // AllocatorMap     m_allocatorsMap;
     OldHeapVector m_oldHeap;
-};
+};*/
 
 } // namespace mega::runtime
 

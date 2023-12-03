@@ -40,7 +40,7 @@ namespace tool_chain
 {
 void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path clangPlugin, parser, megaCompiler, megaExecutor, clangCompiler, database, jit, megaMangle, leaf;
+    boost::filesystem::path clangPlugin, parser, megaCompiler, megaExecutor, clangCompiler, database, megaMangle, leaf;
     boost::filesystem::path outputFilePath;
 
     {
@@ -56,7 +56,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 ( "clang_plugin",   po::value< boost::filesystem::path >( &clangPlugin ),   "Clang Plugin path" )
                 ( "database",       po::value< boost::filesystem::path >( &database ),      "Database Path" )
 
-                ( "jit",            po::value< boost::filesystem::path >( &jit ),           "Jit Path" )
                 ( "mega_mangle",    po::value< boost::filesystem::path >( &megaMangle ),    "Mega Mangle Path" )
                 ( "leaf",           po::value< boost::filesystem::path >( &leaf ),          "Leaf Path" )
 
@@ -81,7 +80,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     VERIFY_RTE_MSG( boost::filesystem::exists( megaExecutor ), "File not found megaExecutor at : " << megaExecutor.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( clangPlugin ), "File not found clangPlugin at : " << clangPlugin.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( database ), "File not found database at : " << database.string() );
-    VERIFY_RTE_MSG( boost::filesystem::exists( jit ), "File not found jit at : " << jit.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( megaMangle ), "File not found megaMangle at : " << megaMangle.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( leaf ), "File not found leaf at : " << leaf.string() );
     // clang-format on
@@ -93,7 +91,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             const mega::U64   szDatabaseVersion = mega::utilities::ToolChain::getDatabaseVersion( database );
 
             const mega::utilities::ToolChain toolChain( strClangVersion, szDatabaseVersion, parser, megaCompiler, megaExecutor,
-                                                        clangCompiler, clangPlugin, database, jit, megaMangle, leaf );
+                                                        clangCompiler, clangPlugin, database, megaMangle, leaf );
 
             boost::archive::xml_oarchive oa( os );
             oa&                          boost::serialization::make_nvp( "toolchain", toolChain );

@@ -20,12 +20,12 @@
 #ifndef SIMULATION_22_JUNE_2022
 #define SIMULATION_22_JUNE_2022
 
+#include "service/clock.hpp"
+
 #include "service/executor/message_traits.hpp"
-#include "service/executor/clock.hpp"
 #include "service/executor/state_machine.hpp"
 #include "service/executor/sim_move_machine.hpp"
 #include "service/executor/transaction_machine.hpp"
-#include "service/executor/clock.hpp"
 #include "service/executor/request.hpp"
 
 #include "service/mpo_context.hpp"
@@ -78,11 +78,8 @@ public:
     virtual void SimDestroy( boost::asio::yield_context& ) override;
     virtual void SimDestroyBlocking( boost::asio::yield_context& ) override;
 
-    // network::project::Impl
-    virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
-
     // network::leaf_exe::Impl
-    virtual void RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,

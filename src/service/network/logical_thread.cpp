@@ -26,7 +26,7 @@
 
 #include "service/protocol/common/context.hpp"
 
-#include "jit/jit_exception.hpp"
+#include "runtime/exception.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -129,7 +129,7 @@ void LogicalThread::acknowledgeInboundRequest( const ReceivedMessage& msg, boost
     {
         msg.pResponseSender->send( make_response_error_msg( getID(), ex.what() ), yield_ctx );
     }
-    catch( mega::runtime::JITException& ex )
+    catch( mega::runtime::RuntimeException& ex )
     {
         msg.pResponseSender->send( make_response_error_msg( getID(), ex.what() ), yield_ctx );
     }
@@ -147,7 +147,7 @@ void LogicalThread::run( boost::asio::yield_context& yield_ctx )
         SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
         getThreadManager().logicalthreadCompleted( shared_from_this() );
     }
-    catch( mega::runtime::JITException& ex )
+    catch( mega::runtime::RuntimeException& ex )
     {
         SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
         getThreadManager().logicalthreadCompleted( shared_from_this() );
@@ -287,7 +287,7 @@ void StackfulLogicalThread::run( boost::asio::yield_context& yield_ctx )
         SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
         getThreadManager().logicalthreadCompleted( shared_from_this() );
     }
-    catch( mega::runtime::JITException& ex )
+    catch( mega::runtime::RuntimeException& ex )
     {
         SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
         getThreadManager().logicalthreadCompleted( shared_from_this() );

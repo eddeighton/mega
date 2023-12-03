@@ -60,10 +60,7 @@ public:
 
     int                                   getTimeoutSeconds() const { return m_iTimeoutSeconds; }
     const boost::asio::ip::tcp::endpoint& getHTTPEndPoint() const { return m_httpEndPoint; }
-    bool                                  isProjectActive() const;
     const MegastructureInstallation&      getMegastructureInstallation() const { return m_megastructureInstallation; }
-    const std::optional< mega::Project >& getProject() const;
-    void                                  setProject( const Project& project ) { m_project = project; }
 
     void createReport( boost::asio::ip::tcp::socket& socket );
 
@@ -76,7 +73,6 @@ private:
     Leaf                           m_leaf;
     int                            m_iTimeoutSeconds;
     boost::asio::ip::tcp::endpoint m_httpEndPoint;
-    std::optional< Project >       m_project;
     MegastructureInstallation      m_megastructureInstallation;
 };
 } // namespace mega::service::report

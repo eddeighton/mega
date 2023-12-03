@@ -22,7 +22,7 @@
 struct TypeIDSequenceGen
 {
     using NewSymbolNames = std::map< std::string, Symbols::SymbolTypeID* >;
-    using CastFunctor    = std::function< Interface::IContext*( Interface::ContextGroup* ) >;
+    using ObjectSubObjectIDSequence = mega::SymbolTraits::SymbolIDVectorPair;
     
     const NewSymbolNames& symbolNames;
 
@@ -31,7 +31,7 @@ struct TypeIDSequenceGen
     {
     }
 
-    mega::TypeID getTypeID( const std::string& strID ) const
+    mega::TypeID getSymbolID( const std::string& strID ) const
     {
         auto iFind = symbolNames.find( strID );
         VERIFY_RTE( iFind != symbolNames.end() );
@@ -39,34 +39,49 @@ struct TypeIDSequenceGen
         return pSymbolTypeID->get_id();
     }
 
-    void recurse( Interface::ContextGroup* pContextGroup, mega::TypeIDSequence& sequence ) const
+    template< typename T >
+    void recurse( T* pInterface, ObjectSubObjectIDSequence& sequence, bool bFoundObject ) const
     {
-        if( auto pContext = db_cast< Interface::IContext >( pContextGroup ) )
+        if( !bFoundObject )
         {
-            sequence.push_back( getTypeID( Interface::getIdentifier( pContext ) ) );
-            recurse( pContext->get_parent(), sequence );
+            if( db_cast< Interface::Object >( pInterface ) )
+            {
+                bFoundObject = true;
+            }
+        }
+        else
+        {
+            VERIFY_RTE( !db_cast< Interface::Object >( pInterface ) );
+        }
+        if( bFoundObject )
+        {
+            sequence.first.push_back( getSymbolID( Interface::getIdentifier( pInterface ) ) );
+        }
+        else
+        {
+            sequence.second.push_back( getSymbolID( Interface::getIdentifier( pInterface ) ) );
+        }
+
+        if( auto pParent = db_cast< Interface::IContext >( pInterface->get_parent() ) )
+        {
+            recurse( pParent, sequence, bFoundObject );
         }
     }
 
-    mega::TypeIDSequence operator()( Interface::IContext* pContext ) const
+    template< typename T >
+    ObjectSubObjectIDSequence operator()( T* pContext ) const
     {
-        mega::TypeIDSequence sequence{ getTypeID( Interface::getIdentifier( pContext ) ) };
-        recurse( pContext->get_parent(), sequence );
-        std::reverse( sequence.begin(), sequence.end() );
-        return sequence;
-    }
-    mega::TypeIDSequence operator()( Interface::DimensionTrait* pDimension ) const
-    {
-        mega::TypeIDSequence sequence{ getTypeID( Interface::getIdentifier( pDimension ) ) };
-        recurse( pDimension->get_parent(), sequence );
-        std::reverse( sequence.begin(), sequence.end() );
-        return sequence;
-    }
-    mega::TypeIDSequence operator()( Interface::LinkTrait* pLink ) const
-    {
-        mega::TypeIDSequence sequence{ getTypeID( Interface::getIdentifier( pLink ) ) };
-        recurse( pLink->get_parent(), sequence );
-        std::reverse( sequence.begin(), sequence.end() );
+        ObjectSubObjectIDSequence sequence;
+        recurse( pContext, sequence, false );
+        if( sequence.first.empty() )
+        {
+            sequence.first.push_back( mega::NULL_SYMBOL_ID );
+        }
+        else
+        {
+            std::reverse( sequence.first.begin(), sequence.first.end() );
+        }
+        std::reverse( sequence.second.begin(), sequence.second.end() );
         return sequence;
     }
 };

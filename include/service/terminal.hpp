@@ -59,8 +59,6 @@ public:
     virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
     MegastructureInstallation GetMegastructureInstallation();
-    Project                   GetProject();
-    void                      SetProject( const Project& project );
     void                      ClearStash();
     network::Status           GetNetworkStatus();
     pipeline::PipelineResult  PipelineRun( const pipeline::Configuration& pipelineConfig );

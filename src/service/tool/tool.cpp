@@ -48,10 +48,10 @@ Tool::Tool( short daemonPortNumber, network::Log log )
     : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Tool ), m_io_context )
     , m_log( log )
     , m_receiverChannel( m_io_context, *this )
-    , m_leaf( m_receiverChannel.getSender(), network::Node::Tool, daemonPortNumber )
+    , m_host( m_receiverChannel.getSender(), network::Node::Tool, daemonPortNumber )
 {
-    m_receiverChannel.run( m_leaf.getLeafSender() );
-    m_leaf.startup();
+    m_receiverChannel.run( m_host.getLeafSender() );
+    m_host.startup();
 }
 
 Tool::~Tool()

@@ -29,7 +29,7 @@
 
 namespace mega::reports
 {
-
+/*
 class MemoryReporter
 {
     mega::runtime::MemoryManager& m_memoryManager;
@@ -40,12 +40,11 @@ public:
     static const mega::reports::ReporterID ID;
     mega::reports::Container               generate( const mega::reports::URL& url );
 };
-
+*/
 inline void getServiceReporters( std::vector< mega::reports::ReporterID >& reporterIDs )
 {
     reporterIDs.push_back( "home" );
-
-    reporterIDs.push_back( MemoryReporter::ID );
+    //reporterIDs.push_back( MemoryReporter::ID );
 }
 
 } // namespace mega::reports

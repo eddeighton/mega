@@ -24,57 +24,87 @@ struct TypeIDSequenceGen
     mega::TypeID getTypeID( const Interface::DimensionTrait* pIDim ) const { return pIDim->get_interface_id(); }
     mega::TypeID getTypeID( const Interface::LinkTrait* pILink ) const { return pILink->get_interface_id(); }
 
-    void recurse( Concrete::ContextGroup* pContextGroup, mega::TypeIDSequence& sequence ) const
-    {
-        if( auto pContext = db_cast< Concrete::Context >( pContextGroup ) )
-        {
-            sequence.push_back( getTypeID( pContext->get_interface() ) );
-            recurse( pContext->get_parent(), sequence );
-        }
-    }
+    using TypeIDSeqPair = mega::SymbolTraits::TypeIDSequencePair;
 
-    mega::TypeIDSequence operator()( Concrete::Graph::Vertex* pVertex ) const
+    void recurse( Concrete::Context* pContext, TypeIDSeqPair& sequence, bool bFoundObject ) const
     {
-        if( auto pContext = db_cast< Concrete::Context >( pVertex ) )
+        if( !bFoundObject )
         {
-            mega::TypeIDSequence sequence{ getTypeID( pContext->get_interface() ) };
-            recurse( pContext->get_parent(), sequence );
-            return sequence;
-        }
-        else if( auto pDimUser = db_cast< Concrete::Dimensions::User >( pVertex ) )
-        {
-            mega::TypeIDSequence sequence{ getTypeID( pDimUser->get_interface_dimension() ) };
-            recurse( pDimUser->get_parent_context(), sequence );
-            return sequence;
-        }
-        else if( auto pBitset = db_cast< Concrete::Dimensions::Bitset >( pVertex ) )
-        {
-            mega::TypeIDSequence sequence{ getTypeID( pBitset->get_interface_compiler_dimension() ) };
-            recurse( pBitset->get_parent_object(), sequence );
-            return sequence;
-        }
-        else if( auto pDimLink = db_cast< Concrete::Dimensions::Link >( pVertex ) )
-        {
-            if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pDimLink ) )
+            if( db_cast< Concrete::Object >( pContext ) )
             {
-                mega::TypeIDSequence sequence{ getTypeID( pUserLink->get_interface_user_link() ) };
-                recurse( pUserLink->get_parent_context(), sequence );
-                return sequence;
-            }
-            else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pDimLink ) )
-            {
-                mega::TypeIDSequence sequence{ getTypeID( pOwnershipLink->get_interface_owner_link() ) };
-                recurse( pOwnershipLink->get_parent_context(), sequence );
-                return sequence;
-            }
-            else
-            {
-                THROW_RTE( "Unknown link type" );
+                bFoundObject = true;
             }
         }
         else
         {
-            THROW_RTE( "Unknown vertex type" );
+            VERIFY_RTE( !db_cast< Concrete::Object >( pContext ) );
         }
+        if( bFoundObject )
+        {
+            sequence.first.push_back( getTypeID( pContext->get_interface() ) );
+        }
+        else
+        {
+            sequence.second.push_back( getTypeID( pContext->get_interface() ) );
+        }
+
+        if( auto pParent = db_cast< Concrete::Context >( pContext->get_parent() ) )
+        {
+            recurse( pParent, sequence, bFoundObject );
+        }
+    }
+
+    TypeIDSeqPair operator()( Concrete::Graph::Vertex* pVertex ) const
+    {
+        TypeIDSeqPair sequence;
+        {
+            if( auto pContext = db_cast< Concrete::Context >( pVertex ) )
+            {
+                recurse( pContext, sequence, false );
+            }
+            else if( auto pDimUser = db_cast< Concrete::Dimensions::User >( pVertex ) )
+            {
+                sequence.second.push_back( getTypeID( pDimUser->get_interface_dimension() ) );
+                recurse( pDimUser->get_parent_context(), sequence, false );
+            }
+            else if( auto pBitset = db_cast< Concrete::Dimensions::Bitset >( pVertex ) )
+            {
+                sequence.second.push_back( getTypeID( pBitset->get_interface_compiler_dimension() ) );
+                recurse( pBitset->get_parent_object(), sequence, false  );
+            }
+            else if( auto pDimLink = db_cast< Concrete::Dimensions::Link >( pVertex ) )
+            {
+                if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pDimLink ) )
+                {
+                    sequence.second.push_back( getTypeID( pUserLink->get_interface_user_link() ) );
+                    recurse( pUserLink->get_parent_context(), sequence, false );
+                }
+                else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pDimLink ) )
+                {
+                    sequence.second.push_back( getTypeID( pOwnershipLink->get_interface_owner_link() ) );
+                    recurse( pOwnershipLink->get_parent_context(), sequence, false );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown link type" );
+                }
+            }
+            else
+            {
+                THROW_RTE( "Unknown vertex type" );
+            }
+        }
+
+        if( sequence.first.empty() )
+        {
+            sequence.first.push_back( mega::NULL_SYMBOL_ID );
+        }
+        else
+        {
+            std::reverse( sequence.first.begin(), sequence.first.end() );
+        }
+        std::reverse( sequence.second.begin(), sequence.second.end() );
+
+        return sequence;
     }
 };

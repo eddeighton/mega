@@ -61,10 +61,12 @@ set( ROUTING_SCHEMAS
 set( INTERFACE_SCHEMAS
     "project"
     enrole
+    host
     jit
     job
     memory
     pipeline
+    player
     python
     report
     sim
