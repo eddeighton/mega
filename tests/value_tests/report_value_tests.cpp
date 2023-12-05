@@ -75,10 +75,10 @@ TEST( Branch, Basic )
     }
 
     {
-        Project project{ "/somewhere" };
+        service::Project project{ "projectName" };
         Branch  b{ { "Test1"s, project } };
         ASSERT_EQ( boost::get< std::string >( b.m_label.front() ), "Test1"s );
-        ASSERT_EQ( boost::get< Project >( b.m_label.back() ), project );
+        ASSERT_EQ( boost::get< service::Project >( b.m_label.back() ), project );
         ASSERT_EQ( b.m_label.size(), 2 );
     }
 }

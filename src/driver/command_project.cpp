@@ -19,6 +19,8 @@
 
 #include "service/terminal.hpp"
 
+#include "environment/environment.hpp"
+
 #include "service/network/log.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
@@ -29,30 +31,44 @@
 
 namespace driver::project
 {
+namespace
+{
+mega::MP toMP( const std::string& strMP )
+{
+    mega::MP           mp;
+    std::istringstream is( strMP );
+    is >> mp;
+    return mp;
+}
+} // namespace
 
 void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path projectPath;
-    bool                    bGetProject    = false;
-    bool                    bResetProject  = false;
-    bool                    bUpdateProject = false;
+    std::string projectName;
+    I32         projectVersion = -1;
+
+    std::string strLoad, strUnload, strGet;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Project Commands" );
     {
         // clang-format off
         commandOptions.add_options()
-        // ( "set",    po::value< boost::filesystem::path >( &projectPath ),       "Set project" )
-        // ( "get",    po::bool_switch( &bGetProject ),                            "Get current project" )
-        // ( "reset",  po::bool_switch( &bResetProject ),                          "Unload any active project" )
-        // ( "update",  po::bool_switch( &bUpdateProject ),                        "Indicate a project update ( new build ) has occured" )
-        // ( "new_build",  po::value< boost::filesystem::path >( &projectPath ),   "Indicate a new build has completed" )
+        ( "name",       po::value< std::string >( &projectName ),   "Project Name" )
+        ( "version",    po::value< I32 >( &projectVersion ),        "Program Version" )
+        ( "load",       po::value( &strLoad ),                      "Load program to MP" )
+        ( "unload",     po::value( &strUnload ),                    "Unload any existing program on MP" )
+        ( "get",        po::value( &strGet ),                       "Get current program running on MP" )
+        
         ;
         // clang-format on
     }
 
+    po::positional_options_description p;
+    p.add( "name", -1 );
+
     po::variables_map vm;
-    po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
+    po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
     if( bHelp )
@@ -61,25 +77,76 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     }
     else
     {
+        using namespace mega::service;
+
+        if( !strLoad.empty() )
         {
+            VERIFY_RTE_MSG( !projectName.empty(), "Invalid project name" );
+            const Project project( projectName );
+            Program       program;
+            {
+                if( projectVersion == -1 )
+                {
+                    auto programOpt = Program::latest( project, Environment::workBin() );
+                    VERIFY_RTE_MSG( programOpt.has_value(), "No latest version found for project: " << project );
+                    program = programOpt.value();
+                }
+                else
+                {
+                    program = Program( project, Program::Version( projectVersion ) );
+                }
+            }
+
+            const auto programFile = Environment::prog( program );
+            VERIFY_RTE_MSG(
+                boost::filesystem::exists( programFile ), "Failed to locate program at: " << programFile.string() );
+
+            const mega::MP mp = toMP( strLoad );
+
+            mega::service::Terminal terminal( log );
+            terminal.ProgramLoad( program, mp );
+        }
+        else if( !strUnload.empty() )
+        {
+            const mega::MP mp = toMP( strUnload );
+            mega::service::Terminal terminal( log );
+            terminal.ProgramUnload( mp );
+        }
+        else if( !strGet.empty() )
+        {
+            const mega::MP mp = toMP( strGet );
+            mega::service::Terminal terminal( log );
+            auto prog = terminal.ProgramGet( mp );
+            std::cout << "MP: " << mp << " reports: " << prog << std::endl;
+        }
+        else
+        {
+            std::cout << "Current User:       " << Environment::user() << "\n";
+            std::cout << "CFG Type:           " << Environment::cfgType() << "\n";
+            std::cout << "Work Dir:           " << Environment::work().string() << "\n";
+            std::cout << std::endl;
+
+            if( !projectName.empty() )
+            {
+                const Project project( projectName );
+                const auto    lastestProjectOpt = Program::latest( project, Environment::workBin() );
+
+                std::cout << "Project:            " << project << "\n";
+                if( lastestProjectOpt.has_value() )
+                {
+                    std::cout << "Latest Program:     " << lastestProjectOpt.value() << "\n";
+                }
+                else
+                {
+                    std::cout << "Latest Program:     NONE\n";
+                }
+            }
+
+            std::cout << std::endl;
+
             mega::service::Terminal          terminal( log );
             const auto                       result    = terminal.GetMegastructureInstallation();
             const mega::utilities::ToolChain toolChain = result.getToolchain();
-
-            std::ostringstream osProject;
-            // {
-            //     if( project.isEmpty() )
-            //     {
-            //         osProject << "NO PROJECT";
-            //     }
-            //     else
-            //     {
-            //         osProject << "Project Install:    " << project.getProjectInstallPath().string() << "\n";
-            //         osProject << "Project Bin:        " << project.getProjectBin().string() << "\n";
-            //         osProject << "Project Database:   " << project.getProjectDatabase().string() << "\n";
-            //         osProject << "Project Temp Dir:   " << project.getProjectTempDir().string() << "\n";
-            //     }
-            // }
 
             // clang-format off
             std::cout   << "Installation:       " << result.getInstallationPath().string() << "\n"
@@ -102,8 +169,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                         << "databaseVersion:    " << toolChain.databaseVersion.toHexString() << "\n"
                         << "clangCompilerHash:  " << toolChain.clangCompilerHash.toHexString() << "\n"
                         << "toolChainHash:      " << toolChain.toolChainHash.toHexString() << "\n"
-
-                        << osProject.str()
 
                         << std::endl;
             // clang-format on

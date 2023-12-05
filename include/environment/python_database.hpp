@@ -21,7 +21,6 @@
 #ifndef GUARD_2023_September_06_python_database
 #define GUARD_2023_September_06_python_database
 
-#include "database/api.hpp"
 #include "environment/environment_archive.hpp"
 
 #include "database/FinalStage.hxx"
@@ -32,14 +31,14 @@
 namespace mega::runtime
 {
 
-class EGDB_EXPORT PythonDatabase
+class PythonDatabase
 {
     using SymbolTypeIDMap    = std::map< mega::TypeID, ::FinalStage::Symbols::SymbolTypeID* >;
     using InterfaceTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::InterfaceTypeID* >;
     using ConcreteTypeIDMap  = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
 
 public:
-    PythonDatabase( const boost::filesystem::path& projectDatabasePath );
+    PythonDatabase( boost::filesystem::path databaseArchivePath );
 
     using SymbolTable = std::unordered_map< std::string, TypeID >;
     void getConcreteObjectSymbols( SubType objectConcreteID, SymbolTable& symbols, SymbolTable& links );

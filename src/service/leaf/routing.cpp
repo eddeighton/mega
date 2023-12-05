@@ -67,6 +67,8 @@ network::Message LeafRequestLogicalThread::dispatchInBoundRequest( const network
         return result;
     if( result = network::enrole::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
+    if( result = network::host::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
+        return result;
     THROW_RTE( "LeafRequestLogicalThread::dispatchInBoundRequest failed on msg: " << msg );
 }
 
@@ -171,6 +173,8 @@ network::Message LeafRequestLogicalThread::MPRoot( const network::Message&     r
 network::Message LeafRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
+    VERIFY_RTE( mp == m_leaf.getMP() );
+    
     switch( m_leaf.m_nodeType )
     {
         case network::Node::Executor:

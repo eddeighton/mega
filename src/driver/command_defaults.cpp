@@ -75,7 +75,8 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     }
     else
     {
-        const mega::Project project( projectPath );
+        THROW_TODO;
+        /*const mega::Project project( projectPath );
 
         VERIFY_RTE_MSG( boost::filesystem::exists( project.getProjectDatabase() ),
                         "Failed to locate project database at: " << project.getProjectDatabase().string() );
@@ -127,7 +128,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 oa&                          boost::serialization::make_nvp( "defaults", defaults );
             }
         }
-        SPDLOG_INFO( "Generated defaults to: {}", outputFilePath.string() );
+        SPDLOG_INFO( "Generated defaults to: {}", outputFilePath.string() );*/
     }
 }
 

@@ -49,16 +49,12 @@ include_directories( ${MEGA_SRC_DIR} )
 #get the source code
 set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
-set( JINJA_TEMPLATES 
-	${DRIVER_SOURCE_DIR}/graphviz.jinja 
-	)
-
 set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_archive.cpp
+		${DRIVER_SOURCE_DIR}/command_build.cpp
 		${DRIVER_SOURCE_DIR}/command_component_listing.cpp
 		${DRIVER_SOURCE_DIR}/command_defaults.cpp
 		${DRIVER_SOURCE_DIR}/command_execute_pipeline.cpp
-		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_log.cpp
 		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp
 		${DRIVER_SOURCE_DIR}/command_map.cpp
@@ -113,5 +109,4 @@ link_json( mega )
 link_spdlog( mega )
 
 install( TARGETS mega DESTINATION bin)
-install( FILES ${JINJA_TEMPLATES} DESTINATION templates )
 

@@ -29,6 +29,7 @@
 #include "mega/values/runtime/reference_io.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
+#include "mega/values/service/program.hpp"
 
 #include "common/time.hpp"
 
@@ -168,6 +169,20 @@ struct formatter< mega::network::LogicalThreadID >
     {
         std::ostringstream os;
         os << logicalthreadID;
+        return fmt::format_to( ctx.out(), "{}", os.str() );
+    }
+};
+
+template <>
+struct formatter< mega::service::Program >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    inline auto format( const mega::service::Program& program, FormatContext& ctx )
+        -> decltype( ctx.out() )
+    {
+        std::ostringstream os;
+        os << program;
         return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };

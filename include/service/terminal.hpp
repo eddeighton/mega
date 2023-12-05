@@ -72,6 +72,9 @@ public:
     std::string               PingMP( const mega::MP& mp, const std::string& strMsg );
     std::string               PingMPO( const mega::MPO& mpo, const std::string& strMsg );
     void                      SimErrorCheck( const mega::MPO& mpo );
+    void                      ProgramLoad( const mega::service::Program& program, const mega::MP& mp );
+    void                      ProgramUnload( const mega::MP& mp );
+    mega::service::Program    ProgramGet( const mega::MP& mp );
 
     network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
 

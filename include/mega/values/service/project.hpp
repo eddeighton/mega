@@ -22,46 +22,47 @@
 
 #include "common/serialisation.hpp"
 
-#include <boost/filesystem/path.hpp>
-#include <boost/serialization/nvp.hpp>
-
+#include <string>
 #include <ostream>
 
-namespace mega
+namespace mega::service
 {
 
 class Project
 {
 public:
-    Project();
-    Project( const boost::filesystem::path& projectInstallPath );
+    inline Project() = default;
+    inline Project( std::string strName )
+        : m_name( std::move( strName ) )
+    {
+    }
 
-    const bool isEmpty() const;
+    inline const bool         empty() const { return m_name.empty(); }
+    inline const std::string& str() const { return m_name; }
 
-    const boost::filesystem::path& getProjectInstallPath() const { return m_projectInstallPath; }
-
-    boost::filesystem::path getProjectBin() const;
-    boost::filesystem::path getProjectDatabase() const;
-    boost::filesystem::path getProjectUnityDatabase() const;
-    boost::filesystem::path getProjectTempDir() const;
+    inline bool operator<( const Project& cmp ) const { return m_name < cmp.m_name; }
+    inline bool operator!=( const Project& cmp ) const { return !this->operator==( cmp ); }
+    inline bool operator==( const Project& cmp ) const { return m_name == cmp.m_name; }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& boost::serialization::make_nvp( "installationPath", m_projectInstallPath );
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            archive& boost::serialization::make_nvp( "name", m_name );
+        }
+        else
+        {
+            archive& m_name;
+        }
     }
 
-    inline bool operator==( const Project& cmp ) const { return m_projectInstallPath == cmp.m_projectInstallPath; }
-
 private:
-    boost::filesystem::path m_projectInstallPath;
+    std::string m_name;
 };
 
-inline std::ostream& operator<<( std::ostream& os, const Project& project )
-{
-    return os << project.getProjectInstallPath().string();
-}
+std::ostream& operator<<( std::ostream& os, const Project& project );
 
-} // namespace mega
+} // namespace mega::service
 
 #endif // PROJECT_20_JUNE_2022

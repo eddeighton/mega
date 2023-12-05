@@ -30,15 +30,16 @@
 
 #include "mega/values/service/logical_thread_id.hpp"
 
+#include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/leaf_term.hxx"
-#include "service/protocol/model/term_leaf.hxx"
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/pipeline.hxx"
-#include "service/protocol/model/status.hxx"
+#include "service/protocol/model/host.hxx"
 #include "service/protocol/model/project.hxx"
-#include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/sim.hxx"
-#include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/stash.hxx"
+#include "service/protocol/model/status.hxx"
+#include "service/protocol/model/term_leaf.hxx"
 
 #include "common/requireSemicolon.hpp"
 
@@ -245,5 +246,17 @@ std::string Terminal::PingMPO( const mega::MPO& mpo, const std::string& strMsg )
 void Terminal::SimErrorCheck( const mega::MPO& mpo )
 {
     return getMPORequest< network::sim::Request_Encoder >( mpo ).SimErrorCheck();
+}
+void Terminal::ProgramLoad( const mega::service::Program& program, const mega::MP& mp )
+{
+    return getMPRequest< network::host::Request_Encoder >( mp ).LoadProgram( program );
+}
+void Terminal::ProgramUnload( const mega::MP& mp )
+{
+    return getMPRequest< network::host::Request_Encoder >( mp ).UnloadProgram();
+}
+mega::service::Program Terminal::ProgramGet( const mega::MP& mp )
+{
+    return getMPRequest< network::host::Request_Encoder >( mp ).GetProgram();
 }
 } // namespace mega::service

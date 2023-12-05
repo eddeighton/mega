@@ -177,54 +177,55 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     }
     else
     {
-        using namespace mega::reports;
-        using namespace mega::reporters;
-
-        const mega::reports::URL url = boost::urls::parse_origin_form( reportURL ).value();
-        const mega::Project      project( projectPath );
-        VERIFY_RTE_MSG( boost::filesystem::exists( project.getProjectDatabase() ),
-                        "Failed to locate project database at: " << project.getProjectDatabase().string() );
-
-        mega::io::ArchiveEnvironment environment( project.getProjectDatabase() );
-        mega::io::Manifest           manifest( environment, environment.project_manifest() );
-
-        Container result = mega::reporters::generateCompilationReport(
-            url, CompilationReportArgs{ manifest, environment } );
-
-        struct Linker : mega::reports::Linker
-        {
-            const mega::reports::URL& m_url;
-            Linker( const mega::reports::URL& url )
-                : m_url( url )
-            {
-            }
-            std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
-            {
-                if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
-                {
-                    URL url = m_url;
-                    url.set_fragment( mega::reports::toString( value ) );
-                    return url;
-                }
-                return {};
-            }
-        } linker{ url };
-
-
-        HTMLRenderer::JavascriptShortcuts shortcuts;
-        HTMLRenderer renderer( templateDir, shortcuts, bClearTempFiles );
-
-        std::ostringstream os;
-        renderer.render( result, linker, os );
-
-        try
-        {
-            boost::filesystem::updateFileIfChanged( outputFilePath, os.str() );
-        }
-        catch( std::exception& ex )
-        {
-            THROW_RTE( "Error generating graph: " << outputFilePath.string() << " exception: " << ex.what() );
-        }
+        THROW_TODO;
+        // using namespace mega::reports;
+        // using namespace mega::reporters;
+// 
+        // const mega::reports::URL url = boost::urls::parse_origin_form( reportURL ).value();
+        // const mega::Project      project( projectPath );
+        // VERIFY_RTE_MSG( boost::filesystem::exists( project.getProjectDatabase() ),
+        //                 "Failed to locate project database at: " << project.getProjectDatabase().string() );
+// 
+        // mega::io::ArchiveEnvironment environment( project.getProjectDatabase() );
+        // mega::io::Manifest           manifest( environment, environment.project_manifest() );
+// 
+        // Container result = mega::reporters::generateCompilationReport(
+        //     url, CompilationReportArgs{ manifest, environment } );
+// 
+        // struct Linker : mega::reports::Linker
+        // {
+        //     const mega::reports::URL& m_url;
+        //     Linker( const mega::reports::URL& url )
+        //         : m_url( url )
+        //     {
+        //     }
+        //     std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
+        //     {
+        //         if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
+        //         {
+        //             URL url = m_url;
+        //             url.set_fragment( mega::reports::toString( value ) );
+        //             return url;
+        //         }
+        //         return {};
+        //     }
+        // } linker{ url };
+// 
+// 
+        // HTMLRenderer::JavascriptShortcuts shortcuts;
+        // HTMLRenderer renderer( templateDir, shortcuts, bClearTempFiles );
+// 
+        // std::ostringstream os;
+        // renderer.render( result, linker, os );
+// 
+        // try
+        // {
+        //     boost::filesystem::updateFileIfChanged( outputFilePath, os.str() );
+        // }
+        // catch( std::exception& ex )
+        // {
+        //     THROW_RTE( "Error generating graph: " << outputFilePath.string() << " exception: " << ex.what() );
+        // }
     }
 }
 

@@ -25,7 +25,7 @@
 
 #include "environment/python_database.hpp"
 
-#include "mega/values/service/project.hpp"
+#include "mega/values/service/program.hpp"
 
 #include "mega/values/compilation/type_id.hpp"
 #include "mega/values/runtime/reference.hpp"
@@ -44,7 +44,7 @@ class TypeSystem
     struct ConcreteObjectLinkSymbol
     {
         SubType concreteObjectID;
-        TypeID               linkSymbol;
+        TypeID  linkSymbol;
 
         inline bool operator==( const ConcreteObjectLinkSymbol& value ) const
         {
@@ -67,12 +67,12 @@ class TypeSystem
 public:
     using Ptr = std::unique_ptr< TypeSystem >;
 
-    TypeSystem( PythonModule& module, const Project& project );
+    TypeSystem( PythonModule& module, const Program& program );
 
     using ObjectTypesMap = std::map< std::string, SubType >;
     ObjectTypesMap getObjectTypes() const;
 
-    void reload( const Project& project );
+    void reload( const Program& program );
 
     Type::Ptr getLinkType( SubType concreteObjectID, TypeID typeID );
     PyObject* cast( const mega::reference& ref );

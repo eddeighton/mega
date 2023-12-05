@@ -41,12 +41,12 @@ class LLVMCompilerImpl : public runtime::LLVMCompiler
 {
 public:
     LLVMCompilerImpl( network::LogicalThread& logicalthread, std::shared_ptr< mega::network::Sender > pSender,
-                      const mega::MegastructureInstallation& megaInstall, const mega::Project& project,
+                      const mega::MegastructureInstallation& megaInstall, boost::filesystem::path tempDir,
                       boost::asio::yield_context& yield_ctx )
         : m_logicalthread( logicalthread )
         , m_pSender( pSender )
         , m_megaInstall( megaInstall )
-        , m_tempDir( project.getProjectTempDir() )
+        , m_tempDir( std::move( tempDir ) )
         , m_clangPath( megaInstall.getClangPath() )
         , m_yield_ctx( yield_ctx )
     {

@@ -289,6 +289,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/memory.hpp
     ${MEGA_API_DIR}/mega/move_archive.hpp
     ${MEGA_API_DIR}/mega/printer.hpp
+    ${MEGA_API_DIR}/mega/program_manifest.hpp
     ${MEGA_API_DIR}/mega/record_archive.hpp
     ${MEGA_API_DIR}/mega/reference_tree.hpp
     ${MEGA_API_DIR}/mega/resumption.hpp

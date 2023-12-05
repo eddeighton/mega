@@ -93,6 +93,7 @@ MegaDatabase(
 )
 
 set( ENVIRONMENT_HEADERS 
+    ${MEGA_API_DIR}/environment/environment.hpp
     ${MEGA_API_DIR}/environment/environment_archive.hpp
     ${MEGA_API_DIR}/environment/environment_build.hpp
     ${MEGA_API_DIR}/environment/environment_stash.hpp
@@ -101,6 +102,7 @@ set( ENVIRONMENT_HEADERS
     ${MEGA_API_DIR}/environment/python_database.hpp
 )
 set( ENVIRONMENT_SRC
+    ${MEGA_SRC_DIR}/environment/environment.cpp
     ${MEGA_SRC_DIR}/environment/environment_archive.cpp
     ${MEGA_SRC_DIR}/environment/environment_build.cpp
     ${MEGA_SRC_DIR}/environment/environment_stash.cpp

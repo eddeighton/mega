@@ -74,8 +74,8 @@ void recurseTree( PythonDatabase::SymbolTable&   symbols,
 
 } // namespace
 
-PythonDatabase::PythonDatabase( const boost::filesystem::path& projectDatabasePath )
-    : m_environment( projectDatabasePath )
+PythonDatabase::PythonDatabase( boost::filesystem::path databaseArchivePath )
+    : m_environment( databaseArchivePath )
     , m_manifest( m_environment, m_environment.project_manifest() )
     , m_database( m_environment, m_manifest.getManifestFilePath() )
     , m_pSymbolTable( m_database.one< FinalStage::Symbols::SymbolTable >( m_manifest.getManifestFilePath() ) )

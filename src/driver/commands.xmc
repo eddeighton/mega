@@ -1,11 +1,11 @@
 
 COMMAND(status,"status,s","Megastructure Status Reports")
 COMMAND(project,"project,p","Project Commands")
+COMMAND(build,"build,b","Build Commands")
 COMMAND(log,"log,l","Megastructure Log Commands")
 COMMAND(trace,"trace,t","Megastructure Trace Commands")
 COMMAND(sim,"sim,m","Simulation Commands")
 COMMAND(stash,"stash,a","Megastructure Stash Commands")
-COMMAND(json,"json,j","Dump database to json")
 COMMAND(execute_pipeline,"execute_pipeline,x","Execute a Megastructure Pipeline")
 COMMAND(defaults,"defaults,d","Configure Megastructure Default Values")
 

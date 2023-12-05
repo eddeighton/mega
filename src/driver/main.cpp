@@ -19,6 +19,7 @@
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
+#include "common/time.hpp"
 
 #include "service/network/log.hpp"
 
@@ -82,7 +83,7 @@ enum MainCommand
 
 int main( int argc, const char* argv[] )
 {
-    // boost::timer::cpu_timer timer;
+    std::optional< std::chrono::steady_clock::time_point > startTimeOpt;
 
     boost::filesystem::path logDir             = boost::filesystem::current_path();
     std::string             strConsoleLogLevel = "info";
@@ -93,14 +94,13 @@ int main( int argc, const char* argv[] )
     MainCommand                        mainCmd = TOTAL_MAIN_COMMANDS;
 
     // commands
-    std::string strBuildCommand;
-
     {
         std::vector< std::string > commandArgs;
 
         namespace po = boost::program_options;
         po::variables_map vm;
         bool              bGeneralWait = false;
+        bool              bTime = false;
 
 #define COMMAND( cmd, input, desc ) bool bCmd_##cmd = false;
 #include "commands.xmc"
@@ -114,7 +114,8 @@ int main( int argc, const char* argv[] )
             ( "log_dir",    po::value< boost::filesystem::path >( &logDir ),    "Build log directory" )
             ( "console",    po::value< std::string >( &strConsoleLogLevel ),    "Console logging level" )
             ( "level",      po::value< std::string >( &strLogFileLevel ),       "Log file logging level" )
-            ( "wait",       po::bool_switch( &bGeneralWait ),                   "Wait at startup for attaching a debugger" );
+            ( "wait",       po::bool_switch( &bGeneralWait ),                   "Wait at startup for attaching a debugger" )
+            ( "time",       po::bool_switch( &bTime ),                          "Measure time taken to perform command" );
             // clang-format on
         }
 
@@ -165,6 +166,11 @@ int main( int argc, const char* argv[] )
                 std::cin >> c;
             }
 
+            if( bTime )
+            {
+                startTimeOpt = std::chrono::steady_clock::now();
+            }
+
 #define COMMAND( cmd, input, desc )                                                            \
     if( bCmd_##cmd )                                                                           \
     {                                                                                          \
@@ -201,6 +207,12 @@ int main( int argc, const char* argv[] )
                         return 1;
                     }
             }
+            
+            if( startTimeOpt.has_value() )
+            {
+                spdlog::info( "Total Time: {}", common::printDuration( std::chrono::steady_clock::now() - startTimeOpt.value() ) );
+            }
+            
             return 0;
         }
         catch( boost::program_options::error& e )

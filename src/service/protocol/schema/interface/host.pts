@@ -31,7 +31,7 @@ msg LoadSnapshot
 
 msg LoadProgram
 {
-    request();
+    request( mega::service::Program program );
     response();
 }
 
@@ -44,5 +44,5 @@ msg UnloadProgram
 msg GetProgram
 {
     request();
-    response();
+    response( mega::service::Program program );
 }

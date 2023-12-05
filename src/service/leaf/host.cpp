@@ -20,6 +20,8 @@
 
 #include "service/host.hpp"
 
+#include "service/leaf/request.hpp"
+
 namespace mega::service
 {
 
@@ -28,5 +30,31 @@ Host::Host( network::Sender::Ptr pSender, network::Node nodeType, short daemonPo
 {
 }
 
+void LeafRequestLogicalThread::SaveSnapshot( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestLogicalThread::SaveSnapshot" );
+    THROW_TODO;
+}
+void LeafRequestLogicalThread::LoadSnapshot( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestLogicalThread::LoadSnapshot" );
+    THROW_TODO;
+}
+void LeafRequestLogicalThread::LoadProgram( const mega::service::Program& program,
+                                            boost::asio::yield_context&   yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestLogicalThread::LoadProgram {}", program );
+    THROW_TODO;
+}
+void LeafRequestLogicalThread::UnloadProgram( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestLogicalThread::UnloadProgram" );
+    THROW_TODO;
+}
+mega::service::Program LeafRequestLogicalThread::GetProgram( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestLogicalThread::GetProgram" );
+    THROW_TODO;
+}
 
 } // namespace mega::service

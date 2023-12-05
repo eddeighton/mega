@@ -62,6 +62,7 @@ set( EXECUTOR_LIB_SRC
     ${EXECUTOR_SRC_DIR}/clock_standalone.cpp
     ${EXECUTOR_SRC_DIR}/clock.cpp
     ${EXECUTOR_SRC_DIR}/executor.cpp
+    ${EXECUTOR_SRC_DIR}/host.cpp
     ${EXECUTOR_SRC_DIR}/job.cpp
     ${EXECUTOR_SRC_DIR}/job.hpp
     ${EXECUTOR_SRC_DIR}/project.cpp

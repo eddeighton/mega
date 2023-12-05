@@ -23,12 +23,14 @@
 
 #include "service/python/type_system.hpp"
 
+#include "environment/environment.hpp"
+
 namespace mega::service::python
 {
 
-TypeSystem::TypeSystem( PythonModule& module, const Project& project )
+TypeSystem::TypeSystem( PythonModule& module, const Program& program )
     : m_module( module )
-    , m_pDatabase( std::make_unique< runtime::PythonDatabase >( project.getProjectDatabase() ) )
+    , m_pDatabase( std::make_unique< runtime::PythonDatabase >( Environment::database( program ) ) )
 {
 }
 
@@ -37,11 +39,11 @@ TypeSystem::ObjectTypesMap TypeSystem::getObjectTypes() const
     return m_pDatabase->getObjectTypes();
 }
 
-void TypeSystem::reload( const Project& project )
+void TypeSystem::reload( const Program& program )
 {
     THROW_TODO;
     m_pDatabase.reset();
-    m_pDatabase = std::make_unique< runtime::PythonDatabase >( project.getProjectDatabase() );
+    m_pDatabase = std::make_unique< runtime::PythonDatabase >( Environment::database( program ) );
 }
 
 Type::Ptr TypeSystem::getLinkType( SubType concreteObjectID, TypeID typeID )

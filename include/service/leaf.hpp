@@ -77,9 +77,9 @@ public:
     }
 
     // std::optional< task::FileHash > getUnityDBHashCode() const { return m_unityDatabaseHashCode; }
+    // HeapMemory&            getHeapMemory();
 
     mega::MP getMP() const { return m_mp; }
-    // HeapMemory&            getHeapMemory();
     std::set< mega::MPO >& getMPOs() { return m_mpos; }
 
 private:

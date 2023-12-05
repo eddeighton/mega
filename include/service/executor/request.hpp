@@ -31,6 +31,7 @@
 #include "service/protocol/model/report.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/host.hxx"
 
 namespace mega::service
 {
@@ -45,7 +46,8 @@ class ExecutorRequestLogicalThread : public network::ConcurrentLogicalThread,
                                      public network::report::Impl,
                                      public network::sim::Impl,
                                      public network::project::Impl,
-                                     public network::enrole::Impl
+                                     public network::enrole::Impl,
+                                     public network::host::Impl
 {
 protected:
     Executor& m_executor;
@@ -55,10 +57,11 @@ public:
     virtual ~ExecutorRequestLogicalThread();
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
 
     // helpers
     network::exe_leaf::Request_Sender getLeafRequest( boost::asio::yield_context& yield_ctx );
+    network::host::Request_Sender     getLeafHostRequest( boost::asio::yield_context& yield_ctx );
     network::mpo::Request_Sender      getMPRequest( boost::asio::yield_context& yield_ctx );
 
     template < typename RequestEncoderType >
@@ -98,7 +101,7 @@ public:
     virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
                                                 const std::vector< mega::reports::Container >& report,
                                                 boost::asio::yield_context&                    yield_ctx ) override;
-                                                
+
     // network::job::Impl - note also in JobLogicalThread
     virtual std::vector< network::LogicalThreadID >
     JobStart( const utilities::ToolChain&                                   toolChain,
@@ -112,6 +115,13 @@ public:
 
     // network::enrole::Impl
     virtual void EnroleDestroy( boost::asio::yield_context& yield_ctx ) override;
+
+    // network::host::Impl
+    virtual void SaveSnapshot( boost::asio::yield_context& yield_ctx ) override;
+    virtual void LoadSnapshot( boost::asio::yield_context& yield_ctx ) override;
+    virtual void LoadProgram( const mega::service::Program& program, boost::asio::yield_context& yield_ctx ) override;
+    virtual void UnloadProgram( boost::asio::yield_context& yield_ctx ) override;
+    virtual mega::service::Program GetProgram( boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

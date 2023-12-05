@@ -41,49 +41,45 @@
 #include <vector>
 #include <iostream>
 
-namespace driver
+namespace driver::archive
 {
-    namespace archive
-    {
-        void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
-        {
-            boost::filesystem::path srcDir, buildDir, outputFilePath, inputArchiveFilePath;
+void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+{
+    boost::filesystem::path srcDir, buildDir, outputFilePath, inputArchiveFilePath;
 
-            namespace po = boost::program_options;
-            po::options_description commandOptions( " Generate retail archive" );
-            {
-                // clang-format off
+    namespace po = boost::program_options;
+    po::options_description commandOptions( " Generate retail archive" );
+    {
+        // clang-format off
             commandOptions.add_options()
                 ( "src_dir",    po::value< boost::filesystem::path >( &srcDir ),              "Source directory" )
                 ( "build_dir",  po::value< boost::filesystem::path >( &buildDir ),            "Build directory" )
                 ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),      "Archive file to generate" )
                 ( "input",      po::value< boost::filesystem::path >( &inputArchiveFilePath ),"Input archive file to test" )
                 ;
-                // clang-format on
-            }
+        // clang-format on
+    }
 
-            po::variables_map vm;
-            po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
-            po::notify( vm );
+    po::variables_map vm;
+    po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
+    po::notify( vm );
 
-            if ( bHelp )
-            {
-                std::cout << commandOptions << "\n";
-            }
-            else if( !inputArchiveFilePath.empty() )
-            {
-                mega::io::ArchiveEnvironment environment( inputArchiveFilePath );
-                std::cout << "Successfully loaded archive: " << inputArchiveFilePath.string() << std::endl;
-                std::cout << "Archive version: " << environment.getVersion() << std::endl;
-
-            }
-            else
-            {
-                mega::io::Directories directories{ srcDir, buildDir, "", "" };
-                mega::io::BuildEnvironment environment( directories );
-                const mega::io::Manifest manifest( environment, environment.project_manifest() );
-                mega::io::ReadArchive::compile_archive( outputFilePath, manifest, srcDir, buildDir );
-            }
-        }
-    } // namespace archive
-} // namespace driver
+    if( bHelp )
+    {
+        std::cout << commandOptions << "\n";
+    }
+    else if( !inputArchiveFilePath.empty() )
+    {
+        mega::io::ArchiveEnvironment environment( inputArchiveFilePath );
+        std::cout << "Successfully loaded archive: " << inputArchiveFilePath.string() << std::endl;
+        std::cout << "Archive version: " << environment.getVersion() << std::endl;
+    }
+    else
+    {
+        mega::io::Directories      directories{ srcDir, buildDir, "", "" };
+        mega::io::BuildEnvironment environment( directories );
+        const mega::io::Manifest   manifest( environment, environment.project_manifest() );
+        mega::io::ReadArchive::compile_archive( outputFilePath, manifest, srcDir, buildDir );
+    }
+}
+} // namespace driver::archive

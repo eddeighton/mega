@@ -17,25 +17,35 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-digraph
+#include "service/executor/request.hpp"
+
+#include "service/network/log.hpp"
+
+#include "service/executor/executor.hpp"
+
+namespace mega::service
 {
-    fontname="Helvetica,Arial,sans-serif"
-    rankdir=LR;
-    node [ shape=record style=filled fillcolor=gray color=darkblue];
-    edge [ ];
-    graph [splines=true overlap=false]
-    ratio = auto;
-    concentrate=True;
 
-{% for node in nodes %}
-    "{{ node.name }}" [
-        label = "{{ node.label }}{% for property in node.properties %}|{{ property.name }}: {{ property.value }}{% endfor %}"
-        shape = "record"
-    ];
-{% endfor %}
-
-{% for edge in edges %}
-    {{ edge.from }} -> {{ edge.to }} [color="#{{ edge.colour }}"]
-{% endfor %}
+void ExecutorRequestLogicalThread::SaveSnapshot( boost::asio::yield_context& yield_ctx )
+{
+    getLeafHostRequest( yield_ctx ).SaveSnapshot();
+}
+void ExecutorRequestLogicalThread::LoadSnapshot( boost::asio::yield_context& yield_ctx )
+{
+    getLeafHostRequest( yield_ctx ).LoadSnapshot();
+}
+void ExecutorRequestLogicalThread::LoadProgram( const mega::service::Program& program,
+                                                boost::asio::yield_context&   yield_ctx )
+{
+    getLeafHostRequest( yield_ctx ).LoadProgram( program );
+}
+void ExecutorRequestLogicalThread::UnloadProgram( boost::asio::yield_context& yield_ctx )
+{
+    getLeafHostRequest( yield_ctx ).UnloadProgram();
+}
+mega::service::Program ExecutorRequestLogicalThread::GetProgram( boost::asio::yield_context& yield_ctx )
+{
+    return getLeafHostRequest( yield_ctx ).GetProgram();
 }
 
+} // namespace mega::service

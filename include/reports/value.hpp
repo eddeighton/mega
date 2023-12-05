@@ -39,8 +39,9 @@
 #include "mega/values/runtime/mpo.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
-#include "mega/values/service//node.hpp"
+#include "mega/values/service/node.hpp"
 #include "mega/values/service/project.hpp"
+#include "mega/values/service/program.hpp"
 #include "mega/values/service/root_config.hpp"
 
 #include <boost/variant.hpp>
@@ -78,7 +79,8 @@ using Value = boost::variant
     // Service Types
     mega::network::LogicalThreadID,
     mega::network::Node,
-    mega::Project
+    mega::service::Project,
+    mega::service::Program
     //mega::network::RootConfig
 
 >;

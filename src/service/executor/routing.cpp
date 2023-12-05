@@ -54,10 +54,16 @@ network::Message ExecutorRequestLogicalThread::dispatchInBoundRequest( const net
         return result;
     if( result = network::enrole::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
+    if( result = network::host::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
+        return result;
     THROW_RTE( "ExecutorRequestLogicalThread::dispatchInBoundRequest failed for: " << msg.getName() );
 }
 
 network::exe_leaf::Request_Sender ExecutorRequestLogicalThread::getLeafRequest( boost::asio::yield_context& yield_ctx )
+{
+    return { *this, m_executor.getLeafSender(), yield_ctx };
+}
+network::host::Request_Sender ExecutorRequestLogicalThread::getLeafHostRequest( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_executor.getLeafSender(), yield_ctx };
 }

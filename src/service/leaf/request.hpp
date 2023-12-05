@@ -47,6 +47,7 @@
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/jit.hxx"
 #include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/host.hxx"
 
 // #include "service/protocol/common/context.hpp"
 
@@ -69,7 +70,8 @@ class LeafRequestLogicalThread : public network::InThreadLogicalThread,
                                  public network::memory::Impl,
                                  public network::jit::Impl,
                                  public network::project::Impl,
-                                 public network::enrole::Impl
+                                 public network::enrole::Impl,
+                                 public network::host::Impl
 {
 protected:
     Leaf& m_leaf;
@@ -94,7 +96,8 @@ public:
     LLVMCompilerImpl getLLVMCompiler( boost::asio::yield_context& yield_ctx )
     {
         THROW_TODO;
-        // return { *this, m_leaf.getDaemonSender(), m_leaf.getMegastructureInstallation(), m_leaf.getActiveProject(),
+        // TEMPDIR = ??
+        // return { *this, m_leaf.getDaemonSender(), m_leaf.getMegastructureInstallation(), TEMPDIR, m_leaf.getActiveProject(),
         //          yield_ctx };
     }
 
@@ -188,6 +191,13 @@ public:
     virtual void   ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
     virtual TypeID GetInterfaceTypeID( const mega::TypeID&         concreteTypeID,
                                        boost::asio::yield_context& yield_ctx ) override;
+
+    // network::host::Impl
+    virtual void SaveSnapshot( boost::asio::yield_context& yield_ctx ) override;
+    virtual void LoadSnapshot( boost::asio::yield_context& yield_ctx ) override;
+    virtual void LoadProgram( const mega::service::Program& program, boost::asio::yield_context& yield_ctx ) override;
+    virtual void UnloadProgram( boost::asio::yield_context& yield_ctx ) override;
+    virtual mega::service::Program GetProgram( boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service
