@@ -38,6 +38,8 @@
 // #include "clang/Lex/Token.h"
 #include "clang/Basic/DiagnosticParse.h"
 // #include "clang/Basic/DiagnosticSema.h"
+// #include "clang/Basic/Thunk.h"
+#include "clang/AST/Mangle.h"
 
 namespace InterfaceAnalysisStage
 {
@@ -71,6 +73,8 @@ class InterfaceSession : public AnalysisSession
     InterfaceTypeIDMap                              m_interfaceTypeIDs;
     MangleMap                                       m_mangleMap;
 
+    ItaniumMangleContext* m_pMangle = nullptr;
+
 public:
     InterfaceSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir,
                       const char* strSourceFile )
@@ -87,6 +91,15 @@ public:
         {
             m_mangleMap.insert( { pMangle->get_canon(), pMangle } );
         }
+    }
+
+    ItaniumMangleContext* getMangle()
+    {
+        if( !m_pMangle )
+        {
+            m_pMangle = ItaniumMangleContext::create( *pASTContext, pASTContext->getDiagnostics() );
+        }
+        return m_pMangle;
     }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const override
@@ -179,18 +192,20 @@ public:
                         SymbolIDVariantSequenceVector result;
                         if( !getSymbolIDVariantSequenceVector( pASTContext, typeTypeCanonical, result ) )
                         {
-                            REPORT_ERROR( "Failed to resolve link type for " << printLinkTraitFullType( pLinkTrait )
-                                                                             << "(" << pLinkTrait->get_interface_id()
-                                                                             << ") with type: " << typeTypeCanonical.getAsString() );
+                            REPORT_ERROR( "Failed to resolve link type for "
+                                          << printLinkTraitFullType( pLinkTrait ) << "("
+                                          << pLinkTrait->get_interface_id()
+                                          << ") with type: " << typeTypeCanonical.getAsString() );
                             return false;
                         }
 
                         std::vector< Interface::SymbolVariantSequence* > linkType;
                         if( !convert( result, linkType ) )
                         {
-                            REPORT_ERROR( "Failed to convert link type for " << printLinkTraitFullType( pLinkTrait )
-                                                                             << "(" << pLinkTrait->get_interface_id()
-                                                                             << ") with type: " << typeTypeCanonical.getAsString() );
+                            REPORT_ERROR( "Failed to convert link type for "
+                                          << printLinkTraitFullType( pLinkTrait ) << "("
+                                          << pLinkTrait->get_interface_id()
+                                          << ") with type: " << typeTypeCanonical.getAsString() );
                             return false;
                         }
 
@@ -278,10 +293,14 @@ public:
             {
                 // determine the type
                 std::string strCanonicalType;
+                std::string strMangledType;
                 {
                     QualType typeType
                         = getTypeTrait( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Type" );
                     strCanonicalType = getCanonicalTypeStr( typeType.getCanonicalType() );
+
+                    llvm::raw_string_ostream os( strMangledType );
+                    getMangle()->mangleTypeName( typeType, os );
                 }
 
                 // determine the erased type
@@ -402,8 +421,8 @@ public:
                 }
 
                 m_database.construct< Interface::DimensionTrait >(
-                    Interface::DimensionTrait::Args{ pDimensionTrait, strCanonicalType, pMangle, strErasedType, szSize,
-                                                     szAlignment, bIsSimple, symbols } );
+                    Interface::DimensionTrait::Args{ pDimensionTrait, strCanonicalType, strMangledType, pMangle,
+                                                     strErasedType, szSize, szAlignment, bIsSimple, symbols } );
             }
             else
             {
@@ -538,7 +557,8 @@ public:
         return true;
     }
 
-    bool convert( const std::vector< mega::TypeID >& symbolIDVariant, std::vector< Symbols::SymbolTypeID* >& symbolVariant )
+    bool convert( const std::vector< mega::TypeID >&     symbolIDVariant,
+                  std::vector< Symbols::SymbolTypeID* >& symbolVariant )
     {
         for( mega::TypeID symbolID : symbolIDVariant )
         {

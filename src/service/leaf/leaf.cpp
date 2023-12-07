@@ -21,14 +21,12 @@
 
 #include "request.hpp"
 
-#include "runtime/llvm.hpp"
+#include "environment/environment.hpp"
 
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
-#include "service/protocol/model/memory.hxx"
-#include "service/protocol/model/stash.hxx"
 
 #include "mega/values/service/logical_thread_id.hpp"
 
@@ -37,6 +35,7 @@
 #include "common/requireSemicolon.hpp"
 
 #include <boost/system/detail/error_code.hpp>
+#include <memory>
 
 namespace mega::service
 {
@@ -72,14 +71,6 @@ public:
 
             SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
         }
-
-        // allocate remote object memory manager
-        /*{
-            m_leaf.m_pRemoteMemoryManager = std::make_unique< runtime::RemoteMemoryManager >(
-                m_leaf.m_mp,
-                [ leaf = &m_leaf ]( TypeID typeID, runtime::LLVMCompiler& llvmCompiler )
-                { return leaf->getJIT().getAllocator( llvmCompiler, typeID ); } );
-        }*/
 
         // determine the current project and stuff and initialise the runtime
         {
@@ -143,41 +134,43 @@ void Leaf::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
         tables.m_rows.push_back( { table } );
     }
 
-   /* if( m_pJIT )
-    {
-        const network::JITStatus jitStatus = m_pJIT->getStatus();
+    /* if( m_pJIT )
+     {
+         const network::JITStatus jitStatus = m_pJIT->getStatus();
 
-        Table jitStatusTable;
+         Table jitStatusTable;
 
-        // clang-format off
-        jitStatusTable.m_rows.push_back( { 
-            Line{ " Functions: "s }, Line{ std::to_string( jitStatus.m_functionPointers ) }, 
-            Line{ "Allocators: "s }, Line{ std::to_string( jitStatus.m_allocators ) } } );
-        jitStatusTable.m_rows.push_back( { 
-            Line{ "Relations:  "s }, Line{ std::to_string( jitStatus.m_relations ) }, 
-            Line{ "Invocations:"s }, Line{ std::to_string( jitStatus.m_invocations ) } } );
-        jitStatusTable.m_rows.push_back( { 
-            Line{ "Operators:  "s }, Line{ std::to_string( jitStatus.m_operators ) }, 
-            Line{ "Interfaces: "s }, Line{ std::to_string( jitStatus.m_componentManagerStatus.m_interfaceComponents  ) } } );
-        jitStatusTable.m_rows.push_back( { 
-            Line{ "Python:     "s }, Line{ std::to_string( jitStatus.m_componentManagerStatus.m_pythonComponents ) } , 
-            Line{ "Decisions:  "s }, Line{ std::to_string( jitStatus.m_decisions ) }
-            
-            } );
-        // clang-format on
+         // clang-format off
+         jitStatusTable.m_rows.push_back( {
+             Line{ " Functions: "s }, Line{ std::to_string( jitStatus.m_functionPointers ) },
+             Line{ "Allocators: "s }, Line{ std::to_string( jitStatus.m_allocators ) } } );
+         jitStatusTable.m_rows.push_back( {
+             Line{ "Relations:  "s }, Line{ std::to_string( jitStatus.m_relations ) },
+             Line{ "Invocations:"s }, Line{ std::to_string( jitStatus.m_invocations ) } } );
+         jitStatusTable.m_rows.push_back( {
+             Line{ "Operators:  "s }, Line{ std::to_string( jitStatus.m_operators ) },
+             Line{ "Interfaces: "s }, Line{ std::to_string( jitStatus.m_componentManagerStatus.m_interfaceComponents  )
+     } } ); jitStatusTable.m_rows.push_back( { Line{ "Python:     "s }, Line{ std::to_string(
+     jitStatus.m_componentManagerStatus.m_pythonComponents ) } , Line{ "Decisions:  "s }, Line{ std::to_string(
+     jitStatus.m_decisions ) }
 
-        tables.m_rows.back().push_back( jitStatusTable );
-    }*/
+             } );
+         // clang-format on
+
+         tables.m_rows.back().push_back( jitStatusTable );
+     }*/
 
     report.m_elements.push_back( tables );
 }
 
 void Leaf::startup()
 {
-    std::promise< void >       promise;
-    std::future< void >        future = promise.get_future();
+    std::promise< void > promise;
+    std::future< void >  future = promise.get_future();
     logicalthreadInitiated( std::make_shared< LeafEnrole >( *this, promise ) );
     future.get();
+    VERIFY_RTE_MSG( m_megastructureInstallationOpt.has_value(), "No Megastructure Installation" );
+    m_pRuntime = std::make_unique< runtime::Runtime >( Environment::workTmp(), m_megastructureInstallationOpt.value() );
 }
 
 Leaf::~Leaf()
@@ -187,102 +180,7 @@ Leaf::~Leaf()
     m_work_guard.reset();
     m_io_thread.join();
 }
-/*
-void Leaf::setActiveProject( const Project& currentProject )
-{
-    switch( m_nodeType )
-    {
-        case network::Node::Leaf:
-        case network::Node::Terminal:
-            break;
-        case network::Node::Tool:
-        case network::Node::Python:
-        case network::Node::Report:
-        case network::Node::Executor:
-        case network::Node::Plugin:
-        {
-            if( !currentProject.isEmpty() && m_megastructureInstallationOpt.has_value() )
-            {
-                if( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
-                {
-                    try
-                    {
-                        if( m_pJIT && m_activeProject.has_value() )
-                        {
-                            m_pJIT = std::make_unique< runtime::JIT >(
-                                m_megastructureInstallationOpt.value(), currentProject, *m_pJIT );
 
-                            if( m_activeProject.value().getProjectInstallPath()
-                                == currentProject.getProjectInstallPath() )
-                            {
-                                SPDLOG_INFO( "Leaf: {} setActiveProject reloading project {}", m_mp,
-                                             currentProject.getProjectInstallPath().string() );
-                            }
-                            else
-                            {
-                                SPDLOG_INFO( "Leaf: {} setActiveProject changing project from {} to: {}", m_mp,
-                                             m_activeProject.value().getProjectInstallPath().string(),
-                                             currentProject.getProjectInstallPath().string() );
-                            }
-                        }
-                        else
-                        {
-                            SPDLOG_INFO( "Leaf: {} setActiveProject creating runtime for project: {}", m_mp,
-                                         currentProject.getProjectInstallPath().string() );
-                            m_pJIT = std::make_unique< runtime::JIT >(
-                                m_megastructureInstallationOpt.value(), currentProject );
-                        }
-                    }
-                    catch( mega::io::DatabaseVersionException& ex )
-                    {
-                        SPDLOG_ERROR( "Database version exception: {}", currentProject.getProjectInstallPath().string(),
-                                      ex.what() );
-                    }
-                    catch( std::exception& ex )
-                    {
-                        SPDLOG_ERROR( "Leaf: {} setActiveProject failed to initialise project: {} error: {}", m_mp,
-                                      currentProject.getProjectInstallPath().string(), ex.what() );
-                        throw;
-                    }
-                }
-                else
-                {
-                    m_pJIT.reset();
-                    SPDLOG_WARN( "JIT uninitialised.  Active project: {} has no database",
-                                 currentProject.getProjectInstallPath().string() );
-                }
-                m_activeProject = currentProject;
-                {
-                    const boost::filesystem::path unityDatabasePath = currentProject.getProjectUnityDatabase();
-                    if( boost::filesystem::exists( unityDatabasePath ) )
-                    {
-                        m_unityDatabaseHashCode = task::FileHash( unityDatabasePath );
-                    }
-                    else
-                    {
-                        m_unityDatabaseHashCode.reset();
-                    }
-                }
-            }
-            else
-            {
-                m_pJIT.reset();
-                SPDLOG_WARN( "JIT uninitialised.  Active project: {} has no database",
-                             currentProject.getProjectInstallPath().string() );
-                m_activeProject.reset();
-                m_unityDatabaseHashCode.reset();
-            }
-            break;
-        }
-        case network::Node::Daemon:
-        case network::Node::Root:
-        case network::Node::TOTAL_NODE_TYPES:
-        default:
-            THROW_RTE( "Leaf: Unknown leaf type" );
-            break;
-    }
-}
-*/
 // network::LogicalThreadManager
 network::LogicalThreadBase::Ptr Leaf::joinLogicalThread( const network::Message& msg )
 {

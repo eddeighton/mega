@@ -48,6 +48,7 @@ set( MEGA_VALUES_DIR ${MEGA_API_DIR}/mega/values )
 
 set( MEGA_VALUES_COMMON_HEADERS
 
+    ${MEGA_VALUES_DIR}/hash.hpp
     ${MEGA_VALUES_DIR}/native_types.hpp
     ${MEGA_VALUES_DIR}/native_types.hxx
     ${MEGA_VALUES_DIR}/native_types_io.hpp

@@ -69,57 +69,62 @@ static constexpr char psz_link_type_vector[] = "class std::vector<class mega::Ty
 //           typename Allocator = std::allocator<Block> >
 // class dynamic_bitset;
 using BitSet = ::boost::dynamic_bitset< mega::U64, std::allocator< mega::U64 > >;
-static constexpr char psz_bitset[] = "class boost::dynamic_bitset<unsigned long long,class std::allocator<unsigned long long>>";
+static constexpr char psz_bitset[]
+    = "class boost::dynamic_bitset<unsigned long long,class std::allocator<unsigned long long>>";
 
 // reference types
 template < IsReferenceType T >
 struct DimensionTraits< T >
 {
-    using Type                       = T;
-    using Read                       = const Type&;
-    using Write                      = Type;
-    using Erased                     = mega::reference;
-    static const mega::U64 Size      = sizeof( Type );
-    static const mega::U64 Alignment = alignof( Type );
-    static const mega::U64 Simple    = std::is_trivially_copyable< Type >::value;
+    using Type                              = T;
+    using Read                              = const Type&;
+    using Write                             = Type;
+    using Erased                            = mega::reference;
+    inline static const mega::U64 Hash      = typeid( Type ).hash_code();
+    static const mega::U64        Size      = sizeof( Type );
+    static const mega::U64        Alignment = alignof( Type );
+    static const mega::U64        Simple    = std::is_trivially_copyable< Type >::value;
 };
 
 // container of reference types
 template < IsReferenceType T >
 struct DimensionTraits< std::vector< T > >
 {
-    using Type                       = std::vector< T >;
-    using Read                       = const Type&;
-    using Write                      = Type;
-    using Erased                     = std::vector< mega::reference >;
-    static const mega::U64 Size      = sizeof( Type );
-    static const mega::U64 Alignment = alignof( Type );
-    static const mega::U64 Simple    = std::is_trivially_copyable< T >::value;
+    using Type                              = std::vector< T >;
+    using Read                              = const Type&;
+    using Write                             = Type;
+    using Erased                            = std::vector< mega::reference >;
+    inline static const mega::U64 Hash      = typeid( Type ).hash_code();
+    static const mega::U64        Size      = sizeof( Type );
+    static const mega::U64        Alignment = alignof( Type );
+    static const mega::U64        Simple    = std::is_trivially_copyable< T >::value;
 };
 
 template <>
 struct DimensionTraits< BitSet >
 {
-    using Type                       = BitSet;
-    using Read                       = const Type&;
-    using Write                      = Type;
-    using Erased                     = Type;
-    static const mega::U64 Size      = sizeof( Type );
-    static const mega::U64 Alignment = alignof( Type );
-    static const mega::U64 Simple    = false;
+    using Type                              = BitSet;
+    using Read                              = const Type&;
+    using Write                             = Type;
+    using Erased                            = Type;
+    inline static const mega::U64 Hash      = typeid( Type ).hash_code();
+    static const mega::U64        Size      = sizeof( Type );
+    static const mega::U64        Alignment = alignof( Type );
+    static const mega::U64        Simple    = false;
 };
 
 // default dimension traits
 template < typename T >
 struct DimensionTraits
 {
-    using Type                       = T;
-    using Read                       = const Type&;
-    using Write                      = Type;
-    using Erased                     = Type;
-    static const mega::U64 Size      = sizeof( Type );
-    static const mega::U64 Alignment = alignof( Type );
-    static const mega::U64 Simple    = std::is_trivially_copyable< Type >::value;
+    using Type                              = T;
+    using Read                              = const Type&;
+    using Write                             = Type;
+    using Erased                            = Type;
+    inline static const mega::U64 Hash      = typeid( Type ).hash_code();
+    static const mega::U64        Size      = sizeof( Type );
+    static const mega::U64        Alignment = alignof( Type );
+    static const mega::U64        Simple    = std::is_trivially_copyable< Type >::value;
 };
 
 } // namespace mega

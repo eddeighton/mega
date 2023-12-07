@@ -48,7 +48,7 @@ enable_testing()
 add_executable( il_tests ${IL_UNIT_TESTS} ${IL_TESTS_DIR}/main_test_runner.cpp )
 
 
-target_link_libraries( il_tests il_backend )
+target_link_libraries( il_tests backend )
 
 #IF( ${WIN32} )
 #target_compile_options( il_tests PRIVATE "/bigobj" )

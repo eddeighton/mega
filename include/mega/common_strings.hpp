@@ -58,6 +58,7 @@ namespace mega
     static const char* EG_TRAITS_SIZE = "Size";
     static const char* EG_TRAITS_ALIGNMENT = "Alignment";
     static const char* EG_TRAITS_SIMPLE = "Simple";
+    static const char* EG_TRAITS_HASH = "Hash";
     static const char* EG_OWNER = "Owner";
     static const char* EG_STATE = "State";
     static const char* EG_CONFIGURATION = "Configuration";

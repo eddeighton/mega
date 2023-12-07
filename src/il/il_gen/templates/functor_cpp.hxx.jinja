@@ -18,30 +18,30 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_November_28_llvm
-#define GUARD_2023_November_28_llvm
+#ifndef GUARD_2023_December_05_functor_cpp
+#define GUARD_2023_December_05_functor_cpp
 
-#include <ostream>
-#include <string>
-#include <optional>
+{% for include in includes %}
+#include "{{ include }}"
+{% endfor %}
 
-namespace FinalStage
+#include "runtime/functor_id.hxx"
+
+{% for functor in functors %}
+namespace mega::runtime::{{ functor.materialiser }}
 {
-    namespace Components
-    { 
-        class Component;
-    }
-}
-
-namespace mega::runtime
-{
-    class LLVMCompiler
+    class {{ functor.name }}
     {
+        using FunctionPtr = {{ functor.return_erased_type }} ( * ) ({% for arg in functor.arguments %}{{ arg.erased_type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
     public:
-        virtual void compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
-                                      std::optional< const FinalStage::Components::Component* > pComponent ) const
-            = 0;
+        {{ functor.name }}( {% for arg in functor.ctor_args %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %} );
+        {{ functor.return_type }} operator() ({% for arg in functor.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
+    private:
+        const {{ functor.materialiser }}_id m_id;
+        mutable bool m_bResolving;
+        mutable FunctionPtr m_function;
     };
 }
+{% endfor %}
 
-#endif //GUARD_2023_November_28_llvm
+#endif //GUARD_2023_December_05_functor_cpp

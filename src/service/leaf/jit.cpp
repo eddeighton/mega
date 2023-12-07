@@ -19,36 +19,63 @@
 
 #include "request.hpp"
 
-#include "llvm_compiler.hpp"
-
 #include "service/protocol/common/type_erase.hpp"
+
+#include "service/stash_provider.hpp"
+
+#include "service/protocol/model/stash.hxx"
 
 namespace mega::service
 {
-
 // network::jit::Impl
 
-void LeafRequestLogicalThread::GetAllocator( const mega::TypeID&         typeID,
-                                            const mega::U64&            jitAllocatorPtr,
-                                            boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::ExecuteJIT( const runtime::RuntimeFunctor& func, boost::asio::yield_context& yield_ctx )
 {
-    THROW_TODO;
-    //runtime::Allocator::Ptr* pAllocatorPtr = type_reify< runtime::Allocator::Ptr >( jitAllocatorPtr );
-    //*pAllocatorPtr                         = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), typeID );
-}
+    struct StashProviderImpl : StashProvider
+    {
+        LogicalThread&              m_logicalthread;
+        network::Sender::Ptr        m_pSender;
+        boost::asio::yield_context& m_yield_ctx;
 
-void LeafRequestLogicalThread::ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx )
-{
-    THROW_TODO;
-    //auto llvmCompiler = getLLVMCompiler( yield_ctx );
-    //func( m_leaf.getJIT(), ( void* )&llvmCompiler );
+        StashProviderImpl( LogicalThread&              m_logicalthread,
+                           network::Sender::Ptr        m_pSender,
+                           boost::asio::yield_context& m_yield_ctx )
+            : m_logicalthread( m_logicalthread )
+            , m_pSender( m_pSender )
+            , m_yield_ctx( m_yield_ctx )
+        {
+        }
+
+        virtual void stash( const std::string& filePath, mega::U64 determinant ) const override
+        {
+            // LogicalThread
+            network::leaf_daemon::Request_Sender router( m_logicalthread, m_pSender, m_yield_ctx );
+            network::stash::Request_Encoder      rq( [ &router ]( const network::Message& msg )
+                                                { return router.LeafRoot( msg ); },
+                                                m_logicalthread.getID() );
+            rq.StashStash( filePath, determinant );
+        }
+
+        virtual bool restore( const std::string& filePath, mega::U64 determinant ) const override
+        {
+            network::leaf_daemon::Request_Sender router( m_logicalthread, m_pSender, m_yield_ctx );
+            network::stash::Request_Encoder      rq( [ &router ]( const network::Message& msg )
+                                                { return router.LeafRoot( msg ); },
+                                                m_logicalthread.getID() );
+            return rq.StashRestore( filePath, determinant );
+        }
+    };
+
+    StashProviderImpl stashProvider( *this, m_leaf.getDaemonSender(), yield_ctx );
+
+    func( m_leaf.getRuntime(), stashProvider );
 }
 
 TypeID LeafRequestLogicalThread::GetInterfaceTypeID( const mega::TypeID& concreteTypeID, boost::asio::yield_context& )
 {
     THROW_TODO;
-    //VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
-    //return m_leaf.m_pJIT->getInterfaceTypeID( concreteTypeID );
+    // VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
+    // return m_leaf.m_pJIT->getInterfaceTypeID( concreteTypeID );
 }
 
 } // namespace mega::service

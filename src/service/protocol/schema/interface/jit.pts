@@ -17,15 +17,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg GetAllocator
-{
-    request( mega::TypeID objectTypeID, mega::U64 ppAllocatorPtr );
-    response();
-}
-
 msg ExecuteJIT
 {
-    request( mega::runtime::JITFunctor func );
+    request( mega::runtime::RuntimeFunctor func );
     response();
 }
 

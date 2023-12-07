@@ -42,20 +42,18 @@ set( MEGA_LEAF_API
     ${MEGA_API_DIR}/service/mpo_visitor.hpp
     ${MEGA_API_DIR}/service/player.hpp
     ${MEGA_API_DIR}/service/remote_memory_manager.hpp
+    ${MEGA_API_DIR}/service/stash_provider.hpp
 )
 
 set( MEGA_LEAF_SRC 
     ${MEGA_SRC_DIR}/service/leaf/host.cpp
     ${MEGA_SRC_DIR}/service/leaf/jit.cpp
     ${MEGA_SRC_DIR}/service/leaf/leaf.cpp
-    ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.cpp
-    ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.hpp
     ${MEGA_SRC_DIR}/service/leaf/memory.cpp
     ${MEGA_SRC_DIR}/service/leaf/mpo_context.cpp
     ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.cpp
     ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.hpp
     ${MEGA_SRC_DIR}/service/leaf/player.cpp
-    ${MEGA_SRC_DIR}/service/leaf/project.cpp
     ${MEGA_SRC_DIR}/service/leaf/request.hpp
     ${MEGA_SRC_DIR}/service/leaf/routing.cpp
     ${MEGA_SRC_DIR}/service/leaf/status.cpp
@@ -75,7 +73,7 @@ target_precompile_headers( leaf REUSE_FROM mega_pch )
 
 target_link_libraries( leaf protocol )
 target_link_libraries( leaf network )
-# target_link_libraries( leaf jit )
+target_link_libraries( leaf runtime )
 target_link_libraries( leaf log )
 target_link_libraries( leaf reporters )
 

@@ -105,6 +105,11 @@ Environment::Path Environment::work()
     return os.str();
 }
 
+Environment::Path Environment::workTmp()
+{
+    return work() / "tmp";
+}
+
 Environment::Path Environment::workBin()
 {
     return work() / "bin";

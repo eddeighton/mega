@@ -163,6 +163,20 @@ inline std::ostream& operator<<( std::ostream& os, const AdaptedType& adaptedTyp
     return os;
 }
 
+inline std::string getCPPType( const AdaptedType& type )
+{
+    std::ostringstream os;
+    os << type;
+    return os.str();
+}
+
+inline std::string getCPPErasedType( const AdaptedType& type )
+{
+    std::ostringstream os;
+    os << type;
+    return os.str();
+}
+
 inline std::string getVariableType( const AdaptedType& type )
 {
     struct VariableTypeVisitor
@@ -229,15 +243,22 @@ inline std::ostream& operator<<( std::ostream& os, const Function& function )
     return os;
 }
 
+struct Materialiser
+{
+    std::string name;
+    std::vector< Variable > arguments;
+    std::vector< Function > functions;
+};
+
 struct Model
 {
     std::vector< Type > nativeTypes;
     std::vector< Type > inlineTypes;
     std::vector< Type > externTypes;
 
-    std::vector< Function > inlineFunctions;
-    std::vector< Function > externFunctions;
-    std::vector< Function > templateFunctions;
+    std::vector< Function >     inlineFunctions;
+    std::vector< Function >     externFunctions;
+    std::vector< Materialiser > materialisers;
 
     inline bool isNativeType( const Type& type ) const
     {

@@ -36,6 +36,7 @@ namespace il_gen
 extern void parseNative( const boost::filesystem::path& filePath, Model& model );
 extern void parseInline( const boost::filesystem::path& filePath, Model& model );
 extern void parseExtern( const boost::filesystem::path& filePath, Model& model );
+extern void parseMaterialiser( const boost::filesystem::path& filePath, Model& model );
 } // namespace il_gen
 
 int main( int argc, const char* argv[] )
@@ -56,22 +57,23 @@ int main( int argc, const char* argv[] )
             // clang-format on
         }
 
-        std::string             inlineFiles, nativeFiles, externFiles, templateFiles;
-        boost::filesystem::path injaTemplatesDir, ilTypesFilePath, ilFunctionsFilePath;
+        std::string             inlineFiles, nativeFiles, externFiles, materialiserFiles;
+        boost::filesystem::path injaTemplatesDir, ilFolderPath, runtime_functors_include_dir, runtime_functors_impl_dir;
 
         namespace po = boost::program_options;
         po::options_description commandOptions( " Execute inja template" );
         {
             // clang-format off
             commandOptions.add_options()
-                ( "native",   po::value< std::string >( &nativeFiles ),     "CMake file list describing IL native types and functions" )
-                ( "inline",   po::value< std::string >( &inlineFiles ),     "CMake file list describing IL inline types and functions" )
-                ( "extern",   po::value< std::string >( &externFiles ),     "CMake file list describing extern runtime support functions" )
-                ( "template", po::value< std::string >( &templateFiles ),   "CMake file list describing materialised functions" )
-                ( "inja",     po::value< boost::filesystem::path >( &injaTemplatesDir ), "Inja templates directory path" )
+                ( "native",         po::value< std::string >( &nativeFiles )                   )
+                ( "inline",         po::value< std::string >( &inlineFiles )                   )
+                ( "extern",         po::value< std::string >( &externFiles )                   )
+                ( "materialisers",  po::value< std::string >( &materialiserFiles )             )
+                ( "inja",           po::value< boost::filesystem::path >( &injaTemplatesDir )  )
+                ( "il_folder",      po::value< boost::filesystem::path >( &ilFolderPath )      )
 
-                ( "il_types", po::value< boost::filesystem::path >( &ilTypesFilePath ), "IL types.hxx output file" )
-                ( "il_functions", po::value< boost::filesystem::path >( &ilFunctionsFilePath ), "IL functions.hxx output file" )
+                ( "runtime_functors_include_dir",   po::value< boost::filesystem::path >( &runtime_functors_include_dir ) )
+                ( "runtime_functors_impl_dir",     po::value< boost::filesystem::path >( &runtime_functors_impl_dir ) )
                 ;
             // clang-format on
         }
@@ -101,8 +103,12 @@ int main( int argc, const char* argv[] )
             VERIFY_RTE_MSG( boost::filesystem::exists( injaTemplatesDir ),
                             "Failed to locate inja template directory at: " << injaTemplatesDir.string() );
 
+            const std::vector< boost::filesystem::path > materialiserFilePaths
+                = mega::utilities::pathListToFiles( mega::utilities::parseCMakeStringList( materialiserFiles, " " ) );
+
             // determine the model
-            il_gen::Model model;
+            il_gen::Model                          model;
+            std::vector< boost::filesystem::path > materialiserIncludes;
             {
                 const std::vector< boost::filesystem::path > nativeFilePaths
                     = mega::utilities::pathListToFiles( mega::utilities::parseCMakeStringList( nativeFiles, " " ) );
@@ -110,8 +116,6 @@ int main( int argc, const char* argv[] )
                     = mega::utilities::pathListToFiles( mega::utilities::parseCMakeStringList( inlineFiles, " " ) );
                 const std::vector< boost::filesystem::path > externFilePaths
                     = mega::utilities::pathListToFiles( mega::utilities::parseCMakeStringList( externFiles, " " ) );
-                const std::vector< boost::filesystem::path > templateFilePaths
-                    = mega::utilities::pathListToFiles( mega::utilities::parseCMakeStringList( templateFiles, " " ) );
 
                 {
                     for( const auto& f : nativeFilePaths )
@@ -136,9 +140,11 @@ int main( int argc, const char* argv[] )
                     }
                 }
 
-                for( const auto& f : templateFilePaths )
+                for( const auto& f : materialiserFilePaths )
                 {
-                    std::cout << "Template file: " << f.string() << std::endl;
+                    std::cout << "Materialiser file: " << f.string() << std::endl;
+                    parseMaterialiser( f, model );
+                    materialiserIncludes.push_back( f );
                 }
             }
 
@@ -148,20 +154,32 @@ int main( int argc, const char* argv[] )
             // generate the outputs
 
             // 1. Generate the IL mega/src/include/il/elements/types.hxx
+            const auto ilTypesFilePath = ilFolderPath / "types.hxx";
             std::cout << "Generating: " << ilTypesFilePath.string() << std::endl;
             generateTypes( injaEnv, model, ilTypesFilePath );
 
             // 2. Generate the IL mega/src/include/il/elements/functions.hxx
+            const auto ilFunctionsFilePath = ilFolderPath / "functions.hxx";
             std::cout << "Generating: " << ilFunctionsFilePath.string() << std::endl;
             generateFunctions( injaEnv, model, ilFunctionsFilePath );
 
-            // 3. Generate the mega mangle adaptors for extern type erasure
+            const auto ilMaterialiserPath = ilFolderPath / "materialisers.hxx";
+            std::cout << "Generating: " << ilMaterialiserPath.string() << std::endl;
+            generateMaterialiser( injaEnv, model, ilMaterialiserPath );
 
-            // 4. Generate the C++ JIT Functors
+            const auto cppFunctorHeader = runtime_functors_include_dir / "functor_cpp.hxx";
+            const auto cppFunctoSrc     = runtime_functors_impl_dir / "functor_cpp.cxx";
+            std::cout << "Generating: " << cppFunctorHeader.string() << " and " << cppFunctoSrc.string() << std::endl;
+            generateFunctorCPP( injaEnv, model, cppFunctorHeader, cppFunctoSrc, materialiserIncludes );
 
-            // 5. Generate the C JIT Functors
+            const auto cppFunctorIDs = runtime_functors_include_dir / "functor_id.hxx";
+            std::cout << "Generating: " << cppFunctorIDs.string() << std::endl;
+            generateFunctorIDs( injaEnv, model, cppFunctorIDs );
 
-            // 6. Generate whatever needed for how JIT internally dispatches to IL code generators
+            const auto functorDispatch = runtime_functors_impl_dir / "functor_dispatch.cxx";
+            std::cout << "Generating: " << functorDispatch.string() << std::endl;
+            generateFunctorDispatch( injaEnv, model, functorDispatch );
+
 
             return 0;
         }

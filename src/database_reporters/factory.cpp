@@ -63,7 +63,7 @@ mega::reports::Container generateCompilationReport( const mega::reports::URL& ur
         auto reportType = mega::reports::getReportType( url ).value();
         if( reportType.empty() )
         {
-            return {};
+            THROW_RTE( "Failed to find report type in url: " << url.c_str() );
         }
 #define REPORTER( reportname )                           \
     else if( reportType == #reportname )                 \
@@ -73,6 +73,10 @@ mega::reports::Container generateCompilationReport( const mega::reports::URL& ur
     }
 #include "reporters.hxx"
 #undef REPORTER
+        else
+        {
+            THROW_RTE( "Failed to locate reporter of type: " << reportType << " for URL: " << url.c_str() );
+        }
     }
     return {};
 }

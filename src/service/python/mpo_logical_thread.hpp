@@ -58,15 +58,14 @@ public:
     // network::python::Impl
     virtual TypeID    PythonGetInterfaceTypeID( const TypeID&               concreteTypeID,
                                                 boost::asio::yield_context& yield_ctx ) override;
-    virtual void      PythonExecuteJIT( const mega::runtime::JITFunctor& func,
-                                        boost::asio::yield_context&      yield_ctx ) override;
+    virtual void      PythonExecuteJIT( const mega::runtime::RuntimeFunctor& func,
+                                        boost::asio::yield_context&          yield_ctx ) override;
     virtual TimeStamp PythonCycle( boost::asio::yield_context& yield_ctx ) override;
     virtual void PythonFunctor( const mega::runtime::Functor& functor, boost::asio::yield_context& yield_ctx ) override;
     virtual void PythonShutdown( boost::asio::yield_context& yield_ctx ) override;
 
-    void run( boost::asio::yield_context& yield_ctx ) override;
-    virtual void
-    RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    void         run( boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     bool isRunComplete() const { return m_bRunComplete; }
 

@@ -90,13 +90,14 @@ void addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& paren
 
             if( auto pUser = db_cast< UserDimensionTrait >( pDimension ) )
             {
-                table.m_rows.push_back(
-                    { Line{ "User "s }, Line{ getIdentifier( pDimension ) }, Line{ pUser->get_canonical_type() } } );
+                table.m_rows.push_back( { Line{ "User "s }, Line{ getIdentifier( pDimension ) },
+                                          Line{ pUser->get_canonical_type() }, Line{ pUser->get_mangled_name() } } );
             }
             else if( auto pCompiler = db_cast< CompilerDimensionTrait >( pDimension ) )
             {
                 table.m_rows.push_back( { Line{ "Comp "s }, Line{ getIdentifier( pDimension ) },
-                                          Line{ std::string{ mega::psz_bitset } } } );
+                                          Line{ std::string{ mega::psz_bitset } },
+                                          Line{ pCompiler->get_mangled_name() } } );
             }
             else
             {

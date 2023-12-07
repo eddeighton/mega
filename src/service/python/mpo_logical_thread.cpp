@@ -194,7 +194,7 @@ TypeID MPOLogicalThread::PythonGetInterfaceTypeID( const TypeID& concreteTypeID,
     return getLeafJITRequest().GetInterfaceTypeID( concreteTypeID );
 }
 
-void MPOLogicalThread::PythonExecuteJIT( const mega::runtime::JITFunctor& func, boost::asio::yield_context& )
+void MPOLogicalThread::PythonExecuteJIT( const mega::runtime::RuntimeFunctor& func, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "MPOLogicalThread::PythonExecuteJIT" );
     getLeafJITRequest().ExecuteJIT( func );

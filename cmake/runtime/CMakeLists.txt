@@ -34,32 +34,42 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
+#get clang
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( RUNTIME_HEADERS
-    ${MEGA_API_DIR}/runtime/runtime.hpp
+
+    ${MEGA_API_DIR}/runtime/clang.hpp
+    #${MEGA_API_DIR}/runtime/component_manager.hpp
     ${MEGA_API_DIR}/runtime/exception.hpp
-    ${MEGA_API_DIR}/runtime/mangle.hpp
-    ${MEGA_API_DIR}/runtime/llvm.hpp
+    ${MEGA_API_DIR}/runtime/function_cache.hpp
+    ${MEGA_API_DIR}/runtime/function_provider.hpp
     ${MEGA_API_DIR}/runtime/function_ptr.hpp
+    ${MEGA_API_DIR}/runtime/functor_cpp.hxx
+    ${MEGA_API_DIR}/runtime/functor_dispatch.hpp
+    ${MEGA_API_DIR}/runtime/functor_id.hxx
+    ${MEGA_API_DIR}/runtime/mangle.hpp
+    ${MEGA_API_DIR}/runtime/orc.hpp
+    ${MEGA_API_DIR}/runtime/runtime.hpp
+    ${MEGA_API_DIR}/runtime/symbol.hpp
 )
 
-set( RUNTIME_FUNCTIONS_HEADERS
-    ${MEGA_API_DIR}/runtime/functions/invocations.hxx
-    ${MEGA_API_DIR}/runtime/functions/operators.hxx
-)
 
 set( RUNTIME_SOURCE
+    ${MEGA_SRC_DIR}/runtime/clang.cpp
+    #${MEGA_SRC_DIR}/runtime/component_manager.cpp
+    ${MEGA_SRC_DIR}/runtime/functor_cpp.cxx
+    ${MEGA_SRC_DIR}/runtime/functor_dispatch.cxx
+    ${MEGA_SRC_DIR}/runtime/orc.cpp
     ${MEGA_SRC_DIR}/runtime/runtime.cpp
-    
-    ${MEGA_SRC_DIR}/runtime/functions/invocations.cxx
-    ${MEGA_SRC_DIR}/runtime/functions/operators.cxx
+    ${MEGA_SRC_DIR}/runtime/symbols.cpp
 )
 
-add_library( runtime SHARED
+add_library( runtime
     ${RUNTIME_HEADERS}
-    ${RUNTIME_FUNCTIONS_HEADERS}
     ${RUNTIME_SOURCE}
 )
 target_precompile_headers( runtime REUSE_FROM mega_pch )
@@ -72,10 +82,12 @@ target_link_libraries( runtime database )
 #target_link_libraries( runtime orc )
 target_link_libraries( runtime invocation )
 target_link_libraries( runtime protocol )
+target_link_libraries( runtime frontend )
+target_link_libraries( runtime backend )
 
 # target_link_options( runtime PUBLIC -export-dynamic )
-set_property(TARGET runtime PROPERTY C_VISIBILITY_PRESET hidden)
-set_property(TARGET runtime PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+# set_property(TARGET runtime PROPERTY C_VISIBILITY_PRESET hidden)
+# set_property(TARGET runtime PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 
 target_include_directories( runtime PUBLIC ${MEGA_API_DIR} )
 
@@ -87,9 +99,9 @@ link_inja( runtime )
 link_fmt( runtime )
 link_spdlog( runtime )
 link_common( runtime )
+link_orc( runtime )
 
 install( FILES ${RUNTIME_HEADERS} DESTINATION include/runtime )
-install( FILES ${RUNTIME_FUNCTIONS_HEADERS} DESTINATION include/runtime/functions )
 install( TARGETS runtime EXPORT runtime DESTINATION bin)
 install( EXPORT runtime NAMESPACE MEGA:: FILE runtime-config.cmake DESTINATION share )
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )

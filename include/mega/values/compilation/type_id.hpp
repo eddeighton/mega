@@ -55,12 +55,15 @@ private:
         return ContextID{ subObjectID, objectID, flag };
     }
 
+    // make data members public so can use as compile time parameter
+public:
     union
     {
         ContextID contextID;
         ValueType value;
     };
 
+private:
     constexpr TypeID( ContextID _contextID )
         : contextID( _contextID )
     {

@@ -25,23 +25,14 @@
 #include "mega/values/compilation/type_id.hpp"
 #include "mega/values/compilation/type_id_sequence.hpp"
 #include "mega/values/compilation/type_instance.hpp"
+#include "mega/values/hash.hpp"
 
 #include "common/serialisation.hpp"
-#include "common/hash.hpp"
 
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <optional>
-
-namespace common
-{
-template <>
-struct internal::HashFunctor< mega::TypeID >
-{
-    inline HashCodeType operator()( const mega::TypeID& typeID ) const { return mega::TypeID::Hash()( typeID ); }
-};
-} // namespace common
 
 namespace mega
 {

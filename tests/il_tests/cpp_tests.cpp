@@ -22,6 +22,7 @@
 #include "il/elements/types.hxx"
 #include "il/elements/types.hpp"
 #include "il/elements/functions.hxx"
+#include "il/elements/materialisers.hxx"
 #include "il/elements/elements.hpp"
 #include "il/elements/mangle.hpp"
 
@@ -172,10 +173,10 @@ TEST( IL, Materialiser )
     Variable< ValueType > param3{ voidStar, "pBuffer"s };
     Variable< ValueType > param4{ boolType, "bLinkReset"s };
 
-    ObjectMaterialiser       mat;
+    Object       mat;
     Variable< Materialiser > objectMat{ mat, "objectMat"s };
 
-    const FunctionTemplate& jitFunctionType = mat.getFunctionTemplate( ObjectMaterialiser::ObjectDtor );
+    const FunctionTemplate& jitFunctionType = mat.getFunctionTemplate( Object::destructor );
 
     FunctionDefinition func{
 

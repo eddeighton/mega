@@ -18,12 +18,53 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_November_27_runtime
-#define GUARD_2023_November_27_runtime
+#ifndef GUARD_2023_December_06_runtime
+#define GUARD_2023_December_06_runtime
+
+#include "runtime/clang.hpp"
+#include "runtime/function_provider.hpp"
+#include "runtime/functor_id.hxx"
+#include "runtime/orc.hpp"
+
+#include "il/frontend/factory.hpp"
+
+#include "mega/values/service/program.hpp"
+#include "mega/values/compilation/megastructure_installation.hpp"
+
+#include <unordered_map>
 
 namespace mega::runtime
 {
 
-}
+class Runtime : public FunctionProvider
+{
+    struct FunctionInfo
+    {
+        void**           pFunction;
+        Orc::Module::Ptr pModule;
+    };
+    using FunctionMap = std::unordered_map< FunctorID, FunctionInfo, FunctorID::Hash >;
 
-#endif //GUARD_2023_November_27_runtime
+public:
+    Runtime( const boost::filesystem::path& tempDir, const MegastructureInstallation& megaInstall );
+
+    void             loadProgram( const service::Program& program );
+    void             unloadProgram();
+    service::Program getProgram() const;
+
+    // FunctionProvider
+    virtual void getFunction( service::StashProvider& stashProvider, const FunctorID& functionID,
+                              void** ppFunction ) override;
+
+private:
+    boost::filesystem::path m_tempDir;
+    Clang                   m_clang;
+    service::Program        m_program;
+    FunctionMap             m_materialisedFunctions;
+    il::Factory             m_materialisedFunctionFactory;
+    Orc                     m_orc;
+};
+
+} // namespace mega::runtime
+
+#endif // GUARD_2023_December_06_runtime

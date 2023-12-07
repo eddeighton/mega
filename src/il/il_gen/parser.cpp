@@ -26,6 +26,9 @@
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/AST/ASTConsumer.h"
 
+#include "clang/Basic/Thunk.h"
+#include "clang/AST/Mangle.h"
+
 #include "clang/Tooling/CompilationDatabase.h"
 #include "clang/Tooling/Tooling.h"
 
@@ -33,6 +36,7 @@
 #include <boost/filesystem/path.hpp>
 
 #include <string>
+#include <iostream>
 
 namespace il_gen
 {
@@ -144,14 +148,6 @@ Namespaces detectNamespace( const clang::DeclContext* pDeclContext )
 
 Type detectType( const clang::QualType& type )
 {
-    // https://zzzcode.ai/cplusplus/code-generator?id=e342eeae-1dd2-46f4-bafd-2fee33d1800b
-    // generated this with AI !!!!
-    // Namespaces namespaces;
-    // if ( const TagType* tagType = dyn_cast< TagType >( type ) )
-    // {
-    //     namespaces = detectNamespace( tagType->getDecl() );
-    // }
-
     if( type->isPointerType() )
     {
         auto tmp = type->getPointeeType();
@@ -421,6 +417,84 @@ public:
         }
     }
 };
+
+class MaterialiserCallback : public MatchFinder::MatchCallback
+{
+    Model& model;
+
+public:
+    MaterialiserCallback( Model& model )
+        : model( model )
+    {
+    }
+    virtual void run( const MatchFinder::MatchResult& Result )
+    {
+        if( auto pClassTemplateDecl = Result.Nodes.getNodeAs< clang::ClassTemplateDecl >( "materialisers" ) )
+        {
+            auto namespaces = detectNamespace( pClassTemplateDecl->getDeclContext() );
+            if( ( namespaces.size() == 2 ) && ( namespaces.front() == "mega" )
+                && ( namespaces.back() == "materialiser" ) )
+            {
+                try
+                {
+                    std::vector< Variable > arguments;
+                    for( const NamedDecl* pTemplateParam : pClassTemplateDecl->getTemplateParameters()->asArray() )
+                    {
+                        const NonTypeTemplateParmDecl* pParam
+                            = llvm::dyn_cast< NonTypeTemplateParmDecl >( pTemplateParam );
+                        VERIFY_RTE_MSG( pParam, "Failed to find param var decl in materialiser template parameters: "
+                                                    << pClassTemplateDecl->getNameAsString() );
+
+                        auto adaptedType = getAdaptedType( model, pParam->getType().getCanonicalType() );
+                        arguments.push_back( Variable{ adaptedType, pParam->getNameAsString() } );
+                    }
+
+                    std::vector< Function > functions;
+                    {
+                        auto pUnderlyingClassDecl = pClassTemplateDecl->getTemplatedDecl();
+
+                        for( const auto* pChild : pUnderlyingClassDecl->decls() )
+                        {
+                            if( const CXXMethodDecl* pFunctionDecl = llvm::dyn_cast< CXXMethodDecl >( pChild ) )
+                            {
+                                // ItaniumMangleContext* pItaniumMangle = ItaniumMangleContext::create(
+                                //     pFunctionDecl->getASTContext(), pFunctionDecl->getASTContext().getDiagnostics() );
+                                // ThunkInfo                thunkInfo{};
+                                // std::string              str;
+                                // llvm::raw_string_ostream os( str );
+                                // pItaniumMangle->mangleThunk( pFunctionDecl, thunkInfo, os );
+                                // std::cout << "Mangle: " << str << std::endl;
+
+                                std::vector< Variable > arguments;
+                                {
+                                    for( int i = 0; i != pFunctionDecl->getNumParams(); ++i )
+                                    {
+                                        auto pParam = pFunctionDecl->getParamDecl( i );
+                                        auto adaptedType
+                                            = getAdaptedType( model, pParam->getType().getCanonicalType() );
+                                        arguments.push_back( Variable{ adaptedType, pParam->getNameAsString() } );
+                                    }
+                                }
+                                auto returnType
+                                    = getAdaptedType( model, pFunctionDecl->getReturnType().getCanonicalType() );
+                                functions.push_back(
+                                    Function{ arguments, returnType, pFunctionDecl->getNameAsString(), namespaces } );
+                            }
+                        }
+                    }
+
+                    Materialiser materialiser{ pClassTemplateDecl->getNameAsString(), arguments, functions };
+                    model.materialisers.push_back( materialiser );
+                }
+                catch( std::exception& ex )
+                {
+                    THROW_RTE( "Fail to analyse materialiser: " << pClassTemplateDecl->getNameAsString()
+                                                                << " error: " << ex.what() );
+                }
+            }
+        }
+    }
+};
 } // namespace
 
 void parseNative( const boost::filesystem::path& filePath, Model& model )
@@ -473,6 +547,22 @@ void parseExtern( const boost::filesystem::path& filePath, Model& model )
     ClangTool              tool( db, { filePath.string() } );
     MatchFinder            finder;
     DeclarationMatcher     matcher = functionDecl().bind( "functions" );
+    finder.addMatcher( matcher, &callback );
+    tool.run( newFrontendActionFactory( &finder ).get() );
+}
+
+void parseMaterialiser( const boost::filesystem::path& filePath, Model& model )
+{
+    using namespace llvm;
+    using namespace clang;
+    using namespace clang::tooling;
+    using namespace clang::ast_matchers;
+
+    MaterialiserCallback callback( model );
+    ToolDB               db( filePath );
+    ClangTool            tool( db, { filePath.string() } );
+    MatchFinder          finder;
+    DeclarationMatcher   matcher = classTemplateDecl().bind( "materialisers" );
     finder.addMatcher( matcher, &callback );
     tool.run( newFrontendActionFactory( &finder ).get() );
 }

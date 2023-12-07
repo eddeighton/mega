@@ -57,11 +57,8 @@ source_group( src FILES ${IL_SOURCES} )
 
 add_executable( il_gen ${IL_SOURCES} )
 
-link_boost( il_gen atomic )
 link_boost( il_gen program_options )
-link_boost( il_gen timer )
 link_boost( il_gen filesystem )
-link_boost( il_gen iostreams )
 link_boost( il_gen serialization )
 link_fmt( il_gen )
 link_spdlog( il_gen )
@@ -87,23 +84,24 @@ set( EXTERN_FILES
 	${MEGA_API_DIR}/mega/mangle/traits.cpp
 )
 
-set( TEMPLATE_FILES
-	${MEGA_API_DIR}/mega/mangle/traits.cpp
+set( MATERIALISER_FILES
+	${MEGA_API_DIR}/il/materialisers/object.hpp
 )
 
-# add_custom_target( run_il_gen
-#     COMMAND il_gen
-#         --native \"${NATIVE_FILES}\"
-#         --inline \"${INLINE_FILES}\"
-#         --extern \"${EXTERN_FILES}\"
-#         --template \"${TEMPLATE_FILES}\"
-#         --inja ${IL_TEMPLATES_DIR}
-#         --il_types ${MEGA_API_DIR}/il/elements/types.hxx
-#         --il_functions ${MEGA_API_DIR}/il/elements/functions.hxx
-#         
-#     DEPENDS ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES} il_gen
-#     # BYPRODUCTS  ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
-#     COMMENT "Running IL Gen" 
-#     SOURCES ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES}
-# )
-# add_dependencies( run_il_gen il_gen )
+add_custom_target( run_il_gen
+    COMMAND il_gen
+        --native \"${NATIVE_FILES}\"
+        --inline \"${INLINE_FILES}\"
+        --extern \"${EXTERN_FILES}\"
+        --materialisers \"${MATERIALISER_FILES}\"
+        --inja ${IL_TEMPLATES_DIR}
+        --il_folder ${MEGA_API_DIR}/il/elements
+        --runtime_functors_include_dir ${MEGA_API_DIR}/runtime/
+        --runtime_functors_impl_dir ${MEGA_SRC_DIR}/runtime/
+        
+    DEPENDS ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES} il_gen
+    # BYPRODUCTS  ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
+    COMMENT "Running IL Gen" 
+    SOURCES ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES}
+)
+add_dependencies( run_il_gen il_gen )

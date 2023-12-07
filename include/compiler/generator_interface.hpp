@@ -188,6 +188,12 @@ private:
                     osTrait << "using Erased = mega::DimensionTraits< " << strType << " >::Erased";
                     trait_struct[ "traits" ].push_back( osTrait.str() );
                 }
+                {
+                    std::ostringstream osTrait;
+                    osTrait << "inline static const mega::U64 " << mega::EG_TRAITS_HASH
+                            << " = mega::DimensionTraits< " << strType << " >::Hash";
+                    trait_struct[ "traits" ].push_back( osTrait.str() );
+                }
             }
             traits.push_back( trait_struct );
         }
@@ -307,7 +313,7 @@ private:
             {
                 bool bFirst = true;
                 for( const mega::NamedSymbolVariantPath& namedSymbolVariantPath :
-                    pEventTypeTrait->get_named_symbol_variant_path_sequence().m_symbolVariantPaths )
+                     pEventTypeTrait->get_named_symbol_variant_path_sequence().m_symbolVariantPaths )
                 {
                     if( bFirst )
                         bFirst = false;
@@ -317,7 +323,7 @@ private:
                     osTrait << mega::EG_TYPE_PATH << "< ";
                     bool bFirstVariant = true;
                     for( const mega::SymbolVariant& symbolVariant :
-                        namedSymbolVariantPath.m_symbolVariantPath.m_symbolVariants )
+                         namedSymbolVariantPath.m_symbolVariantPath.m_symbolVariants )
                     {
                         if( bFirstVariant )
                             bFirstVariant = false;
@@ -373,7 +379,7 @@ private:
             {
                 bool bFirst = true;
                 for( const auto& symbolVariantPath :
-                    transitionTrait->get_symbol_variant_path_sequence().m_symbolVariantPaths )
+                     transitionTrait->get_symbol_variant_path_sequence().m_symbolVariantPaths )
                 {
                     if( bFirst )
                         bFirst = false;
@@ -382,8 +388,7 @@ private:
 
                     osTrait << mega::EG_TYPE_PATH << "< ";
                     bool bFirstVariant = true;
-                    for( const mega::SymbolVariant& symbolVariant :
-                        symbolVariantPath.m_symbolVariants )
+                    for( const mega::SymbolVariant& symbolVariant : symbolVariantPath.m_symbolVariants )
                     {
                         if( bFirstVariant )
                             bFirstVariant = false;

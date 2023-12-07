@@ -56,32 +56,6 @@ struct {{ extern.element_name }} : ExternFunction
 };
 {% endfor %}
 
-struct ObjectMaterialiser : Materialiser
-{
-    enum FunctionTypes
-    {
-        ObjectCtor,
-        ObjectDtor
-    };
-    ObjectMaterialiser()
-    {
-        using namespace std::string_literals;
-
-        Mutable  voidType{ e_void };
-        Ptr      voidStar{ e_void };
-        Mutable  boolType{ e_bool };
-        ConstRef constRefReference{ e_reference };
-
-        parameterTypes.emplace_back( Const{ e_TypeID } );
-
-        auto ctor = JIT{ Function{ "ObjectCtor"s, { voidStar }, voidType } };
-        auto dtor = JIT{ Function{ "ObjectDtor"s, { constRefReference, voidStar, boolType }, voidType } };
-
-        functionTemplates.insert( { ObjectCtor, FunctionTemplate{ ctor } } );
-        functionTemplates.insert( { ObjectDtor, FunctionTemplate{ dtor } } );
-    }
-};
-
 } // namespace mega::il
 
 #endif // GUARD_2023_November_24_functions

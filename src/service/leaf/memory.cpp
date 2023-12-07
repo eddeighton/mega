@@ -73,8 +73,8 @@ reference LeafRequestLogicalThread::NetworkAllocate( const MPO& parent, const Ty
         result = simRequest.SimAllocate( objectTypeID );
     }
 
-    auto llvm = getLLVMCompiler( yield_ctx );
-    THROW_TODO;
+    // auto llvm = getLLVMCompiler( yield_ctx );
+    // THROW_TODO;
     // return m_leaf.m_pRemoteMemoryManager->networkToHeap( result, llvm );
 }
 
@@ -89,7 +89,7 @@ reference LeafRequestLogicalThread::NetworkToHeap( const reference& ref, const T
         return ref;
     }
 
-    auto llvm = getLLVMCompiler( yield_ctx );
+    // auto llvm = getLLVMCompiler( yield_ctx );
 
     // caller has called this because they ALREADY have appropriate read or write lock
     reference heapAddress;

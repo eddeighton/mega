@@ -22,7 +22,7 @@
 #define GUARD_2023_February_04_scheduler
 
 #include "service/protocol/common/context.hpp"
-#include "service/protocol/common/jit_base.hpp"
+#include "runtime/function_provider.hpp"
 
 #include "mega/coroutine.hpp"
 
@@ -30,7 +30,7 @@
 
 namespace mega::service
 {
-
+/*
 class ActionFunctionCache
 {
     using ActionFunctionPtr = mega::ActionCoroutine ( * )( mega::reference* );
@@ -53,7 +53,7 @@ public:
         }
 
         {
-            mega::runtime::JITFunctor functor( [ typeID, &iter ]( mega::runtime::JITBase& jit, void* )
+            mega::runtime::RuntimeFunctor functor( [ typeID, &iter ]( mega::runtime::FunctionProvider& jit, void* )
                                                { jit.getActionFunction( typeID, ( void** )&iter->second ); } );
             // NOTE: call to jit MAY return with THIS coroutine resumed in DIFFERENT thread!
             mega::Context::get()->jit( functor );
@@ -65,7 +65,7 @@ public:
 private:
     ActionFunctionMap m_actionFunctions;
 };
-
+*/
 } // namespace mega::service
 
 #endif // GUARD_2023_February_04_scheduler

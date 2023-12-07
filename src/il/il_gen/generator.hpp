@@ -28,11 +28,19 @@
 
 #include <boost/filesystem/path.hpp>
 
+#include <vector>
+
 namespace il_gen
 {
 
 void generateTypes( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile );
 void generateFunctions( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile );
+void generateMaterialiser( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile );
+void generateFunctorCPP( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputHeader,
+                         const boost::filesystem::path&                outputSrc,
+                         const std::vector< boost::filesystem::path >& includes );
+void generateFunctorIDs( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile );
+void generateFunctorDispatch( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile );
 
 } // namespace il_gen
 

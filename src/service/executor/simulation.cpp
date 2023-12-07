@@ -131,8 +131,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         log::FileIterator< log::Transition::Read > m_iter_transitions = m_pLog->begin< log::Transition::Read >();
         log::FileIterator< log::Structure::Read >  m_iter_structure   = m_pLog->begin< log::Structure::Read >();
 
-        ActionFunctionCache   actionFunctionCache;
-        DecisionFunctionCache decisionFunctionCache;
+        //ActionFunctionCache   actionFunctionCache;
+        //DecisionFunctionCache decisionFunctionCache;
 
         TimeStamp cycle     = getLog().getTimeStamp();
         TimeStamp lastCycle = cycle;
@@ -206,7 +206,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     }
 
                     // process all transitions
-                    {
+                    /*{
                         for( ; m_iter_transitions != m_pLog->end< log::Transition::Read >(); ++m_iter_transitions )
                         {
                             const auto& transition = *m_iter_transitions;
@@ -221,7 +221,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                             auto pDecision = decisionFunctionCache.getDecisionFunction( ref.getType() );
                             pDecision( &ref );
                         }
-                    }
+                    }*/
 
                     // run all active actions
                     {

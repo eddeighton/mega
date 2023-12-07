@@ -50,6 +50,7 @@ public:
     static const char*     build();
     
     static Path            work();
+    static Path            workTmp();
     static Path            workBin();
     static Path            srcDir( const Project& project );
     static Path            buildDir( const Project& project );

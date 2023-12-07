@@ -18,29 +18,18 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "llvm_compiler.hpp"
+#include "runtime/clang.hpp"
 
 #include "database/FinalStage.hxx"
 
 #include "service/network/log.hpp"
 
-#include "service/protocol/model/leaf_daemon.hxx"
-#include "service/protocol/model/stash.hxx"
-
-#include "service/protocol/common/sender.hpp"
-
-#include "service/network/logical_thread.hpp"
-
-#include "common/file.hpp"
-#include "common/stash.hpp"
 #include "common/process.hpp"
-
-#include <boost/process.hpp>
 
 #include <sstream>
 #include <string>
 
-namespace mega::service
+namespace mega::runtime
 {
 namespace
 {
@@ -72,10 +61,11 @@ void runCompilation( const std::string& strCmd )
     }
 }
 
-void compile( const boost::filesystem::path& clangPath, const boost::filesystem::path& inputCPPFilePath,
-              const boost::filesystem::path&                            outputIRFilePath,
-              std::optional< const FinalStage::Components::Component* > pComponent,
-              const mega::MegastructureInstallation&                    megastructureInstallation )
+void compile( const boost::filesystem::path& inputCPPFilePath,
+              const boost::filesystem::path& outputIRFilePath,
+              std::optional< const FinalStage::Components::Component* >
+                                                     pComponent,
+              const mega::MegastructureInstallation& megastructureInstallation )
 {
     auto startTime = std::chrono::steady_clock::now();
     {
@@ -84,7 +74,7 @@ void compile( const boost::filesystem::path& clangPath, const boost::filesystem:
         using namespace std::string_literals;
         static const std::string hackFlagsForNow = " -std=c++20 -DMEGAJIT -fexceptions"s;
 
-        osCmd << clangPath << hackFlagsForNow << " -S -emit-llvm ";
+        osCmd << megastructureInstallation.getClangPath() << hackFlagsForNow << " -S -emit-llvm ";
 
         if( pComponent.has_value() )
         {
@@ -121,51 +111,17 @@ void compile( const boost::filesystem::path& clangPath, const boost::filesystem:
     SPDLOG_TRACE( "RUNTIME: Clang Compilation time: {}", timeDelta );
 }
 
-void compileToLLVMIRImpl( const LLVMCompilerImpl& compiler, const std::string& strName, const std::string& strCPPCode,
-                          std::ostream& osIR, std::optional< const FinalStage::Components::Component* > pComponent )
-{
-    const boost::filesystem::path irFilePath = compiler.getTempDir() / ( strName + ".ir" );
-
-    const task::DeterminantHash determinant{ strCPPCode };
-    if( compiler.restore( irFilePath.string(), determinant.get() ) )
-    {
-        boost::filesystem::loadAsciiFile( irFilePath, osIR );
-    }
-    else
-    {
-        boost::filesystem::path inputCPPFilePath = compiler.getTempDir() / ( strName + ".cpp" );
-        {
-            auto pFStream = boost::filesystem::createNewFileStream( inputCPPFilePath );
-            *pFStream << strCPPCode;
-        }
-        compile( compiler.getClangPath(), inputCPPFilePath, irFilePath, pComponent, compiler.getMegaInstall() );
-        compiler.stash( irFilePath.string(), determinant.get() );
-        boost::filesystem::loadAsciiFile( irFilePath, osIR );
-    }
-}
 } // namespace
 
-void LLVMCompilerImpl::compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
-                                        std::optional< const FinalStage::Components::Component* > pComponent ) const
+Clang::Clang( const MegastructureInstallation& megaInstall )
+    : m_megaInstall( megaInstall )
 {
-    compileToLLVMIRImpl( *this, strName, strCPPCode, osIR, pComponent );
 }
 
-void LLVMCompilerImpl::stash( const std::string& filePath, mega::U64 determinant ) const
+void Clang::compileToLLVMIR( const boost::filesystem::path& cppFile, const boost::filesystem::path& irFile,
+                             std::optional< const FinalStage::Components::Component* > pComponent ) const
 {
-    // LogicalThread
-    network::leaf_daemon::Request_Sender router( m_logicalthread, m_pSender, m_yield_ctx );
-    network::stash::Request_Encoder      rq(
-        [ &router ]( const network::Message& msg ) { return router.LeafRoot( msg ); }, m_logicalthread.getID() );
-    rq.StashStash( filePath, determinant );
+    compile( cppFile, irFile, pComponent, m_megaInstall );
 }
 
-bool LLVMCompilerImpl::restore( const std::string& filePath, mega::U64 determinant ) const
-{
-    network::leaf_daemon::Request_Sender router( m_logicalthread, m_pSender, m_yield_ctx );
-    network::stash::Request_Encoder      rq(
-        [ &router ]( const network::Message& msg ) { return router.LeafRoot( msg ); }, m_logicalthread.getID() );
-    return rq.StashRestore( filePath, determinant );
-}
-
-} // namespace mega::service
+} // namespace mega::runtime

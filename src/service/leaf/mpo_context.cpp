@@ -247,11 +247,11 @@ void MPOContext::createRoot( const mega::MPO& mpo )
 
     m_mpo = mpo;
 
-    //m_pDatabase.reset();
-    //THROW_TODO;
-    //m_pMemoryManager.reset();
+    // m_pDatabase.reset();
+    // THROW_TODO;
+    // m_pMemoryManager.reset();
 
-    //THROW_TODO;
+    // THROW_TODO;
     /*if( boost::filesystem::exists( project.getProjectDatabase() ) )
     {
         m_pDatabase = std::make_unique< runtime::MPODatabase >( project.getProjectDatabase() );
@@ -279,7 +279,7 @@ void MPOContext::createRoot( const mega::MPO& mpo )
     }*/
 }
 
-void MPOContext::jit( runtime::JITFunctor func )
+void MPOContext::jit( runtime::RuntimeFunctor func )
 {
     getLeafJITRequest().ExecuteJIT( func );
 }

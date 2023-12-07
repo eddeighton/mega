@@ -24,13 +24,15 @@
 
 #include "database_reporters/factory.hpp"
 
+#include "environment/environment.hpp"
+
 #include "service/network/log.hpp"
+#include "service/terminal.hpp"
 
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 #include "mega/values/compilation/type_id.hpp"
 
-#include "mega/mangle/traits.hpp"
 #include "mega/common_strings.hpp"
 
 #include "common/assert_verify.hpp"
@@ -55,102 +57,14 @@ namespace FinalStage
 
 namespace driver::report
 {
-/*
-class TestReporter : public mega::reports::Reporter
-{
-public:
-    using ID = std::string;
-
-    mega::reports::ReporterID getID() override { return "test"; }
-
-    mega::reports::Container generate( const mega::reports::URL& url ) override
-    {
-        using namespace std::string_literals;
-        using namespace mega::reports;
-
-        Table table{ { "Line"s, "Multiline"s, "Branch"s, "Graph"s } };
-
-        for( int i = 0; i != 10; ++i )
-        {
-            // clang-format off
-            table.m_rows.emplace_back
-            (
-                ContainerVector
-                {
-                    Line{ "Ed was here"s },
-                    Multiline
-                    {
-                        {
-                            "MPO: "s,
-                            mega::MPO{ 1, 2, 3 },
-                            " MP: "s,
-                            mega::MP{ 1, 2 }
-                        }
-                    },
-                    Branch
-                    {
-                        { "BranchLabel"s },
-                        ContainerVector
-                        {
-                            Line{ "Branch Element 1"s },
-                            Branch
-                            {
-                                { "NestedBranch"s },
-                                ContainerVector
-                                {
-                                    Line{ "Element 1"s },
-                                    Line{ "Element 2"s },
-                                    Multiline
-                                    {
-                                        {
-                                            "MPO: "s,
-                                            mega::MPO{ 1, 2, 3 },
-                                            " MP: "s,
-                                            mega::MP{ 1, 2 }
-                                        }
-                                    },
-                                    Line{ "Element 4"s },
-                                }
-                            },
-                            Line{ "Branch Element 3"s },
-                            Line{ "Branch Element 4"s },
-                        }
-                    },
-                    Graph
-                    {
-                        {
-                            Graph::Node{ {{ "Node 1"s }, { "MPO"s, mega::MPO{ 3,2,1 } }, { "Type"s,
-mega::TypeID::make_context( 123,321 ) } } }, Graph::Node{ {{ "Node 2"s }}, Colour::red }, Graph::Node{ {{ "Node 3"s }},
-Colour::blue }, Graph::Node{ {{ "Node 4"s }}, Colour::green }, Graph::Node{ {{ "Node 5"s }}, Colour::orange },
-                            Graph::Node{ {{ "Node 6"s }}}
-                        },
-                        {
-                            Graph::Edge{ 0, 1 },
-                            Graph::Edge{ 1, 2 },
-                            Graph::Edge{ 2, 3 },
-                            Graph::Edge{ 3, 4, Colour::green },
-                            Graph::Edge{ 4, 5 },
-
-                            Graph::Edge{ 2, 4 },
-                            Graph::Edge{ 4, 1 },
-                            Graph::Edge{ 3, 2 }
-                        }
-                    }
-                }
-            );
-            // clang-format on
-        }
-
-        return table;
-    }
-};
-*/
 
 void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
-    std::string             reportURL;
-    boost::filesystem::path projectPath, outputFilePath, templateDir;
-    bool                    bClearTempFiles = true;
+    std::string             projectName;
+    I32                     projectVersion = -1;
+    std::string             reportURL, reportType;
+    boost::filesystem::path outputFilePath, templateDir;
+    bool                    bClearTempFiles = true, bListReports = false;
 
     namespace po = boost::program_options;
 
@@ -158,17 +72,23 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     {
         // clang-format off
         commandOptions.add_options()
-            ( "URL",               po::value< std::string >( &reportURL ),                      "Report URL to generate" )
-            ( "project_install",   po::value< boost::filesystem::path >( &projectPath ),        "Path to Megastructure Project" )
-            ( "templates",         po::value< boost::filesystem::path >( &templateDir ),        "Path to report renderer templates" )
-            ( "output",            po::value< boost::filesystem::path >( &outputFilePath ),     "Output file" )
-            ( "clear_temp",        po::value< bool >( &bClearTempFiles ),                       "Clear temporary files" )
+            ( "name",       po::value< std::string >( &projectName ),                "Project Name" )
+            ( "version",    po::value< I32 >( &projectVersion ),                     "Program Version" )
+            ( "URL",        po::value< std::string >( &reportURL ),                  "Report URL to generate" )
+            ( "type",       po::value< std::string >( &reportType ),                  "Report Type to generate" )
+            ( "templates",  po::value< boost::filesystem::path >( &templateDir ),    "Path to report renderer templates" )
+            ( "clear_temp", po::value< bool >( &bClearTempFiles ),                   "Clear temporary files" )
+            ( "list",       po::bool_switch( &bListReports ),                        "List available report type" )
+            ( "output",     po::value< boost::filesystem::path >( &outputFilePath ), "Output file" )
             ;
         // clang-format on
     }
 
+    po::positional_options_description p;
+    p.add( "name", -1 );
+
     po::variables_map vm;
-    po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
+    po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
     if( bHelp )
@@ -177,55 +97,110 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     }
     else
     {
-        THROW_TODO;
-        // using namespace mega::reports;
-        // using namespace mega::reporters;
-// 
-        // const mega::reports::URL url = boost::urls::parse_origin_form( reportURL ).value();
-        // const mega::Project      project( projectPath );
-        // VERIFY_RTE_MSG( boost::filesystem::exists( project.getProjectDatabase() ),
-        //                 "Failed to locate project database at: " << project.getProjectDatabase().string() );
-// 
-        // mega::io::ArchiveEnvironment environment( project.getProjectDatabase() );
-        // mega::io::Manifest           manifest( environment, environment.project_manifest() );
-// 
-        // Container result = mega::reporters::generateCompilationReport(
-        //     url, CompilationReportArgs{ manifest, environment } );
-// 
-        // struct Linker : mega::reports::Linker
-        // {
-        //     const mega::reports::URL& m_url;
-        //     Linker( const mega::reports::URL& url )
-        //         : m_url( url )
-        //     {
-        //     }
-        //     std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
-        //     {
-        //         if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
-        //         {
-        //             URL url = m_url;
-        //             url.set_fragment( mega::reports::toString( value ) );
-        //             return url;
-        //         }
-        //         return {};
-        //     }
-        // } linker{ url };
-// 
-// 
-        // HTMLRenderer::JavascriptShortcuts shortcuts;
-        // HTMLRenderer renderer( templateDir, shortcuts, bClearTempFiles );
-// 
-        // std::ostringstream os;
-        // renderer.render( result, linker, os );
-// 
-        // try
-        // {
-        //     boost::filesystem::updateFileIfChanged( outputFilePath, os.str() );
-        // }
-        // catch( std::exception& ex )
-        // {
-        //     THROW_RTE( "Error generating graph: " << outputFilePath.string() << " exception: " << ex.what() );
-        // }
+        if( bListReports )
+        {
+            std::vector< mega::reports::ReporterID > reportIDs;
+            mega::reporters::getDatabaseReporterIDs( reportIDs );
+            for( const auto& reporter : reportIDs )
+            {
+                std::cout << reporter << "\n";
+            }
+        }
+        else
+        {
+            using namespace mega::service;
+
+            if( templateDir.empty() )
+            {
+                // attempt to determine template folder from mega structure installation
+                mega::service::Terminal terminal( log );
+                const auto              result = terminal.GetMegastructureInstallation();
+                templateDir                    = result.getInstallationPath() / "templates";
+            }
+            VERIFY_RTE_MSG( !templateDir.empty(), "Failed to locate Megastructure template folder" );
+
+            VERIFY_RTE_MSG( !projectName.empty(), "Invalid project name" );
+            const Project project( projectName );
+            Program       program;
+            {
+                if( projectVersion == -1 )
+                {
+                    auto programOpt = Program::latest( project, Environment::workBin() );
+                    VERIFY_RTE_MSG( programOpt.has_value(), "No latest version found for project: " << project );
+                    program = programOpt.value();
+                }
+                else
+                {
+                    program = Program( project, Program::Version( projectVersion ) );
+                }
+            }
+
+            const auto programManifest = Environment::load( program );
+            const auto datbaseArchive  = programManifest.getDatabase();
+
+            using namespace mega::reports;
+            using namespace mega::reporters;
+
+            VERIFY_RTE_MSG( boost::filesystem::exists( datbaseArchive ),
+                            "Failed to locate project database at: " << datbaseArchive.string() );
+
+            if( !reportType.empty() )
+            {
+                VERIFY_RTE_MSG( reportURL.empty(), "Cannot specify both report type AND url" );
+                std::ostringstream os;
+                os << "/?report=" << reportType;
+                reportURL = os.str();
+            }
+            else
+            {
+                VERIFY_RTE_MSG( !reportURL.empty(), "Missing report URL or type specification" );
+            }
+
+            const mega::reports::URL url = boost::urls::parse_origin_form( reportURL ).value();
+
+            {
+                mega::io::ArchiveEnvironment environment( datbaseArchive );
+                mega::io::Manifest           manifest( environment, environment.project_manifest() );
+
+                const Container result
+                    = mega::reporters::generateCompilationReport( url, CompilationReportArgs{ manifest, environment } );
+                VERIFY_RTE_MSG( !result.empty(), "Failed to generate any report for: " << url.c_str() );
+
+                struct Linker : mega::reports::Linker
+                {
+                    const mega::reports::URL& m_url;
+                    Linker( const mega::reports::URL& url )
+                        : m_url( url )
+                    {
+                    }
+                    std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
+                    {
+                        /*if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
+                        {
+                            URL url = m_url;
+                            url.set_fragment( mega::reports::toString( value ) );
+                            return url;
+                        }*/
+                        return {};
+                    }
+                } linker{ url };
+
+                HTMLRenderer::JavascriptShortcuts shortcuts;
+                HTMLRenderer                      renderer( templateDir, shortcuts, bClearTempFiles );
+
+                std::ostringstream os;
+                renderer.render( result, linker, os );
+
+                try
+                {
+                    boost::filesystem::updateFileIfChanged( outputFilePath, os.str() );
+                }
+                catch( std::exception& ex )
+                {
+                    THROW_RTE( "Error generating report: " << outputFilePath.string() << " exception: " << ex.what() );
+                }
+            }
+        }
     }
 }
 

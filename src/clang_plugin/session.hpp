@@ -52,7 +52,7 @@ public:
         , pSema( pSema )
     {
     }
-    virtual ~Session() {}
+    virtual ~Session() = default;
 
     void setContext( ASTContext* _pASTContext, Sema* _pSema )
     {

@@ -123,7 +123,6 @@ add_custom_command(
 
 set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/context.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/jit_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/logical_thread_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/mpo_context_interface.hpp  
     ${MEGA_API_DIR}/service/protocol/common/received_message.hpp  

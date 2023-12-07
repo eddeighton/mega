@@ -128,8 +128,8 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 
             const PythonModule::InvocationInfo& functionInfo = m_module.invoke( invocationID );
 
-            SPDLOG_TRACE( "PythonReference::call: {} {}", invocationID,
-                          mega::getExplicitOperationString( functionInfo.typeInfo.operationType ) );
+            //SPDLOG_TRACE( "PythonReference::call: {} {}", invocationID,
+            //              mega::getExplicitOperationString( functionInfo.typeInfo.operationType ) );
             THROW_TODO;
             /*switch( functionInfo.typeInfo.operationType )
             {

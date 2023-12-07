@@ -1,0 +1,135 @@
+
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
+
+#ifndef GUARD_2023_December_05_functor_id
+#define GUARD_2023_December_05_functor_id
+
+#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/hash.hpp"
+
+#include "common/unreachable.hpp"
+
+#include <ostream>
+
+namespace mega::runtime
+{
+
+{% for materialiser in materialisers %}
+struct {{ materialiser.name }}_id
+{
+{% for arg in materialiser.args %}
+    {{ arg.type }} {{ arg.name }};
+{% endfor %}
+
+    inline bool operator==( const {{ materialiser.name }}_id& cmp ) const = default;
+};
+
+{% endfor %}
+
+struct FunctorID
+{
+    enum Type
+    {
+{% for materialiser in materialisers %}
+{% for functor in materialiser.functors %}
+        e_{{ materialiser.name }}_{{ functor.name }}{% if not loop.is_last%}, {% endif %}
+        
+{% endfor %}
+{% endfor %}
+    } type;
+
+    union
+    {
+{% for materialiser in materialisers %}
+        {{ materialiser.name }}_id m_{{ materialiser.name }};
+{% endfor %}
+    };
+
+{% for materialiser in materialisers %}
+    FunctorID( Type type, {{ materialiser.name }}_id id )
+        :   type( type )
+        ,   m_{{ materialiser.name }}{ id }
+    {
+    }
+{% endfor %}
+
+    inline bool operator==( const FunctorID& cmp ) const
+    {
+        if( type != cmp.type ) return false;
+        switch( type )
+        {
+{% for materialiser in materialisers %}
+{% for functor in materialiser.functors %}
+            case e_{{ materialiser.name }}_{{ functor.name }}:
+{% endfor %}
+            {
+                return m_{{ materialiser.name }} == cmp.m_{{ materialiser.name }};
+            }
+            break;
+{% endfor %}
+        }
+        UNREACHABLE;
+    }
+
+    struct Hash
+    {
+        inline std::size_t operator()( const FunctorID& functorID ) const
+        {
+            switch( functorID.type )
+            {
+{% for materialiser in materialisers %}
+{% for functor in materialiser.functors %}
+                case e_{{ materialiser.name }}_{{ functor.name }}:
+{% endfor %}
+                {
+                    return common::Hash( static_cast< std::size_t >( functorID.type )
+{% for arg in materialiser.args %}
+                        , functorID.m_{{ materialiser.name }}.{{ arg.name }} 
+{% endfor %}
+                    ).get();
+                }
+                break;
+{% endfor %}
+            }
+            UNREACHABLE;
+        }
+    };
+};
+
+inline std::ostream& operator<<( std::ostream& os, const FunctorID& functorID )
+{
+    switch( functorID.type )
+    {
+{% for materialiser in materialisers %}
+{% for functor in materialiser.functors %}
+        case FunctorID::e_{{ materialiser.name }}_{{ functor.name }}:
+        {
+            return os << "{{ materialiser.name }}_{{ functor.name }}";
+        }
+        break;
+{% endfor %}
+{% endfor %}
+    }
+    UNREACHABLE;
+}
+
+}
+
+#endif //GUARD_2023_December_05_functor_id

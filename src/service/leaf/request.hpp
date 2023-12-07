@@ -20,8 +20,6 @@
 #ifndef REQUEST_LEAF_23_SEPT_2022
 #define REQUEST_LEAF_23_SEPT_2022
 
-#include "llvm_compiler.hpp"
-
 #include "service/leaf.hpp"
 
 #include "service/protocol/model/term_leaf.hxx"
@@ -40,16 +38,14 @@
 #include "service/protocol/model/leaf_report.hxx"
 #include "service/protocol/model/leaf_term.hxx"
 
-#include "service/protocol/model/status.hxx"
-#include "service/protocol/model/report.hxx"
+#include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/host.hxx"
+#include "service/protocol/model/jit.hxx"
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/project.hxx"
-#include "service/protocol/model/jit.hxx"
-#include "service/protocol/model/enrole.hxx"
-#include "service/protocol/model/host.hxx"
-
-// #include "service/protocol/common/context.hpp"
+#include "service/protocol/model/report.hxx"
+#include "service/protocol/model/status.hxx"
 
 namespace mega::service
 {
@@ -92,14 +88,6 @@ public:
 
     network::mpo::Request_Sender getMPOUpSender( boost::asio::yield_context& yield_ctx );
     network::mpo::Request_Sender getMPODownSender( boost::asio::yield_context& yield_ctx );
-
-    LLVMCompilerImpl getLLVMCompiler( boost::asio::yield_context& yield_ctx )
-    {
-        THROW_TODO;
-        // TEMPDIR = ??
-        // return { *this, m_leaf.getDaemonSender(), m_leaf.getMegastructureInstallation(), TEMPDIR, m_leaf.getActiveProject(),
-        //          yield_ctx };
-    }
 
     // network::term_leaf::Impl
     virtual network::Message TermRoot( const network::Message&     request,
@@ -146,7 +134,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void             RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
 
@@ -185,10 +173,7 @@ public:
                                        boost::asio::yield_context& yield_ctx ) override;
 
     // public network::jit::Impl
-    virtual void   GetAllocator( const TypeID&               objectTypeID,
-                                 const U64&                  jitAllocatorPtr,
-                                 boost::asio::yield_context& yield_ctx ) override;
-    virtual void   ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
+    virtual void   ExecuteJIT( const runtime::RuntimeFunctor& func, boost::asio::yield_context& yield_ctx ) override;
     virtual TypeID GetInterfaceTypeID( const mega::TypeID&         concreteTypeID,
                                        boost::asio::yield_context& yield_ctx ) override;
 

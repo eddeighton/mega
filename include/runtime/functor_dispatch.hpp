@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,9 +18,20 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "request.hpp"
+#ifndef GUARD_2023_December_06_functor_dispatch
+#define GUARD_2023_December_06_functor_dispatch
 
-namespace mega::service
+#include "runtime/functor_id.hxx"
+
+#include "il/elements/elements.hpp"
+
+#include "il/frontend/factory.hpp"
+
+namespace mega::runtime
 {
 
-} // namespace mega::service
+il::FunctionDefinition dispatchFactory( il::Factory& factory, const FunctorID& functorID );
+
+}
+
+#endif //GUARD_2023_December_06_functor_dispatch

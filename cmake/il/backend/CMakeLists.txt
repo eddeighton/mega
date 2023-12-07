@@ -48,28 +48,28 @@ set( IL_GEN_SRC
     ${MEGA_SRC_DIR}/il/backend/cpp.cpp
 )
 
-add_library( il_backend
+add_library( backend
     ${IL_GEN_API}
     ${IL_GEN_SRC} 
 )
 
-target_include_directories( il_backend PUBLIC ${MEGA_API_DIR})
+target_include_directories( backend PUBLIC ${MEGA_API_DIR})
 
-target_precompile_headers( il_backend REUSE_FROM mega_pch )
+target_precompile_headers( backend REUSE_FROM mega_pch )
 
-link_boost( il_backend system )
-link_boost( il_backend filesystem )
-link_boost( il_backend serialization )
-link_json( il_backend )
-link_inja( il_backend )
-link_common( il_backend )
+link_boost( backend system )
+link_boost( backend filesystem )
+link_boost( backend serialization )
+link_json( backend )
+link_inja( backend )
+link_common( backend )
 
 #################################################################
 #################################################################
 ## install everything
 install( FILES ${IL_GEN_API} DESTINATION include/il/backend )
-install( TARGETS il_backend EXPORT il_backend DESTINATION bin)
-install( EXPORT il_backend NAMESPACE MEGA:: FILE il_backend-config.cmake DESTINATION share )
+install( TARGETS backend EXPORT backend DESTINATION bin)
+install( EXPORT backend NAMESPACE MEGA:: FILE backend-config.cmake DESTINATION share )
 
-install( TARGETS il_backend DESTINATION bin)
+install( TARGETS backend DESTINATION bin)
 

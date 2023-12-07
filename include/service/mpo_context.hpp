@@ -66,7 +66,7 @@ protected:
     reference                                       m_root;
     std::unique_ptr< runtime::MPODatabase >         m_pDatabase;
     // std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
-    network::TransactionProducer::MovedObjects      m_movedObjects; // dependency to SimMoveMachine
+    network::TransactionProducer::MovedObjects m_movedObjects; // dependency to SimMoveMachine
 
     std::chrono::time_point< std::chrono::system_clock > m_systemStartTime = std::chrono::system_clock::now();
     std::chrono::time_point< std::chrono::steady_clock > m_startTime       = std::chrono::steady_clock::now();
@@ -117,7 +117,7 @@ public:
     virtual MPO             constructMPO( MP machineProcess ) override;
     virtual MP              constructExecutor( MachineID daemonMachineID ) override;
     virtual void            destroyExecutor( MP mp ) override;
-    virtual void            jit( runtime::JITFunctor func ) override;
+    virtual void            jit( runtime::RuntimeFunctor func ) override;
     virtual void            yield() override;
 
     // log

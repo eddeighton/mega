@@ -72,7 +72,7 @@ public:
     struct InvocationInfo
     {
         void*                                      pFunctionPtr = nullptr;
-        mega::runtime::JITBase::InvocationTypeInfo typeInfo;
+        // mega::runtime::FunctionProvider::InvocationTypeInfo typeInfo;
     };
     //using OperatorFunction = std::pair< mega::runtime::operators::FunctionType, mega::TypeID >;
 

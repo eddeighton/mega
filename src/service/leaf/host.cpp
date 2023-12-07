@@ -35,26 +35,30 @@ void LeafRequestLogicalThread::SaveSnapshot( boost::asio::yield_context& yield_c
     SPDLOG_TRACE( "LeafRequestLogicalThread::SaveSnapshot" );
     THROW_TODO;
 }
+
 void LeafRequestLogicalThread::LoadSnapshot( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::LoadSnapshot" );
     THROW_TODO;
 }
+
 void LeafRequestLogicalThread::LoadProgram( const mega::service::Program& program,
                                             boost::asio::yield_context&   yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::LoadProgram {}", program );
-    THROW_TODO;
+    m_leaf.getRuntime().loadProgram( program );
 }
+
 void LeafRequestLogicalThread::UnloadProgram( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::UnloadProgram" );
-    THROW_TODO;
+    m_leaf.getRuntime().unloadProgram();
 }
+
 mega::service::Program LeafRequestLogicalThread::GetProgram( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::GetProgram" );
-    THROW_TODO;
+    return m_leaf.getRuntime().getProgram();
 }
 
 } // namespace mega::service

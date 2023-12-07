@@ -26,7 +26,7 @@ msg PythonGetInterfaceTypeID
 
 msg PythonExecuteJIT
 {
-    request( mega::runtime::JITFunctor func );
+    request( mega::runtime::RuntimeFunctor func );
     response();
 }
 

@@ -20,7 +20,7 @@
 #ifndef MPO_CONTEXT_SEPT_18_2022
 #define MPO_CONTEXT_SEPT_18_2022
 
-#include "jit_base.hpp"
+#include "runtime/function_provider.hpp"
 
 #include "mega/values/runtime/reference.hpp"
 
@@ -37,11 +37,11 @@ class Storage;
 
 namespace impl
 {
-    class FileBufferFactory;
+class FileBufferFactory;
 }
 
 using FileStorage = Storage< impl::FileBufferFactory >;
-}
+} // namespace log
 
 class Context
 {
@@ -62,8 +62,8 @@ public:
     virtual MP              constructExecutor( MachineID daemonMachineID ) = 0;
     virtual void            destroyExecutor( MP mp )                       = 0;
 
-    virtual void jit( runtime::JITFunctor func ) = 0;
-    virtual void yield()                         = 0;
+    virtual void jit( runtime::RuntimeFunctor func ) = 0;
+    virtual void yield()                             = 0;
 
     // log
     virtual log::FileStorage& getLog() = 0;

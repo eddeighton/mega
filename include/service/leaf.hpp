@@ -20,6 +20,8 @@
 #ifndef LEAF_16_JUNE_2022
 #define LEAF_16_JUNE_2022
 
+#include "runtime/runtime.hpp"
+
 #include "service/network/client.hpp"
 #include "service/network/logical_thread_manager.hpp"
 #include "service/network/sender_factory.hpp"
@@ -69,7 +71,6 @@ public:
     network::Sender::Ptr getLeafSender() { return m_pSelfSender; }
 
     // network::Sender
-
     const MegastructureInstallation& getMegastructureInstallation() const
     {
         VERIFY_RTE_MSG( m_megastructureInstallationOpt.has_value(), "Megastructure Installation not found" );
@@ -79,8 +80,14 @@ public:
     // std::optional< task::FileHash > getUnityDBHashCode() const { return m_unityDatabaseHashCode; }
     // HeapMemory&            getHeapMemory();
 
-    mega::MP getMP() const { return m_mp; }
+    mega::MP               getMP() const { return m_mp; }
     std::set< mega::MPO >& getMPOs() { return m_mpos; }
+
+    runtime::Runtime& getRuntime()
+    {
+        VERIFY_RTE_MSG( m_pRuntime, "Runtime not instantiated" );
+        return *m_pRuntime;
+    }
 
 private:
     network::Sender::Ptr    m_pSender;
@@ -98,6 +105,7 @@ private:
     mega::MP                                   m_mp;
     std::set< mega::MPO >                      m_mpos;
     std::optional< MegastructureInstallation > m_megastructureInstallationOpt;
+    std::unique_ptr< runtime::Runtime >        m_pRuntime;
 };
 
 } // namespace mega::service

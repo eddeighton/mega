@@ -21,7 +21,7 @@
 #define GUARD_2023_November_10_decision_function_cache
 
 #include "service/protocol/common/context.hpp"
-#include "service/protocol/common/jit_base.hpp"
+#include "runtime/function_provider.hpp"
 
 #include "mega/coroutine.hpp"
 
@@ -29,7 +29,7 @@
 
 namespace mega::service
 {
-
+/*
 class DecisionFunctionCache
 {
     using DecisionFunctionPtr = void ( * )( const mega::reference* );
@@ -52,8 +52,8 @@ public:
         }
 
         {
-            mega::runtime::JITFunctor functor( [ concreteTypeID, &iter ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
-                                               { jit.getDecisionFunction( pLLVMCompiler, concreteTypeID, ( void** )&iter->second ); } );
+            mega::runtime::RuntimeFunctor functor( [ concreteTypeID, &iter ]( mega::runtime::FunctionProvider& jit,
+void* pLLVMCompiler ) { jit.getFunction( pStashProvider, concreteTypeID, ( void** )&iter->second ); } );
             mega::Context::get()->jit( functor );
         }
 
@@ -63,7 +63,7 @@ public:
 private:
     DecisionFunctionMap m_decisionFunctions;
 };
-
+*/
 } // namespace mega::service
 
 #endif // GUARD_2023_November_10_decision_function_cache
