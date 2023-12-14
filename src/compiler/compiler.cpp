@@ -237,33 +237,22 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc interfaceTree = encode( Task{ eTask_AST } );
     dependencies.add( interfaceTree, parserTasks );
 
-    /*TskDescVec interfaceTreeTasks;
-    {
-        for( const auto& componentInfo : config.componentInfos )
-        {
-            if( componentInfo.getComponentType().get() == mega::ComponentType::eLibrary )
-            {
-                interfaceTreeTasks.push_back( interfaceTree );
-            }
-        }
-    }*/
+    const TskDesc dependencyAnalysis = encode( Task{ eTask_DependencyAnalysis } );
+    const TskDesc symbolAnalysis     = encode( Task{ eTask_SymbolAnalysis } );
 
-    /*const TskDesc dependencyAnalysis = encode( Task{ eTask_DependencyAnalysis, manifestFilePath } );
-    const TskDesc symbolAnalysis     = encode( Task{ eTask_SymbolAnalysis, manifestFilePath } );
-
-    dependencies.add( dependencyAnalysis, interfaceTreeTasks );
-    dependencies.add( symbolAnalysis, TskDescVec{ dependencyAnalysis } );
+    dependencies.add( dependencyAnalysis, { interfaceTree } );
+    dependencies.add( symbolAnalysis, { dependencyAnalysis } );
 
     TskDescVec symbolRolloutTasks;
     {
-        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.value().getMegaSourceFiles() )
         {
             const TskDesc symbolRollout = encode( Task{ eTask_SymbolRollout, sourceFilePath } );
             symbolRolloutTasks.push_back( symbolRollout );
 
             dependencies.add( symbolRollout, TskDescVec{ symbolAnalysis } );
         }
-    }*/
+    }
 
     /*
         TskDescVec interfaceAnalysisTasks;
@@ -369,6 +358,16 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                 globalMemoryRolloutTasks.push_back( globalMemoryRollout );
             }
         }
+
+    
+    {
+        for( const auto& componentInfo : config.componentInfos )
+        {
+            if( componentInfo.getComponentType().get() == mega::ComponentType::eLibrary )
+            {
+            }
+        }
+    }
 
         TskDescVec unityDependencyTasks;
         TskDescVec componentTasks;

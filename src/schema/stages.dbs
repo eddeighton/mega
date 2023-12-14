@@ -112,6 +112,7 @@ stage SymbolAnalysis
     file SymbolTable;
 
     persource accessor array< ref< Parser::Symbol > >;
+    global accessor array< ref< Interface::Node > >;
 }
 
 stage SymbolRollout
@@ -124,8 +125,9 @@ stage SymbolRollout
     file PerSourceSymbols;
 
     global accessor ref< Symbols::SymbolTable >;
-    persource accessor ref< Parser::Aggregate >;
-    persource accessor ref< Interface::IContext >;
+
+    persource accessor array< ref< Parser::Symbol > >;
+    global accessor array< ref< Interface::Node > >;
 }
 
 /*

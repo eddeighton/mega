@@ -67,8 +67,7 @@ namespace Symbols
     {
         array< ref< SymbolID > >                symbol_ids;
         value< mega::interface::TypeID >        type_id;
-        opt< ref< Parser::Aggregate > >         aggregate_opt;
-        opt< ref< Interface::IContext > >       context_opt;
+        ref< Interface::Node >                  node;
     }
 /*
     object ConcreteID -> ConcreteTypeAnalysis::ConcreteTable

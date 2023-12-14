@@ -31,7 +31,7 @@ struct TypeIDSequenceGen
     {
     }
 
-    mega::SymbolID getSymbolID( const std::string& strID ) const
+    mega::interface::SymbolID getSymbolID( const std::string& strID ) const
     {
         auto iFind = symbolNames.find( strID );
         VERIFY_RTE( iFind != symbolNames.end() );

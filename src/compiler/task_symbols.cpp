@@ -40,6 +40,8 @@ namespace SymbolRollout
 #include "compiler/interface_typeid_sequence.hpp"
 } // namespace SymbolRollout
 
+#include <map>
+
 namespace mega::compiler
 {
 
@@ -67,29 +69,29 @@ public:
     {
     }
 
-    SymbolAnalysis::Symbols::SymbolTable* requestNewSymbols( SymbolAnalysis::Database& newDatabase )
+    SymbolAnalysis::Symbols::SymbolTable* requestNewSymbols( SymbolAnalysis::Database& database )
     {
         using namespace SymbolAnalysis;
 
         SymbolTable symbolTable = m_environment.getSymbolTable();
 
-        const auto sourceFiles = getSortedSourceFiles( m_manifest );
+        const auto sourceFiles = getSortedSourceFiles();
 
         // request new symbols
         using NewSymbolNamess = std::map< std::string, Symbols::SymbolID* >;
-        using NewSymbolIDs    = std::map< mega::SymbolID, Symbols::SymbolID* >;
+        using NewSymbolIDs    = std::map< mega::interface::SymbolID, Symbols::SymbolID* >;
         NewSymbolNamess newSymbolNames;
         NewSymbolIDs    newSymbolIDs;
 
         {
-            using SymbolMap = std::multi_map< std::string, Parser::Symbol* >;
+            using SymbolMap = std::multimap< std::string, Parser::Symbol* >;
 
             SymbolRequest request;
             SymbolMap     symbols;
 
             for( const mega::io::megaFilePath& newSourceFile : sourceFiles )
             {
-                for( Parser::Symbol* pSymbol : newDatabase.many< Parser::Symbol >( newSourceFile ) )
+                for( Parser::Symbol* pSymbol : database.many< Parser::Symbol >( newSourceFile ) )
                 {
                     auto token       = pSymbol->get_token();
                     auto symbolIDOpt = symbolTable.findSymbol( token );
@@ -111,14 +113,14 @@ public:
                 const auto& token       = i->first;
                 auto        symbolIDOpt = symbolTable.findSymbol( token );
                 VERIFY_RTE( symbolIDOpt.has_value() );
-                auto pSymbol = newDatabase.construct< Symbols::SymbolID >(
+                auto pSymbol = database.construct< Symbols::SymbolID >(
                     Symbols::SymbolID::Args{ token, symbolIDOpt.value(), {} } );
                 newSymbolNames.insert( { token, pSymbol } );
                 newSymbolIDs.insert( { symbolIDOpt.value(), pSymbol } );
 
                 for( auto iUpper = symbols.upper_bound( i->first ); i != iUpper; ++i )
                 {
-                    pSymbol->push_back_symbol( i->second );
+                    pSymbol->push_back_symbols( i->second );
                 }
             }
         }
@@ -126,172 +128,92 @@ public:
         std::map< interface::SymbolIDSequence, Symbols::InterfaceTypeID* > newInterfaceTypeIDSequences;
         std::map< interface::TypeID, Symbols::InterfaceTypeID* >           newInterfaceTypeIDs;
 
-        // construct symbols
-        /*using NewSymbolNames   = std::map< std::string, Symbols::SymbolTypeID* >;
-        using NewSymbolTypeIDs = std::map< mega::TypeID, Symbols::SymbolTypeID* >;
-
-        NewSymbolNames   newSymbolNames;
-        NewSymbolTypeIDs newSymbolTypeIDs;
-
-        auto addSymbol = [ & ]( const std::string& str ) -> Symbols::SymbolTypeID*
         {
-            Symbols::SymbolTypeID* pSymbol = nullptr;
+            const TypeIDSequenceGen idSequenceGen( newSymbolNames );
             {
-                auto iFind = newSymbolNames.find( str );
-                if( iFind == newSymbolNames.end() )
+                SymbolRequest request;
+
+                for( auto pNode : database.many< Interface::Node >( m_environment.project_manifest() ) )
                 {
-                    // using namespace SymbolAnalysis;
-                    auto symbolIDOpt = symbolTable.findSymbol( str );
-                    VERIFY_RTE( symbolIDOpt.has_value() );
-                    pSymbol = newDatabase.construct< Symbols::SymbolTypeID >(
-                        Symbols::SymbolTypeID::Args{ str, symbolIDOpt.value(), {}, {}, {} } );
-
-                    VERIFY_RTE( newSymbolNames.insert( { str, pSymbol } ).second );
-                    VERIFY_RTE( newSymbolTypeIDs.insert( { symbolIDOpt.value(), pSymbol } ).second );
-                }
-                else
-                {
-                    pSymbol = iFind->second;
-                }
-                return pSymbol;
-            }
-        };
-
-        for( const mega::io::megaFilePath& newSourceFile : sourceFiles )
-        {
-            for( Interface::IContext* pContext : newDatabase.many< Interface::IContext >( newSourceFile ) )
-            {
-                auto pSymbol = addSymbol( Interface::getIdentifier( pContext ) );
-                pSymbol->push_back_contexts( pContext );
-            }
-            for( Interface::DimensionTrait* pDimension :
-                 newDatabase.many< Interface::DimensionTrait >( newSourceFile ) )
-            {
-                auto pSymbol = addSymbol( Interface::getIdentifier( pDimension ) );
-                pSymbol->push_back_dimensions( pDimension );
-            }
-            for( Interface::LinkTrait* pLink : newDatabase.many< Interface::LinkTrait >( newSourceFile ) )
-            {
-                auto pSymbol = addSymbol( Interface::getIdentifier( pLink ) );
-                pSymbol->push_back_links( pLink );
-            }
-        }
-
-        const TypeIDSequenceGen idSequenceGen( newSymbolNames );
-
-        // request new interface types
-        {
-            SymbolRequest request;
-            auto          addInterfaceType = [ & ]( const SymbolTraits::SymbolIDVectorPair& sequencePair )
-            {
-                VERIFY_RTE( !sequencePair.first.empty() );
-                if( auto pInterfaceObject = symbolTable.findInterfaceObject( sequencePair.first ) )
-                {
-                    if( !sequencePair.second.empty() )
+                    auto sequencePair = idSequenceGen( pNode );
+                    VERIFY_RTE( !sequencePair.first.empty() );
+                    if( auto pInterfaceObject = symbolTable.findInterfaceObject( sequencePair.first ) )
                     {
-                        if( TypeID{} == pInterfaceObject->find( sequencePair.second ) )
+                        if( !sequencePair.second.empty() )
+                        {
+                            if( interface::TypeID{} == pInterfaceObject->find( sequencePair.second ) )
+                            {
+                                request.newInterfaceElements.insert( sequencePair );
+                            }
+                        }
+                    }
+                    else
+                    {
+                        request.newInterfaceObjects.insert( sequencePair.first );
+                        if( !sequencePair.second.empty() )
                         {
                             request.newInterfaceElements.insert( sequencePair );
                         }
                     }
                 }
-                else
-                {
-                    request.newInterfaceObjects.insert( sequencePair.first );
-                    if( !sequencePair.second.empty() )
-                    {
-                        request.newInterfaceElements.insert( sequencePair );
-                    }
-                }
-            };
 
-            for( const mega::io::megaFilePath& newSourceFile : sourceFiles )
-            {
-                for( Interface::IContext* pContext : newDatabase.many< Interface::IContext >( newSourceFile ) )
+                if( !request.newSymbols.empty() )
                 {
-                    addInterfaceType( idSequenceGen( pContext ) );
-                }
-                for( Interface::DimensionTrait* pDimension :
-                     newDatabase.many< Interface::DimensionTrait >( newSourceFile ) )
-                {
-                    addInterfaceType( idSequenceGen( pDimension ) );
-                }
-                for( Interface::LinkTrait* pLink : newDatabase.many< Interface::LinkTrait >( newSourceFile ) )
-                {
-                    addInterfaceType( idSequenceGen( pLink ) );
+                    symbolTable = m_environment.newSymbols( request );
                 }
             }
 
-            if( !request.newInterfaceObjects.empty() || !request.newInterfaceElements.empty() )
+            for( auto pNode : database.many< Interface::Node >( m_environment.project_manifest() ) )
             {
-                symbolTable = m_environment.newSymbols( request );
-            }
-        }
+                auto sequencePair = idSequenceGen( pNode );
 
+                const auto* pInterfaceObject = symbolTable.findInterfaceObject( sequencePair.second );
 
-        // add interface types
-        {
-            auto addInterfaceType =
-
-                [ & ]( const SymbolTraits::SymbolIDVectorPair& sequencePair,
-                       std::optional< Interface::IContext* >
-                           contextOpt,
-                       std::optional< Interface::DimensionTrait* >
-                           dimensionOpt,
-                       std::optional< Interface::LinkTrait* >
-                           linkOpt )
-            {
-                VERIFY_RTE( !sequencePair.first.empty() );
-
-                TypeID         interfaceTypeID;
-                TypeIDSequence typeIDSequence;
+                interface::TypeID                 interfaceTypeID;
+                std::vector< Symbols::SymbolID* > symbolSequence;
                 {
                     auto pInterfaceObject = symbolTable.findInterfaceObject( sequencePair.first );
                     VERIFY_RTE( pInterfaceObject );
-                    std::copy(
-                        sequencePair.first.begin(), sequencePair.first.end(), std::back_inserter( typeIDSequence ) );
+                    {
+                        for( const auto& symbolID : sequencePair.first )
+                        {
+                            auto iFind = newSymbolIDs.find( symbolID );
+                            VERIFY_RTE( iFind != newSymbolIDs.end() );
+                            symbolSequence.push_back( iFind->second );
+                        }
+                    }
                     if( !sequencePair.second.empty() )
                     {
-                        std::copy( sequencePair.second.begin(),
-                                   sequencePair.second.end(),
-                                   std::back_inserter( typeIDSequence ) );
+                        for( const auto& symbolID : sequencePair.second )
+                        {
+                            auto iFind = newSymbolIDs.find( symbolID );
+                            VERIFY_RTE( iFind != newSymbolIDs.end() );
+                            symbolSequence.push_back( iFind->second );
+                        }
                         interfaceTypeID = pInterfaceObject->find( sequencePair.second );
                     }
                     else
                     {
-                        interfaceTypeID = TypeID::make_object_from_objectID( pInterfaceObject->getObjectID() );
+                        interfaceTypeID
+                            = interface::TypeID( pInterfaceObject->getObjectID(), interface::NULL_SUB_OBJECT_ID );
                     }
                 }
-                VERIFY_RTE( interfaceTypeID != TypeID{} );
+                VERIFY_RTE( interfaceTypeID != interface::NULL_TYPE_ID );
 
-                auto pInterfaceTypeID
-                    = newDatabase.construct< Symbols::interface::TypeID >( Symbols::interface::TypeID::Args{
-                        typeIDSequence, interfaceTypeID, contextOpt, dimensionOpt, linkOpt } );
+                auto pInterfaceTypeID = database.construct< Symbols::InterfaceTypeID >(
+                    Symbols::InterfaceTypeID::Args{ symbolSequence, interfaceTypeID, pNode } );
 
-                VERIFY_RTE( newInterfaceTypeIDSequences.insert( { typeIDSequence, pInterfaceTypeID } ).second );
+                interface::SymbolIDSequence symbolIDSequence = sequencePair.first;
+                std::copy(
+                    sequencePair.second.begin(), sequencePair.second.end(), std::back_inserter( symbolIDSequence ) );
+
+                VERIFY_RTE( newInterfaceTypeIDSequences.insert( { symbolIDSequence, pInterfaceTypeID } ).second );
                 VERIFY_RTE_MSG( newInterfaceTypeIDs.insert( { interfaceTypeID, pInterfaceTypeID } ).second,
                                 "Duplicate interface typeID: " << interfaceTypeID );
-            };
-
-            for( const mega::io::megaFilePath& newSourceFile : sourceFiles )
-            {
-                for( Interface::IContext* pContext : newDatabase.many< Interface::IContext >( newSourceFile ) )
-                {
-                    addInterfaceType( idSequenceGen( pContext ), pContext, std::nullopt, std::nullopt );
-                }
-                for( Interface::DimensionTrait* pDimension :
-                     newDatabase.many< Interface::DimensionTrait >( newSourceFile ) )
-                {
-                    addInterfaceType( idSequenceGen( pDimension ), std::nullopt, pDimension, std::nullopt );
-                }
-                for( Interface::LinkTrait* pLink : newDatabase.many< Interface::LinkTrait >( newSourceFile ) )
-                {
-                    addInterfaceType( idSequenceGen( pLink ), std::nullopt, std::nullopt, pLink );
-                }
             }
-        }*/
+        }
 
-        return newDatabase.construct< Symbols::SymbolTable >( Symbols::SymbolTable::Args{
+        return database.construct< Symbols::SymbolTable >( Symbols::SymbolTable::Args{
             newSymbolNames, newSymbolIDs, newInterfaceTypeIDSequences, newInterfaceTypeIDs } );
     }
 
@@ -332,7 +254,7 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_SymbolAnalysis( const TaskArguments&              taskArguments)
+BaseTask::Ptr create_Task_SymbolAnalysis( const TaskArguments& taskArguments )
 {
     return std::make_unique< Task_SymbolAnalysis >( taskArguments );
 }
@@ -370,84 +292,30 @@ public:
 
         Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
         const auto            symbolNames  = pSymbolTable->get_symbol_names();
-        const auto            interfaceTypeIDs = pSymbolTable->get_interface_type_id_sequences();
+        const auto            interfaceTypeIDs = pSymbolTable->get_interface_symbol_id_sequences();
+
+        // reconstruct all symbols with their associated symbolID
+        for( Parser::Symbol* pSymbol : database.many< Parser::Symbol >( m_sourceFilePath ) )
+        {
+            auto token = pSymbol->get_token();
+            auto iFind = symbolNames.find( token );
+            VERIFY_RTE( iFind != symbolNames.end() );
+            database.construct< Parser::Symbol >( Parser::Symbol::Args{ pSymbol, iFind->second } );
+        }
 
         const TypeIDSequenceGen idSequenceGen( symbolNames );
 
-        auto typeIDSeqFromSymbolSeqPair = [ & ]( auto pContext ) -> TypeIDSequence
+        // NOTE: this uses the result of the previous step where the SymbolID is set in pNode->get_symbol()->get_id()
+        for( Interface::Node* pNode : database.many< Interface::Node >( m_sourceFilePath ) )
         {
-            TypeIDSequence typeIDSequence;
-            const auto     idSeq = idSequenceGen( pContext );
-            std::copy( idSeq.first.begin(), idSeq.first.end(), std::back_inserter( typeIDSequence ) );
-            std::copy( idSeq.second.begin(), idSeq.second.end(), std::back_inserter( typeIDSequence ) );
-            return typeIDSequence;
-        };
-
-        /*for( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
-        {
-            TypeID symbolID;
-            {
-                auto iFind = symbolNames.find( Interface::getIdentifier( pContext ) );
-                VERIFY_RTE( iFind != symbolNames.end() );
-                symbolID = iFind->second->get_id();
-            }
-
-            TypeID interfaceTypeID;
-            {
-                auto iFind = interfaceTypeIDs.find( typeIDSeqFromSymbolSeqPair( pContext ) );
-                VERIFY_RTE( iFind != interfaceTypeIDs.end() );
-                Symbols::interface::TypeID* pInterfaceTypeID = iFind->second;
-                interfaceTypeID                              = pInterfaceTypeID->get_id();
-            }
-
-            VERIFY_RTE( symbolID.isSymbolID() );
-            VERIFY_RTE( interfaceTypeID.isContextID() );
-
-            database.construct< Interface::IContext >(
-                Interface::IContext::Args{ pContext, symbolID, interfaceTypeID } );
+            const auto id          = idSequenceGen( pNode );
+            auto       symbolIDSeq = id.first;
+            std::copy( id.second.begin(), id.second.end(), std::back_inserter( symbolIDSeq ) );
+            auto iFind = interfaceTypeIDs.find( symbolIDSeq );
+            VERIFY_RTE( iFind != interfaceTypeIDs.end() );
+            database.construct< Interface::Node >(
+                Interface::Node::Args{ pNode, pNode->get_symbol()->get_id(), iFind->second } );
         }
-
-        for( Interface::DimensionTrait* pDimension : database.many< Interface::DimensionTrait >( m_sourceFilePath ) )
-        {
-            TypeID symbolID;
-            {
-                auto iFind = symbolNames.find( Interface::getIdentifier( pDimension ) );
-                VERIFY_RTE( iFind != symbolNames.end() );
-                symbolID = iFind->second->get_id();
-            }
-
-            TypeID interfaceTypeID;
-            {
-                auto iFind = interfaceTypeIDs.find( typeIDSeqFromSymbolSeqPair( pDimension ) );
-                VERIFY_RTE( iFind != interfaceTypeIDs.end() );
-                Symbols::interface::TypeID* pInterfaceTypeID = iFind->second;
-                interfaceTypeID                              = pInterfaceTypeID->get_id();
-            }
-
-            database.construct< Interface::DimensionTrait >(
-                Interface::DimensionTrait::Args{ pDimension, symbolID, interfaceTypeID } );
-        }
-
-        for( Interface::LinkTrait* pLink : database.many< Interface::LinkTrait >( m_sourceFilePath ) )
-        {
-            TypeID symbolID;
-            {
-                auto iFind = symbolNames.find( Interface::getIdentifier( pLink ) );
-                VERIFY_RTE( iFind != symbolNames.end() );
-                symbolID = iFind->second->get_id();
-            }
-
-            TypeID interfaceTypeID;
-            {
-                auto iFind = interfaceTypeIDs.find( typeIDSeqFromSymbolSeqPair( pLink ) );
-                VERIFY_RTE( iFind != interfaceTypeIDs.end() );
-                Symbols::interface::TypeID* pInterfaceTypeID = iFind->second;
-                interfaceTypeID                              = pInterfaceTypeID->get_id();
-            }
-
-            database.construct< Interface::LinkTrait >(
-                Interface::LinkTrait::Args{ pLink, symbolID, interfaceTypeID } );
-        }*/
 
         const task::FileHash fileHashCode = database.save_PerSourceSymbols_to_temp();
         m_environment.setBuildHashCode( symbolRolloutFilePath, fileHashCode );

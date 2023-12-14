@@ -128,7 +128,7 @@ set( COMPILER_TASKS
     # ${MEGA_SRC_DIR}/compiler/task_concrete_id.cpp
     # ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     # ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
-    #${MEGA_SRC_DIR}/compiler/task_dependencies.cpp
+    ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp
     # ${MEGA_SRC_DIR}/compiler/task_global_memory.cpp
     # ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
     # ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
@@ -143,7 +143,7 @@ set( COMPILER_TASKS
     # ${MEGA_SRC_DIR}/compiler/task_operations.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
     # ${MEGA_SRC_DIR}/compiler/task_python.cpp
-    #${MEGA_SRC_DIR}/compiler/task_symbols.cpp
+    ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
     # ${MEGA_SRC_DIR}/compiler/task_unity.cpp
     # ${MEGA_SRC_DIR}/compiler/task_value_space.cpp
 )

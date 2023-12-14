@@ -51,24 +51,29 @@ public:
         {
         }
 
-        void collectDependencies( DependencyAnalysis::Parser::Container* pContainer,
-                                  GlobVector&                            dependencyGlobs ) const
+        void collectDependencies( DependencyAnalysis::Interface::NodeGroup* pNodeGroup,
+                                  GlobVector&                               dependencyGlobs ) const
         {
             using namespace DependencyAnalysis;
 
-            for( Parser::Dependency* pDependency : pContainer->get_dependencies() )
+            if( auto pContext = db_cast< Interface::IContext >( pNodeGroup ) )
             {
-                VERIFY_PARSER( !pDependency->get_str().empty(), "Empty dependency", pContainer );
-                boost::filesystem::path sourceFilePath = pContainer->get_source_file();
-                VERIFY_RTE( boost::filesystem::exists( sourceFilePath ) );
-                VERIFY_RTE( sourceFilePath.has_parent_path() );
-                dependencyGlobs.push_back(
-                    mega::utilities::Glob{ sourceFilePath.parent_path(), pDependency->get_str(), pContainer } );
+                for( Parser::Dependency* pDependency : pContext->get_dependencies() )
+                {
+                    VERIFY_RTE( !pContext->get_containers().empty() );
+                    VERIFY_PARSER(
+                        !pDependency->get_str().empty(), "Empty dependency", pContext->get_containers().front() );
+                    boost::filesystem::path sourceFilePath = pDependency->get_source_file();
+                    VERIFY_RTE( boost::filesystem::exists( sourceFilePath ) );
+                    VERIFY_RTE( sourceFilePath.has_parent_path() );
+                    dependencyGlobs.push_back( mega::utilities::Glob{
+                        sourceFilePath.parent_path(), pDependency->get_str(), pContext->get_containers().front() } );
+                }
             }
 
-            for( Parser::Container* pContext : pContainer->get_children() )
+            for( auto pChild : pNodeGroup->get_children() )
             {
-                collectDependencies( pContext, dependencyGlobs );
+                collectDependencies( pChild, dependencyGlobs );
             }
         }
 
@@ -83,7 +88,7 @@ public:
 
             GlobVector       dependencyGlobs;
             Interface::Root* pRoot = database.one< Interface::Root >( sourceFilePath );
-            collectDependencies( pRoot->get_root()->get_ast(), dependencyGlobs );
+            collectDependencies( pRoot, dependencyGlobs );
 
             std::vector< Glob* >            globs;
             mega::utilities::FilePathVector resolution;
@@ -558,7 +563,7 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_DependencyAnalysis( const TaskArguments&              taskArguments )
+BaseTask::Ptr create_Task_DependencyAnalysis( const TaskArguments& taskArguments )
 {
     return std::make_unique< Task_DependencyAnalysis >( taskArguments );
 }
