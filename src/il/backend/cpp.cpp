@@ -98,13 +98,36 @@ void generate( const Expression& exp, Printer& print )
 
         void operator()( const Read& read ) const { print() << read.variable.getName(); }
 
+        void operator()( const Cast& cast ) const
+        {
+            print() << '(';
+            generate( cast.type, print );
+            print() << ')';
+            {
+                bool bFirst = true;
+                for( const auto& arg : cast.arguments )
+                {
+                    if( bFirst )
+                    {
+                        bFirst = false;
+                    }
+                    else
+                    {
+                        THROW_RTE( "Non singular arguments to cast expression" );
+                        print() << ',';
+                    }
+                    generate( arg, print );
+                }
+            }
+        }
+
         void operator()( const Call& call ) const
         {
             VERIFY_RTE_MSG( !call.function.name.empty(), "Function with no name" );
             print() << call.function.name << '(';
 
-            VERIFY_RTE_MSG(
-                call.function.parameterTypes.size() == call.arguments.size(), "Function call parameters mismatch" );
+            VERIFY_RTE_MSG( call.function.parameterTypes.size() == call.arguments.size(),
+                            "Function call parameters mismatch for: " << call.function.name );
             bool bFirst = true;
             for( const auto& arg : call.arguments )
             {
@@ -149,8 +172,29 @@ void generate( const Expression& exp, Printer& print )
 
         void operator()( const Operator& op ) const
         {
-            VERIFY_RTE_MSG( op.operands.size() == 2U, "Invalid number of operands in operator" );
-
+            VERIFY_RTE_MSG( !op.operands.empty(), "Invalid number of operands in operator" );
+            switch( op.type )
+            {
+                case Operator::eEqual:
+                    VERIFY_RTE_MSG( op.operands.size() == 2, "Invalid number of operands in operator" );
+                    break;
+                case Operator::eNotEqual:
+                    VERIFY_RTE_MSG( op.operands.size() == 2, "Invalid number of operands in operator" );
+                    break;
+                case Operator::eAdd:
+                    VERIFY_RTE_MSG( op.operands.size() == 2, "Invalid number of operands in operator" );
+                    break;
+                case Operator::eIndex:
+                    VERIFY_RTE_MSG( op.operands.size() == 2, "Invalid number of operands in operator" );
+                    break;
+                case Operator::eAddressOf:
+                    VERIFY_RTE_MSG( op.operands.size() == 1, "Invalid number of operands in operator" );
+                    print() << "&";
+                    break;
+                default:
+                    THROW_RTE( "Unknown operator type" );
+                    break;
+            }
             generate( op.operands.front(), print );
             switch( op.type )
             {
@@ -163,11 +207,36 @@ void generate( const Expression& exp, Printer& print )
                 case Operator::eAdd:
                     print() << "+";
                     break;
+                case Operator::eIndex:
+                    print() << "[ ";
+                    break;
+                case Operator::eAddressOf:
+                    break;
                 default:
                     THROW_RTE( "Unknown operator type" );
                     break;
             }
-            generate( op.operands.back(), print );
+            if( op.operands.size() > 1 )
+            {
+                generate( op.operands.back(), print );
+                switch( op.type )
+                {
+                    case Operator::eEqual:
+                        break;
+                    case Operator::eNotEqual:
+                        break;
+                    case Operator::eAdd:
+                        break;
+                    case Operator::eIndex:
+                        print() << " ]";
+                        break;
+                    case Operator::eAddressOf:
+                        break;
+                    default:
+                        THROW_RTE( "Unknown operator type" );
+                        break;
+                }
+            }
         }
 
     } visitor{ print };
@@ -213,6 +282,18 @@ void generate( const Statement& statement, Printer& print )
         void operator()( const Return& returnStatement ) const
         {
             print.line() << "return " << returnStatement.rValue.getName() << ";";
+        }
+
+        void operator()( const Scope& scope ) const
+        {
+            print.line() << "{";
+            print.indent();
+            for( const auto& s : scope.statements )
+            {
+                generate( s, print );
+            }
+            print.outdent();
+            print.line() << "}";
         }
 
         void operator()( const If& ifStatement ) const
@@ -268,6 +349,33 @@ void generate( const Statement& statement, Printer& print )
                 generate( varDecl.rValue.value(), print );
             }
             print() << ";";
+        }
+
+        void operator()( const ArrayVariableDeclaration& varDecl ) const
+        {
+            print.line();
+            generate( varDecl.lValue, print );
+
+            VERIFY_RTE_MSG( !varDecl.initialisations.empty(), "Array variable declaration with no initialisers" );
+            print() << "[ " << varDecl.initialisations.size() << " ] = ";
+            print.line() << "{";
+            print.indent();
+            bool bFirst = true;
+            for( const auto& init : varDecl.initialisations )
+            {
+                if( bFirst )
+                {
+                    bFirst = false;
+                }
+                else
+                {
+                    print() << ",";
+                    print.line();
+                }
+                generate( init, print );
+            }
+            print.outdent();
+            print.line() << "};";
         }
 
         void operator()( const Assignment& assignment ) const

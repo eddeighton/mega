@@ -25,8 +25,8 @@
 #include "mega/values/compilation/sub_type_instance.hpp"
 #include "mega/values/compilation/type_instance.hpp"
 
-#include "mega/values/runtime/reference.hpp"
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
 #include "mega/values/service/program.hpp"
@@ -240,11 +240,11 @@ struct formatter< mega::MPO >
 };
 
 template <>
-struct formatter< mega::reference >
+struct formatter< mega::Pointer >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    inline auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::Pointer& ref, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
         os << ref;

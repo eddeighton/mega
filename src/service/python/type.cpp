@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/python/reference.hpp"
+#include "service/python/pointer.hpp"
 #include "service/python/cast.hpp"
 #include "service/python/type.hpp"
 #include "service/python/type_system.hpp"
@@ -33,78 +33,78 @@ namespace
 
 void type_dealloc( PyObject* pPyObject )
 {
-    if( PythonReference* pReference = fromPyObject( pPyObject ) )
+    if( PythonPointer* pReference = fromPyObject( pPyObject ) )
     {
         delete pReference;
         Py_TYPE( pPyObject )->tp_free( ( PyObject* )pPyObject );
     }
     else
     {
-        SPDLOG_ERROR( "PythonReference type_dealloc invalid python reference" );
+        SPDLOG_ERROR( "PythonPointer type_dealloc invalid python Pointer" );
     }
 }
 
 PyObject* type_get( PyObject* self, void* pClosure )
 {
-    if( PythonReference* pRef = fromPyObject( self ) )
+    if( PythonPointer* pRef = fromPyObject( self ) )
     {
         return pRef->get( pClosure );
     }
     else
     {
-        SPDLOG_ERROR( "PythonReference type_get invalid python reference" );
+        SPDLOG_ERROR( "PythonPointer type_get invalid python Pointer" );
         return nullptr;
     }
 }
 
 int type_set( PyObject* self, PyObject* pValue, void* pClosure )
 {
-    if( PythonReference* pRef = fromPyObject( self ) )
+    if( PythonPointer* pRef = fromPyObject( self ) )
     {
         return pRef->set( pClosure, pValue );
     }
     else
     {
-        SPDLOG_ERROR( "PythonReference type_set invalid python reference" );
+        SPDLOG_ERROR( "PythonPointer type_set invalid python Pointer" );
         return -1;
     }
 }
 
 PyObject* type_str( PyObject* self )
 {
-    if( PythonReference* pRef = fromPyObject( self ) )
+    if( PythonPointer* pRef = fromPyObject( self ) )
     {
         return pRef->str();
     }
     else
     {
-        SPDLOG_ERROR( "PythonReference type_str invalid python reference" );
+        SPDLOG_ERROR( "PythonPointer type_str invalid python Pointer" );
         return nullptr;
     }
 }
 
 PyObject* type_call( PyObject* callable, PyObject* args, PyObject* kwargs )
 {
-    if( PythonReference* pRef = fromPyObject( callable ) )
+    if( PythonPointer* pRef = fromPyObject( callable ) )
     {
         return pRef->call( args, kwargs );
     }
     else
     {
-        SPDLOG_ERROR( "PythonReference type_call invalid python reference" );
+        SPDLOG_ERROR( "PythonPointer type_call invalid python Pointer" );
         return nullptr;
     }
 }
 
 PyObject* type_dump( PyObject* self )
 {
-    if( PythonReference* pRef = fromPyObject( self ) )
+    if( PythonPointer* pRef = fromPyObject( self ) )
     {
         return pRef->dump();
     }
     else
     {
-        SPDLOG_ERROR( "PythonReference type_dump invalid python reference" );
+        SPDLOG_ERROR( "PythonPointer type_dump invalid python Pointer" );
         return nullptr;
     }
 }
@@ -171,7 +171,7 @@ Type::Type( PythonModule& module, TypeSystem& typeSystem, Type::SymbolTablePtr p
     {
         SPDLOG_ERROR( "Type failed to create python type" );
         // set exception
-        THROW_RTE( "Failed to create python mega.reference type" );
+        THROW_RTE( "Failed to create python mega.Pointer type" );
     }
     else
     {
@@ -190,11 +190,11 @@ Type::~Type()
     }
 }
 
-PyObject* Type::createReference( const reference& ref )
+PyObject* Type::createReference( const Pointer& ref )
 {
     PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, m_pTypeObject );
     PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, m_pTypeObject );
-    pRootObject->pReference            = new PythonReference( m_module, *this, ref );
+    pRootObject->pReference            = new PythonPointer( m_module, *this, ref );
     Py_INCREF( pPythonObject );
     return pPythonObject;
 }
@@ -210,7 +210,7 @@ inline Type::TypeIDVector Type::append( const Type::TypeIDVector& from, TypeID n
     return newTypePath;
 }
 
-PyObject* Type::createReference( const reference& ref, const Type::TypeIDVector& typePath, const char* symbol )
+PyObject* Type::createReference( const Pointer& ref, const Type::TypeIDVector& typePath, const char* symbol )
 {
     const OperationID opID = getOperationName( symbol );
     if( opID != mega::HIGHEST_OPERATION_TYPE )
@@ -218,7 +218,7 @@ PyObject* Type::createReference( const reference& ref, const Type::TypeIDVector&
         const TypeIDVector   newTypePath   = append( typePath, TypeID( opID ) );
         PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, m_pTypeObject );
         PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, m_pTypeObject );
-        pRootObject->pReference            = new PythonReference( m_module, *this, ref, newTypePath );
+        pRootObject->pReference            = new PythonPointer( m_module, *this, ref, newTypePath );
         Py_INCREF( pPythonObject );
         return pPythonObject;
     }
@@ -228,7 +228,7 @@ PyObject* Type::createReference( const reference& ref, const Type::TypeIDVector&
         Type::Ptr            pLinkType     = m_typeSystem.getLinkType( ref.getType().getObjectID(), iFind->second );
         PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, m_pTypeObject );
         PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, m_pTypeObject );
-        pRootObject->pReference            = new PythonReference( m_module, *pLinkType, ref, newTypePath );
+        pRootObject->pReference            = new PythonPointer( m_module, *pLinkType, ref, newTypePath );
         Py_INCREF( pPythonObject );
         return pPythonObject;
     }
@@ -238,7 +238,7 @@ PyObject* Type::createReference( const reference& ref, const Type::TypeIDVector&
         const TypeIDVector   newTypePath   = append( typePath, iFind->second );
         PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, m_pTypeObject );
         PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, m_pTypeObject );
-        pRootObject->pReference            = new PythonReference( m_module, *this, ref, newTypePath );
+        pRootObject->pReference            = new PythonPointer( m_module, *this, ref, newTypePath );
         Py_INCREF( pPythonObject );
         return pPythonObject;
     }
@@ -246,7 +246,7 @@ PyObject* Type::createReference( const reference& ref, const Type::TypeIDVector&
     {
         std::ostringstream os;
         {
-            os << "Invalid symbol for reference: " << ref;
+            os << "Invalid symbol for Pointer: " << ref;
             if( !typePath.empty() )
             {
                 os << " Type Path: ";

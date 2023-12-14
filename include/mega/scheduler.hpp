@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_August_01_BasicScheduler
 #define GUARD_2023_August_01_BasicScheduler
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/return_reason.hpp"
 
 #include "common/unreachable.hpp"
@@ -45,13 +45,13 @@ class BasicScheduler
 private:
     struct ActiveAction;
 
-    using ActiveActionMap      = std::unordered_map< reference, ActiveAction*, reference::HashHeap >;
+    using ActiveActionMap      = std::unordered_map< Pointer, ActiveAction*, Pointer::HashHeap >;
     using ActiveActionMapIter  = typename ActiveActionMap::iterator;
     using ActiveActionList     = std::list< typename ActiveActionMap::iterator >;
     using ActiveActionIter     = typename ActiveActionList::iterator;
     using Timeout              = std::chrono::steady_clock::time_point;
     using TimeoutQueue         = std::multimap< Timeout, ActiveActionMapIter >;
-    using EventRefMap          = std::multimap< reference, ActiveActionMapIter >;
+    using EventRefMap          = std::multimap< Pointer, ActiveActionMapIter >;
     using EventRefMapIterArray = std::vector< typename EventRefMap::iterator >;
 
     enum SleepSwapState
@@ -97,9 +97,9 @@ private:
         void                stop() { m_executionState.stop(); }
         void                run() { m_executionState.execute(); }
         const ReturnReason& getReturnReason() const { return m_executionState.getReturnReason(); }
-        void                onEvent( const reference& event ) { m_executionState.onEvent( event ); }
+        void                onEvent( const Pointer& event ) { m_executionState.onEvent( event ); }
 
-        inline const reference& getRef() const { return m_executionState.getRef(); }
+        inline const Pointer& getRef() const { return m_executionState.getRef(); }
         bool                    isWaitAny() const { return bWaitAny; }
         void                    setWaitAny( bool _bWaitAny ) { bWaitAny = _bWaitAny; }
 
@@ -394,7 +394,7 @@ private:
         iterAction->second->getEventIterArray().clear();
     }
 
-    void on_event( EventRefMap& eventMap, const reference& ref )
+    void on_event( EventRefMap& eventMap, const Pointer& ref )
     {
         typename EventRefMap::iterator iLower = eventMap.lower_bound( ref );
         typename EventRefMap::iterator iUpper = eventMap.upper_bound( ref );
@@ -441,7 +441,7 @@ public:
 
     void call( ExecutionState&& executionState )
     {
-        const mega::reference ref = executionState.getRef();
+        const mega::Pointer ref = executionState.getRef();
 
         ActiveAction* pAction = new ActiveAction(
             std::move( executionState ), m_listOne.end(), m_listTwo.end(), m_listThree.end(), m_paused.end() );
@@ -458,7 +458,7 @@ public:
         }
     }
 
-    void stop( const reference& ref )
+    void stop( const Pointer& ref )
     {
         ActiveActionMapIter iFind = m_actions.find( ref );
         if( iFind != m_actions.end() )
@@ -485,11 +485,11 @@ public:
         }
         else
         {
-            ERR( "Stopped inactive reference" );
+            ERR( "Stopped inactive Pointer" );
         }
     }
 
-    void signal( const reference& ref )
+    void signal( const Pointer& ref )
     {
         on_event( m_events_by_ref_wait, ref );
         on_event( m_events_by_ref_sleep, ref );
@@ -591,7 +591,7 @@ public:
         while( !m_events_by_ref_wait.empty() )
         {
             typename EventRefMap::iterator i       = m_events_by_ref_wait.begin();
-            reference                      ref     = i->first;
+            Pointer                      ref     = i->first;
             ActiveAction*                  pAction = i->second->second;
             // error
             ERR( "Never got event: " << ref << " for action: " << pAction->getRef() );
@@ -599,7 +599,7 @@ public:
         }
     }
 
-    /*void allocated( const reference& ref )
+    /*void allocated( const Pointer& ref )
     {
         ActiveAction* pAction
             = new ActiveAction( ref, m_listOne.end(), m_listTwo.end(), m_listThree.end(), m_paused.end() );
@@ -610,7 +610,7 @@ public:
             delete pAction;
         }
     }*/
-    /*void stopperStopped( const reference& ref )
+    /*void stopperStopped( const Pointer& ref )
     {
         ActiveActionMapIter iFind = m_actions.find( ref );
         if( iFind != m_actions.end() )
@@ -641,7 +641,7 @@ public:
             // ref.instance << " timestamp: " << ref.timestamp );
         }
     }*/
-    /*void pause( const reference& ref )
+    /*void pause( const Pointer& ref )
     {
         ActiveActionMapIter iFind = m_actions.find( ref );
         if( iFind != m_actions.end() )
@@ -655,11 +655,11 @@ public:
         }
         else
         {
-            ERR( "Stopped inactive reference" );
+            ERR( "Stopped inactive Pointer" );
         }
     }
 
-    void unpause( const reference& ref )
+    void unpause( const Pointer& ref )
     {
         ActiveActionMapIter iFind = m_actions.find( ref );
         if( iFind != m_actions.end() )
@@ -669,7 +669,7 @@ public:
         }
         else
         {
-            ERR( "Stopped inactive reference" );
+            ERR( "Stopped inactive Pointer" );
         }
     }*/
 };

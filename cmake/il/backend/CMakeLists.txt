@@ -22,6 +22,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get clang
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
+
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -46,6 +49,7 @@ set( IL_GEN_API
 set( IL_GEN_SRC
 
     ${MEGA_SRC_DIR}/il/backend/cpp.cpp
+    ${MEGA_SRC_DIR}/il/backend/ir.cpp
 )
 
 add_library( backend
@@ -63,6 +67,7 @@ link_boost( backend serialization )
 link_json( backend )
 link_inja( backend )
 link_common( backend )
+link_orc( backend )
 
 #################################################################
 #################################################################

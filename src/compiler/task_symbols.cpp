@@ -45,8 +45,6 @@ namespace mega::compiler
 
 class Task_SymbolAnalysis : public BaseTask
 {
-    const mega::io::Manifest m_manifest;
-
 public:
     struct InterfaceHashCodeGenerator
     {
@@ -64,21 +62,9 @@ public:
         }
     };
 
-    Task_SymbolAnalysis( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+    Task_SymbolAnalysis( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( m_environment, manifestFilePath )
     {
-    }
-
-    using PathSet = std::set< mega::io::megaFilePath >;
-    PathSet getSortedSourceFiles( const io::Manifest& manifest ) const
-    {
-        PathSet sourceFiles;
-        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
-        {
-            sourceFiles.insert( sourceFilePath );
-        }
-        return sourceFiles;
     }
 
     SymbolAnalysis::Symbols::SymbolTable* requestNewSymbols( SymbolAnalysis::Database& newDatabase )
@@ -90,31 +76,28 @@ public:
         const auto sourceFiles = getSortedSourceFiles( m_manifest );
 
         // request new symbols
+        using NewSymbolNamess = std::map< std::string, Symbols::SymbolID* >;
+        using NewSymbolIDs    = std::map< mega::SymbolID, Symbols::SymbolID* >;
+        NewSymbolNamess newSymbolNames;
+        NewSymbolIDs    newSymbolIDs;
+
         {
+            using SymbolMap = std::multi_map< std::string, Parser::Symbol* >;
+
             SymbolRequest request;
-            auto          addSymbol = [ & ]( const std::string& str )
-            {
-                auto symbolIDOpt = symbolTable.findSymbol( str );
-                if( !symbolIDOpt.has_value() )
-                {
-                    request.newSymbols.insert( str );
-                }
-            };
+            SymbolMap     symbols;
 
             for( const mega::io::megaFilePath& newSourceFile : sourceFiles )
             {
-                for( Interface::IContext* pContext : newDatabase.many< Interface::IContext >( newSourceFile ) )
+                for( Parser::Symbol* pSymbol : newDatabase.many< Parser::Symbol >( newSourceFile ) )
                 {
-                    addSymbol( Interface::getIdentifier( pContext ) );
-                }
-                for( Interface::DimensionTrait* pDimension :
-                     newDatabase.many< Interface::DimensionTrait >( newSourceFile ) )
-                {
-                    addSymbol( Interface::getIdentifier( pDimension ) );
-                }
-                for( Interface::LinkTrait* pLink : newDatabase.many< Interface::LinkTrait >( newSourceFile ) )
-                {
-                    addSymbol( Interface::getIdentifier( pLink ) );
+                    auto token       = pSymbol->get_token();
+                    auto symbolIDOpt = symbolTable.findSymbol( token );
+                    if( !symbolIDOpt.has_value() )
+                    {
+                        request.newSymbols.insert( token );
+                    }
+                    symbols.insert( { token, pSymbol } );
                 }
             }
 
@@ -122,10 +105,29 @@ public:
             {
                 symbolTable = m_environment.newSymbols( request );
             }
+
+            for( auto i = symbols.begin(), iEnd = symbols.end(); i != iEnd; )
+            {
+                const auto& token       = i->first;
+                auto        symbolIDOpt = symbolTable.findSymbol( token );
+                VERIFY_RTE( symbolIDOpt.has_value() );
+                auto pSymbol = newDatabase.construct< Symbols::SymbolID >(
+                    Symbols::SymbolID::Args{ token, symbolIDOpt.value(), {} } );
+                newSymbolNames.insert( { token, pSymbol } );
+                newSymbolIDs.insert( { symbolIDOpt.value(), pSymbol } );
+
+                for( auto iUpper = symbols.upper_bound( i->first ); i != iUpper; ++i )
+                {
+                    pSymbol->push_back_symbol( i->second );
+                }
+            }
         }
 
+        std::map< interface::SymbolIDSequence, Symbols::InterfaceTypeID* > newInterfaceTypeIDSequences;
+        std::map< interface::TypeID, Symbols::InterfaceTypeID* >           newInterfaceTypeIDs;
+
         // construct symbols
-        using NewSymbolNames   = std::map< std::string, Symbols::SymbolTypeID* >;
+        /*using NewSymbolNames   = std::map< std::string, Symbols::SymbolTypeID* >;
         using NewSymbolTypeIDs = std::map< mega::TypeID, Symbols::SymbolTypeID* >;
 
         NewSymbolNames   newSymbolNames;
@@ -226,8 +228,6 @@ public:
             }
         }
 
-        std::map< TypeIDSequence, Symbols::InterfaceTypeID* > newInterfaceTypeIDSequences;
-        std::map< TypeID, Symbols::InterfaceTypeID* >         newInterfaceTypeIDs;
 
         // add interface types
         {
@@ -265,7 +265,7 @@ public:
                 VERIFY_RTE( interfaceTypeID != TypeID{} );
 
                 auto pInterfaceTypeID
-                    = newDatabase.construct< Symbols::InterfaceTypeID >( Symbols::InterfaceTypeID::Args{
+                    = newDatabase.construct< Symbols::interface::TypeID >( Symbols::interface::TypeID::Args{
                         typeIDSequence, interfaceTypeID, contextOpt, dimensionOpt, linkOpt } );
 
                 VERIFY_RTE( newInterfaceTypeIDSequences.insert( { typeIDSequence, pInterfaceTypeID } ).second );
@@ -289,10 +289,10 @@ public:
                     addInterfaceType( idSequenceGen( pLink ), std::nullopt, std::nullopt, pLink );
                 }
             }
-        }
+        }*/
 
         return newDatabase.construct< Symbols::SymbolTable >( Symbols::SymbolTable::Args{
-            newSymbolNames, newSymbolTypeIDs, newInterfaceTypeIDSequences, newInterfaceTypeIDs } );
+            newSymbolNames, newSymbolIDs, newInterfaceTypeIDSequences, newInterfaceTypeIDs } );
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
@@ -332,10 +332,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_SymbolAnalysis( const TaskArguments&              taskArguments,
-                                          const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_SymbolAnalysis( const TaskArguments&              taskArguments)
 {
-    return std::make_unique< Task_SymbolAnalysis >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_SymbolAnalysis >( taskArguments );
 }
 
 class Task_SymbolRollout : public BaseTask
@@ -384,7 +383,7 @@ public:
             return typeIDSequence;
         };
 
-        for( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
+        /*for( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
         {
             TypeID symbolID;
             {
@@ -397,8 +396,8 @@ public:
             {
                 auto iFind = interfaceTypeIDs.find( typeIDSeqFromSymbolSeqPair( pContext ) );
                 VERIFY_RTE( iFind != interfaceTypeIDs.end() );
-                Symbols::InterfaceTypeID* pInterfaceTypeID = iFind->second;
-                interfaceTypeID                            = pInterfaceTypeID->get_id();
+                Symbols::interface::TypeID* pInterfaceTypeID = iFind->second;
+                interfaceTypeID                              = pInterfaceTypeID->get_id();
             }
 
             VERIFY_RTE( symbolID.isSymbolID() );
@@ -421,8 +420,8 @@ public:
             {
                 auto iFind = interfaceTypeIDs.find( typeIDSeqFromSymbolSeqPair( pDimension ) );
                 VERIFY_RTE( iFind != interfaceTypeIDs.end() );
-                Symbols::InterfaceTypeID* pInterfaceTypeID = iFind->second;
-                interfaceTypeID                            = pInterfaceTypeID->get_id();
+                Symbols::interface::TypeID* pInterfaceTypeID = iFind->second;
+                interfaceTypeID                              = pInterfaceTypeID->get_id();
             }
 
             database.construct< Interface::DimensionTrait >(
@@ -442,13 +441,13 @@ public:
             {
                 auto iFind = interfaceTypeIDs.find( typeIDSeqFromSymbolSeqPair( pLink ) );
                 VERIFY_RTE( iFind != interfaceTypeIDs.end() );
-                Symbols::InterfaceTypeID* pInterfaceTypeID = iFind->second;
-                interfaceTypeID                            = pInterfaceTypeID->get_id();
+                Symbols::interface::TypeID* pInterfaceTypeID = iFind->second;
+                interfaceTypeID                              = pInterfaceTypeID->get_id();
             }
 
             database.construct< Interface::LinkTrait >(
                 Interface::LinkTrait::Args{ pLink, symbolID, interfaceTypeID } );
-        }
+        }*/
 
         const task::FileHash fileHashCode = database.save_PerSourceSymbols_to_temp();
         m_environment.setBuildHashCode( symbolRolloutFilePath, fileHashCode );

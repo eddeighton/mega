@@ -21,10 +21,11 @@
 #ifndef GUARD_2023_December_05_object
 #define GUARD_2023_December_05_object
 
-#include "mega/values/compilation/type_id.hpp"
-#include "mega/values/compilation/sub_type_instance.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/compilation/concrete/sub_object_id_instance.hpp"
+
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/values/runtime/any.hpp"
 
 #include "runtime/function_ptr.hpp"
@@ -32,24 +33,38 @@
 #include "mega/bin_archive.hpp"
 #include "mega/iterator.hpp"
 
+#include <iomanip>
+
 namespace mega::materialiser
 {
 
-template < mega::TypeID typeID >
 struct Object
 {
-    void                        constructor( void* pMemory );
-    void                        destructor( const mega::reference& ref, void* Buffer, bool LinkReset );
-    void                        binaryLoad( void* pMemory, mega::BinLoadArchive& archive );
-    void                        binarySave( void* pMemory, mega::BinSaveArchive& archive );
-    runtime::TypeErasedFunction getFunction();
-    void                        unParent( const mega::reference& ref );
-    void                        traverse( Iterator& iterator );
-    mega::U64                   linkSize( const mega::reference& ref );
-    mega::reference             linkGet( const mega::reference& ref, mega::U64 index );
-    mega::Any                   anyRead( const mega::reference& ref );
-    void                        anyWrite( const mega::reference& ref, mega::Any value );
-    mega::SubTypeInstance       enumerate( const mega::reference& ref, mega::U32& iterator );
+    struct Name
+    {
+        inline std::string operator()( mega::interface::TypeID typeID ) const
+        {
+            std::ostringstream os;
+            os << std::hex << std::setfill( '0' ) << std::setw( 8 ) << typeID.getValue();
+            return os.str();
+        }
+    };
+
+    class Functions
+    {
+        void                                constructor( void* pMemory );
+        void                                destructor( const mega::Pointer& ref, void* Buffer, bool LinkReset );
+        void                                binaryLoad( void* pMemory, mega::BinLoadArchive& archive );
+        void                                binarySave( void* pMemory, mega::BinSaveArchive& archive );
+        runtime::TypeErasedFunction         getFunction();
+        void                                unParent( const mega::Pointer& ref );
+        void                                traverse( Iterator& iterator );
+        mega::U64                           linkSize( const mega::Pointer& ref );
+        mega::Pointer                       linkGet( const mega::Pointer& ref, mega::U64 index );
+        mega::Any                           anyRead( const mega::Pointer& ref );
+        void                                anyWrite( const mega::Pointer& ref, mega::Any value );
+        mega::concrete::SubObjectIDInstance enumerate( const mega::Pointer& ref, mega::U32& iterator );
+    };
 };
 
 } // namespace mega::materialiser

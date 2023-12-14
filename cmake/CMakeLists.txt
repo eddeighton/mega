@@ -96,32 +96,37 @@ add_subdirectory(inja)
 add_subdirectory(il)
 
 add_subdirectory(mega)
-
+ 
 add_subdirectory(database)
+
 add_subdirectory(parser)
-add_subdirectory(invocation)
-add_subdirectory(clang_plugin)
+
 add_subdirectory(pipeline)
+
 add_subdirectory(compiler)
 
+# add_subdirectory(invocation)
+# add_subdirectory(clang_plugin)
+
+# 
 add_subdirectory(reports)
 add_subdirectory(database_reporters)
-
-add_subdirectory(runtime)
-
-add_subdirectory(map)
-add_subdirectory(schematic)
-
-add_subdirectory(service)
-add_subdirectory(log)
-
-add_subdirectory(driver)
-
-add_subdirectory(editor)
-
+# 
+# add_subdirectory(runtime)
+# 
+# add_subdirectory(map)
+# add_subdirectory(schematic)
+# 
+# add_subdirectory(service)
+# add_subdirectory(log)
+# 
+# add_subdirectory(driver)
+# 
+# add_subdirectory(editor)
+# 
 add_subdirectory(tests)
-
-add_subdirectory(toolchain)
+# 
+# add_subdirectory(toolchain)
 
 # # install scripts
 set( MEGA_SCRIPTS

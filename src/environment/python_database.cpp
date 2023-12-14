@@ -20,7 +20,7 @@
 #include "environment/python_database.hpp"
 
 #include "mega/common_strings.hpp"
-
+/*
 namespace FinalStage
 {
 #include "compiler/concrete_printer.hpp"
@@ -219,3 +219,4 @@ void PythonDatabase::getLinkObjectTypes( SubType concreteObjectID, TypeID linkTy
 }
 
 } // namespace mega::runtime
+*/

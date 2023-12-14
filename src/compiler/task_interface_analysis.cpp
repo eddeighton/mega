@@ -24,7 +24,7 @@
 #include "compiler/clang_compilation.hpp"
 
 #include "mega/common_strings.hpp"
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/mangle/traits.hpp"
 
 #include "nlohmann/json.hpp"

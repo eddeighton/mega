@@ -25,7 +25,7 @@
 // #include "jit/object_header.hpp"
 // #include "jit/code_generator.hpp"
 
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 #include "mega/values/service/status.hpp"
 
 #include "service/protocol/common/sender_ref.hpp"
@@ -39,8 +39,8 @@ namespace mega::runtime
 /*
 class RemoteMemoryManager
 {
-    using HeapMap = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
-    using NetMap  = std::unordered_map< reference, reference, reference::Hash >;
+    using HeapMap = std::unordered_map< Pointer, HeapBufferPtr, Pointer::Hash >;
+    using NetMap  = std::unordered_map< Pointer, Pointer, Pointer::Hash >;
 
 public:
     using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID, runtime::LLVMCompiler& ) >;
@@ -63,7 +63,7 @@ public:
     inline void MPODestroyed( const MPO& mpo )
     {
         std::vector< HeapMap::iterator > mpoObjects;
-        std::vector< reference >         netAddresses;
+        std::vector< Pointer >         netAddresses;
         {
             for( auto i = m_heapMap.begin(), iEnd = m_heapMap.end(); i != iEnd; ++i )
             {
@@ -104,20 +104,20 @@ public:
         }
     }
 
-    inline bool tryNetworkToHeap( reference& networkAddress ) const
+    inline bool tryNetworkToHeap( Pointer& networkAddress ) const
     {
         auto iFind = m_netMap.find( networkAddress.getObjectAddress() );
         if( iFind != m_netMap.end() )
         {
-            networkAddress = reference::make( iFind->second, networkAddress.getTypeInstance() );
+            networkAddress = Pointer::make( iFind->second, networkAddress.getTypeInstance() );
             return true;
         }
         return false;
     }
 
-    inline reference networkToHeap( const reference& networkAddress, runtime::LLVMCompiler& llvmCompiler )
+    inline Pointer networkToHeap( const Pointer& networkAddress, runtime::LLVMCompiler& llvmCompiler )
     {
-        reference objectAddress = networkAddress.getObjectAddress();
+        Pointer objectAddress = networkAddress.getObjectAddress();
         if( tryNetworkToHeap( objectAddress ) )
         {
             return objectAddress;
@@ -138,12 +138,12 @@ public:
         // invoke the constructor
         pAllocator->getCtor()( pHeapBuffer.get() );
 
-        const reference objectHeapAddress = reference{ objectAddress.getTypeInstance(), pHeapBuffer.get() };
+        const Pointer objectHeapAddress = Pointer{ objectAddress.getTypeInstance(), pHeapBuffer.get() };
 
         m_heapMap.insert( { objectHeapAddress, std::move( pHeapBuffer ) } );
         m_netMap.insert( { objectAddress, objectHeapAddress } );
 
-        return reference::make( objectHeapAddress, networkAddress.getTypeInstance() );
+        return Pointer::make( objectHeapAddress, networkAddress.getTypeInstance() );
     }
 
 private:

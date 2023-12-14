@@ -22,9 +22,14 @@
 #define GUARD_2023_December_03_symbol_table
 
 #include "mega/values/native_types.hpp"
-#include "mega/values/compilation/type_id.hpp"
+
+#include "mega/values/compilation/interface/symbol_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
+
+#include "mega/values/compilation/concrete/type_id.hpp"
+#include "mega/values/compilation/concrete/type_id_instance.hpp"
+
 #include "mega/values/compilation/type_id_sequence.hpp"
-#include "mega/values/compilation/type_instance.hpp"
 #include "mega/values/hash.hpp"
 
 #include "common/serialisation.hpp"
@@ -41,22 +46,20 @@ struct SymbolTraits
 {
     using Symbol             = std::string;
     using SymbolVector       = std::vector< Symbol >;
-    using SymbolID           = TypeID;
-    using SymbolIDVector     = std::vector< SymbolID >;
-    using SymbolIDVectorPair = std::pair< SymbolTraits::SymbolIDVector, SymbolTraits::SymbolIDVector >;
-    using SymbolMap          = std::unordered_map< Symbol, SymbolID >;
-    using TypeIDSequencePair = std::pair< TypeIDSequence, TypeIDSequence >;
+    using SymbolIDVectorPair = std::pair< interface::SymbolIDSequence, interface::SymbolIDSequence >;
+    using SymbolMap          = std::unordered_map< Symbol, interface::SymbolID >;
+    using TypeIDSequencePair = std::pair< interface::TypeIDSequence, interface::TypeIDSequence >;
 
     struct SymbolVectorHash
     {
-        std::size_t operator()( const SymbolIDVector& symbolVector ) const
+        std::size_t operator()( const interface::SymbolIDSequence& symbolVector ) const
         {
             return common::Hash( symbolVector ).get();
         }
     };
     struct TypeIDSequenceHash
     {
-        std::size_t operator()( const TypeIDSequence& typeIDSequence ) const
+        std::size_t operator()( const interface::TypeIDSequence& typeIDSequence ) const
         {
             return common::Hash( typeIDSequence ).get();
         }
@@ -67,9 +70,9 @@ class SymbolRequest
 {
 public:
     std::set< SymbolTraits::Symbol >             newSymbols;
-    std::set< SymbolTraits::SymbolIDVector >     newInterfaceObjects;
+    std::set< interface::SymbolIDSequence >      newInterfaceObjects;
     std::set< SymbolTraits::SymbolIDVectorPair > newInterfaceElements;
-    std::set< TypeIDSequence >                   newConcreteObjects;
+    std::set< interface::TypeIDSequence >        newConcreteObjects;
     std::set< SymbolTraits::TypeIDSequencePair > newConcreteElements;
 
     template < class Archive >
@@ -100,9 +103,11 @@ public:
     class InterfaceObject
     {
     public:
-        using Vector     = std::vector< InterfaceObject >;
-        using Map        = std::unordered_map< SymbolTraits::SymbolIDVector, SubType, SymbolTraits::SymbolVectorHash >;
-        using SubTypeMap = std::unordered_map< SymbolTraits::SymbolIDVector, SubType, SymbolTraits::SymbolVectorHash >;
+        using Vector = std::vector< InterfaceObject >;
+        using Map
+            = std::unordered_map< interface::SymbolIDSequence, interface::ObjectID, SymbolTraits::SymbolVectorHash >;
+        using SubTypeMap
+            = std::unordered_map< interface::SymbolIDSequence, interface::SubObjectID, SymbolTraits::SymbolVectorHash >;
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
@@ -122,20 +127,22 @@ public:
         }
 
         InterfaceObject() = default;
-        InterfaceObject( SubType subType, SymbolTraits::SymbolIDVector symbolIDs )
-            : m_objectID( subType )
+        InterfaceObject( interface::ObjectID objectID, interface::SymbolIDSequence symbolIDs )
+            : m_objectID( objectID )
             , m_objectSymbols( std::move( symbolIDs ) )
         {
         }
 
-        inline const SymbolTraits::SymbolIDVector& getSymbols() const { return m_objectSymbols; }
-        inline SubType                             getObjectID() const { return m_objectID; }
-        inline TypeID                              find( const SymbolTraits::SymbolIDVector& symbolVector ) const
+        inline const interface::SymbolIDSequence& getSymbols() const { return m_objectSymbols; }
+        inline interface::ObjectID                getObjectID() const { return m_objectID; }
+        inline interface::TypeID                  find( const interface::SymbolIDSequence& symbolVector ) const
         {
             auto iFind = m_subTypes.find( symbolVector );
             if( iFind != m_subTypes.end() )
             {
-                return TypeID::make_context( m_objectID, iFind->second );
+                return interface::TypeID {
+                    m_objectID, iFind->second
+                };
             }
             else
             {
@@ -143,7 +150,7 @@ public:
             }
         }
 
-        inline SubType add( const SymbolTraits::SymbolIDVector& symbolVector )
+        inline interface::SubObjectID add( const interface::SymbolIDSequence& symbolVector )
         {
             auto iFind = m_subTypes.find( symbolVector );
             if( iFind != m_subTypes.end() )
@@ -152,24 +159,26 @@ public:
             }
             else
             {
-                const auto newSubType = static_cast< SubType >( m_subTypes.size() + 1 );
+                const auto newSubType = static_cast< interface::SubObjectID >( m_subTypes.size() + 1 );
                 m_subTypes.insert( { symbolVector, newSubType } );
                 return newSubType;
             }
         }
 
     private:
-        SubType                      m_objectID; // index into Vector
-        SymbolTraits::SymbolIDVector m_objectSymbols;
-        SubTypeMap                   m_subTypes;
+        interface::ObjectID         m_objectID; // index into Vector
+        interface::SymbolIDSequence m_objectSymbols;
+        SubTypeMap                  m_subTypes;
     };
 
     class ConcreteObject
     {
     public:
-        using Vector     = std::vector< ConcreteObject >;
-        using Map        = std::unordered_map< TypeIDSequence, SubType, SymbolTraits::TypeIDSequenceHash >;
-        using SubTypeMap = std::unordered_map< TypeIDSequence, SubType, SymbolTraits::TypeIDSequenceHash >;
+        using Vector = std::vector< ConcreteObject >;
+        using Map
+            = std::unordered_map< interface::TypeIDSequence, concrete::ObjectID, SymbolTraits::TypeIDSequenceHash >;
+        using SubTypeMap
+            = std::unordered_map< interface::TypeIDSequence, concrete::SubObjectID, SymbolTraits::TypeIDSequenceHash >;
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
@@ -189,20 +198,20 @@ public:
         }
 
         ConcreteObject() = default;
-        ConcreteObject( SubType subType, TypeIDSequence symbolIDs )
-            : m_objectID( subType )
+        ConcreteObject( concrete::ObjectID objectID, interface::TypeIDSequence symbolIDs )
+            : m_objectID( objectID )
             , m_objectTypeIDs( std::move( symbolIDs ) )
         {
         }
 
-        inline const TypeIDSequence& getInterfaceTypeIDs() const { return m_objectTypeIDs; }
-        inline SubType               getObjectID() const { return m_objectID; }
-        inline TypeID                find( const TypeIDSequence& typeIDSequence ) const
+        inline const interface::TypeIDSequence& getInterfaceTypeIDs() const { return m_objectTypeIDs; }
+        inline concrete::ObjectID               getObjectID() const { return m_objectID; }
+        inline concrete::TypeID                 find( const interface::TypeIDSequence& typeIDSequence ) const
         {
             auto iFind = m_subTypes.find( typeIDSequence );
             if( iFind != m_subTypes.end() )
             {
-                return TypeID::make_context( m_objectID, iFind->second );
+                return concrete::TypeID( m_objectID, iFind->second );
             }
             else
             {
@@ -210,7 +219,7 @@ public:
             }
         }
 
-        inline SubType add( const TypeIDSequence& typeIDSequence )
+        inline concrete::SubObjectID add( const interface::TypeIDSequence& typeIDSequence )
         {
             auto iFind = m_subTypes.find( typeIDSequence );
             if( iFind != m_subTypes.end() )
@@ -219,42 +228,46 @@ public:
             }
             else
             {
-                const auto newSubType = static_cast< SubType >( m_subTypes.size() + 1 );
+                const auto newSubType = static_cast< concrete::SubObjectID >( m_subTypes.size() + 1 );
                 auto [ iFind, _ ]     = m_subTypes.insert( { typeIDSequence, newSubType } );
                 return iFind->second;
             }
         }
 
     private:
-        SubType        m_objectID; // index into Vector
-        TypeIDSequence m_objectTypeIDs;
-        SubTypeMap     m_subTypes;
+        concrete::ObjectID        m_objectID; // index into Vector
+        interface::TypeIDSequence m_objectTypeIDs;
+        SubTypeMap                m_subTypes;
     };
 
     SymbolTable()
     {
         // always have empty string for id zero and root for id one
-        m_symbolVector.push_back( "" );
-        m_symbolMap.insert( { "", NULL_SYMBOL_ID } );
+        {
+            using namespace interface;
 
-        m_symbolVector.push_back( ROOT_TYPE_NAME );
-        m_symbolMap.insert( { ROOT_TYPE_NAME, ROOT_SYMBOL_ID } );
+            m_symbolVector.push_back( "" );
+            m_symbolMap.insert( { "", NULL_SYMBOL_ID } );
 
-        // null interface object type
-        m_interfaceVector.push_back( InterfaceObject( 0, { NULL_SYMBOL_ID } ) );
-        m_interfaceMap.insert( { { NULL_SYMBOL_ID }, 0 } );
+            m_symbolVector.push_back( ROOT_SYMBOL );
+            m_symbolMap.insert( { ROOT_SYMBOL, ROOT_SYMBOL_ID } );
 
-        // root interface object type
-        m_interfaceVector.push_back( InterfaceObject( 1, { ROOT_SYMBOL_ID } ) );
-        m_interfaceMap.insert( { { ROOT_SYMBOL_ID }, 1 } );
+            // null interface object type
+            m_interfaceVector.push_back( InterfaceObject( NULL_OBJECT_ID, { NULL_SYMBOL_ID } ) );
+            m_interfaceMap.insert( { { NULL_SYMBOL_ID }, NULL_OBJECT_ID } );
+
+            // root interface object type
+            m_interfaceVector.push_back( InterfaceObject( ROOT_OBJECT_ID, { ROOT_SYMBOL_ID } ) );
+            m_interfaceMap.insert( { { ROOT_SYMBOL_ID }, ROOT_OBJECT_ID } );
+        }
 
         // null concrete object type
-        m_concreteVector.push_back( ConcreteObject( 0, { NULL_TYPE_ID } ) );
-        m_concreteMap.insert( { { NULL_TYPE_ID }, 0 } );
+        m_concreteVector.push_back( ConcreteObject( concrete::NULL_OBJECT_ID, { interface::NULL_TYPE_ID } ) );
+        m_concreteMap.insert( { { interface::NULL_TYPE_ID }, concrete::NULL_OBJECT_ID } );
 
         // root concrete object type
-        m_concreteVector.push_back( ConcreteObject( 1, { ROOT_TYPE_ID } ) );
-        m_concreteMap.insert( { { ROOT_TYPE_ID }, 1 } );
+        m_concreteVector.push_back( ConcreteObject( concrete::ROOT_OBJECT_ID, { interface::ROOT_TYPE_ID } ) );
+        m_concreteMap.insert( { { interface::ROOT_TYPE_ID }, concrete::ROOT_OBJECT_ID } );
     }
 
     template < class Archive >
@@ -280,10 +293,9 @@ public:
         }
     }
 
-    inline const std::string& getSymbol( const TypeID& symbolID ) const
+    inline const std::string& getSymbol( const interface::SymbolID& symbolID ) const
     {
-        VERIFY_RTE_MSG( symbolID.isSymbolID(), "getSymbol not passed symbolID" );
-        const auto symbolIndex = -symbolID.getSymbolID();
+        const auto symbolIndex = symbolID.getValue();
         VERIFY_RTE_MSG( symbolIndex >= 0 && symbolIndex < m_symbolVector.size(), "Invalid symbol index" );
         return m_symbolVector[ symbolIndex ];
     }
@@ -291,7 +303,7 @@ public:
     inline const InterfaceObject::Vector& getInterfaceObjects() const { return m_interfaceVector; }
     inline const ConcreteObject::Vector&  getConcreteObjects() const { return m_concreteVector; }
 
-    inline std::optional< SymbolTraits::SymbolID > findSymbol( const SymbolTraits::Symbol& symbol ) const
+    inline std::optional< interface::SymbolID > findSymbol( const SymbolTraits::Symbol& symbol ) const
     {
         auto iFind = m_symbolMap.find( symbol );
         if( iFind != m_symbolMap.end() )
@@ -304,12 +316,12 @@ public:
         }
     }
 
-    inline const InterfaceObject* findInterfaceObject( const SymbolTraits::SymbolIDVector& symbolVector ) const
+    inline const InterfaceObject* findInterfaceObject( const interface::SymbolIDSequence& symbolVector ) const
     {
         auto iFind = m_interfaceMap.find( symbolVector );
         if( iFind != m_interfaceMap.end() )
         {
-            return &m_interfaceVector[ iFind->second ];
+            return &m_interfaceVector[ iFind->second.getValue() ];
         }
         else
         {
@@ -317,12 +329,12 @@ public:
         }
     }
 
-    inline const ConcreteObject* findConcreteObject( const TypeIDSequence& typeIDSequence ) const
+    inline const ConcreteObject* findConcreteObject( const interface::TypeIDSequence& typeIDSequence ) const
     {
         auto iFind = m_concreteMap.find( typeIDSequence );
         if( iFind != m_concreteMap.end() )
         {
-            return &m_concreteVector[ iFind->second ];
+            return &m_concreteVector[ iFind->second.getValue() ];
         }
         else
         {
@@ -337,18 +349,18 @@ public:
             auto iFind = m_symbolMap.find( str );
             if( iFind == m_symbolMap.end() )
             {
-                const auto symbolIndex = static_cast< TypeID::ValueType >( m_symbolVector.size() );
-                m_symbolMap.insert( { str, TypeID{ -symbolIndex } } );
+                const auto symbolIndex = static_cast< interface::SymbolID::ValueType >( m_symbolVector.size() );
+                m_symbolMap.insert( { str, interface::SymbolID{ -symbolIndex } } );
                 m_symbolVector.push_back( str );
             }
         }
 
-        for( const SymbolTraits::SymbolIDVector& symbolIDVector : request.newInterfaceObjects )
+        for( const interface::SymbolIDSequence& symbolIDVector : request.newInterfaceObjects )
         {
             auto iFind = m_interfaceMap.find( symbolIDVector );
             if( iFind == m_interfaceMap.end() )
             {
-                const auto newInterfaceID = static_cast< SubType >( m_interfaceVector.size() );
+                const auto newInterfaceID = static_cast< interface::ObjectID >( m_interfaceVector.size() );
                 m_interfaceMap.insert( { symbolIDVector, newInterfaceID } );
                 m_interfaceVector.push_back( InterfaceObject{ newInterfaceID, symbolIDVector } );
             }
@@ -356,12 +368,12 @@ public:
 
         for( const SymbolTraits::SymbolIDVectorPair& symbolIDVectorPair : request.newInterfaceElements )
         {
-            SubType interfaceObjectType;
+            interface::ObjectID interfaceObjectType;
             {
                 auto iFind = m_interfaceMap.find( symbolIDVectorPair.first );
                 if( iFind == m_interfaceMap.end() )
                 {
-                    interfaceObjectType = static_cast< SubType >( m_interfaceVector.size() );
+                    interfaceObjectType = static_cast< interface::ObjectID >( m_interfaceVector.size() );
                     m_interfaceMap.insert( { symbolIDVectorPair.first, interfaceObjectType } );
                     m_interfaceVector.push_back( InterfaceObject{ interfaceObjectType, symbolIDVectorPair.first } );
                 }
@@ -371,16 +383,16 @@ public:
                 }
             }
 
-            InterfaceObject& interfaceObject = m_interfaceVector[ interfaceObjectType ];
+            InterfaceObject& interfaceObject = m_interfaceVector[ interfaceObjectType.getValue() ];
             interfaceObject.add( symbolIDVectorPair.second );
         }
 
-        for( const TypeIDSequence& typeIDSequence : request.newConcreteObjects )
+        for( const interface::TypeIDSequence& typeIDSequence : request.newConcreteObjects )
         {
             auto iFind = m_concreteMap.find( typeIDSequence );
             if( iFind == m_concreteMap.end() )
             {
-                const auto newConcreteID = static_cast< SubType >( m_concreteVector.size() );
+                const auto newConcreteID = static_cast< concrete::ObjectID >( m_concreteVector.size() );
                 m_concreteMap.insert( { typeIDSequence, newConcreteID } );
                 m_concreteVector.push_back( ConcreteObject{ newConcreteID, typeIDSequence } );
             }
@@ -388,12 +400,12 @@ public:
 
         for( const SymbolTraits::TypeIDSequencePair& typeIDSequencePair : request.newConcreteElements )
         {
-            SubType concreteObjectType;
+            concrete::ObjectID concreteObjectType;
             {
                 auto iFind = m_concreteMap.find( typeIDSequencePair.first );
                 if( iFind == m_concreteMap.end() )
                 {
-                    concreteObjectType = static_cast< SubType >( m_concreteVector.size() );
+                    concreteObjectType = static_cast< concrete::ObjectID >( m_concreteVector.size() );
                     m_concreteMap.insert( { typeIDSequencePair.first, concreteObjectType } );
                     m_concreteVector.push_back( ConcreteObject{ concreteObjectType, typeIDSequencePair.first } );
                 }
@@ -403,7 +415,7 @@ public:
                 }
             }
 
-            ConcreteObject& concreteObject = m_concreteVector[ concreteObjectType ];
+            ConcreteObject& concreteObject = m_concreteVector[ concreteObjectType.getValue() ];
             concreteObject.add( typeIDSequencePair.second );
         }
     }

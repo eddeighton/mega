@@ -22,53 +22,20 @@
 namespace Interface
 {
 
-static const std::string& getIdentifier( const IContext* pContext )
+static const std::string& getIdentifier( const Node* pNode )
 {
-    return pContext->get_identifier();
+    return pNode->get_symbol()->get_token();
 }
 
-static const std::string& getIdentifier( const DimensionTrait* pDim )
-{
-    if( auto pUserDimensionTrait = db_cast< Interface::UserDimensionTrait >( pDim ) )
-    {
-        return pUserDimensionTrait->get_parser_dimension()->get_id()->get_str();
-    }
-    else if( auto pCompilerDimensionTrait = db_cast< Interface::CompilerDimensionTrait >( pDim ) )
-    {
-        return pCompilerDimensionTrait->get_identifier();
-    }
-    else
-    {
-        THROW_RTE( "Unknown dimension trait type" );
-    }
-}
-
-static const std::string& getIdentifier( const LinkTrait* pLinkTrait )
-{
-    if( auto pUserLink = db_cast< const UserLinkTrait >( pLinkTrait ) )
-    {
-        return pUserLink->get_parser_link()->get_id()->get_str();
-    }
-    else if( auto pOwnerLink = db_cast< const OwnershipLinkTrait >( pLinkTrait ) )
-    {
-        static const std::string strOwner = mega::EG_OWNER;
-        return strOwner;
-    }
-    else
-    {
-        THROW_RTE( "Unknown link type" );
-    }
-}
-
-static std::string printIContextFullType( const IContext* pContext, const std::string& strDelimiter = "::" )
+static std::string fullTypeName( const Node* pContext, const std::string& strDelimiter = "::" )
 {
     std::ostringstream os;
-    using IContextVector = std::vector< const IContext* >;
-    IContextVector path;
+    using NodeVector = std::vector< const Node* >;
+    NodeVector path;
     while( pContext )
     {
         path.push_back( pContext );
-        pContext = db_cast< const IContext >( pContext->get_parent() );
+        pContext = db_cast< const Node >( pContext->get_parent() );
     }
     std::reverse( path.begin(), path.end() );
     for( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
@@ -76,43 +43,16 @@ static std::string printIContextFullType( const IContext* pContext, const std::s
         ++iNext;
         if( iNext == iEnd )
         {
-            os << ( *i )->get_identifier();
+            os << getIdentifier( *i );
         }
         else
         {
-            os << ( *i )->get_identifier() << strDelimiter;
+            os << getIdentifier( *i ) << strDelimiter;
         }
     }
     return os.str();
 }
-
-static void printDimensionTraitFullType( const DimensionTrait* pDim, std::ostream& os,
-                                         const std::string& strDelimiter = "::" )
-{
-    auto pParent = db_cast< const IContext >( pDim->get_parent() );
-    VERIFY_RTE( pParent );
-    os << printIContextFullType( pParent, strDelimiter ) << strDelimiter << getIdentifier( pDim );
-}
-static std::string printDimensionTraitFullType( const DimensionTrait* pDim, const std::string& strDelimiter = "::" )
-{
-    std::ostringstream os;
-    printDimensionTraitFullType( pDim, os, strDelimiter );
-    return os.str();
-}
-
-static void printLinkTraitFullType( const LinkTrait* pLink, std::ostream& os, const std::string& strDelimiter = "::" )
-{
-    auto pParent = db_cast< const IContext >( pLink->get_parent() );
-    VERIFY_RTE( pParent );
-    os << printIContextFullType( pParent, strDelimiter ) << strDelimiter << getIdentifier( pLink );
-}
-static std::string printLinkTraitFullType( const LinkTrait* pLink, const std::string& strDelimiter = "::" )
-{
-    std::ostringstream os;
-    printLinkTraitFullType( pLink, os, strDelimiter );
-    return os.str();
-}
-
+/*
 static void printContextType( std::vector< const IContext* >& contexts, std::ostream& os )
 {
     VERIFY_RTE( !contexts.empty() );
@@ -137,6 +77,6 @@ static void printContextType( std::vector< const IContext* >& contexts, std::ost
         }
         os << " >";
     }
-}
+}*/
 
 } // namespace Interface

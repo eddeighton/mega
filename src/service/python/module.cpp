@@ -22,7 +22,7 @@
 
 #include "mpo_logical_thread.hpp"
 
-#include "reference.hpp"
+#include "pointer.hpp"
 #include "cast.hpp"
 
 #include "service/network/log.hpp"
@@ -32,7 +32,7 @@
 
 #include "mega/values/compilation/invocation_id.hpp"
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/values/runtime/maths_types.hpp"
 
 #include <boost/dynamic_bitset.hpp>
@@ -59,10 +59,10 @@ PythonModule::Ptr getModule()
 
 struct CasterImpl : IPythonModuleCast
 {
-    PyObject* cast( const mega::reference& ref ) override { return getModule()->getTypeSystem().cast( ref ); }
+    PyObject* cast( const mega::Pointer& ref ) override { return getModule()->getTypeSystem().cast( ref ); }
 } g_casterImpl;
 
-PyObject* cast( const mega::reference& ref )
+PyObject* cast( const mega::Pointer& ref )
 {
     return getModule()->getTypeSystem().cast( ref );
 }
@@ -94,13 +94,13 @@ PYBIND11_MODULE( megastructure, pythonModule )
         "new", []( mega::SubType interfaceTypeID ) { return getModule()->operatorNew( interfaceTypeID ); },
         "Allocate a Megastructure Object" );
     pythonModule.def(
-        "delete", []( mega::reference ref ) { getModule()->operatorDelete( ref ); },
+        "delete", []( mega::Pointer ref ) { getModule()->operatorDelete( ref ); },
         "Disconnect a Megastructure Object" );
     pythonModule.def(
         "cast",
-        []( mega::reference ref, mega::SubType interfaceTypeID )
+        []( mega::Pointer ref, mega::SubType interfaceTypeID )
         { return getModule()->operatorCast( ref, interfaceTypeID ); },
-        "Attempt to case a Megastructure reference" );
+        "Attempt to case a Megastructure Pointer" );
 
     /////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////
@@ -227,7 +227,7 @@ mega::TypeID PythonModule::getInterfaceTypeID( const mega::TypeID concreteTypeID
     return pythonRequest().PythonGetInterfaceTypeID( concreteTypeID );
 }
 
-mega::reference PythonModule::operatorNew( mega::SubType interfaceTypeID )
+mega::Pointer PythonModule::operatorNew( mega::SubType interfaceTypeID )
 {
     SPDLOG_TRACE( "PythonModule::operatorNew: {}", interfaceTypeID );
 
@@ -235,12 +235,12 @@ mega::reference PythonModule::operatorNew( mega::SubType interfaceTypeID )
     // auto pNewFunction = ( mega::runtime::operators::New::FunctionPtr )getOperator(
     //     OperatorFunction{ mega::runtime::operators::eNew, TypeID::make_object_from_objectID( interfaceTypeID ) } );
 
-    mega::reference result;
+    mega::Pointer result;
     // invoke( [ &pNewFunction, &result ]( MPOContext& ) { result = pNewFunction(); } );
     return result;
 }
 
-mega::reference PythonModule::operatorRemoteNew( mega::SubType interfaceTypeID, MPO mpo )
+mega::Pointer PythonModule::operatorRemoteNew( mega::SubType interfaceTypeID, MPO mpo )
 {
     SPDLOG_TRACE( "PythonModule::operatorRemoteNew: {} {}", interfaceTypeID, mpo );
 
@@ -249,12 +249,12 @@ mega::reference PythonModule::operatorRemoteNew( mega::SubType interfaceTypeID, 
     //     OperatorFunction{ mega::runtime::operators::eRemoteNew, TypeID::make_object_from_objectID( interfaceTypeID )
     //     } );
 
-    mega::reference result;
+    mega::Pointer result;
     // invoke( [ &pNewFunction, &result, mpo ]( MPOContext& ) { result = pNewFunction( mpo ); } );
     return result;
 }
 
-void PythonModule::operatorDelete( mega::reference ref )
+void PythonModule::operatorDelete( mega::Pointer ref )
 {
     SPDLOG_TRACE( "PythonModule::operatorDelete: {}", ref );
 
@@ -267,7 +267,7 @@ void PythonModule::operatorDelete( mega::reference ref )
     // invoke( [ &pDeleteFunction, &ref ]( MPOContext& ) { pDeleteFunction( ref ); } );
 }
 
-mega::reference PythonModule::operatorCast( mega::reference ref, mega::SubType interfaceTypeID )
+mega::Pointer PythonModule::operatorCast( mega::Pointer ref, mega::SubType interfaceTypeID )
 {
     SPDLOG_TRACE( "PythonModule::operatorCast: {} {}", ref, interfaceTypeID );
 
@@ -275,7 +275,7 @@ mega::reference PythonModule::operatorCast( mega::reference ref, mega::SubType i
     // auto pCastFunction = ( mega::runtime::operators::Cast::FunctionPtr )getOperator(
     //     OperatorFunction{ mega::runtime::operators::eCast, TypeID::make_object_from_objectID( interfaceTypeID ) } );
 
-    mega::reference result;
+    mega::Pointer result;
     // invoke( [ &pCastFunction, &ref, &result ]( MPOContext& ) { result = pCastFunction( ref ); } );
     return result;
 }
@@ -385,7 +385,7 @@ const PythonModule::InvocationInfo& PythonModule::invoke( const mega::Invocation
     return functionInfo;
 }
 
-PythonReference::PythonWrapperFunction PythonModule::getPythonFunctionWrapper( TypeID interfaceTypeID )
+PythonPointer::PythonWrapperFunction PythonModule::getPythonFunctionWrapper( TypeID interfaceTypeID )
 {
     SPDLOG_TRACE( "PythonModule::getPythonFunctionWrapper: {}", interfaceTypeID );
 

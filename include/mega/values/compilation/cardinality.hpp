@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef CARDINALITY_13_MAY_2022
 #define CARDINALITY_13_MAY_2022
 
@@ -112,7 +109,19 @@ private:
     Cardinality m_minimum, m_maximum;
 };
 
-std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardinalityRange );
+inline std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardinalityRange )
+{
+    if( cardinalityRange.minimum().isMany() )
+        os << "*";
+    else
+        os << cardinalityRange.minimum().getNumber();
+    os << ":";
+    if( cardinalityRange.maximum().isMany() )
+        os << "*";
+    else
+        os << cardinalityRange.maximum().getNumber();
+    return os;
+}
 
 } // namespace mega
 

@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_January_16_record_archive
 #define GUARD_2023_January_16_record_archive
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -81,16 +81,17 @@ public:
         base::save( value );
     }
 
-    inline void save( const ::mega::reference& ref ) 
+    inline void save( const ::mega::Pointer& ref ) 
     { 
-        if( ref.isHeapAddress() )
-        {
-            base::save( ref.getNetworkAddress() );
-        }
-        else
-        {
-            base::save( ref );
-        }
+        THROW_TODO;
+        // if( ref.isHeapAddress() )
+        // {
+        //     base::save( ref.getNetworkAddress() );
+        // }
+        // else
+        // {
+        //     base::save( ref );
+        // }
     }
     
 };
@@ -102,21 +103,21 @@ BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::RecordOArchive )
 
 namespace boost::serialization
 {
-inline void serialize( boost::archive::RecordIArchive& ar, ::mega::reference& value, const unsigned int version )
+inline void serialize( boost::archive::RecordIArchive& ar, ::mega::Pointer& value, const unsigned int version )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::RecordOArchive& ar, ::mega::reference& value, const unsigned int version )
+inline void serialize( boost::archive::RecordOArchive& ar, ::mega::Pointer& value, const unsigned int version )
 {
     ar.save( value );
 }
-inline void serialize( boost::archive::RecordIArchive& ar, ::mega::TypeID& value, const unsigned int version )
+inline void serialize( boost::archive::RecordIArchive& ar, ::mega::concrete::TypeID& value, const unsigned int version )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::RecordOArchive& ar, ::mega::TypeID& value, const unsigned int version )
+inline void serialize( boost::archive::RecordOArchive& ar, ::mega::concrete::TypeID& value, const unsigned int version )
 {
     ar.save( value );
 }

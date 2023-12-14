@@ -22,7 +22,7 @@
 #define GUARD_2023_September_02_python_type
 
 #include "mega/values/compilation/type_id.hpp"
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 #include <pybind11/pybind11.h>
 
@@ -48,8 +48,8 @@ public:
           ConcreteObjectTypeSet&& concreteObjects );
     ~Type();
 
-    PyObject* createReference( const mega::reference& ref );
-    PyObject* createReference( const mega::reference& ref, const TypeIDVector& typePath, const char* symbol );
+    PyObject* createReference( const mega::Pointer& ref );
+    PyObject* createReference( const mega::Pointer& ref, const TypeIDVector& typePath, const char* symbol );
 
 private:
     static TypeIDVector append( const TypeIDVector& from, mega::TypeID next );

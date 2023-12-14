@@ -257,7 +257,8 @@ public:
                 templateEngine.renderPythonWrappers( data, os );
             }
             std::string strOperations = os.str();
-            bModified = boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
+            bModified
+                = boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
         }
 
         if( bModified )
@@ -271,7 +272,6 @@ public:
             m_environment.setBuildHashCode( operationsFile );
             cached( taskProgress );
         }
-
     }
 };
 
@@ -281,36 +281,33 @@ BaseTask::Ptr create_Task_PythonWrapper( const TaskArguments&          taskArgum
     return std::make_unique< Task_PythonWrapper >( taskArguments, sourceFilePath );
 }
 
-#define PYTHON_DUMB_STAGE( Stage, File )                                                                  \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                                      \
-        const mega::io::CompilationFilePath compilationFile = m_environment.Stage##_##File( m_manifest ); \
-                                                                                                          \
-        const task::DeterminantHash determinant = { m_toolChain.toolChainHash };                          \
-                                                                                                          \
-        if( m_environment.restore( compilationFile, determinant ) ) {                                     \
-            m_environment.setBuildHashCode( compilationFile );                                            \
-            cached( taskProgress );                                                                       \
-            return;                                                                                       \
-        }                                                                                                 \
-                                                                                                          \
-        using namespace Stage;                                                                            \
-                                                                                                          \
-        Database database( m_environment, m_manifest );                                                   \
-                                                                                                          \
-        const task::FileHash fileHashCode = database.save_##File##_to_temp();                             \
-        m_environment.setBuildHashCode( compilationFile, fileHashCode );                                  \
-        m_environment.temp_to_real( compilationFile );                                                    \
-        m_environment.stash( compilationFile, determinant ); )
+#define PYTHON_DUMB_STAGE( Stage, File )                                                                      \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( const mega::io::CompilationFilePath compilationFile                      \
+                                     = m_environment.Stage##_##File( m_manifest );                            \
+                                                                                                              \
+                                     const task::DeterminantHash determinant = { m_toolChain.toolChainHash }; \
+                                                                                                              \
+                                     if( m_environment.restore( compilationFile, determinant ) ) {            \
+                                         m_environment.setBuildHashCode( compilationFile );                   \
+                                         cached( taskProgress );                                              \
+                                         return;                                                              \
+                                     }                                                                        \
+                                                                                                              \
+                                     using namespace Stage;                                                   \
+                                                                                                              \
+                                     Database database( m_environment, m_manifest );                          \
+                                                                                                              \
+                                     const task::FileHash fileHashCode = database.save_##File##_to_temp();    \
+                                     m_environment.setBuildHashCode( compilationFile, fileHashCode );         \
+                                     m_environment.temp_to_real( compilationFile );                           \
+                                     m_environment.stash( compilationFile, determinant ); )
 
 class Task_PythonStages : public BaseTask
 {
-    const mega::io::manifestFilePath& m_manifest;
-
     // This just creates the database stage used for dynamic python invocations
 public:
-    Task_PythonStages( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+    Task_PythonStages( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( manifest )
     {
     }
 
@@ -338,10 +335,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_PythonStages( const TaskArguments&              taskArguments,
-                                        const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_PythonStages( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_PythonStages >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_PythonStages >( taskArguments );
 }
 
 class Task_PythonObject : public BaseTask

@@ -25,12 +25,12 @@ msg MPODestroyed
 
 msg NetworkToHeap
 {
-    request( reference ref, TimeStamp lockCycle );
-    response( reference ref );
+    request( Pointer ref, TimeStamp lockCycle );
+    response( Pointer ref );
 }
 
 msg NetworkAllocate
 {
     request( MPO parent, TypeID objectTypeID, TimeStamp lockCycle );
-    response( reference ref );
+    response( Pointer ref );
 }

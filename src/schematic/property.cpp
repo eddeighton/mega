@@ -86,7 +86,7 @@ void Property::setStatement( const std::string& strStatement )
 /*
 const std::string& Reference::TypeName()
 {
-    static const std::string strTypeName( "reference" );
+    static const std::string strTypeName( "Pointer" );
     return strTypeName;
 }
 Reference::Reference( Node::Ptr pParent, const std::string& strName )

@@ -55,6 +55,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_component_listing.cpp
 		${DRIVER_SOURCE_DIR}/command_defaults.cpp
 		${DRIVER_SOURCE_DIR}/command_execute_pipeline.cpp
+		${DRIVER_SOURCE_DIR}/command_function.cpp
 		${DRIVER_SOURCE_DIR}/command_log.cpp
 		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp
 		${DRIVER_SOURCE_DIR}/command_map.cpp

@@ -22,44 +22,44 @@
 #ifndef EG_EVENT
 #define EG_EVENT
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 namespace mega
 {
-// an event is effectively a type erased reference
+// an event is effectively a type erased Pointer
 // it is NOT possible to invoke on an event in c++
-struct Event : public mega::reference
+struct Event : public mega::Pointer
 {
     inline Event() = default;
 
-    inline Event( const reference& from ) : mega::reference( from ) {}
+    inline Event( const Pointer& from ) : mega::Pointer( from ) {}
 
     template < class T >
-    inline Event( const T& from ) : mega::reference( from ) {}
+    inline Event( const T& from ) : mega::Pointer( from ) {}
 
     template < class T >
     inline auto operator=( const T& from ) -> Event&
     {
-        this->mega::reference::operator=( from );
+        this->mega::Pointer::operator=( from );
         return *this;
     }
 
     template < typename TComp >
     inline bool operator==( const TComp& cmp ) const
     {
-        return this->mega::reference::operator==( cmp );
+        return this->mega::Pointer::operator==( cmp );
     }
 
     template < typename TComp >
     inline bool operator!=( const TComp& cmp ) const
     {
-        return !this->mega::reference::operator==( cmp );
+        return !this->mega::Pointer::operator==( cmp );
     }
 
     template < typename TComp >
     inline bool operator<( const TComp& cmp ) const
     {
-        return this->mega::reference::operator<( cmp );
+        return this->mega::Pointer::operator<( cmp );
     }
 
     inline operator const void*() const

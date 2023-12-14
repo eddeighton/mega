@@ -21,7 +21,11 @@
 #ifndef GUARD_2022_November_03_bin_archive
 #define GUARD_2022_November_03_bin_archive
 
-#include "mega/values/runtime/reference.hpp"
+
+#include "mega/values/compilation/concrete/type_id.hpp"
+#include "mega/values/compilation/concrete/sub_object_id_instance.hpp"
+
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/snapshot.hpp"
 
 #include "common/assert_verify.hpp"
@@ -62,7 +66,7 @@ public:
         base::load( value );
     }
 
-    inline void load( ::mega::reference& ref )
+    inline void load( ::mega::Pointer& ref )
     {
         ::mega::AddressTable::Index index;
         base::load( index );
@@ -95,9 +99,9 @@ public:
         base::save( value );
     }
 
-    inline void save( const ::mega::reference& ref ) { base::save( m_snapshot.refToIndex( ref ) ); }
+    inline void save( const ::mega::Pointer& ref ) { base::save( m_snapshot.refToIndex( ref ) ); }
 
-    void beginObject( const ::mega::reference& ref ) { m_snapshot.beginObject( ref ); }
+    void beginObject( const ::mega::Pointer& ref ) { m_snapshot.beginObject( ref ); }
 
     ::mega::Snapshot& getSnapshot() { return m_snapshot; }
 
@@ -112,32 +116,32 @@ BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::SnapshotOArchive )
 
 namespace boost::serialization
 {
-inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::reference& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::Pointer& value, const unsigned int version )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::reference& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::Pointer& value, const unsigned int version )
 {
     ar.save( value );
 }
 
-inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::TypeID& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::concrete::TypeID& value, const unsigned int version )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::TypeID& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::concrete::TypeID& value, const unsigned int version )
 {
     ar.save( value );
 }
 
-inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::SubTypeInstance& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::concrete::SubObjectIDInstance& value, const unsigned int version )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::SubTypeInstance& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::concrete::SubObjectIDInstance& value, const unsigned int version )
 {
     ar.save( value );
 }
@@ -194,7 +198,7 @@ public:
         return snapshot;
     }
 
-    void beginObject( const reference& ref ) { m_archive.beginObject( ref ); }
+    void beginObject( const Pointer& ref ) { m_archive.beginObject( ref ); }
 
 private:
     boost::interprocess::basic_vectorbuf< Buffer > m_oVecStream;

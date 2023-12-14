@@ -21,8 +21,8 @@
 #ifndef GUARD_2023_August_30_iterator
 #define GUARD_2023_August_30_iterator
 
-#include "mega/values/compilation/type_id.hpp"
-#include "mega/values/compilation/type_instance.hpp"
+#include "mega/values/compilation/concrete/type_id.hpp"
+#include "mega/values/compilation/concrete/type_id_instance.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/unreachable.hpp"
@@ -38,43 +38,58 @@ namespace mega
 
 struct TraversalVisitor
 {
-    virtual TypeID start() const = 0;
+    virtual concrete::TypeID start() const = 0;
 
-    virtual void                          on_object_start( const char* pszType, const TypeInstance& typeInstance ) = 0;
-    virtual std::optional< mega::TypeID > on_object_end( const char* pszType, const TypeInstance& typeInstance )   = 0;
-    virtual void on_component_start( const char* pszType, const TypeInstance& typeInstance )                       = 0;
-    virtual void on_component_end( const char* pszType, const TypeInstance& typeInstance )                         = 0;
-    virtual void on_action_start( const char* pszType, const TypeInstance& typeInstance )                          = 0;
-    virtual void on_action_end( const char* pszType, const TypeInstance& typeInstance )                            = 0;
-    virtual void on_state_start( const char* pszType, const TypeInstance& typeInstance )                           = 0;
-    virtual void on_state_end( const char* pszType, const TypeInstance& typeInstance )                             = 0;
-    virtual void on_event_start( const char* pszType, const TypeInstance& typeInstance )                           = 0;
-    virtual void on_event_end( const char* pszType, const TypeInstance& typeInstance )                             = 0;
-    virtual void on_interupt( const char* pszType, const TypeInstance& typeInstance )                              = 0;
-    virtual void on_function( const char* pszType, const TypeInstance& typeInstance )                              = 0;
-    virtual void on_decider( const char* pszType, const TypeInstance& typeInstance )                              = 0;
-    virtual void on_namespace( const char* pszType, const TypeInstance& typeInstance )                             = 0;
-    virtual void on_dimension( const char* pszType, const TypeInstance& typeInstance )                             = 0;
-    virtual void on_link_start( const char* pszType, const TypeInstance& typeInstance, bool bOwning, bool bOwned ) = 0;
-    virtual std::optional< mega::TypeID > on_link_end( const char* pszType, const TypeInstance& typeInstance,
-                                                       bool bOwning, bool bOwned )
+    virtual void on_object_start( const char* pszType, const concrete::TypeIDInstance& typeInstance ) = 0;
+    virtual std::optional< mega::concrete::TypeID > on_object_end( const char*                     pszType,
+                                                                   const concrete::TypeIDInstance& typeInstance )
         = 0;
+    virtual void on_component_start( const char* pszType, const concrete::TypeIDInstance& typeInstance ) = 0;
+    virtual void on_component_end( const char* pszType, const concrete::TypeIDInstance& typeInstance )   = 0;
+    virtual void on_action_start( const char* pszType, const concrete::TypeIDInstance& typeInstance )    = 0;
+    virtual void on_action_end( const char* pszType, const concrete::TypeIDInstance& typeInstance )      = 0;
+    virtual void on_state_start( const char* pszType, const concrete::TypeIDInstance& typeInstance )     = 0;
+    virtual void on_state_end( const char* pszType, const concrete::TypeIDInstance& typeInstance )       = 0;
+    virtual void on_event_start( const char* pszType, const concrete::TypeIDInstance& typeInstance )     = 0;
+    virtual void on_event_end( const char* pszType, const concrete::TypeIDInstance& typeInstance )       = 0;
+    virtual void on_interupt( const char* pszType, const concrete::TypeIDInstance& typeInstance )        = 0;
+    virtual void on_function( const char* pszType, const concrete::TypeIDInstance& typeInstance )        = 0;
+    virtual void on_decider( const char* pszType, const concrete::TypeIDInstance& typeInstance )         = 0;
+    virtual void on_namespace( const char* pszType, const concrete::TypeIDInstance& typeInstance )       = 0;
+    virtual void on_dimension( const char* pszType, const concrete::TypeIDInstance& typeInstance )       = 0;
+    virtual void on_link_start( const char* pszType, const concrete::TypeIDInstance& typeInstance, bool bOwning,
+                                bool bOwned )
+        = 0;
+    virtual std::optional< mega::concrete::TypeID >
+    on_link_end( const char* pszType, const concrete::TypeIDInstance& typeInstance, bool bOwning, bool bOwned ) = 0;
 };
 
 class Iterator
 {
+public:
+    inline concrete::TypeID getState() const { THROW_TODO; }
+};
+/*
+class Iterator
+{
     using TraversalFunction = std::function< void( void* ) >;
 
-    mega::TypeID      m_state; // can be negative for END state
+    // TODO - rework to seperate State from TypeID
+    class State
+    {
+        TypeID typeID;
+    };
+
+    State             m_state; // can be negative for END state
     TraversalFunction m_pTraversalFunction;
     TraversalVisitor& m_visitor;
     bool              m_atEnd = false;
 
     struct Domain
     {
-        bool           isObject;
-        mega::Instance iter, total;
-        TypeID         successor;
+        bool     isObject;
+        Instance iter, total;
+        State    successor;
     };
     using DomainStack = std::vector< Domain >;
     DomainStack m_domainStack;
@@ -92,7 +107,8 @@ class Iterator
         }
         return result;
     }
-    inline TypeInstance getTypeInstance( TypeID type ) const { return TypeInstance{ type, getInstance() }; }
+    inline concrete::TypeIDInstance getTypeInstance( TypeID type ) const { return concrete::TypeIDInstance{ type,
+getInstance() }; }
 
 public:
     inline Iterator( TraversalFunction pTraversal, TraversalVisitor& visitor )
@@ -111,7 +127,7 @@ public:
 
     inline operator void*() const { return m_atEnd ? nullptr : ( void* )this; }
 
-    inline TypeID getState() const { return m_state; }
+    inline State getState() const { return m_state; }
 
     inline void object_start( const char* pszType, mega::TypeID successor )
     {
@@ -286,7 +302,7 @@ public:
         m_visitor.on_dimension( pszType, getTypeInstance( m_state ) );
         m_state = successor;
     }
-};
+};*/
 
 } // namespace mega
 

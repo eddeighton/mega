@@ -16,4 +16,5 @@ COMMAND(tool_chain,"tool_chain","Generate Megastructure Toolchain xml file")
 COMMAND(map,"map","Map related commands")
 COMMAND(symbols,"symbols","Dump Megastructure Symbols")
 COMMAND(report,"report","Generate Megastructure Report")
+COMMAND(function,"function","Generate Megastructure Function")
 

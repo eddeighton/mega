@@ -26,6 +26,8 @@
 #include "runtime/functor_id.hxx"
 #include "runtime/orc.hpp"
 
+#include "environment/jit_database.hpp"
+
 #include "il/frontend/factory.hpp"
 
 #include "mega/values/service/program.hpp"
@@ -40,8 +42,10 @@ class Runtime : public FunctionProvider
 {
     struct FunctionInfo
     {
-        void**           pFunction;
-        Orc::Module::Ptr pModule;
+        using FunctionPtrVector = std::vector< void** >;
+        void*             pFunction;
+        Orc::Module::Ptr  pModule;
+        FunctionPtrVector functionPointers;
     };
     using FunctionMap = std::unordered_map< FunctorID, FunctionInfo, FunctorID::Hash >;
 
@@ -57,12 +61,13 @@ public:
                               void** ppFunction ) override;
 
 private:
-    boost::filesystem::path m_tempDir;
-    Clang                   m_clang;
-    service::Program        m_program;
-    FunctionMap             m_materialisedFunctions;
-    il::Factory             m_materialisedFunctionFactory;
-    Orc                     m_orc;
+    boost::filesystem::path        m_tempDir;
+    Clang                          m_clang;
+    service::Program               m_program;
+    std::unique_ptr< JITDatabase > m_pDatabase;
+    FunctionMap                    m_materialisedFunctions;
+    il::Factory                    m_materialisedFunctionFactory;
+    Orc                            m_orc;
 };
 
 } // namespace mega::runtime

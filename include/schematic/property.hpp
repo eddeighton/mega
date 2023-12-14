@@ -124,14 +124,14 @@ class RefPtr
         }
         Node::Ptr operator()( const Ed::Ref& ) const
         {
-            THROW_RTE( "Invalid reference branch used in map reference" );
+            THROW_RTE( "Invalid Pointer branch used in map Pointer" );
             return Node::Ptr();
         }
     };
 public:
-    RefPtr( Node::Ptr pThis, const Ed::Reference& reference )
+    RefPtr( Node::Ptr pThis, const Ed::Reference& Pointer )
         :   m_pThis( pThis ),
-            m_reference( reference )
+            m_reference( Pointer )
     {
 
     }

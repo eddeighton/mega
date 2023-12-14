@@ -46,10 +46,10 @@ public:
         Database database( m_environment, m_environment.project_manifest() );
 
         Components::Component* pComponent = nullptr;
-        for ( Components::Component* pIter :
-              database.template many< Components::Component >( m_environment.project_manifest() ) )
+        for( Components::Component* pIter :
+             database.template many< Components::Component >( m_environment.project_manifest() ) )
         {
-            if ( pIter->get_name() == m_strComponentName )
+            if( pIter->get_name() == m_strComponentName )
             {
                 pComponent = pIter;
                 break;
@@ -62,11 +62,11 @@ public:
 
         task::DeterminantHash determinant{ m_toolChain.toolChainHash };
         {
-            for ( auto megaSrc : pComponent->get_mega_source_files() )
+            for( auto megaSrc : pComponent->get_mega_source_files() )
             {
                 determinant ^= m_environment.getBuildHashCode( m_environment.ImplementationObj( megaSrc ) );
             }
-            for ( auto cppSrc : pComponent->get_cpp_source_files() )
+            for( auto cppSrc : pComponent->get_cpp_source_files() )
             {
                 determinant ^= m_environment.getBuildHashCode( m_environment.CPPObj( cppSrc ) );
             }
@@ -117,10 +117,10 @@ public:
         Database database( m_environment, m_environment.project_manifest() );
 
         Components::Component* pComponent = nullptr;
-        for ( Components::Component* pIter :
-              database.template many< Components::Component >( m_environment.project_manifest() ) )
+        for( Components::Component* pIter :
+             database.template many< Components::Component >( m_environment.project_manifest() ) )
         {
-            if ( pIter->get_name() == m_strComponentName )
+            if( pIter->get_name() == m_strComponentName )
             {
                 pComponent = pIter;
                 break;
@@ -132,11 +132,11 @@ public:
         start( taskProgress, "Task_LibraryComponent", m_strComponentName, componentFilePath.path() );
 
         task::DeterminantHash determinant{ m_toolChain.toolChainHash };
-        for ( auto megaSrc : pComponent->get_mega_source_files() )
+        for( auto megaSrc : pComponent->get_mega_source_files() )
         {
             determinant ^= m_environment.getBuildHashCode( m_environment.ImplementationObj( megaSrc ) );
         }
-        for ( auto cppSrc : pComponent->get_cpp_source_files() )
+        for( auto cppSrc : pComponent->get_cpp_source_files() )
         {
             determinant ^= m_environment.getBuildHashCode( m_environment.CPPObj( cppSrc ) );
         }
@@ -170,12 +170,9 @@ BaseTask::Ptr create_Task_LibraryComponent( const TaskArguments& taskArguments, 
 
 class Task_Complete : public BaseTask
 {
-    const mega::io::manifestFilePath& m_manifest;
-
 public:
-    Task_Complete( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+    Task_Complete( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( manifest )
     {
     }
 
@@ -186,10 +183,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Complete( const TaskArguments&              taskArguments,
-                                    const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_Complete( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_Complete >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_Complete >( taskArguments );
 }
 
 } // namespace mega::compiler

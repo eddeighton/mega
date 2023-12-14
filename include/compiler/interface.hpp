@@ -21,11 +21,44 @@
 namespace Interface
 {
 
+std::vector< Aggregate* > getAggregates( NodeGroup* pNodeGroup )
+{
+    std::vector< Aggregate* > aggregates;
+    for( auto p : pNodeGroup->get_children() )
+    {
+        if( auto pAgg = db_cast< Aggregate >( p ) )
+        {
+            aggregates.push_back( pAgg );
+        }
+    }
+    return aggregates;
+}
+
+void getNodes( NodeGroup* pNodeGroup, std::vector< IContext* >& contexts, std::vector< Aggregate* >& aggregates )
+{
+    for( auto p : pNodeGroup->get_children() )
+    {
+        if( auto pAgg = db_cast< Aggregate >( p ) )
+        {
+            aggregates.push_back( pAgg );
+        }
+        else if( auto pContext = db_cast< IContext >( p ) )
+        {
+            contexts.push_back( pContext );
+        }
+        else
+        {
+            THROW_RTE( "Unknown NodeGroup Type" );
+        }
+    }
+}
+
+/*
 template < typename TContext >
 static inline mega::U64 getSizeTraitSize( const TContext* pInterfaceContext )
 {
-    mega::U64                              allocationSize = 1U;
-    std::optional< Interface::SizeTrait* > sizeTraitOpt   = pInterfaceContext->get_size_trait_opt();
+    mega::U64                      allocationSize = 1U;
+    std::optional< Parser::Size* > sizeTraitOpt   = pInterfaceContext->get_size_opt();
     if( sizeTraitOpt.has_value() )
     {
         allocationSize = sizeTraitOpt.value()->get_size();
@@ -68,6 +101,6 @@ static mega::U64 getLocalDomainSize( Interface::IContext* pContext )
     {
         THROW_RTE( "Unknown context type" );
     }
-}
+}*/
 
 } // namespace Interface

@@ -35,6 +35,15 @@ namespace mega::utilities
 struct ToolChain
 {
     ToolChain();
+
+    ToolChain( const std::string&             strClangCompilerVersion,
+               mega::U64                      databaseVersion,
+               const boost::filesystem::path& parser,
+               const boost::filesystem::path& megaCompiler,
+               const boost::filesystem::path& clangCompiler,
+               const boost::filesystem::path& clangPlugin,
+               const boost::filesystem::path& database );
+
     ToolChain( const std::string&             strClangCompilerVersion,
                mega::U64                      databaseVersion,
                const boost::filesystem::path& parser,

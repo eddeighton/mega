@@ -1,0 +1,241 @@
+
+<html>
+
+<head>
+<style>
+table
+{
+    font-size:14px;
+    font-family:monospace;
+    border-collapse: collapse;
+}
+th
+{
+    border: 2px solid darkblue;
+    border-collapse: collapse;
+}
+td 
+{
+    border: 1px solid darkblue;
+    border-collapse: collapse;
+}
+.multiline_default
+{
+    white-space:pre;
+    font-size:14px;
+    font-family:monospace;
+    background-color:#b0c0c0;
+}
+.branch_default
+{
+    font-size:14px;
+    font-family:monospace;
+    background-color:#cfdfdf;
+}
+</style>
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+    currentReportType = "home"
+    
+    stateMachine = function() 
+    {
+        const queryString = window.location.search
+        const urlParams = new URLSearchParams(queryString);
+
+        if( window.location.hash.length === 0 )
+        {
+            // no fragment - nothing to do
+            console.log( "No fragment nothing to do" )
+        }
+        else
+        {
+            hash = window.location.hash.substring( 1 )
+            const element = document.getElementById( hash );
+            if( element )
+            {
+                element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+                console.log( "Scrolled to element: " + hash )
+            }
+            else
+            {I
+                console.log( "Could not locate element: " + hash )
+            }
+        }
+
+        if( urlParams.has( "report" ) )
+        {
+            currentReportType = urlParams.get( "report" )
+            console.log( "Report Type is: " + currentReportType )
+        }
+    }
+
+    window.onrefresh    = stateMachine
+    window.onload       = stateMachine
+    
+    function keyCodeToReportType( keyCode )
+    {
+        if( keyCode == 0 )
+        {
+            return ""
+        }
+        return ""
+    }
+
+    document.onkeypress = function (e) 
+    {
+        e = e || window.event;
+        lastKeyPressed = e.keyCode
+        console.log( "onkeypress= " + lastKeyPressed )
+        currentReportType = keyCodeToReportType( lastKeyPressed );
+        console.log( "Report Type is: " + currentReportType )
+    };
+
+    function navigateTo( path, params, fragment ) 
+    {
+        if( params )
+        {
+            newLocation = path + "?" + params + "&report=" + currentReportType
+        }
+        else
+        {
+            newLocation = path + "?report=" + currentReportType
+        }
+
+        if( fragment )
+        {
+            newLocation = newLocation + "#" + fragment
+        }
+
+        console.log( "href= " + newLocation + "\n" )
+
+        window.location.href = newLocation
+    }
+
+</script>
+
+<div style="position:relative;min-width:960px">
+    <table style="position: absolute;right:0;top:0">
+        <tr><th>Report</th><th>Shortcut Key</th></tr>
+            </table>
+</div>
+
+<div class="branch_default" >AST</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >&quot;project.manifest&quot;</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Object Object1</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Namespace test</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Dim x</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Dim y</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Dim z</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Dim m_test1</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Dim m_test2</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Namespace N</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Object Object2</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Dim x</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Dim y</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Dim z</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Namespace D</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Namespace A</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Action m_thing2</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Object Object3</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Namespace D</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Namespace A</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Namespace B</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Function C</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Dim m_thing</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Action action1</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Action action2</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Dim m_test1</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Dim m_test2</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Dim m_test3</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</body>
+
+</html>
+

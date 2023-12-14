@@ -21,8 +21,8 @@
 #ifndef GUARD_2023_September_14_python_cast
 #define GUARD_2023_September_14_python_cast
 
-#include "mega/values/runtime/reference.hpp"
-#include "service/python/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
+#include "service/python/pointer.hpp"
 
 #include <pybind11/pybind11.h>
 
@@ -33,23 +33,23 @@ namespace mega::service::python
 
 typedef struct
 {
-    PyObject_HEAD PythonReference* pReference;
+    PyObject_HEAD PythonPointer* pReference;
 } PythonReferenceData;
 
-inline PythonReference* fromPyObject( PyObject* pPyObject )
+inline PythonPointer* fromPyObject( PyObject* pPyObject )
 {
     PythonReferenceData* pLogicalObject = ( PythonReferenceData* )pPyObject;
     return pLogicalObject->pReference;
 }
 
-inline const mega::reference& cast( PyObject* pObject )
+inline const mega::Pointer& cast( PyObject* pObject )
 {
     return fromPyObject( pObject )->getReference();
 }
 
-inline std::optional< reference > tryCast( PyObject* pObject )
+inline std::optional< Pointer > tryCast( PyObject* pObject )
 {
-    if( PythonReference* pRef = fromPyObject( pObject ) )
+    if( PythonPointer* pRef = fromPyObject( pObject ) )
     {
         return pRef->getReference();
     }
@@ -61,21 +61,21 @@ inline std::optional< reference > tryCast( PyObject* pObject )
 
 struct IPythonModuleCast
 {
-    virtual PyObject* cast( const mega::reference& ref ) = 0;
+    virtual PyObject* cast( const mega::Pointer& ref ) = 0;
 };
-PyObject* cast( const mega::reference& ref );
+PyObject* cast( const mega::Pointer& ref );
 
 } // namespace mega::service::python
 
 template < typename T >
-concept IsReferenceType = std::is_base_of< mega::reference, T >::value;
+concept IsReferenceType = std::is_base_of< mega::Pointer, T >::value;
 
 namespace PYBIND11_NAMESPACE
 {
 namespace detail
 {
 template <>
-struct type_caster< mega::reference >
+struct type_caster< mega::Pointer >
 {
 public:
     /**
@@ -83,7 +83,7 @@ public:
      * function signatures and declares a local variable
      * 'value' of type inty
      */
-    PYBIND11_TYPE_CASTER( mega::reference, const_name( "classmega00reference" ) );
+    PYBIND11_TYPE_CASTER( mega::Pointer, const_name( "classmega00reference" ) );
 
     /**
      * Conversion part 1 (Python->C++): convert a PyObject into a inty
@@ -101,7 +101,7 @@ public:
         value = mega::service::python::cast( source );
 
         /* Ensure return code was OK (to avoid out-of-range errors etc) */
-        // return !( value != mega::reference{} && !PyErr_Occurred() );
+        // return !( value != mega::Pointer{} && !PyErr_Occurred() );
         return !PyErr_Occurred();
     }
 
@@ -112,7 +112,7 @@ public:
      * ``return_value_policy::reference_internal``) and are generally
      * ignored by implicit casters.
      */
-    static handle cast( mega::reference src, return_value_policy /* policy */, handle /* parent */ )
+    static handle cast( mega::Pointer src, return_value_policy /* policy */, handle /* parent */ )
     {
         return mega::service::python::cast( src );
     }

@@ -21,16 +21,16 @@
 #ifndef GUARD_2023_January_11_mpo_context_interface
 #define GUARD_2023_January_11_mpo_context_interface
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 namespace mega::runtime
 {
 MPO       getThisMPO();
-void      networkToHeap( reference& ref );
-void      readLock( reference& ref );
-void      writeLock( reference& ref );
-reference allocate( mega::TypeID objectType );
-reference allocateRemote( const MPO& remote, mega::TypeID objectType );
+void      networkToHeap( Pointer& ref );
+void      readLock( Pointer& ref );
+void      writeLock( Pointer& ref );
+Pointer allocate( mega::TypeID objectType );
+Pointer allocateRemote( const MPO& remote, mega::TypeID objectType );
 void*     log();
 } // namespace mega
 

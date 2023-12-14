@@ -125,7 +125,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 }
                 pipelineResult
                     = runPipelineLocally( stashDir, symbolXMLOpt, toolchain, pipelineConfig, strTaskName, strSourceFile,
-                                          inputPipelineResultPath, bForceNoStash, bExecuteUpTo, std::cout );
+                                          inputPipelineResultPath, bForceNoStash, bExecuteUpTo, false, std::cout );
             }
             else
             {

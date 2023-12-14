@@ -22,7 +22,7 @@
 
 #include "runtime/function_provider.hpp"
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 #include <string>
 #include <vector>
@@ -56,8 +56,8 @@ public:
     virtual MPOVector              getMPO( MP machineProcess )         = 0;
 
     virtual MPO             getThisMPO()                                   = 0;
-    virtual mega::reference getThisRoot()                                  = 0;
-    virtual mega::reference getRoot( MPO mpo )                             = 0;
+    virtual mega::Pointer getThisRoot()                                  = 0;
+    virtual mega::Pointer getRoot( MPO mpo )                             = 0;
     virtual MPO             constructMPO( MP machineProcess )              = 0;
     virtual MP              constructExecutor( MachineID daemonMachineID ) = 0;
     virtual void            destroyExecutor( MP mp )                       = 0;

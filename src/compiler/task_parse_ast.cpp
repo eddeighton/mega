@@ -39,17 +39,17 @@ public:
     {
     }
 
-    ParserStage::Parser::ContextDef* parseInputFile( ParserStage::Database&                    database,
+    ParserStage::Parser::Container* parseInputFile( ParserStage::Database&                    database,
                                                      const ParserStage::Components::Component* pComponent,
                                                      const mega::io::megaFilePath&             sourceFilePath,
                                                      std::ostream&                             osError,
                                                      std::ostream&                             osWarn )
     {
         VERIFY_RTE_MSG( m_parser, "Parser not initialised" );
-        ParserStage::Parser::ContextDef* pContextDef
+        ParserStage::Parser::Container* pContainer
             = m_parser->parseEGSourceFile( database, m_environment.FilePath( sourceFilePath ),
                                            pComponent->get_include_directories(), osError, osWarn );
-        return pContextDef;
+        return pContainer;
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
@@ -69,10 +69,10 @@ public:
 
         using namespace ParserStage::Parser;
 
-        ContextDef* pContextDef = parseInputFile( database, pComponent, m_sourceFilePath, osError, osWarn );
+        Container* pContainer = parseInputFile( database, pComponent, m_sourceFilePath, osError, osWarn );
 
         ObjectSourceRoot* pObjectSrcRoot = database.construct< ObjectSourceRoot >(
-            ObjectSourceRoot::Args{ SourceRoot::Args{ m_sourceFilePath.path(), pComponent, pContextDef } } );
+            ObjectSourceRoot::Args{ SourceRoot::Args{ m_sourceFilePath.path(), pComponent, pContainer } } );
 
         m_rootFiles.insert( std::make_pair( m_sourceFilePath.path(), pObjectSrcRoot ) );
 
@@ -88,7 +88,7 @@ public:
                     FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->get_megaSourceFilePath() );
                     if ( iFind == m_rootFiles.end() )
                     {
-                        ContextDef* pIncludeContextDef
+                        Container* pIncludeContextDef
                             = parseInputFile( database, pComponent,
                                               m_environment.megaFilePath_fromPath( pInclude->get_megaSourceFilePath() ),
                                               osError, osWarn );

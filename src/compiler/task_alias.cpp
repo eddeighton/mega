@@ -47,17 +47,13 @@ namespace mega::compiler
 
 class Task_Alias : public BaseTask
 {
-    const mega::io::Manifest m_manifest;
-
 public:
-    Task_Alias( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+    Task_Alias( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( m_environment, manifestFilePath )
     {
     }
 
     using GraphType = std::map< AliasAnalysis::Interface::LinkTrait*, AliasAnalysis::HyperGraph::Relation* >;
-
 
     // struct ObjectLinkPair
     // {
@@ -65,24 +61,11 @@ public:
     //     AliasAnalysis::Interface::IContext*        pTargetContext = nullptr;
     // };
     // using ObjectLinkTargets = std::vector< ObjectLinkPair >;
-    using RelationsMap
-        = std::map< AliasAnalysis::Interface::LinkTrait*, AliasAnalysis::HyperGraph::Relation* >;
-
-    using PathSet = std::set< mega::io::megaFilePath >;
-    PathSet getSortedSourceFiles() const
-    {
-        PathSet sourceFiles;
-        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
-        {
-            sourceFiles.insert( sourceFilePath );
-        }
-        return sourceFiles;
-    }
+    using RelationsMap = std::map< AliasAnalysis::Interface::LinkTrait*, AliasAnalysis::HyperGraph::Relation* >;
 
     using ObjectLinkContextsMap = std::multimap< AliasAnalysis::Concrete::Graph::Vertex*,
                                                  std::pair< AliasAnalysis::Concrete::Graph::Vertex*, bool > >;
-    using EdgeMap
-        = std::multimap< AliasAnalysis::Concrete::Graph::Vertex*, AliasAnalysis::Concrete::Graph::Edge* >;
+    using EdgeMap = std::multimap< AliasAnalysis::Concrete::Graph::Vertex*, AliasAnalysis::Concrete::Graph::Edge* >;
 
     void recurseObjectTree( AliasAnalysis::Concrete::Graph::Vertex* pVertex, const EdgeMap& edges,
                             std::vector< AliasAnalysis::Concrete::Graph::Vertex* >& vertices )
@@ -177,8 +160,8 @@ public:
         }
     }
 
-    void solveComponentLinks( AliasAnalysis::Database& database, const RelationsMap& relations,
-                              const EdgeMap& edges, const ObjectLinkContextsMap& linkContexts )
+    void solveComponentLinks( AliasAnalysis::Database& database, const RelationsMap& relations, const EdgeMap& edges,
+                              const ObjectLinkContextsMap& linkContexts )
     {
         using namespace AliasAnalysis;
         using namespace AliasAnalysis::HyperGraph;
@@ -310,7 +293,7 @@ public:
 
                     return results;
                 }
-                
+
                 GraphVertex* commonRootDerivation( Concrete::Graph::Vertex* pSource, Concrete::Graph::Vertex* pTarget,
                                            std::vector< Concrete::Graph::Edge* >& edges ) const
                 {
@@ -418,10 +401,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Alias( const TaskArguments&              taskArguments,
-                                      const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_Alias( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_Alias >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_Alias >( taskArguments );
 }
 
 class Task_AliasRollout : public BaseTask
@@ -459,9 +441,8 @@ public:
             = m_environment.AliasAnalysisRollout_PerSourceModel( m_sourceFilePath );
         start( taskProgress, "Task_AliasRollout", m_sourceFilePath.path(), rolloutCompilationFile.path() );
 
-        const task::DeterminantHash determinant
-            = { m_environment.getBuildHashCode( concreteTreeCompilationFile ),
-                m_environment.getBuildHashCode( aliasAnalysisCompilationFile ) };
+        const task::DeterminantHash determinant = { m_environment.getBuildHashCode( concreteTreeCompilationFile ),
+                                                    m_environment.getBuildHashCode( aliasAnalysisCompilationFile ) };
 
         if( m_environment.restore( rolloutCompilationFile, determinant ) )
         {
@@ -554,7 +535,7 @@ public:
 };
 
 BaseTask::Ptr create_Task_AliasRollout( const TaskArguments&          taskArguments,
-                                             const mega::io::megaFilePath& megaSourceFilePath )
+                                        const mega::io::megaFilePath& megaSourceFilePath )
 {
     return std::make_unique< Task_AliasRollout >( taskArguments, megaSourceFilePath );
 }

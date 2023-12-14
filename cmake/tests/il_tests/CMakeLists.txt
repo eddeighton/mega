@@ -39,7 +39,8 @@ include_directories( ${MEGA_SRC_DIR} )
 set( IL_TESTS_DIR ${MEGA_TEST_DIR}/il_tests )
 
 set( IL_UNIT_TESTS
-	${IL_TESTS_DIR}/cpp_tests.cpp
+	# ${IL_TESTS_DIR}/cpp_tests.cpp
+	${IL_TESTS_DIR}/ir_tests.cpp
 
 	)
 

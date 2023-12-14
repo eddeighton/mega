@@ -21,7 +21,9 @@
 #ifndef GUARD_2023_November_28_function_ptr
 #define GUARD_2023_November_28_function_ptr
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
+
+#include "mega/values/runtime/pointer.hpp"
 
 namespace mega::runtime
 {
@@ -30,10 +32,10 @@ using TypeErasedFunction = const void*;
 struct CallResult
 {
     TypeErasedFunction pFunction;
-    reference          context;
-    TypeID             interfaceTypeID;
+    Pointer            context;
+    interface::TypeID  interfaceTypeID;
 };
 
-}
+} // namespace mega::runtime
 
-#endif //GUARD_2023_November_28_function_ptr
+#endif // GUARD_2023_November_28_function_ptr

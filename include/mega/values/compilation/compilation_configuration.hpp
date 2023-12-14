@@ -21,6 +21,8 @@
 #define COMPILER_CONFIGURATION_21_OCT_2023
 
 #include "database/directories.hpp"
+#include "database/manifest_data.hpp"
+#include "database/component_info.hpp"
 
 #include "pipeline/configuration.hpp"
 
@@ -34,12 +36,13 @@ namespace mega::compiler
 
 struct Configuration
 {
-    pipeline::ConfigurationHeader          header;
-    std::string                            projectName;
-    std::vector< boost::filesystem::path > componentInfoPaths;
-    mega::io::Directories                  directories;
-    boost::filesystem::path                unityProjectDir;
-    boost::filesystem::path                unityEditor;
+    pipeline::ConfigurationHeader    header;
+    std::string                      projectName;
+    std::vector< io::ComponentInfo > componentInfos;
+    io::Directories                  directories;
+    io::ManifestData                 manifestData;
+    boost::filesystem::path          unityProjectDir;
+    boost::filesystem::path          unityEditor;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -47,14 +50,14 @@ struct Configuration
         // NOTE: header serialization handled seperately so can access in pipeline abstraction
         // archive& boost::serialization::make_nvp( "header", header );
         archive& boost::serialization::make_nvp( "projectName", projectName );
-        archive& boost::serialization::make_nvp( "componentInfoPaths", componentInfoPaths );
+        archive& boost::serialization::make_nvp( "componentInfos", componentInfos );
         archive& boost::serialization::make_nvp( "directories", directories );
+        archive& boost::serialization::make_nvp( "manifestData", manifestData );
         archive& boost::serialization::make_nvp( "unityProjectDir", unityProjectDir );
         archive& boost::serialization::make_nvp( "unityEditor", unityEditor );
     }
 };
 
-
-} // namespace mega
+} // namespace mega::compiler
 
 #endif // COMPILER_CONFIGURATION_21_OCT_2023

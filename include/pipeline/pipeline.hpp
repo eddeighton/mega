@@ -142,7 +142,7 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
                                    const mega::pipeline::Configuration& pipelineConfig, const std::string& strTaskName,
                                    const std::string&             strSourceFile,
                                    const boost::filesystem::path& inputPipelineResultPath, bool bForceNoStash,
-                                   bool bExecuteUpTo, std::ostream& osLog );
+                                   bool bExecuteUpTo, bool bInclusive, std::ostream& osLog );
 
 } // namespace mega::pipeline
 

@@ -29,6 +29,7 @@ namespace mega::il
 {
 
 std::string generateCPP( const FunctionDefinition& functionDef );
+std::string generateIR( const FunctionDefinition& functionDef );
 
 }
 

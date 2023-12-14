@@ -38,17 +38,17 @@ public:
         using EventVector = std::vector< Event >;
 
         ExecutionStateImpl&   m_impl;
-        mega::reference       m_ref;
+        mega::Pointer       m_ref;
         mega::ActionCoroutine m_coroutine;
         EventVector           m_events;
 
-        ExecutionState( ExecutionStateImpl& impl, const mega::reference& ref )
+        ExecutionState( ExecutionStateImpl& impl, const mega::Pointer& ref )
             : m_impl( impl )
             , m_ref( ref )
         {
         }
 
-        const mega::reference& getRef() const { return m_ref; }
+        const mega::Pointer& getRef() const { return m_ref; }
 
         void stop()
         {
@@ -68,7 +68,7 @@ public:
             }
         }
 
-        void onEvent( const mega::reference& ev ) { m_events.push_back( ev ); }
+        void onEvent( const mega::Pointer& ev ) { m_events.push_back( ev ); }
 
         const mega::ReturnReason& getReturnReason() const { return m_coroutine.getReason(); }
     };
@@ -79,7 +79,7 @@ public:
 
     ExecutionState make_test( mega::SubType objectTypeID, std::size_t szHeapAddress = 0U )
     {
-        mega::reference ref( mega::TypeInstance::make_object( mega::TypeID::make_object_from_objectID( objectTypeID ) ),
+        mega::Pointer ref( mega::TypeInstance::make_object( mega::TypeID::make_object_from_objectID( objectTypeID ) ),
                              reinterpret_cast< mega::HeapAddress >( szHeapAddress ) );
         return ExecutionState( m_state, ref );
     }
@@ -95,7 +95,7 @@ struct TestActions
         ++iRunCount;
         co_return mega::sleep();
     }
-    mega::ActionCoroutine start( const mega::reference& ref )
+    mega::ActionCoroutine start( const mega::Pointer& ref )
     {
         switch( ref.getType().getObjectID() )
         {
@@ -131,7 +131,7 @@ TEST_F( BasicSchedulerCall, Call )
 //////////////////////////////////////////////////////////////////////////
 struct BasicSchedulerWaitActions
 {
-    mega::reference    ref2, ref3;
+    mega::Pointer    ref2, ref3;
     std::vector< int > states;
 
     mega::ActionCoroutine test_1()
@@ -156,7 +156,7 @@ struct BasicSchedulerWaitActions
         co_return mega::sleep();
     }
 
-    mega::ActionCoroutine start( const mega::reference& ref )
+    mega::ActionCoroutine start( const mega::Pointer& ref )
     {
         switch( ref.getType().getObjectID() )
         {
@@ -201,7 +201,7 @@ struct SleepActions
         ++iRunCount;
         co_return mega::sleep();
     }
-    mega::ActionCoroutine start( const mega::reference& ref )
+    mega::ActionCoroutine start( const mega::Pointer& ref )
     {
         switch( ref.getType().getObjectID() )
         {
@@ -225,9 +225,9 @@ TEST_F( BasicSchedulerSleep, CallAndStop )
     ExecutionState  ex1  = make_test( 0, 1 );
     ExecutionState  ex2  = make_test( 0, 2 );
     ExecutionState  ex3  = make_test( 0, 3 );
-    mega::reference ref1 = ex1.getRef();
-    mega::reference ref2 = ex2.getRef();
-    mega::reference ref3 = ex3.getRef();
+    mega::Pointer ref1 = ex1.getRef();
+    mega::Pointer ref2 = ex2.getRef();
+    mega::Pointer ref3 = ex3.getRef();
     scheduler.call( std::move( ex1 ) );
     scheduler.call( std::move( ex2 ) );
     scheduler.call( std::move( ex3 ) );

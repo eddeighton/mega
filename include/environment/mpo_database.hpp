@@ -20,10 +20,9 @@
 #ifndef GUARD_2023_April_04_mpo_database
 #define GUARD_2023_April_04_mpo_database
 
-#include "database/api.hpp"
+
 #include "environment/environment_archive.hpp"
 
-#include "database/FinalStage.hxx"
 #include "database/manifest.hxx"
 
 #include <unordered_map>
@@ -31,26 +30,27 @@
 namespace mega::runtime
 {
 
-class EGDB_EXPORT MPODatabase
+class MPODatabase
 {
-    using InterfaceTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::InterfaceTypeID* >;
-    using ConcreteTypeIDMap  = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
+    // using InterfaceTypeIDMap = std::map< interface::TypeID, ::FinalStage::Symbols::interface::TypeID* >;
+    // using ConcreteTypeIDMap  = std::map< concrete::TypeID, ::FinalStage::Symbols::concrete::TypeID* >;
 
 public:
     MPODatabase( const boost::filesystem::path& projectDatabasePath );
 
-    using MemoryMapping = std::unordered_map< TypeID, FinalStage::MemoryLayout::MemoryMap*, TypeID::Hash >;
-    MemoryMapping getMemoryMappings();
+    //using MemoryMapping = std::unordered_map< concrete::TypeID, FinalStage::MemoryLayout::MemoryMap*, concrete::TypeID::Hash >;
+    //MemoryMapping getMemoryMappings();
 
-    std::string getConcreteFullType( TypeID typeID ) const;
+    std::string getConcreteFullType( concrete::TypeID typeID ) const;
 
 private:
     io::ArchiveEnvironment            m_environment;
     io::Manifest                      m_manifest;
-    FinalStage::Database              m_database;
-    FinalStage::Symbols::SymbolTable* m_pSymbolTable;
-    ConcreteTypeIDMap                 m_concreteTypeIDs;
-    InterfaceTypeIDMap                m_interfaceTypeIDs;
+
+    // FinalStage::Database              m_database;
+    // FinalStage::Symbols::SymbolTable* m_pSymbolTable;
+    // ConcreteTypeIDMap                 m_concreteTypeIDs;
+    // InterfaceTypeIDMap                m_interfaceTypeIDs;
 };
 
 } // namespace mega::runtime

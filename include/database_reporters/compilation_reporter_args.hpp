@@ -23,7 +23,8 @@
 #ifndef COMPILATION_REPORTER_ARGS_25_OCT_2023
 #define COMPILATION_REPORTER_ARGS_25_OCT_2023
 
-#include "environment/environment_archive.hpp"
+#include "database/manifest.hxx"
+#include "database/environment.hxx"
 
 namespace mega::reporters
 {

@@ -60,24 +60,26 @@ void resolve( const mega::runtime::FunctorID& functorID, bool& resolving, void**
 }
 } // namespace
 
-{% for functor in functors %}
-namespace mega::runtime::{{ functor.materialiser }}
+{% for mat in materialisers %}
+namespace mega::runtime::{{ mat.name }}
 {
-{{ functor.name }}::{{ functor.name }}( {% for arg in functor.ctor_args %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %} )
-    : m_id{ {% for arg in functor.ctor_args %}{{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %} }
+{% for function in mat.functions %}
+{{ function.name }}::{{ function.name }}( {% for arg in mat.parameters %}{{ arg.type_cpp }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %} )
+    : m_id{ {% for arg in mat.parameters %}{{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %} }
     , m_bResolving( false )
     , m_function( nullptr )
 {
 }
 
-{{ functor.return_type }} {{ functor.name }}::operator() ({% for arg in functor.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const
+{{ function.return_type_cpp }} {{ function.name }}::operator() ({% for arg in function.parameters %}{{ arg.type_cpp }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const
 {
     if( !m_function )
     {
-        resolve( FunctorID{ FunctorID::e_{{ functor.materialiser }}_{{ functor.name }}, m_id }, m_bResolving, ( void** )( &m_function ) );
+        resolve( FunctorID{ FunctorID::e_{{ mat.name }}_{{ function.name }}, m_id }, m_bResolving, ( void** )( &m_function ) );
     }
-    return m_function( {% for arg in functor.arguments %}{{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %} );
+    return m_function( {% for arg in function.parameters %}{{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %} );
 }
+{% endfor %}
 }
 {% endfor %}
 

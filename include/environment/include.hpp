@@ -20,24 +20,33 @@
 #ifndef DB_INCLUDES_20_OCT_2023
 #define DB_INCLUDES_20_OCT_2023
 
-#include "mega/values/compilation/arguments.hpp"
+
+#include "mega/values/compilation/interface/object_id.hpp"
+#include "mega/values/compilation/interface/relation_id.hpp"
+#include "mega/values/compilation/interface/sub_object_id.hpp"
+#include "mega/values/compilation/interface/symbol_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
+
+#include "mega/values/compilation/concrete/instance.hpp"
+#include "mega/values/compilation/concrete/object_id.hpp"
+#include "mega/values/compilation/concrete/sub_object_id_instance.hpp"
+#include "mega/values/compilation/concrete/sub_object_id.hpp"
+#include "mega/values/compilation/concrete/type_id_instance.hpp"
+#include "mega/values/compilation/concrete/type_id.hpp"
+
+#include "mega/values/compilation/megastructure_installation.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
+#include "mega/values/compilation/size_alignment.hpp"
+#include "mega/values/compilation/type_id_sequence.hpp"
+
 #include "mega/values/compilation/cardinality.hpp"
 #include "mega/values/compilation/hyper_graph.hpp"
-#include "mega/values/compilation/invocation_id.hpp"
 #include "mega/values/compilation/modes.hpp"
 #include "mega/values/compilation/operation_id.hpp"
 #include "mega/values/compilation/operator_id.hpp"
 #include "mega/values/compilation/ownership.hpp"
-#include "mega/values/compilation/relation_id.hpp"
-#include "mega/values/compilation/size_alignment.hpp"
 #include "mega/values/compilation/source_location.hpp"
-#include "mega/values/compilation/sub_type_instance.hpp"
 #include "mega/values/compilation/tool_chain_hash.hpp"
-#include "mega/values/compilation/type_id.hpp"
-#include "mega/values/compilation/type_id_limits.hpp"
-#include "mega/values/compilation/type_id_sequence.hpp"
-#include "mega/values/compilation/type_instance.hpp"
-#include "mega/values/compilation/symbol_grammar.hpp"
 
 #include "database/component_type.hpp"
 #include "database/component_info.hpp"

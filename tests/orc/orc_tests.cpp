@@ -125,7 +125,6 @@ TEST_F( OrcTest, Basic )
     ASSERT_EQ( add2( 1 ), 3 );
 
     // llvm::LLVMContext llvmContext;
-
     std::unique_ptr< llvm::orc::LLJIT > pJit = ExitOnErr( llvm::orc::LLJITBuilder().create() );
     ASSERT_TRUE( pJit );
 

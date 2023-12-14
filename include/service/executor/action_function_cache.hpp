@@ -33,7 +33,7 @@ namespace mega::service
 /*
 class ActionFunctionCache
 {
-    using ActionFunctionPtr = mega::ActionCoroutine ( * )( mega::reference* );
+    using ActionFunctionPtr = mega::ActionCoroutine ( * )( mega::Pointer* );
     using ActionFunctionMap = std::unordered_map< TypeID, ActionFunctionPtr, TypeID::Hash >;
 
 public:

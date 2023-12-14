@@ -21,7 +21,7 @@
 
 struct TypeIDSequenceGen
 {
-    using NewSymbolNames = std::map< std::string, Symbols::SymbolTypeID* >;
+    using NewSymbolNames = std::map< std::string, Symbols::SymbolID* >;
     using ObjectSubObjectIDSequence = mega::SymbolTraits::SymbolIDVectorPair;
     
     const NewSymbolNames& symbolNames;
@@ -31,12 +31,12 @@ struct TypeIDSequenceGen
     {
     }
 
-    mega::TypeID getSymbolID( const std::string& strID ) const
+    mega::SymbolID getSymbolID( const std::string& strID ) const
     {
         auto iFind = symbolNames.find( strID );
         VERIFY_RTE( iFind != symbolNames.end() );
-        const Symbols::SymbolTypeID* pSymbolTypeID = iFind->second;
-        return pSymbolTypeID->get_id();
+        const Symbols::SymbolID* pSymbolID = iFind->second;
+        return pSymbolID->get_id();
     }
 
     template< typename T >
@@ -75,7 +75,7 @@ struct TypeIDSequenceGen
         recurse( pContext, sequence, false );
         if( sequence.first.empty() )
         {
-            sequence.first.push_back( mega::NULL_SYMBOL_ID );
+            sequence.first.push_back( mega::interface::NULL_SYMBOL_ID );
         }
         else
         {

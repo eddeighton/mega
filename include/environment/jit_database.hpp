@@ -22,26 +22,28 @@
 
 #include "mega/memory.hpp"
 
-#include "mega/values/compilation/type_id.hpp"
-#include "mega/values/compilation/relation_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
+#include "mega/values/compilation/interface/relation_id.hpp"
+
+#include "mega/values/compilation/concrete/type_id.hpp"
+
 #include "mega/values/compilation/invocation_id.hpp"
 #include "mega/values/compilation/size_alignment.hpp"
 
-#include "database/api.hpp"
 #include "environment/environment_archive.hpp"
 #include "database/exception.hpp"
 #include "database/manifest_data.hpp"
 
-#include "database/FinalStage.hxx"
-#include "database/manifest.hxx"
+// #include "database/FinalStage.hxx"
+// #include "database/manifest.hxx"
 
 namespace mega::runtime
 {
-
-class EGDB_EXPORT JITDatabase
+/*
+class JITDatabase
 {
-    using InterfaceTypeIDMap    = std::map< mega::TypeID, ::FinalStage::Symbols::InterfaceTypeID* >;
-    using ConcreteTypeIDMap     = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
+    using InterfaceTypeIDMap    = std::map< mega::TypeID, ::FinalStage::Symbols::interface::TypeID* >;
+    using ConcreteTypeIDMap     = std::map< TypeID, ::FinalStage::Symbols::concrete::TypeID* >;
     using DynamicInvocationsMap = std::map< InvocationID, const ::FinalStage::Operations::Invocation* >;
 
     const FinalStage::Operations::Invocation* getExistingInvocation( const InvocationID& invocation ) const;
@@ -97,7 +99,7 @@ private:
     DynamicInvocationsMap         m_dynamicInvocations;
     RelationMap                   m_relations;
 };
-
+*/
 } // namespace mega::runtime
 
 #endif // DATABASE_8_AUG_2022

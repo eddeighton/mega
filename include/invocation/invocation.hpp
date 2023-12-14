@@ -48,8 +48,8 @@ struct SymbolTables
 {
     SymbolTables( OperationsStage::Symbols::SymbolTable* pSymbolTable );
 
-    using SymbolTypeIDMap    = std::map< mega::TypeID, OperationsStage::Symbols::SymbolTypeID* >;
-    using InterfaceTypeIDMap = std::map< mega::TypeID, OperationsStage::Symbols::InterfaceTypeID* >;
+    using SymbolTypeIDMap    = std::map< mega::interface::SymbolID, OperationsStage::Symbols::SymbolTypeID* >;
+    using InterfaceTypeIDMap = std::map< mega::interface::TypeID, OperationsStage::Symbols::interface::TypeID* >;
     SymbolTypeIDMap    symbolIDMap;
     InterfaceTypeIDMap interfaceIDMap;
 };

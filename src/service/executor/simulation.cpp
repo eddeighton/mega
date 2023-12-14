@@ -230,7 +230,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         THROW_TODO;
                         /*for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
                         {
-                            reference ref      = i->first;
+                            Pointer ref      = i->first;
                             U32       iterator = 0;
                             while( true )
                             {
@@ -240,7 +240,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                     break;
                                 }
 
-                                auto actionContext = mega::reference::make(
+                                auto actionContext = mega::Pointer::make(
                                     ref, TypeInstance{ ref.getType().getObjectID(), subTypeInstance } );
                                 auto pAction = actionFunctionCache.getActionFunction( actionContext.getType() );
 
@@ -463,7 +463,7 @@ void Simulation::SimErrorCheck( boost::asio::yield_context& yield_ctx )
     THROW_RTE( "Simulation::SimErrorCheck: " << getThisMPO() );
 }
 
-Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yield_context& yield_ctx )
+Snapshot Simulation::SimObjectSnapshot( const Pointer& object, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimObjectSnapshot: {} {}", getThisMPO(), object );
     QueueStackDepth queueMsgs( m_queueStack );
@@ -473,7 +473,7 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
     THROW_TODO;
     // static thread_local mega::runtime::program::ObjectSaveBin objectSaveBin;
 
-    /*reference heapAddress = m_pMemoryManager->networkToHeap( object );
+    /*Pointer heapAddress = m_pMemoryManager->networkToHeap( object );
 
     BinSaveArchive archive;
     archive.beginObject( heapAddress.getHeaderAddress() );
@@ -482,13 +482,13 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
     return archive.makeSnapshot( getLog().getTimeStamp() );*/
 }
 
-reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& )
+Pointer Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& )
 {
     THROW_TODO;
 
     /*SPDLOG_TRACE( "SIM::SimAllocate: {} {}", getThisMPO(), objectTypeID );
     QueueStackDepth queueMsgs( m_queueStack );
-    reference       allocated = m_pMemoryManager->New( objectTypeID );
+    Pointer       allocated = m_pMemoryManager->New( objectTypeID );
     getLog().record(
         mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
     return allocated.getHeaderAddress();*/

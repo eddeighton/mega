@@ -21,119 +21,93 @@
 ///////////////////////////////////////////
 ///////////////////////////////////////////
 // Objects
-namespace Components
-{
-    object Component -> ComponentListing::Components
-    {
-        value< mega::ComponentType > type;
-        value< std::string > name;
-        value< mega::io::ComponentFilePath > file_path;
-        value< mega::io::ComponentFilePath > python_file_path;
-        value< mega::io::ComponentFilePath > init_file_path;
-        value< boost::filesystem::path > src_dir;
-        value< boost::filesystem::path > build_dir;
-        array< value< std::string > > cpp_flags;
-        array< value< std::string > > cpp_defines;
-        array< value< boost::filesystem::path > > include_directories;
-        array< value< mega::io::megaFilePath > > dependencies;
-        array< value< mega::io::megaFilePath > > mega_source_files;
-        array< value< mega::io::cppFilePath > > cpp_source_files;
-        array< value< mega::io::schFilePath > > sch_source_files;
-    }
-}
-
-namespace MegaMangle
-{
-    object Mangle -> ComponentListing::Components
-    {
-        value< std::string >    canon;
-        value< std::string >    mangle;
-        value< std::string >    impl;
-        value< std::string >    blit;
-    }
-}
-
 namespace Parser
 {
-    object Identifier -> ParserStage::AST
+    object SourceRange -> ParserStage::AST
     {
-        value< std::string >                str;
+        value< std::string > source_file;
+        value< mega::U64 >   line_number;
     }
 
-    object ScopedIdentifier -> ParserStage::AST
+    object Symbol -> ParserStage::AST
     {
-        array< ref< Identifier > >          ids;
-        value< std::string >                source_file;
-        value< mega::U64 >                  line_number;
+        value< std::string >      token;
+        ref< Symbols::SymbolID >  id -> SymbolRollout::PerSourceSymbols;
     }
 
-    object ReturnType -> ParserStage::AST
+    object Identifier : SourceRange -> ParserStage::AST
     {
-        value< std::string >                str;
+        array< ref< Symbol > > symbols;
     }
 
-    object Transition -> ParserStage::AST
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    // types
+
+    namespace Type
     {
-        value< bool >                               is_successor;
-        value< bool >                               is_predecessor;
-        value< mega::SymbolVariantPathSequence >    symbol_variant_path_sequence;
+        object Fragment -> ParserStage::AST
+        {
+        }
+
+        object CPPOpaque : Fragment -> ParserStage::AST
+        {
+            value< std::string > str;
+        }
+
+        object Variant -> ParserStage::AST
+        {
+            array< ref< Symbol > > symbols;
+        }
+
+        object Path : Fragment -> ParserStage::AST
+        {
+            array< ref< Variant > > variants;
+        }
+
+        object Absolute : Path -> ParserStage::AST
+        {
+        }
+
+        object Deriving : Path -> ParserStage::AST
+        {
+        }
+
+        object PathSequence -> ParserStage::AST
+        {
+            array< ref< Path > > path_sequence;
+        }
+
+        object NamedPath -> ParserStage::AST
+        {
+            ref< Path >                 path;
+            opt< value< std::string > > name_opt; 
+        }
+
+        object NamedPathSequence -> ParserStage::AST
+        {
+            array< ref< NamedPath > > named_path_sequence;
+        }
+
+        object CPP -> ParserStage::AST
+        {
+            array< ref< Fragment > > elements;
+        }
     }
 
-    object ArgumentList -> ParserStage::AST
-    {
-        value< mega::TypeName::Vector > arguments;
-    }
 
-    object EventList -> ParserStage::AST
-    {
-        value< mega::NamedSymbolVariantPathSequence > named_symbol_variant_path_sequence;
-    }
-
-    object Inheritance -> ParserStage::AST
-    {
-        array< value< std::string > >       strings;
-    }
-
-    object Size -> ParserStage::AST
-    {
-        value< std::string >                str;
-    }
-
-    object Initialiser -> ParserStage::AST
-    {
-        value< std::string >                initialiser;
-        value< mega::U64 >                  source_loc_start;
-        value< mega::U64 >                  source_loc_end;
-    }
-
-    object Link -> ParserStage::AST
-    {
-        ref< Identifier >                   id;
-        value< mega::SymbolVariantPath >    symbol_variant_path;
-        value< bool >                       owning;
-        value< mega::CardinalityRange >     cardinality;
-    }
-
-    object Dimension -> ParserStage::AST
-    {
-        value< bool >                       isConst;
-        ref< Identifier >                   id;
-        value< std::string >                type;
-        opt< ref< Initialiser > >           initialiser_opt;
-    }
-
-    object Part -> ParserStage::AST
-    {
-        array< value< std::string > >       identifiers;
-    }
-
-    object Include -> ParserStage::AST
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    // un-named elements
+        
+    // include directives
+    object Include : SourceRange -> ParserStage::AST
     {
     }
 
     object SystemInclude : Include -> ParserStage::AST
     {
-        value< std::string >                str;
+        value< std::string > str;
     }
 
     object MegaInclude : Include -> ParserStage::AST
@@ -148,7 +122,7 @@ namespace Parser
 
     object MegaIncludeNested : MegaInclude -> ParserStage::AST
     {
-        ref< ScopedIdentifier >             id;
+        ref< Identifier > identifier;
     }
 
     object CPPInclude : Include -> ParserStage::AST
@@ -156,95 +130,205 @@ namespace Parser
         value< boost::filesystem::path >    cppSourceFilePath;
     }
 
-    object Dependency -> ParserStage::AST
+    // name containers
+    object Part : SourceRange -> ParserStage::AST
     {
-        value< std::string >                str;
+        array< value< std::string > > identifiers;
     }
 
-    object Body -> ParserStage::Body
+    object Dependency : SourceRange -> ParserStage::AST
     {
-        value< std::string >                text;
-        value< std::string >                file;
-        value< mega::U64 >                  line_number;
+        value< std::string > str;
     }
 
-    object ContextDef -> ParserStage::AST
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    // TypeDeclaration
+    namespace TypeDecl
     {
-        ref< ScopedIdentifier >             id;
-        array< ref< ContextDef > >          children;
+        object TypeDeclaration : SourceRange -> ParserStage::AST
+        {
+            // ref< Interface::IContext > parent -> InterfaceStage::Tree;
+        }
+
+        object Return : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::CPP > cpp_fragments;
+        }
+
+        object Arguments : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::CPP > cpp_fragments;
+        }
+
+        object Transitions : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::PathSequence >   type_path_sequence;
+            value< bool >               is_successor;
+            value< bool >               is_predecessor;
+        }
+
+        object Events : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::NamedPathSequence > type_named_path_sequence;
+        }
+
+        object Inheritance : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::PathSequence > type_path_sequence;
+        }
+
+        object Data : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::CPP > cpp_fragments;
+        }
+
+        object Initialiser : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::CPP > cpp_fragments;
+        }
+
+        object Link : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::Path > type_path;
+        }
+
+        object Alias : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::Path > type_path;
+        }
+
+        object Using : TypeDeclaration -> ParserStage::AST
+        {
+            ref< Type::CPP > cpp_fragments;
+        }
+
+        object Body : TypeDeclaration -> ParserStage::Body
+        {
+            ref< Type::CPP > cpp_fragments;
+        }
+    }
+
+    // code containers
+    object Size : SourceRange -> ParserStage::AST
+    {
+        value< std::string > str;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    // named elements
+    object Aggregate : Identifier -> ParserStage::AST
+    {
+    }
+
+    object Dimension : Aggregate -> ParserStage::AST
+    {
+        ref< TypeDecl::Data >               data_type;
+        opt< ref< TypeDecl::Initialiser > > initialiser_opt;
+    }
+
+    object Link : Aggregate -> ParserStage::AST
+    {
+        ref< TypeDecl::Link >               link_type;
+        value< bool >                       owning;
+        value< mega::CardinalityRange >     cardinality;
+    }
+
+    object Alias : Aggregate -> ParserStage::AST
+    {
+        ref< TypeDecl::Alias > alias_type;
+    }
+
+    object Using : Aggregate -> ParserStage::AST
+    {
+        ref< TypeDecl::Using > using_type;
+    }
+
+    // Container
+    object Container : Identifier -> ParserStage::AST
+    {
+        array< ref< Container > >           children;
+
+        array< ref< Aggregate > >           aggregates;
         array< ref< Dimension > >           dimensions;
         array< ref< Link > >                links;
+        array< ref< Alias > >               aliases;
+        array< ref< Using > >               usings;
+
         array< ref< Include > >             includes;
         array< ref< Dependency > >          dependencies;
         array< ref< Part > >                parts;
-        opt< ref< Body > >                  body_opt;
+
+        opt< ref< TypeDecl::Body > >        body_type_opt;
     }
 
-    object NamespaceDef : ContextDef -> ParserStage::AST
+    object Namespace : Container -> ParserStage::AST
     {
     }
 
-    object AbstractDef : ContextDef -> ParserStage::AST
-    {
-        ref< Size >                         size;
-        ref< Inheritance >                  inheritance;
-    }
-
-    object StateDef : ContextDef -> ParserStage::AST
+    object Abstract : Container -> ParserStage::AST
     {
         ref< Size >                         size;
-        ref< Inheritance >                  inheritance;
-        opt< ref< Transition > >            transition_opt;
+        ref< TypeDecl::Inheritance >        inheritance_type;
     }
 
-    object ActionDef : StateDef -> ParserStage::AST
+    object Event : Container -> ParserStage::AST
     {
+        ref< Size >                     size;
+        ref< TypeDecl::Inheritance >    inheritance_type;
     }
 
-    object ComponentDef : StateDef -> ParserStage::AST
+    object Interupt : Container -> ParserStage::AST
     {
+        opt< ref< TypeDecl::Events > >      events_type_opt;
+        opt< ref< TypeDecl::Transitions > > transition_type_opt;
     }
 
-    object EventDef : ContextDef -> ParserStage::AST
+    object Requirement : Container -> ParserStage::AST
     {
-        ref< Size >                         size;
-        ref< Inheritance >                  inheritance;
+        opt< ref< TypeDecl::Events > >      events_type_opt;
+        opt< ref< TypeDecl::Transitions > > transition_type_opt;
     }
 
-    object InteruptDef : ContextDef -> ParserStage::AST
+    object Function : Container -> ParserStage::AST
     {
-        opt< ref< EventList > >             events_opt;
-        opt< ref< Transition > >            transition_opt;
+        ref< TypeDecl::Arguments >      arguments_type;
+        ref< TypeDecl::Return >         return_type;
     }
 
-    object RequirementDef : ContextDef -> ParserStage::AST
+    object Decider : Container -> ParserStage::AST
     {
-        ref< EventList >                    events;
-        ref< Transition >                   transition;
+        ref< TypeDecl::Events >         events_type;
     }
 
-    object FunctionDef : ContextDef -> ParserStage::AST
+    object Object : Container -> ParserStage::AST
     {
-        ref< ArgumentList >                 arguments;
-        ref< ReturnType >                   returnType;
+        ref< Size >                     size;
+        ref< TypeDecl::Inheritance >    inheritance_type;
     }
 
-    object DeciderDef : ContextDef -> ParserStage::AST
-    {
-        ref< EventList >                    parameters;
-    }
-
-    object ObjectDef : ContextDef -> ParserStage::AST
+    object State : Container -> ParserStage::AST
     {
         ref< Size >                         size;
-        ref< Inheritance >                  inheritance;
+        ref< TypeDecl::Inheritance >        inheritance_type;
+        opt< ref< TypeDecl::Transitions > > transition_type_opt;
     }
 
+    object Action : State -> ParserStage::AST
+    {
+    }
+
+    object Component : State -> ParserStage::AST
+    {
+    }
+
+    // source file level
     object SourceRoot  -> ParserStage::AST
     {
         value< boost::filesystem::path >    sourceFile;
         ref< Components::Component >        component;
-        ref< ContextDef >                   ast;
+        ref< Container >                    ast;
     }
 
     object IncludeRoot : SourceRoot -> ParserStage::AST

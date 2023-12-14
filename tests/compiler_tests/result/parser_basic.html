@@ -1,0 +1,218 @@
+
+<html>
+
+<head>
+<style>
+table
+{
+    font-size:14px;
+    font-family:monospace;
+    border-collapse: collapse;
+}
+th
+{
+    border: 2px solid darkblue;
+    border-collapse: collapse;
+}
+td 
+{
+    border: 1px solid darkblue;
+    border-collapse: collapse;
+}
+.multiline_default
+{
+    white-space:pre;
+    font-size:14px;
+    font-family:monospace;
+    background-color:#b0c0c0;
+}
+.branch_default
+{
+    font-size:14px;
+    font-family:monospace;
+    background-color:#cfdfdf;
+}
+</style>
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+    currentReportType = "home"
+    
+    stateMachine = function() 
+    {
+        const queryString = window.location.search
+        const urlParams = new URLSearchParams(queryString);
+
+        if( window.location.hash.length === 0 )
+        {
+            // no fragment - nothing to do
+            console.log( "No fragment nothing to do" )
+        }
+        else
+        {
+            hash = window.location.hash.substring( 1 )
+            const element = document.getElementById( hash );
+            if( element )
+            {
+                element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+                console.log( "Scrolled to element: " + hash )
+            }
+            else
+            {I
+                console.log( "Could not locate element: " + hash )
+            }
+        }
+
+        if( urlParams.has( "report" ) )
+        {
+            currentReportType = urlParams.get( "report" )
+            console.log( "Report Type is: " + currentReportType )
+        }
+    }
+
+    window.onrefresh    = stateMachine
+    window.onload       = stateMachine
+    
+    function keyCodeToReportType( keyCode )
+    {
+        if( keyCode == 0 )
+        {
+            return ""
+        }
+        return ""
+    }
+
+    document.onkeypress = function (e) 
+    {
+        e = e || window.event;
+        lastKeyPressed = e.keyCode
+        console.log( "onkeypress= " + lastKeyPressed )
+        currentReportType = keyCodeToReportType( lastKeyPressed );
+        console.log( "Report Type is: " + currentReportType )
+    };
+
+    function navigateTo( path, params, fragment ) 
+    {
+        if( params )
+        {
+            newLocation = path + "?" + params + "&report=" + currentReportType
+        }
+        else
+        {
+            newLocation = path + "?report=" + currentReportType
+        }
+
+        if( fragment )
+        {
+            newLocation = newLocation + "#" + fragment
+        }
+
+        console.log( "href= " + newLocation + "\n" )
+
+        window.location.href = newLocation
+    }
+
+</script>
+
+<div style="position:relative;min-width:960px">
+    <table style="position: absolute;right:0;top:0">
+        <tr><th>Report</th><th>Shortcut Key</th></tr>
+            </table>
+</div>
+
+<div class="branch_default" >Parser</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >&quot;parser_basic.mega&quot;</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Container</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Object</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Dimension</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Name: m_test1</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Line: 4</div></li>
+    <li><div class="branch_default" >DataType</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Opaque: std::vector&lt; int &gt;</div></li>
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Dimension</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Name: m_test2</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Line: 5</div></li>
+    <li><div class="branch_default" >DataType</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Opaque: std::vector&lt;</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Deriving: Object2</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Opaque: &gt;</div></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Object</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Dimension</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Name: m_test1</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Line: 11</div></li>
+    <li><div class="branch_default" >DataType</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Opaque: int</div></li>
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Dimension</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Name: m_test2</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Line: 12</div></li>
+    <li><div class="branch_default" >DataType</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Deriving: Object1</div></li>
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Dimension</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Name: m_test3</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Line: 13</div></li>
+    <li><div class="branch_default" >DataType</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >Absolute: Object2.m_test1</div></li>
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >Function</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Action</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Action</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</body>
+
+</html>
+

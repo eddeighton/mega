@@ -20,7 +20,7 @@
 
 #include "service/executor/scheduler.hpp"
 
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 
 
 #include <iostream>
@@ -51,7 +51,7 @@ void Scheduler::cycle()
         {
             case log::Scheduling::eStart:
             {
-                reference             ref      = read.getRef();
+                Pointer             ref      = read.getRef();
                 const ActionFunction& function = getActionFunction( ref.getType() );
                 m_activations.insert( { ref, Activation( ref, function ) } );
             }

@@ -616,7 +616,7 @@ public:
                         {
                             if( i > 0 )
                                 osParameters << ", ";
-                            osParameters << "const mega::reference& _p" << i;
+                            osParameters << "const mega::Pointer& _p" << i;
                         }
                         contextData[ "operation_parameters" ] = osParameters.str();
 

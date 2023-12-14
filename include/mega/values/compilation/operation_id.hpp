@@ -21,19 +21,17 @@
 #ifndef GUARD_2023_February_08_operation_id
 #define GUARD_2023_February_08_operation_id
 
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/interface/symbol_id.hpp"
 
-#ifndef MEGAJIT
 #include <array>
 #include <string>
-#endif
 
 namespace mega
 {
 
-enum OperationID : TypeID::ValueType
+enum OperationID : interface::SymbolID::ValueType
 {
-    id_Imp_NoParams = TypeID::LOWEST_SYMBOL_ID, // std::numeric_limits< TypeID >::min(),
+    id_Imp_NoParams = interface::SymbolID::LOWEST_SYMBOL_ID,
     id_Imp_Params,
     id_Move,
     id_Get,
@@ -43,8 +41,7 @@ enum OperationID : TypeID::ValueType
     HIGHEST_OPERATION_TYPE
 };
 
-static const TypeID::ValueType TOTAL_OPERATION_TYPES
-    = HIGHEST_OPERATION_TYPE - TypeID::LOWEST_SYMBOL_ID; // std::numeric_limits< TypeID >::min();
+static const interface::SymbolID::ValueType TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - interface::SymbolID::LOWEST_SYMBOL_ID;
 
 inline constexpr bool isOperationImplicit( OperationID operationType )
 {
@@ -65,7 +62,7 @@ inline constexpr bool isOperationArgs( OperationID operationType )
             return false;
         case id_Range:
             return false;
-            
+
         case id_Remove:
             return false;
         case id_Clear:
@@ -78,9 +75,9 @@ inline constexpr bool isOperationArgs( OperationID operationType )
     }
 }
 
-inline constexpr bool isOperationType( TypeID id )
+inline constexpr bool isOperationType( interface::SymbolID id )
 {
-    return id.isSymbolID() && ( id.getSymbolID() < HIGHEST_OPERATION_TYPE );
+    return id.value < HIGHEST_OPERATION_TYPE;
 }
 
 inline constexpr bool isOperationEnumeration( OperationID id )
@@ -94,13 +91,13 @@ inline constexpr bool isOperationEnumeration( OperationID id )
     }
 }
 
-enum InvocableID : TypeID::ValueType
+enum InvocableID : interface::SymbolID::ValueType
 {
     id_Variant = HIGHEST_OPERATION_TYPE,
     id_TypePath
 };
 
-enum ExplicitOperationID : TypeID::ValueType
+enum ExplicitOperationID : interface::SymbolID::ValueType
 {
     id_exp_Read,
     id_exp_Write,
@@ -119,8 +116,6 @@ enum ExplicitOperationID : TypeID::ValueType
     HIGHEST_EXPLICIT_OPERATION_TYPE
 };
 
-#ifndef MEGAJIT
-
 using OperationIDStringArray = std::array< std::string, TOTAL_OPERATION_TYPES >;
 OperationID                   getOperationName( const std::string& strName );
 const std::string&            getOperationString( OperationID op );
@@ -130,8 +125,6 @@ using ExplicitOperationIDStringArray = std::array< std::string, HIGHEST_EXPLICIT
 const std::string&                    getExplicitOperationString( ExplicitOperationID op );
 ExplicitOperationID                   getExplicitOperationName( const std::string& strName );
 const ExplicitOperationIDStringArray& getExplicitOperationStrings();
-
-#endif
 
 } // namespace mega
 

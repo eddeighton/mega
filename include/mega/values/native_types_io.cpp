@@ -30,7 +30,7 @@ namespace std
 {
 // generate serialization routines for native types using xmacros
 #define NATIVE_TYPE( Type )                                                        \
-    std::ostream& operator<<( std::ostream& os, const std::vector< Type >& value ) \
+    std::ostream& operator<<( std::ostream& os, const std::vector< ::mega::Type >& value ) \
     {                                                                              \
         os << '(';                                                                 \
         common::delimit( value.begin(), value.end(), ",", os );                    \

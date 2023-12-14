@@ -121,31 +121,31 @@ set( JINJA_TEMPLATES
 	)
 
 set( COMPILER_TASKS
-    ${MEGA_SRC_DIR}/compiler/task_alias.cpp
-    ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
-    ${MEGA_SRC_DIR}/compiler/task_automata.cpp
-    ${MEGA_SRC_DIR}/compiler/task_complete.cpp
-    ${MEGA_SRC_DIR}/compiler/task_concrete_id.cpp
-    ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
-    ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
-    ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp
-    ${MEGA_SRC_DIR}/compiler/task_global_memory.cpp
-    ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
-    ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
-    ${MEGA_SRC_DIR}/compiler/task_includes.cpp
-    ${MEGA_SRC_DIR}/compiler/task_inheritance.cpp
-    ${MEGA_SRC_DIR}/compiler/task_initialiser.cpp
-    ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp
-    ${MEGA_SRC_DIR}/compiler/task_interface_tree.cpp
-    ${MEGA_SRC_DIR}/compiler/task_manifest.cpp
-    ${MEGA_SRC_DIR}/compiler/task_meta.cpp
-    ${MEGA_SRC_DIR}/compiler/task_operations_locs.cpp
-    ${MEGA_SRC_DIR}/compiler/task_operations.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_alias.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_automata.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_complete.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_concrete_id.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
+    #${MEGA_SRC_DIR}/compiler/task_dependencies.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_global_memory.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_includes.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_inheritance.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_initialiser.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp
+    ${MEGA_SRC_DIR}/compiler/task_ast.cpp
+    ${MEGA_SRC_DIR}/compiler/task_components.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_meta.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_operations_locs.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_operations.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
-    ${MEGA_SRC_DIR}/compiler/task_python.cpp
-    ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
-    ${MEGA_SRC_DIR}/compiler/task_unity.cpp
-    ${MEGA_SRC_DIR}/compiler/task_value_space.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_python.cpp
+    #${MEGA_SRC_DIR}/compiler/task_symbols.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_unity.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_value_space.cpp
 )
 
 
@@ -156,9 +156,6 @@ set( COMPILER_SOURCE
     ${MEGA_SRC_DIR}/compiler/glob.cpp
     ${MEGA_SRC_DIR}/compiler/clang_compilation.cpp
 
-    # generate file from mega mangle
-    ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
-
     ## ensure the version is baked into the shared object
     # ${MEGA_SRC_DIR}/version/version.cxx
 )
@@ -168,15 +165,7 @@ add_library( compiler MODULE
 )
 target_precompile_headers( compiler REUSE_FROM mega_pch )
 
-add_dependencies( compiler generate_mega_mangle_meta )
-
 set_target_properties( compiler PROPERTIES FOLDER compiler )
-
-#IF( ${WIN32} )
-#target_compile_options(compiler PRIVATE /bigobj)
-#set_property(TARGET compiler PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-#ELSE( ${WIN32} )
-#ENDIF( ${WIN32} )
 
 add_c_preprocessor_command( OUTPUT task_utils.hpp.i SOURCE ${MEGA_SRC_DIR}/compiler/task_utils.hpp TARGET compiler )
 add_custom_target( PreprocessCompilerXMacros 

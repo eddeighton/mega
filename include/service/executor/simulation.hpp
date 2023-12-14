@@ -36,7 +36,7 @@
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/stash.hxx"
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 namespace mega::service
 {
@@ -67,8 +67,8 @@ public:
 
     // network::sim::Impl
     virtual void      SimErrorCheck( boost::asio::yield_context& yield_ctx ) override;
-    virtual Snapshot  SimObjectSnapshot( const reference& object, boost::asio::yield_context& ) override;
-    virtual reference SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& ) override;
+    virtual Snapshot  SimObjectSnapshot( const Pointer& object, boost::asio::yield_context& ) override;
+    virtual Pointer SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& ) override;
     virtual Snapshot  SimSnapshot( const MPO&, boost::asio::yield_context& ) override;
     virtual TimeStamp SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& ) override;
     virtual TimeStamp SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& ) override;

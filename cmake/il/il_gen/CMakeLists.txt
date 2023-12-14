@@ -77,15 +77,16 @@ set( NATIVE_FILES
 )
 
 set( INLINE_FILES
-	${MEGA_API_DIR}/mega/values/inline_types.hpp
+	${MEGA_API_DIR}/mega/values/inline_types.h
 )
 
 set( EXTERN_FILES
-	${MEGA_API_DIR}/mega/mangle/traits.cpp
+	${MEGA_API_DIR}/runtime/support.hpp
 )
 
 set( MATERIALISER_FILES
 	${MEGA_API_DIR}/il/materialisers/object.hpp
+	${MEGA_API_DIR}/il/materialisers/relation.hpp
 )
 
 add_custom_target( run_il_gen
@@ -96,11 +97,11 @@ add_custom_target( run_il_gen
         --materialisers \"${MATERIALISER_FILES}\"
         --inja ${IL_TEMPLATES_DIR}
         --il_folder ${MEGA_API_DIR}/il/elements
+        --mega_include_dir ${MEGA_API_DIR}
         --runtime_functors_include_dir ${MEGA_API_DIR}/runtime/
         --runtime_functors_impl_dir ${MEGA_SRC_DIR}/runtime/
         
     DEPENDS ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES} il_gen
-    # BYPRODUCTS  ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
     COMMENT "Running IL Gen" 
     SOURCES ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES}
 )

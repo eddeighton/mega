@@ -20,7 +20,7 @@
 #ifndef JIT_8_AUG_2022
 #define JIT_8_AUG_2022
 
-#include "runtime/symbol.hpp"
+#include "runtime/functor_id.hxx"
 
 #include "mega/values/compilation/megastructure_installation.hpp"
 
@@ -46,10 +46,9 @@ public:
     public:
         using Ptr = std::shared_ptr< Module >;
 
-        template< typename FunctionType >
-        FunctionType get( const Symbol& symbol )
+        inline void* get( const FunctorID& functionID )
         {
-            return reinterpret_cast< FunctionType >( getRawFunctionPtr( symbol.get() ) );
+            return getRawFunctionPtr( functionID.getSymbol() );
         }
     };
  

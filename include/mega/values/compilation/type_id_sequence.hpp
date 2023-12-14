@@ -18,21 +18,32 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_October_20_type_id_sequence
-#define GUARD_2023_October_20_type_id_sequence
+#ifndef GUARD_2023_October_20_type_id_sequence_123
+#define GUARD_2023_October_20_type_id_sequence_123
 
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/interface/symbol_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
+#include "mega/values/compilation/concrete/type_id.hpp"
 
 #include <vector>
 #include <ostream>
 
 namespace mega
 {
+namespace interface
+{
+using SymbolIDSequence = std::vector< SymbolID >;
+using TypeIDSequence   = std::vector< TypeID >;
+std::ostream& operator<<( std::ostream& os, const SymbolIDSequence& symbolIDSequence );
+std::ostream& operator<<( std::ostream& os, const TypeIDSequence& typeIDSequence );
+} // namespace interface
 
+namespace concrete
+{
 using TypeIDSequence = std::vector< TypeID >;
+std::ostream& operator<<( std::ostream& os, const TypeIDSequence& typeIDSequence );
+} // namespace concrete
 
-std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequence& typeIDSequence );
+} // namespace mega
 
-}
-
-#endif // GUARD_2023_October_20_type_id_sequence
+#endif // GUARD_2023_October_20_type_id_sequence_123

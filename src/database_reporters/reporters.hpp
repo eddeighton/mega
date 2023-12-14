@@ -22,8 +22,6 @@
 
 #include "database_reporters/compilation_reporter_args.hpp"
 
-#include "database/FinalStage.hxx"
-#include "environment/environment_archive.hpp"
 #include "reports/report.hpp"
 #include "reports/reporter_id.hpp"
 #include "mega/values/service/url.hpp"
@@ -31,6 +29,19 @@
 namespace mega::reporters
 {
 
+struct ParserReporter
+{
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
+};
+struct ASTReporter
+{
+    CompilationReportArgs            m_args;
+    static const reports::ReporterID ID;
+    reports::Container               generate( const reports::URL& url );
+};
+/*
 struct SymbolsReporter
 {
     CompilationReportArgs            m_args;
@@ -127,7 +138,7 @@ public:
     static const reports::ReporterID ID;
     reports::Container               generate( const reports::URL& url );
 };
-
+*/
 } // namespace mega::reporters
 
 #endif // REPORTERS_24_OCT_2023

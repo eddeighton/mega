@@ -21,29 +21,30 @@
 #ifndef GUARD_2023_November_27_time_stamp_h
 #define GUARD_2023_November_27_time_stamp_h
 
-#include "mega/values/native_types.hpp"
+#include "mega/values/runtime.h"
+#include "mega/values/native_types.h"
 
-namespace mega
+C_RUNTIME_START
+
+typedef struct _c_time_stamp
 {
+    c_u32 m_value;
+} c_time_stamp;
 
-    struct MTimeStamp
-    {
-        U32 m_value;
-    };
-
-    inline MTimeStamp increment( MTimeStamp t )
-    {
-        return MTimeStamp{ t.m_value + 1 };
-    }
-
-    inline bool less_than( MTimeStamp left, MTimeStamp right )
-    {
-        return left.m_value < right.m_value;
-    }
-    inline bool equal_to( MTimeStamp left, MTimeStamp right )
-    {
-        return left.m_value == right.m_value;
-    }
+inline c_time_stamp c_time_stamp_increment( c_time_stamp t )
+{
+    return c_time_stamp{ t.m_value + 1 };
 }
+
+inline c_bool c_time_stamp_less_than( c_time_stamp left, c_time_stamp right )
+{
+    return left.m_value < right.m_value;
+}
+inline c_bool c_time_stamp_equal_to( c_time_stamp left, c_time_stamp right )
+{
+    return left.m_value == right.m_value;
+}
+
+C_RUNTIME_END
 
 #endif //GUARD_2023_November_27_time_stamp_h

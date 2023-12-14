@@ -212,7 +212,7 @@ static void mega_delete( const TObject& context )
 }
 
 template< typename To, typename From >
-static To mega_cast( const mega::reference& from )
+static To mega_cast( const mega::Pointer& from )
 {
     static thread_local mega::runtime::operators::Cast function( g_unit_name, To::ID );
     return function( from );

@@ -20,7 +20,7 @@
 #ifndef STATUS_23_SEPT_2022
 #define STATUS_23_SEPT_2022
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
 #include "service/protocol/common/sender_ref.hpp"

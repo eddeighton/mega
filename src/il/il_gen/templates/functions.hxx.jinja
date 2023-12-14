@@ -27,31 +27,31 @@ namespace mega::il
 {
 
 {% for inline in inlines %}
-struct {{ inline.element_name }} : InlineFunction
+struct {{ inline.name }} : InlineFunction
 {
-    {{ inline.element_name }}()
+    {{ inline.name }}()
     {
         using namespace std::string_literals;
-        name = "{{ inline.function_name }}"s;
+        name = "{{ inline.name }}"s;
 {% for parameter in inline.parameters %}
-        parameterTypes.emplace_back( {{ parameter.variable_type }}{ {{ parameter.data_type }} } );
+        parameterTypes.emplace_back( {{ parameter.type_var }}{ {{ parameter.type_data }} } );
 {% endfor %}
-        returnType = {{ inline.return_variable_type }}{ {{ inline.return_data_type }} };
+        returnType = {{ inline.return_type_var }}{ {{ inline.return_type_data }} };
     }
 };
 {% endfor %}
 
 {% for extern in externs %}
-struct {{ extern.element_name }} : ExternFunction
+struct {{ extern.name }} : ExternFunction
 {
-    {{ extern.element_name }}()
+    {{ extern.name }}()
     {
         using namespace std::string_literals;
-        name = "{{ extern.function_name }}"s;
+        name = "{{ extern.name }}"s;
 {% for parameter in extern.parameters %}
-        parameterTypes.emplace_back( {{ parameter.variable_type }}{ {{ parameter.data_type }} } );
+        parameterTypes.emplace_back( {{ parameter.type_var }}{ {{ parameter.type_data }} } );
 {% endfor %}
-        returnType = {{ extern.return_variable_type }}{ {{ extern.return_data_type }} };
+        returnType = {{ extern.return_type_var }}{ {{ extern.return_type_data }} };
     }
 };
 {% endfor %}

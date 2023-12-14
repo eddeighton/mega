@@ -21,7 +21,7 @@
 #ifndef GUARD_2022_October_14_transaction
 #define GUARD_2022_October_14_transaction
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 #include "log/file_log.hpp"
 
@@ -141,8 +141,8 @@ class TransactionProducer
 {
 public:
     using MPOTransactions = std::map< MPO, Transaction::Out >;
-    using UnparentedSet   = std::unordered_set< reference, reference::Hash >;
-    using MovedObjects    = std::unordered_map< MPO, std::pair< reference, reference >, MPO::Hash >;
+    using UnparentedSet   = std::unordered_set< Pointer, Pointer::Hash >;
+    using MovedObjects    = std::unordered_map< MPO, std::pair< Pointer, Pointer >, MPO::Hash >;
 
     TransactionProducer( mega::log::FileStorage& log );
 

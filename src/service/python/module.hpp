@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_March_12_module
 #define GUARD_2023_March_12_module
 
-#include "reference.hpp"
+#include "pointer.hpp"
 #include "python.hpp"
 #include "root.hpp"
 #include "machine.hpp"
@@ -78,7 +78,7 @@ public:
 
     struct WrapperInfo
     {
-        PythonReference::PythonWrapperFunction pFunctionPtr = nullptr;
+        PythonPointer::PythonWrapperFunction pFunctionPtr = nullptr;
     };
 
     using Ptr = std::shared_ptr< PythonModule >;
@@ -93,16 +93,16 @@ public:
     PythonModule& operator=( PythonModule&& )      = delete;
 
     // operators
-    mega::reference operatorNew( mega::SubType typeID );
-    mega::reference operatorRemoteNew( mega::SubType typeID, MPO mpo );
-    void            operatorDelete( mega::reference ref );
-    mega::reference operatorCast( mega::reference ref, mega::SubType typeID );
+    mega::Pointer operatorNew( mega::SubType typeID );
+    mega::Pointer operatorRemoteNew( mega::SubType typeID, MPO mpo );
+    void            operatorDelete( mega::Pointer ref );
+    mega::Pointer operatorCast( mega::Pointer ref, mega::SubType typeID );
 
     // Python Dynamic Invocations
     mega::TypeID                           getInterfaceTypeID( const mega::TypeID concreteTypeID );
     const InvocationInfo&                  invoke( const mega::InvocationID& invocationID );
     //void*                                  getOperator( const OperatorFunction& operatorFunction );
-    PythonReference::PythonWrapperFunction getPythonFunctionWrapper( TypeID interfaceTypeID );
+    PythonPointer::PythonWrapperFunction getPythonFunctionWrapper( TypeID interfaceTypeID );
 
     template < typename Functor >
     void invoke( Functor&& functor )

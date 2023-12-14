@@ -25,7 +25,7 @@
 
 #include "mega/values/native_types.hpp"
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/values/runtime/maths_types.hpp" // has boost math stuff
 
 #include "mega/values/clang/result_type.hpp"

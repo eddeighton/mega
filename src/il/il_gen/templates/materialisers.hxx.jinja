@@ -18,8 +18,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_December_05_materialisers.hxx
-#define GUARD_2023_December_05_materialisers.hxx
+#ifndef GUARD_2023_December_05_materialisers
+#define GUARD_2023_December_05_materialisers
 
 #include "il/elements/types.hpp"
 
@@ -40,7 +40,7 @@ struct {{ mat.name }} : Materialiser
     {
         using namespace std::string_literals;
 {% for parameter in mat.parameters %}
-        parameterTypes.emplace_back( {{ parameter.variable_type }}{ {{ parameter.data_type }} } );
+        parameterTypes.emplace_back( {{ parameter.type_var }}{ {{ parameter.type_data }} } );
 {% endfor %}
 {% for function in mat.functions %}
         functionTemplates.insert( { {{ function.name }}, 
@@ -53,11 +53,11 @@ struct {{ mat.name }} : Materialiser
                         "{{ function.name }}"s, 
                         { 
 {% for parameter in function.parameters %}
-                            {{ parameter.variable_type }}{ {{ parameter.data_type }} }{% if not loop.is_last%},{% endif %}
+                            {{ parameter.type_var }}{ {{ parameter.type_data }} }{% if not loop.is_last%},{% endif %}
 
 {% endfor %}
                         }, 
-                        {{ function.return_variable_type }}{ {{ function.return_data_type }} } 
+                        {{ function.return_type_var }}{ {{ function.return_type_data }} } 
                     } 
                 } 
             } } );
@@ -68,4 +68,4 @@ struct {{ mat.name }} : Materialiser
 
 }
 
-#endif //GUARD_2023_December_05_materialisers.hxx
+#endif //GUARD_2023_December_05_materialisers

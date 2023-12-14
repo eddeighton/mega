@@ -47,12 +47,12 @@ void LeafRequestLogicalThread::MPODestroyed( const MPO& mpo, boost::asio::yield_
     }*/
 }
 
-reference LeafRequestLogicalThread::NetworkAllocate( const MPO& parent, const TypeID& objectTypeID,
+Pointer LeafRequestLogicalThread::NetworkAllocate( const MPO& parent, const TypeID& objectTypeID,
                                                     const TimeStamp& lockCycle, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkAllocate: {} {}", parent, objectTypeID );
 
-    reference result;
+    Pointer result;
 
     if( MP( parent ) != m_leaf.m_mp )
     {
@@ -78,7 +78,7 @@ reference LeafRequestLogicalThread::NetworkAllocate( const MPO& parent, const Ty
     // return m_leaf.m_pRemoteMemoryManager->networkToHeap( result, llvm );
 }
 
-reference LeafRequestLogicalThread::NetworkToHeap( const reference& ref, const TimeStamp& lockCycle,
+Pointer LeafRequestLogicalThread::NetworkToHeap( const Pointer& ref, const TimeStamp& lockCycle,
                                                   boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkToHeap: {} {}", ref, lockCycle );
@@ -92,7 +92,7 @@ reference LeafRequestLogicalThread::NetworkToHeap( const reference& ref, const T
     // auto llvm = getLLVMCompiler( yield_ctx );
 
     // caller has called this because they ALREADY have appropriate read or write lock
-    reference heapAddress;
+    Pointer heapAddress;
     {
         if( ref.isNetworkAddress() )
         {
@@ -126,7 +126,7 @@ reference LeafRequestLogicalThread::NetworkToHeap( const reference& ref, const T
                 AddressTable& addressTable = objectSnapshot.getTable();
                 for( AddressTable::Index objectIndex : objectSnapshot.getObjects() )
                 {
-                    reference remoteAddress = addressTable.indexToRef( objectIndex );
+                    Pointer remoteAddress = addressTable.indexToRef( objectIndex );
                     ASSERT( remoteAddress.isNetworkAddress() );
 
                     THROW_TODO;
@@ -145,7 +145,7 @@ reference LeafRequestLogicalThread::NetworkToHeap( const reference& ref, const T
         heapAddress.setLockCycle( lockCycle );
     }
 
-    return reference::make( heapAddress, ref.getTypeInstance() );
+    return Pointer::make( heapAddress, ref.getTypeInstance() );
 }
 
 } // namespace mega::service

@@ -1,0 +1,49 @@
+
+object Object1
+{
+    dim m_test1 std::vector< int >;
+    dim m_test2 std::vector< @Object2 >;
+
+    include test( ast_include.mega );
+}
+
+namespace N
+{
+    object Object2
+    {
+        include( ast_include.mega );
+    }
+}
+
+
+object Object3
+{
+    dim m_test1 int;
+    dim m_test2 @Object1;
+    dim m_test3 ^Object2.m_test1;
+
+    namespace D
+    {
+        function A::B::C() : void
+        {
+
+        }
+
+        action action1 > @action2
+        {
+
+        }
+    }
+
+    dim D::A::m_thing int;
+    
+    action action2 > @action1
+    {
+
+    }
+}
+
+action N::Object2::D::A::m_thing2
+{
+
+}

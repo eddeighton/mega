@@ -114,7 +114,7 @@ Type::Ptr TypeSystem::getLinkType( SubType concreteObjectID, TypeID typeID )
     return pResult;
 }
 
-PyObject* TypeSystem::cast( const mega::reference& ref )
+PyObject* TypeSystem::cast( const mega::Pointer& ref )
 {
     Type::Ptr pType;
     {

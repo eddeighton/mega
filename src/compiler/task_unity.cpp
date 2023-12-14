@@ -53,12 +53,9 @@ bool writeJSON( const boost::filesystem::path& filePath, const nlohmann::json& d
 
 class Task_UnityReflection : public BaseTask
 {
-    const mega::io::manifestFilePath& m_manifest;
-
 public:
-    Task_UnityReflection( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+    Task_UnityReflection( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( manifest )
     {
     }
 
@@ -168,20 +165,16 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_UnityReflection( const TaskArguments&              taskArguments,
-                                           const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_UnityReflection( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_UnityReflection >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_UnityReflection >( taskArguments );
 }
 
 class Task_UnityAnalysis : public BaseTask
 {
-    const mega::io::manifestFilePath& m_manifest;
-
 public:
-    Task_UnityAnalysis( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+    Task_UnityAnalysis( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( manifest )
     {
     }
 
@@ -246,20 +239,18 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_UnityAnalysis( const TaskArguments&              taskArguments,
-                                         const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_UnityAnalysis( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_UnityAnalysis >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_UnityAnalysis >( taskArguments );
 }
 
 class Task_Unity : public BaseTask
 {
-    const mega::io::manifestFilePath& m_manifest;
+    anifest;
 
 public:
-    Task_Unity( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+    Task_Unity( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( manifest )
     {
     }
 
@@ -348,7 +339,7 @@ public:
                     dataBindings.push_back( pDataBinding );
                 }
             }
-            //THROW_TODO;
+            // THROW_TODO;
             /*std::vector< UnityAnalysis::LinkBinding* > linkBindings;
             {
                 for( const auto& linkBinding : manual[ "linkBindings" ] )
@@ -382,7 +373,7 @@ public:
                     dataBindings.push_back( pDataBinding );
                 }
             }
-           // THROW_TODO;
+            // THROW_TODO;
             /*std::vector< UnityAnalysis::LinkBinding* > linkBindings;
             {
                 for( const auto& linkBinding : prefab[ "linkBindings" ] )
@@ -409,7 +400,7 @@ public:
         ObjectVector objectVector;
         DimMap       dimMap;
 
-        //THROW_TODO;
+        // THROW_TODO;
         /*using LinkMap      = std::multimap< Concrete::Object*, Concrete::Link* >;
         LinkMap      linkMap;
         {
@@ -493,7 +484,7 @@ public:
                         dataBindings.insert( { pFoundDimension, pDataBinding } );
                     }
                 }
-                //THROW_TODO;
+                // THROW_TODO;
                 /*std::map< Concrete::Link*, UnityAnalysis::LinkBinding* > linkBindings;
                 {
                     for( UnityAnalysis::LinkBinding* pLinkBinding : pObjectBinding->get_linkBindings() )
@@ -548,20 +539,16 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Unity( const TaskArguments&              taskArguments,
-                                 const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_Unity( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_Unity >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_Unity >( taskArguments );
 }
 
 class Task_UnityDatabase : public BaseTask
 {
-    const mega::io::manifestFilePath& m_manifest;
-
 public:
-    Task_UnityDatabase( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+    Task_UnityDatabase( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( manifest )
     {
     }
 
@@ -663,7 +650,7 @@ public:
                                                   { "interfaceTypeName", pBinding->get_typeName() } } );
                     binding[ "data" ].push_back( dataBinding );
                 }
-                //THROW_TODO;
+                // THROW_TODO;
                 /*for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
                 {
                     nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
@@ -691,7 +678,7 @@ public:
                     binding[ "data" ].push_back( dataBinding );
                 }
 
-                //THROW_TODO;
+                // THROW_TODO;
                 /*for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
                 {
                     nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
@@ -708,7 +695,7 @@ public:
             }
         }
 
-        //THROW_TODO;
+        // THROW_TODO;
         /*for( HyperGraph::Relation* pRelation :
              database.many< HyperGraph::Relation >( m_environment.project_manifest() ) )
         {
@@ -798,9 +785,8 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_UnityDatabase( const TaskArguments&              taskArguments,
-                                         const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_UnityDatabase( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_UnityDatabase >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_UnityDatabase >( taskArguments );
 }
 } // namespace mega::compiler

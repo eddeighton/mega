@@ -20,7 +20,7 @@
 #ifndef ENVIRONMENT_BUILD_18_JUNE
 #define ENVIRONMENT_BUILD_18_JUNE
 
-#include "database/api.hpp"
+
 #include "database/environment.hxx"
 
 #include "database/directories.hpp"

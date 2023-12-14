@@ -33,8 +33,6 @@ namespace mega::compiler
 
 class Task_Inheritance : public BaseTask
 {
-    const mega::io::Manifest m_manifest;
-
     using ContextMap
         = std::multimap< InheritanceAnalysis::Interface::IContext*, InheritanceAnalysis::Concrete::Context* >;
     using DimensionMap = std::multimap< InheritanceAnalysis::Interface::DimensionTrait*,
@@ -43,9 +41,8 @@ class Task_Inheritance : public BaseTask
                                    InheritanceAnalysis::Concrete::Dimensions::Link* >;
 
 public:
-    Task_Inheritance( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+    Task_Inheritance( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( m_environment, manifestFilePath )
     {
     }
 
@@ -185,17 +182,6 @@ public:
             return pObjectMapping;
         }
     };
-
-    using PathSet = std::set< mega::io::megaFilePath >;
-    PathSet getSortedSourceFiles() const
-    {
-        PathSet sourceFiles;
-        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
-        {
-            sourceFiles.insert( sourceFilePath );
-        }
-        return sourceFiles;
-    }
 
     void collate( InheritanceAnalysis::Database&                                         database,
                   const std::vector< InheritanceAnalysis::Inheritance::ObjectMapping* >& mappings,
@@ -422,10 +408,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Inheritance( const TaskArguments&              taskArguments,
-                                       const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_Inheritance( const TaskArguments&              taskArguments )
 {
-    return std::make_unique< Task_Inheritance >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_Inheritance >( taskArguments );
 }
 
 class Task_InheritanceRollout : public BaseTask

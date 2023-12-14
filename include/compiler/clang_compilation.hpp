@@ -38,7 +38,7 @@
 namespace mega
 {
 
-class EGDB_EXPORT Compilation
+class Compilation
 {
     std::string                              compiler_command;
     std::optional< boost::filesystem::path > compiler_plugin;

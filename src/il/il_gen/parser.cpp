@@ -124,7 +124,7 @@ ValueType fromName( const std::string& strName )
     boost::replace_all( tmp, "class ", "" );
 
     VERIFY_RTE_MSG( tmp.find( '*' ) == std::string::npos, "Type contains nested pointers: " << strName );
-    VERIFY_RTE_MSG( tmp.find( '&' ) == std::string::npos, "Type contains nested reference: " << strName );
+    VERIFY_RTE_MSG( tmp.find( '&' ) == std::string::npos, "Type contains nested Pointer: " << strName );
     static const std::string strConst = "const"s;
     VERIFY_RTE_MSG( std::search( tmp.begin(), tmp.end(), strConst.begin(), strConst.end() ) == tmp.end(),
                     "Type contains nested const: " << strName );
@@ -429,72 +429,191 @@ public:
     }
     virtual void run( const MatchFinder::MatchResult& Result )
     {
-        if( auto pClassTemplateDecl = Result.Nodes.getNodeAs< clang::ClassTemplateDecl >( "materialisers" ) )
+        if( auto pCXXRecordDecl = Result.Nodes.getNodeAs< clang::CXXRecordDecl >( "materialisers" ) )
         {
-            auto namespaces = detectNamespace( pClassTemplateDecl->getDeclContext() );
+            auto namespaces = detectNamespace( pCXXRecordDecl->getDeclContext() );
+
             if( ( namespaces.size() == 2 ) && ( namespaces.front() == "mega" )
                 && ( namespaces.back() == "materialiser" ) )
             {
                 try
                 {
-                    std::vector< Variable > arguments;
-                    for( const NamedDecl* pTemplateParam : pClassTemplateDecl->getTemplateParameters()->asArray() )
+                    if( pCXXRecordDecl->getNameAsString() == "Name" ||
+                        pCXXRecordDecl->getNameAsString() == "Functions" )
                     {
-                        const NonTypeTemplateParmDecl* pParam
-                            = llvm::dyn_cast< NonTypeTemplateParmDecl >( pTemplateParam );
-                        VERIFY_RTE_MSG( pParam, "Failed to find param var decl in materialiser template parameters: "
-                                                    << pClassTemplateDecl->getNameAsString() );
-
-                        auto adaptedType = getAdaptedType( model, pParam->getType().getCanonicalType() );
-                        arguments.push_back( Variable{ adaptedType, pParam->getNameAsString() } );
+                        return;
                     }
-
+                    
+                    std::vector< Variable > arguments;
                     std::vector< Function > functions;
+
+                    for( const auto* pMatChild : pCXXRecordDecl->decls() )
                     {
-                        auto pUnderlyingClassDecl = pClassTemplateDecl->getTemplatedDecl();
-
-                        for( const auto* pChild : pUnderlyingClassDecl->decls() )
+                        if( auto pStruct = llvm::dyn_cast< CXXRecordDecl >( pMatChild ) )
                         {
-                            if( const CXXMethodDecl* pFunctionDecl = llvm::dyn_cast< CXXMethodDecl >( pChild ) )
+                            if( pStruct->getNameAsString() == "Name" )
                             {
-                                // ItaniumMangleContext* pItaniumMangle = ItaniumMangleContext::create(
-                                //     pFunctionDecl->getASTContext(), pFunctionDecl->getASTContext().getDiagnostics() );
-                                // ThunkInfo                thunkInfo{};
-                                // std::string              str;
-                                // llvm::raw_string_ostream os( str );
-                                // pItaniumMangle->mangleThunk( pFunctionDecl, thunkInfo, os );
-                                // std::cout << "Mangle: " << str << std::endl;
-
-                                std::vector< Variable > arguments;
+                                for( const auto* pNamingChild : pStruct->decls() )
                                 {
-                                    for( int i = 0; i != pFunctionDecl->getNumParams(); ++i )
+                                    if( auto pFunctionDecl = llvm::dyn_cast< FunctionDecl >( pNamingChild ) )
                                     {
-                                        auto pParam = pFunctionDecl->getParamDecl( i );
-                                        auto adaptedType
-                                            = getAdaptedType( model, pParam->getType().getCanonicalType() );
-                                        arguments.push_back( Variable{ adaptedType, pParam->getNameAsString() } );
+                                        std::cout << "Found naming function: " << pFunctionDecl->getNameAsString()
+                                                  << " with arguments: " << pFunctionDecl->getNumParams() << std::endl;
+                                        VERIFY_RTE_MSG( arguments.empty(), "Found multiple naming functions" );
+                                        for( int i = 0; i != pFunctionDecl->getNumParams(); ++i )
+                                        {
+                                            auto pParam = pFunctionDecl->getParamDecl( i );
+                                            auto adaptedType
+                                                = getAdaptedType( model, pParam->getType().getCanonicalType() );
+                                            arguments.push_back( Variable{ adaptedType, pParam->getNameAsString() } );
+                                        }
                                     }
                                 }
-                                auto returnType
-                                    = getAdaptedType( model, pFunctionDecl->getReturnType().getCanonicalType() );
-                                functions.push_back(
-                                    Function{ arguments, returnType, pFunctionDecl->getNameAsString(), namespaces } );
                             }
+                            else if( pStruct->getNameAsString() == "Functions" )
+                            {
+                                for( const auto* pFunctionsChild : pStruct->decls() )
+                                {
+                                    if( const auto* pFunctionDecl = llvm::dyn_cast< CXXMethodDecl >( pFunctionsChild ) )
+                                    {
+                                        std::vector< Variable > functionArgs;
+                                        {
+                                            for( int i = 0; i != pFunctionDecl->getNumParams(); ++i )
+                                            {
+                                                auto pParam = pFunctionDecl->getParamDecl( i );
+                                                auto adaptedType
+                                                    = getAdaptedType( model, pParam->getType().getCanonicalType() );
+                                                functionArgs.push_back(
+                                                    Variable{ adaptedType, pParam->getNameAsString() } );
+                                            }
+                                        }
+                                        auto returnType = getAdaptedType(
+                                            model, pFunctionDecl->getReturnType().getCanonicalType() );
+                                        // generate the function as though in the namespace of the materialiser name
+                                        functions.push_back( Function{ functionArgs,
+                                                                       returnType,
+                                                                       pFunctionDecl->getNameAsString(),
+                                                                       { pCXXRecordDecl->getNameAsString() } } );
+                                    }
+                                }
+                            }
+                            else if( pStruct->getNameAsString() == pCXXRecordDecl->getNameAsString() )
+                            {
+                                // self Pointer
+                            }
+                            else
+                            {
+                                THROW_RTE( "Unknown struct found in materialiser: "
+                                           << pCXXRecordDecl->getNameAsString() << " " << pStruct->getNameAsString() );
+                            }
+                        }
+                        else if( auto pNamedDecl = llvm::dyn_cast< NamedDecl >( pMatChild ) )
+                        {
+                            THROW_RTE( "Found unexpected declaration in materialiser: "
+                                       << pCXXRecordDecl->getNameAsString()
+                                       << " of: " << pNamedDecl->getNameAsString() );
+                        }
+                        else
+                        {
+                            THROW_RTE(
+                                "Found unnamed declaration in materialiser: " << pCXXRecordDecl->getNameAsString() );
                         }
                     }
 
-                    Materialiser materialiser{ pClassTemplateDecl->getNameAsString(), arguments, functions };
-                    model.materialisers.push_back( materialiser );
+                    bool bFound = false;
+                    for( const auto existing : model.materialisers )
+                    {
+                        if( existing.name == pCXXRecordDecl->getNameAsString() )
+                        {
+                            bFound = true;
+                            break;
+                        }
+                    }
+                    if( bFound )
+                    {
+                        VERIFY_RTE_MSG(
+                            arguments.empty(), "Duplicate materialiser: " << pCXXRecordDecl->getNameAsString() );
+                        VERIFY_RTE_MSG(
+                            functions.empty(), "Duplicate materialiser: " << pCXXRecordDecl->getNameAsString() );
+                    }
+                    else
+                    {
+                        VERIFY_RTE_MSG( !arguments.empty(), "Failed to determine arguments for materialiser: "
+                                                                << pCXXRecordDecl->getNameAsString() );
+                        VERIFY_RTE_MSG( !functions.empty(), "Failed to determine functions for materialiser: "
+                                                                << pCXXRecordDecl->getNameAsString() );
+
+                        std::cout << "Found materialiser: " << pCXXRecordDecl->getNameAsString()
+                                << " decl kind: " << pCXXRecordDecl->getKindName().str() << std::endl;
+
+                        Materialiser materialiser{ pCXXRecordDecl->getNameAsString(), arguments, functions };
+                        model.materialisers.push_back( materialiser );
+                    }
                 }
                 catch( std::exception& ex )
                 {
-                    THROW_RTE( "Fail to analyse materialiser: " << pClassTemplateDecl->getNameAsString()
+                    THROW_RTE( "Fail to analyse materialiser: " << pCXXRecordDecl->getNameAsString()
                                                                 << " error: " << ex.what() );
                 }
             }
         }
     }
 };
+
+class StubFunctionCallback : public MatchFinder::MatchCallback
+{
+    Model& model;
+
+public:
+    StubFunctionCallback( Model& model )
+        : model( model )
+    {
+    }
+    virtual void run( const MatchFinder::MatchResult& Result )
+    {
+        if( auto pFunctionDecl = Result.Nodes.getNodeAs< clang::FunctionDecl >( "functions" ) )
+        {
+            try
+            {
+                auto namespaces = detectNamespace( pFunctionDecl );
+                if( namespaces.size() == 1 )
+                {
+                    for( auto& mat : model.materialisers )
+                    {
+                        if( mat.name == namespaces.front() )
+                        {
+                            const auto functionName = pFunctionDecl->getNameAsString();
+                            bool       bFound       = false;
+                            for( auto& func : mat.functions )
+                            {
+                                if( functionName == func.name )
+                                {
+                                    // determine mangle for function
+                                    ItaniumMangleContext* pItaniumMangle = ItaniumMangleContext::create(
+                                        pFunctionDecl->getASTContext(),
+                                        pFunctionDecl->getASTContext().getDiagnostics() );
+                                    llvm::raw_string_ostream os( func.mangle );
+                                    pItaniumMangle->mangleName( pFunctionDecl, os );
+                                    std::cout << "Mangle: " << func << " " << func.mangle << std::endl;
+                                    bFound = true;
+                                }
+                            }
+                            VERIFY_RTE_MSG( bFound, "Failed to locate function: " << functionName
+                                                                                  << " in materialiser: " << mat.name );
+                        }
+                    }
+                }
+            }
+            catch( std::exception& ex )
+            {
+                THROW_RTE( "Fail to analyse function type for: " << pFunctionDecl->getNameAsString() << " with type: "
+                                                                 << pFunctionDecl->getType().getAsString()
+                                                                 << " error: " << ex.what() );
+            }
+        }
+    }
+};
+
 } // namespace
 
 void parseNative( const boost::filesystem::path& filePath, Model& model )
@@ -562,7 +681,23 @@ void parseMaterialiser( const boost::filesystem::path& filePath, Model& model )
     ToolDB               db( filePath );
     ClangTool            tool( db, { filePath.string() } );
     MatchFinder          finder;
-    DeclarationMatcher   matcher = classTemplateDecl().bind( "materialisers" );
+    DeclarationMatcher   matcher = cxxRecordDecl().bind( "materialisers" );
+    finder.addMatcher( matcher, &callback );
+    tool.run( newFrontendActionFactory( &finder ).get() );
+}
+
+void parseStubs( const boost::filesystem::path& filePath, Model& model )
+{
+    using namespace llvm;
+    using namespace clang;
+    using namespace clang::tooling;
+    using namespace clang::ast_matchers;
+
+    StubFunctionCallback callback( model );
+    ToolDB               db( filePath );
+    ClangTool            tool( db, { filePath.string() } );
+    MatchFinder          finder;
+    DeclarationMatcher   matcher = functionDecl().bind( "functions" );
     finder.addMatcher( matcher, &callback );
     tool.run( newFrontendActionFactory( &finder ).get() );
 }

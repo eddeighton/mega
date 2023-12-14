@@ -32,7 +32,7 @@
 namespace std
 {
 #define NATIVE_TYPE( Type ) \
-    std::ostream& operator<<( std::ostream& os, const std::vector< Type >& value );
+    std::ostream& operator<<( std::ostream& os, const std::vector< ::mega::Type >& value );
 #include "mega/values/native_types.hxx"
 #undef NATIVE_TYPE
 }

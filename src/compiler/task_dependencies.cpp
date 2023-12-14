@@ -34,12 +34,9 @@ namespace mega::compiler
 
 class Task_DependencyAnalysis : public BaseTask
 {
-    const mega::io::Manifest m_manifest;
-
 public:
-    Task_DependencyAnalysis( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+    Task_DependencyAnalysis( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( m_environment, manifestFilePath )
     {
     }
 
@@ -54,22 +51,22 @@ public:
         {
         }
 
-        void collectDependencies( DependencyAnalysis::Parser::ContextDef* pContextDef,
-                                  GlobVector&                             dependencyGlobs ) const
+        void collectDependencies( DependencyAnalysis::Parser::Container* pContainer,
+                                  GlobVector&                            dependencyGlobs ) const
         {
             using namespace DependencyAnalysis;
 
-            for( Parser::Dependency* pDependency : pContextDef->get_dependencies() )
+            for( Parser::Dependency* pDependency : pContainer->get_dependencies() )
             {
-                VERIFY_PARSER( !pDependency->get_str().empty(), "Empty dependency", pContextDef->get_id() );
-                boost::filesystem::path sourceFilePath = pContextDef->get_id()->get_source_file();
+                VERIFY_PARSER( !pDependency->get_str().empty(), "Empty dependency", pContainer );
+                boost::filesystem::path sourceFilePath = pContainer->get_source_file();
                 VERIFY_RTE( boost::filesystem::exists( sourceFilePath ) );
                 VERIFY_RTE( sourceFilePath.has_parent_path() );
                 dependencyGlobs.push_back(
-                    mega::utilities::Glob{ sourceFilePath.parent_path(), pDependency->get_str(), pContextDef } );
+                    mega::utilities::Glob{ sourceFilePath.parent_path(), pDependency->get_str(), pContainer } );
             }
 
-            for( Parser::ContextDef* pContext : pContextDef->get_children() )
+            for( Parser::Container* pContext : pContainer->get_children() )
             {
                 collectDependencies( pContext, dependencyGlobs );
             }
@@ -104,7 +101,7 @@ public:
                             // ensure the resolution DOES NOT contain the original file
                             VERIFY_PARSER( megaFilePath != sourceFilePath,
                                            "Source file contains dependency to itself: " << filePath.string(),
-                                           reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                                           reinterpret_cast< Parser::Container* >( glob.pDiagnostic ) );
                             if( std::find( resolution.begin(), resolution.end(), filePath ) == resolution.end() )
                                 resolution.push_back( filePath );
                         }
@@ -113,12 +110,12 @@ public:
                 catch( mega::utilities::GlobException& ex )
                 {
                     VERIFY_PARSER( false, "Dependency error: " << ex.what(),
-                                   reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                                   reinterpret_cast< Parser::Container* >( glob.pDiagnostic ) );
                 }
                 catch( boost::filesystem::filesystem_error& ex )
                 {
                     VERIFY_PARSER( false, "Dependency error: " << ex.what(),
-                                   reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                                   reinterpret_cast< Parser::Container* >( glob.pDiagnostic ) );
                 }
                 globs.push_back( database.construct< Glob >( Glob::Args{ glob.source_file, glob.glob } ) );
             }
@@ -150,12 +147,12 @@ public:
                 catch( mega::utilities::GlobException& ex )
                 {
                     VERIFY_PARSER( false, "Dependency error: " << ex.what(),
-                                   reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                                   reinterpret_cast< Parser::Container* >( glob.pDiagnostic ) );
                 }
                 catch( boost::filesystem::filesystem_error& ex )
                 {
                     VERIFY_PARSER( false, "Dependency error: " << ex.what(),
-                                   reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                                   reinterpret_cast< Parser::Container* >( glob.pDiagnostic ) );
                 }
                 globs.push_back( database.construct< Glob >( Glob::Args{ glob.source_file, glob.glob } ) );
             }
@@ -561,10 +558,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_DependencyAnalysis( const TaskArguments&              taskArguments,
-                                              const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_DependencyAnalysis( const TaskArguments&              taskArguments )
 {
-    return std::make_unique< Task_DependencyAnalysis >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_DependencyAnalysis >( taskArguments );
 }
 
 } // namespace mega::compiler

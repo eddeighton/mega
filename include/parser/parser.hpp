@@ -45,17 +45,17 @@
 #include <memory>
 
 #if defined( _MSC_VER )
-#   ifdef MEGA_PARSER_MODULE
-#       define MEGA_PARSER_EXPORT __declspec( dllexport )
-#   else
-#       define MEGA_PARSER_EXPORT __declspec( dllimport )
-#   endif
+#ifdef MEGA_PARSER_MODULE
+#define MEGA_PARSER_EXPORT __declspec( dllexport )
+#else
+#define MEGA_PARSER_EXPORT __declspec( dllimport )
+#endif
 #elif defined( __GNUC__ )
-#   ifdef MEGA_PARSER_MODULE
-#       define MEGA_PARSER_EXPORT __attribute__( ( visibility( "default" ) ) )
-#   else
-#       define MEGA_PARSER_EXPORT
-#   endif
+#ifdef MEGA_PARSER_MODULE
+#define MEGA_PARSER_EXPORT __attribute__( ( visibility( "default" ) ) )
+#else
+#define MEGA_PARSER_EXPORT
+#endif
 #endif
 
 namespace ParserStage
@@ -64,13 +64,13 @@ class Database;
 
 namespace Parser
 {
-class ContextDef;
+class Container;
 }
 } // namespace ParserStage
 
 struct MEGA_PARSER_EXPORT EG_PARSER_INTERFACE
 {
-    virtual ParserStage::Parser::ContextDef*
+    virtual ParserStage::Parser::Container*
     parseEGSourceFile( ParserStage::Database&                        database,
                        const boost::filesystem::path&                sourceFilePath,
                        const std::vector< boost::filesystem::path >& includeDirectories,
@@ -79,6 +79,6 @@ struct MEGA_PARSER_EXPORT EG_PARSER_INTERFACE
         = 0;
 };
 
-//std::unique_ptr< EG_PARSER_INTERFACE > getParser();
+// std::unique_ptr< EG_PARSER_INTERFACE > getParser();
 
 #endif // PARSER_14_SEPT_2020

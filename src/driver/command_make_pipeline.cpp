@@ -19,10 +19,11 @@
 
 #include "pipeline/version.hpp"
 #include "pipeline/configuration.hpp"
+#include "pipeline/pipeline.hpp"
 
 #include "service/network/log.hpp"
 
-#include "pipeline/pipeline.hpp"
+#include "database/manifest.hxx"
 
 #include "compiler/configuration.hpp"
 #include "compiler/cmake.hpp"
@@ -96,24 +97,40 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
         const boost::filesystem::path    compilerPath = toolChain.megaCompilerPath;
         const mega::pipeline::PipelineID pipelineID   = compilerPath.string();
-        const mega::Version              version;//      = mega::Version::getVersion();
+        const mega::Version              version; //      = mega::Version::getVersion();
+
+        const mega::io::Directories directories{ srcDir, buildDir, installDir, templatesDir };
+
+        std::vector< io::ComponentInfo > componentInfos;
+        {
+            for( const boost::filesystem::path& componentInfoPath : componentInfoPaths )
+            {
+                componentInfos.emplace_back( io::ComponentInfo::load( componentInfoPath ) );
+            }
+        }
+
+        // create the manifest
+        const mega::io::BuildEnvironment environment( directories );
+        const mega::io::Manifest         manifest( environment, srcDir, componentInfos );
+
+        {
+            // save the manifest
+            const mega::io::manifestFilePath projectManifestPath = environment.project_manifest();
+            manifest.save_temp( environment, projectManifestPath );
+            environment.temp_to_real( projectManifestPath );
+        }
 
         // clang-format off
-        mega::compiler::Configuration config =
+        const mega::compiler::Configuration config =
         {
             pipelineID,
             version,
 
             projectName,
-            componentInfoPaths,
+            componentInfos,
 
-            mega::io::Directories
-            {
-                srcDir,
-                buildDir,
-                installDir,
-                templatesDir
-            },
+            directories,
+            manifestData,
             
             unityProjectDir,
             unityEditor

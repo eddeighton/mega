@@ -20,7 +20,7 @@
 #include "service/clock.hpp"
 
 #include "mega/values/native_types.hpp"
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/clock.hpp"
 
 #include "service/protocol/common/context.hpp"

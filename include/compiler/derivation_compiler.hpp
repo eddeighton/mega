@@ -288,7 +288,7 @@ private:
     void build( Instructions::Calculation::InstructionGroup* pInstruction, Instructions::Variables::Variable* pVariable,
                 Derivation::Edge* pEdge )
     {
-        // NOTE pInstruction AND pVariable are OUT parameters taken by reference
+        // NOTE pInstruction AND pVariable are OUT parameters taken by Pointer
         buildHyperGraphEdges( pInstruction, pVariable, pEdge );
 
         auto pNextStep = pEdge->get_next();

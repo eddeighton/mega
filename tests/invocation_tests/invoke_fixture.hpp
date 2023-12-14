@@ -77,10 +77,13 @@ public:
             : m_directories{ std::move( directories ) }
             , m_environment( m_directories )
         {
-            std::ostringstream osFileName;
-            osFileName << TEST_NAME << ".mega";
-            // create test code source file
-            m_srcFilePath = m_directories.srcDir / osFileName.str();
+            {
+                std::ostringstream osFileName;
+                osFileName << TEST_NAME << ".mega";
+                // create test code source file
+                m_srcFilePath = m_directories.srcDir / osFileName.str();
+            }
+
             {
                 auto pSrcFileStream = boost::filesystem::createNewFileStream( m_srcFilePath );
                 *pSrcFileStream << CODE;
@@ -90,19 +93,15 @@ public:
             const mega::io::ComponentListingFilePath componentListingFilePath
                 = m_environment.ComponentListingFilePath_fromPath( m_directories.buildDir );
 
+            std::vector< mega::io::ComponentInfo > componentInfos;
             {
                 std::ostringstream osComponentName;
-                osFileName << TEST_NAME << ".so";
+                osComponentName << TEST_NAME << ".so";
                 const boost::filesystem::path componentFilePath = m_directories.buildDir / osComponentName.str();
                 const mega::io::ComponentInfo componentInfo(
                     mega::ComponentType::eInterface, TEST_NAME, componentFilePath, g_cppFlags, g_cppDefines,
                     m_directories.srcDir, m_directories.buildDir, { m_srcFilePath }, {}, g_includeDirectories );
-
-                boost::filesystem::path         tempFile;
-                std::unique_ptr< std::ostream > pOfstream
-                    = m_environment.write_temp( componentListingFilePath, tempFile );
-                boost::archive::xml_oarchive oa( *pOfstream );
-                oa << boost::serialization::make_nvp( "componentInfo", componentInfo );
+                componentInfos.emplace_back( std::move( componentInfo ) );
             }
             m_environment.temp_to_real( componentListingFilePath );
             const boost::filesystem::path actualComponentInfoFilePath
@@ -111,7 +110,7 @@ public:
 
             const mega::compiler::Configuration config = { { g_toolChain.megaCompilerPath.string(), mega::Version{} },
                                                            TEST_NAME,
-                                                           { actualComponentInfoFilePath },
+                                                           componentInfos,
                                                            m_directories };
 
             m_pipeline = mega::compiler::makePipelineConfiguration( config );
@@ -119,8 +118,8 @@ public:
 
         mega::pipeline::PipelineResult runPipeline()
         {
-            return mega::pipeline::runPipelineLocally(
-                g_stashDir, std::nullopt, g_toolChain, m_pipeline, "Task_OperationsPCH", "", {}, false, true, std::cout );
+            return mega::pipeline::runPipelineLocally( g_stashDir, std::nullopt, g_toolChain, m_pipeline,
+                                                       "Task_OperationsPCH", "", {}, false, true, true, std::cout );
         };
     };
 
@@ -149,17 +148,17 @@ public:
         }
         catch( std::exception& ex )
         {
-            std::cout << "Setup failed with exception: " << ex.what() << std::endl;
             m_pImpl.reset();
+            FAIL() << "Setup failed with exception: " << ex.what() << std::endl;
         }
         catch( ... )
         {
-            std::cout << "Setup failed with unknown exception" << std::endl;
             m_pImpl.reset();
+            FAIL() << "Setup failed with unknown exception" << std::endl;
         }
     }
 
-    static void TearDownTestSuite() {}
+    static void TearDownTestSuite() { m_pImpl.reset(); }
 
     // Sets up the test fixture.
     virtual void SetUp() {}

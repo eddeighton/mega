@@ -23,7 +23,7 @@
 
 namespace mega::runtime
 {
-
+/*
 JITDatabase::JITDatabase( const boost::filesystem::path& projectDatabasePath )
     : m_environment( projectDatabasePath )
     , m_manifest( m_environment, m_environment.project_manifest() )
@@ -375,5 +375,5 @@ JITDatabase::PrefabBindings JITDatabase::getPrefabBindings() const
 {
     return m_database.many< FinalStage::UnityAnalysis::Binding >( m_environment.project_manifest() );
 }
-
+*/
 } // namespace mega::runtime

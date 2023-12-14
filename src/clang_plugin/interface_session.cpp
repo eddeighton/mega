@@ -65,7 +65,7 @@ class InterfaceSession : public AnalysisSession
     InterfaceAnalysisStage::Database m_database;
 
     using SymbolTypeIDMap    = std::map< mega::TypeID, Symbols::SymbolTypeID* >;
-    using InterfaceTypeIDMap = std::map< mega::TypeID, Symbols::InterfaceTypeID* >;
+    using InterfaceTypeIDMap = std::map< mega::TypeID, Symbols::interface::TypeID* >;
     using MangleMap          = std::unordered_map< std::string, MegaMangle::Mangle* >;
 
     std::map< std::string, Symbols::SymbolTypeID* > m_symbols;
@@ -348,11 +348,11 @@ public:
                             }
                             else
                             {
-                                // may be Interface reference type
+                                // may be Interface Pointer type
                                 auto iFind2 = m_interfaceTypeIDs.find( symbolID );
                                 if( iFind2 != m_interfaceTypeIDs.end() )
                                 {
-                                    Symbols::InterfaceTypeID* pInterfaceTypeID = iFind2->second;
+                                    Symbols::interface::TypeID* pInterfaceTypeID = iFind2->second;
                                     auto iFind3 = m_symbolIDs.find( pInterfaceTypeID->get_symbol_ids().front() );
                                     if( iFind3 != m_symbolIDs.end() )
                                     {
@@ -570,11 +570,11 @@ public:
             }
             else
             {
-                // may be Interface reference type
+                // may be Interface Pointer type
                 auto iFind2 = m_interfaceTypeIDs.find( symbolID );
                 if( iFind2 != m_interfaceTypeIDs.end() )
                 {
-                    Symbols::InterfaceTypeID* pInterfaceTypeID = iFind2->second;
+                    Symbols::interface::TypeID* pInterfaceTypeID = iFind2->second;
                     auto                      iFind3 = m_symbolIDs.find( pInterfaceTypeID->get_symbol_ids().back() );
                     if( iFind3 != m_symbolIDs.end() )
                     {

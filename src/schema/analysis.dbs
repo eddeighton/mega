@@ -54,46 +54,43 @@ namespace Dependencies
 namespace Symbols
 {
     // SymbolTypeID are negative
-    // InterfaceTypeID and ConcreteTypeID are positive
+    // interface::TypeID and concrete::TypeID are positive
 
-    object SymbolTypeID -> SymbolAnalysis::SymbolTable
+    object SymbolID -> SymbolAnalysis::SymbolTable
     {
-        value< std::string >                      symbol;
-        value< mega::TypeID >                     id;
-        array< ref< Interface::IContext > >       contexts;
-        array< ref< Interface::DimensionTrait > > dimensions;
-        array< ref< Interface::LinkTrait > >      links;
+        value< std::string >               token;
+        value< mega::interface::SymbolID > id;
+        array< ref< Parser::Symbol > >     symbols;
     }
 
     object InterfaceTypeID -> SymbolAnalysis::SymbolTable
     {
-        value< mega::TypeIDSequence >   symbol_ids;
-        value< mega::TypeID >           id;
-
-        opt< ref< Interface::IContext > >       context;
-        opt< ref< Interface::DimensionTrait > > dimension;
-        opt< ref< Interface::LinkTrait > >      link;
+        array< ref< SymbolID > >                symbol_ids;
+        value< mega::interface::TypeID >        type_id;
+        opt< ref< Parser::Aggregate > >         aggregate_opt;
+        opt< ref< Interface::IContext > >       context_opt;
     }
-
-    object ConcreteTypeID -> ConcreteTypeAnalysis::ConcreteTable
+/*
+    object ConcreteID -> ConcreteTypeAnalysis::ConcreteTable
     {
-        value< mega::TypeID >                   id;
+        value< mega::concrete::TypeID >         type_id;
         late< ref< Concrete::Graph::Vertex > >  vertex;
     }
-    
+    */
+   
     object SymbolTable -> SymbolAnalysis::SymbolTable
     {
-        map< value< std::string >,  ref< SymbolTypeID > > symbol_names;
-        map< value< mega::TypeID >, ref< SymbolTypeID > > symbol_type_ids;
+        map< value< std::string >, ref< SymbolID > >                symbol_names;
+        map< value< mega::interface::SymbolID >, ref< SymbolID > >  symbol_ids;
 
-        map< value< mega::TypeIDSequence >, ref< InterfaceTypeID > >  interface_type_id_sequences;
-        map< value< mega::TypeID >,         ref< InterfaceTypeID > >  interface_type_ids;
+        map< value< mega::interface::SymbolIDSequence >, ref< InterfaceTypeID > >   interface_symbol_id_sequences;
+        map< value< mega::interface::TypeID >, ref< InterfaceTypeID > >             interface_type_ids;
 
-        map< value< mega::TypeIDSequence >, ref< ConcreteTypeID > >   concrete_type_id_sequences    -> ConcreteTypeAnalysis::ConcreteTable;
-        map< value< mega::TypeID >,         ref< ConcreteTypeID > >   concrete_type_ids             -> ConcreteTypeAnalysis::ConcreteTable;
+        // map< value< mega::TypeIDSequence >, ref< concrete::TypeID > >   concrete_type_id_sequences    -> ConcreteTypeAnalysis::ConcreteTable;
+        // map< value< mega::TypeID >,         ref< concrete::TypeID > >   concrete_type_ids             -> ConcreteTypeAnalysis::ConcreteTable;
     }
 }
-
+/*
 namespace Inheritance
 {
     object ObjectMapping -> InheritanceAnalysis::Derivations
@@ -221,3 +218,4 @@ namespace UnityAnalysis
         map< ref< Concrete::Dimensions::Link >, ref< LinkBinding > > linkBindings;
     }
 }
+*/

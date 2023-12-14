@@ -47,6 +47,7 @@ stage ParserStage
 
     global accessor array< ref< Components::Component > >;
     persource accessor array< ref< Parser::MegaInclude > >;
+    persource accessor ref< Parser::ObjectSourceRoot >;
 }
 
 stage InterfaceStage
@@ -59,23 +60,24 @@ stage InterfaceStage
     file Tree;
 
     global accessor array< ref< Components::Component > >;
-    persource accessor ref< Parser::ObjectSourceRoot >;
+    global accessor ref< Interface::Root >;
 
+    persource accessor ref< Parser::ObjectSourceRoot >;
     persource accessor array< ref< Parser::SystemInclude > >;
     persource accessor array< ref< Parser::CPPInclude > >;
 
-    persource accessor array< ref< Interface::Namespace > >;
-    persource accessor array< ref< Interface::Abstract > >;
-    persource accessor array< ref< Interface::State > >;
-    persource accessor array< ref< Interface::Action > >;
-    persource accessor array< ref< Interface::Component > >;
-    persource accessor array< ref< Interface::Event > >;
-    persource accessor array< ref< Interface::Function > >;
-    persource accessor array< ref< Interface::Object > >;
-    persource accessor array< ref< Interface::LinkTrait > >;
-    persource accessor array< ref< Interface::Interupt > >;
-    persource accessor array< ref< Interface::Decider > >;
-    persource accessor array< ref< Interface::Requirement > >;
+    // persource accessor array< ref< Interface::Namespace > >;
+    // persource accessor array< ref< Interface::Abstract > >;
+    // persource accessor array< ref< Interface::State > >;
+    // persource accessor array< ref< Interface::Action > >;
+    // persource accessor array< ref< Interface::Component > >;
+    // persource accessor array< ref< Interface::Event > >;
+    // persource accessor array< ref< Interface::Function > >;
+    // persource accessor array< ref< Interface::Object > >;
+    // persource accessor array< ref< Interface::LinkTrait > >;
+    // persource accessor array< ref< Interface::Interupt > >;
+    // persource accessor array< ref< Interface::Decider > >;
+    // persource accessor array< ref< Interface::Requirement > >;
 }
 
 stage DependencyAnalysis
@@ -109,10 +111,7 @@ stage SymbolAnalysis
 
     file SymbolTable;
 
-    global accessor ref< Symbols::SymbolTable >;
-    persource accessor ref< Interface::DimensionTrait >;
-    persource accessor ref< Interface::LinkTrait >;
-    persource accessor ref< Interface::IContext >;
+    persource accessor array< ref< Parser::Symbol > >;
 }
 
 stage SymbolRollout
@@ -125,11 +124,11 @@ stage SymbolRollout
     file PerSourceSymbols;
 
     global accessor ref< Symbols::SymbolTable >;
-    persource accessor ref< Interface::DimensionTrait >;
-    persource accessor ref< Interface::LinkTrait >;
+    persource accessor ref< Parser::Aggregate >;
     persource accessor ref< Interface::IContext >;
 }
 
+/*
 stage MetaStage
 {
     source .manifest;
@@ -506,3 +505,4 @@ stage FinalStage
     persource accessor array< ref< Concrete::Action > >;
     
 }
+*/

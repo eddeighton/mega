@@ -22,7 +22,7 @@
 #define GUARD_2022_October_14_mpo_context
 
 #include "mega/mangle/traits.hpp"
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 #include "environment/mpo_database.hpp"
 
@@ -63,7 +63,7 @@ protected:
     mega::service::LockTracker                      m_lockTracker;
     std::unique_ptr< network::TransactionProducer > m_pTransactionProducer;
     boost::asio::yield_context*                     m_pYieldContext = nullptr;
-    reference                                       m_root;
+    Pointer                                       m_root;
     std::unique_ptr< runtime::MPODatabase >         m_pDatabase;
     // std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
     network::TransactionProducer::MovedObjects m_movedObjects; // dependency to SimMoveMachine
@@ -105,15 +105,15 @@ public:
     }
 
     // mpo management
-    reference allocate( mega::TypeID objectType );
-    reference allocateRemote( const MPO& remote, mega::TypeID objectType );
-    void      networkToHeap( reference& ref );
-    void      readLock( reference& ref );
-    void      writeLock( reference& ref );
+    Pointer allocate( mega::TypeID objectType );
+    Pointer allocateRemote( const MPO& remote, mega::TypeID objectType );
+    void      networkToHeap( Pointer& ref );
+    void      readLock( Pointer& ref );
+    void      writeLock( Pointer& ref );
 
     virtual MPO             getThisMPO() override { return m_mpo.value(); }
-    virtual mega::reference getThisRoot() override { return m_root; }
-    virtual mega::reference getRoot( MPO mpo ) override;
+    virtual mega::Pointer getThisRoot() override { return m_root; }
+    virtual mega::Pointer getRoot( MPO mpo ) override;
     virtual MPO             constructMPO( MP machineProcess ) override;
     virtual MP              constructExecutor( MachineID daemonMachineID ) override;
     virtual void            destroyExecutor( MP mp ) override;

@@ -60,9 +60,29 @@ set( MEGA_VALUES_COMMON_SRC
 
 set( MEGA_VALUES_COMPILATION_DIR ${MEGA_VALUES_DIR}/compilation )
 
+set( MEGA_VALUES_COMPILATION_INTERFACE_HEADERS
+    ${MEGA_VALUES_COMPILATION_DIR}/interface/inline.h
+
+    ${MEGA_VALUES_COMPILATION_DIR}/interface/object_id.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/interface/relation_id.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/interface/sub_object_id.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/interface/symbol_id.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/interface/type_id.hpp
+)
+
+set( MEGA_VALUES_COMPILATION_CONCRETE_HEADERS
+    ${MEGA_VALUES_COMPILATION_DIR}/concrete/inline.h
+
+    ${MEGA_VALUES_COMPILATION_DIR}/concrete/instance.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/concrete/object_id.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/concrete/sub_object_id_instance.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/concrete/sub_object_id.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/concrete/type_id_instance.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/concrete/type_id.hpp
+)
+
 set( MEGA_VALUES_COMPILATION_HEADERS
 
-    ${MEGA_VALUES_COMPILATION_DIR}/arguments.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/cardinality.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/compilation_configuration.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/hyper_graph.hpp
@@ -72,23 +92,14 @@ set( MEGA_VALUES_COMPILATION_HEADERS
     ${MEGA_VALUES_COMPILATION_DIR}/operation_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/operator_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/ownership.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/relation_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/size_alignment.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/source_location.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/sub_type_instance.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/symbol_grammar.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/symbol_table.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/tool_chain_hash.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/transition_id.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/type_id_sequence.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/type_id.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/type_instance.hpp
 )
 
 set( MEGA_VALUES_COMPILATION_SRC
 
-    ${MEGA_VALUES_COMPILATION_DIR}/arguments.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/cardinality.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/hyper_graph.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/invocation_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/megastructure_installation.cpp
@@ -96,14 +107,7 @@ set( MEGA_VALUES_COMPILATION_SRC
     ${MEGA_VALUES_COMPILATION_DIR}/operation_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/operator_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/ownership.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/relation_id.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/sub_type_instance.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/symbol_grammar.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/tool_chain_hash.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/transition_id.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/type_id_sequence.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/type_id.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/type_instance.cpp
 
 )
 
@@ -124,9 +128,9 @@ set( MEGA_VALUES_RUNTIME_HEADERS
     ${MEGA_VALUES_RUNTIME_DIR}/maths_types_io.hpp
     ${MEGA_VALUES_RUNTIME_DIR}/maths_types.hpp
     ${MEGA_VALUES_RUNTIME_DIR}/mpo.hpp
-    ${MEGA_VALUES_RUNTIME_DIR}/reference_io.hpp
-    ${MEGA_VALUES_RUNTIME_DIR}/reference_limits.hpp
-    ${MEGA_VALUES_RUNTIME_DIR}/reference.hpp
+    ${MEGA_VALUES_RUNTIME_DIR}/pointer_io.hpp
+    ${MEGA_VALUES_RUNTIME_DIR}/pointer_limits.hpp
+    ${MEGA_VALUES_RUNTIME_DIR}/pointer.hpp
 )
 set( MEGA_VALUES_RUNTIME_SRC
 )
@@ -153,6 +157,8 @@ set( MEGA_VALUES_SERVICE_SRC
 set( MEGA_VALUES_HEADERS
     ${MEGA_VALUES_COMMON_HEADERS}
     ${MEGA_VALUES_COMPILATION_HEADERS} 
+    ${MEGA_VALUES_COMPILATION_INTERFACE_HEADERS} 
+    ${MEGA_VALUES_COMPILATION_CONCRETE_HEADERS} 
     ${MEGA_VALUES_RUNTIME_HEADERS} 
     ${MEGA_VALUES_SERVICE_HEADERS} 
 )
@@ -181,7 +187,6 @@ link_inja( mega_values )
 link_pybind11( mega_values )
 link_common( mega_values )
 
-
 target_include_directories( mega_values PUBLIC ${MEGA_API_DIR} )
 
 install( TARGETS mega_values EXPORT mega_values DESTINATION bin)
@@ -189,81 +194,11 @@ install( EXPORT mega_values NAMESPACE MEGA:: FILE mega_values-config.cmake DESTI
 
 install( FILES ${MEGA_VALUES_COMMON_HEADERS} DESTINATION include/mega/values )
 install( FILES ${MEGA_VALUES_COMPILATION_HEADERS} DESTINATION include/mega/values/compilation )
+install( FILES ${MEGA_VALUES_COMPILATION_INTERFACE_HEADERS} DESTINATION include/mega/values/compilation/interface )
+install( FILES ${MEGA_VALUES_COMPILATION_CONCRETE_HEADERS} DESTINATION include/mega/values/compilation/concrete )
 install( FILES ${MEGA_VALUES_RUNTIME_HEADERS} DESTINATION include/mega/values/runtime )
 install( FILES ${MEGA_VALUES_SERVICE_HEADERS} DESTINATION include/mega/values/service )
 install( FILES ${MEGA_VALUES_CLANG_HEADERS} DESTINATION include/mega/values/clang )
-
-################################################################################
-################################################################################
-
-add_custom_target( generate_mangle_rtti
-    COMMAND inja
-        --data ${MEGA_API_DIR}/mega/mangle/types.json
-        --template ${MEGA_API_DIR}/mega/mangle/rtti.hxx.jinja
-        --output ${MEGA_API_DIR}/mega/mangle/rtti.hxx
-    DEPENDS ${MEGA_API_DIR}/mega/mangle/types.json ${MEGA_API_DIR}/mega/mangle/rtti.hxx.jinja inja
-    BYPRODUCTS ${MEGA_API_DIR}/mega/mangle/rtti.hxx
-    COMMENT "Generating rtti for Types" 
-    SOURCES ${MEGA_API_DIR}/mega/mangle/types.json
-)
-add_dependencies( generate_mangle_rtti inja )# 
-
-add_custom_target( generate_any_impl
-    COMMAND inja
-        --data ${MEGA_API_DIR}/mega/mangle/types.json
-        --template ${MEGA_API_DIR}/mega/mangle/any.cxx.jinja
-        --output ${MEGA_API_DIR}/mega/mangle/any.cxx
-    DEPENDS ${MEGA_API_DIR}/mega/mangle/types.json ${MEGA_API_DIR}/mega/mangle/any.cxx.jinja inja
-    BYPRODUCTS ${MEGA_API_DIR}/mega/mangle/any.cxx
-    COMMENT "Generating any impl for Types" 
-    SOURCES ${MEGA_API_DIR}/mega/mangle/types.json
-)
-add_dependencies( generate_any_impl inja )# 
-
-add_custom_target( generate_mangle_types
-    COMMAND inja
-        --data ${MEGA_API_DIR}/mega/mangle/types.json
-        --template ${MEGA_API_DIR}/mega/mangle/mangle.cxx.jinja
-        --output ${MEGA_API_DIR}/mega/mangle/mangle_types.cxx
-    DEPENDS ${MEGA_API_DIR}/mega/mangle/types.json ${MEGA_API_DIR}/mega/mangle/mangle.cxx.jinja inja
-    BYPRODUCTS  ${MEGA_API_DIR}/mega/mangle/mangle_types.cxx
-    COMMENT "Generating Type Mangle for Types" 
-    SOURCES ${MEGA_API_DIR}/mega/mangle/types.json
-)
-add_dependencies( generate_mangle_types inja )# 
-
-add_custom_target( generate_python_mangle_types
-    COMMAND inja
-        --data ${MEGA_API_DIR}/mega/mangle/types.json
-        --template ${MEGA_API_DIR}/mega/mangle/python_mangle.cxx.jinja
-        --output ${MEGA_API_DIR}/mega/mangle/python_mangle_types.cxx
-    DEPENDS ${MEGA_API_DIR}/mega/mangle/types.json ${MEGA_API_DIR}/mega/mangle/python_mangle.cxx.jinja inja
-    BYPRODUCTS  ${MEGA_API_DIR}/mega/mangle/python_mangle_types.cxx
-    COMMENT "Generating Python Type Mangle for Types" 
-    SOURCES ${MEGA_API_DIR}/mega/mangle/types.json
-)
-add_dependencies( generate_python_mangle_types inja )# 
-
-add_custom_target( generate_mega_mangle_meta
-    COMMAND inja
-        --data ${MEGA_API_DIR}/mega/mangle/types.json
-        --template ${MEGA_API_DIR}/mega/mangle/mega_mangle_meta.hxx.jinja
-        --output ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
-    DEPENDS ${MEGA_API_DIR}/mega/mangle/types.json ${MEGA_API_DIR}/mega/mangle/mega_mangle_meta.hxx.jinja inja
-    BYPRODUCTS  ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
-    COMMENT "Generating Mega Mangle Meta" 
-    SOURCES ${MEGA_API_DIR}/mega/mangle/types.json
-)
-add_dependencies( generate_mega_mangle_meta inja )
-
-set_target_properties( generate_any_impl PROPERTIES FOLDER service )
-set_target_properties( generate_mangle_rtti PROPERTIES FOLDER service )
-set_target_properties( generate_mangle_types PROPERTIES FOLDER service )
-set_target_properties( generate_python_mangle_types PROPERTIES FOLDER service )
-set_target_properties( generate_mega_mangle_meta PROPERTIES FOLDER service )
-
-################################################################################
-################################################################################
 
 set( MEGA_LIBRARY
  
@@ -283,7 +218,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/iterator.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
     ${MEGA_API_DIR}/mega/logical_address_space.hpp
-    ${MEGA_API_DIR}/mega/logical_reference.hpp
+    ${MEGA_API_DIR}/mega/logical_pointer.hpp
     ${MEGA_API_DIR}/mega/logical_tree.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
     ${MEGA_API_DIR}/mega/make_unique_without_reorder.hpp
@@ -292,7 +227,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/printer.hpp
     ${MEGA_API_DIR}/mega/program_manifest.hpp
     ${MEGA_API_DIR}/mega/record_archive.hpp
-    ${MEGA_API_DIR}/mega/reference_tree.hpp
     ${MEGA_API_DIR}/mega/resumption.hpp
     ${MEGA_API_DIR}/mega/return_reason.hpp
     ${MEGA_API_DIR}/mega/ring_allocator.hpp
@@ -304,59 +238,5 @@ set( MEGA_LIBRARY
 
  )
  
- add_library( mega_interface INTERFACE ${MEGA_LIBRARY} )
- set_target_properties( mega_interface PROPERTIES FOLDER service )
- add_dependencies( mega_interface generate_any_impl )
- add_dependencies( mega_interface generate_mangle_rtti )
- add_dependencies( mega_interface generate_mangle_types )
- add_dependencies( mega_interface generate_python_mangle_types )
-
- set( MEGA_MANGLE_SRC
-     ${MEGA_API_DIR}/mega/mangle/traits.hpp
-     ${MEGA_API_DIR}/mega/mangle/traits.cpp
-     ${MEGA_API_DIR}/mega/mangle/any.cpp
-     ${MEGA_API_DIR}/mega/mangle/any.cxx
-     ${MEGA_API_DIR}/mega/mangle/mangle_types.cxx
-     
-     #${MEGA_SRC_DIR}/jit/tag_parser.cpp
- )
- 
- add_library( mega_mangle SHARED ${MEGA_MANGLE_SRC} )
-
- # add_dependencies( mega_mangle run_il_gen )
-
- target_precompile_headers( mega_mangle REUSE_FROM mega_pch )
- 
- set_target_properties( mega_mangle PROPERTIES FOLDER service )
- 
- target_link_libraries( mega_mangle mega_values )
- target_link_libraries( mega_mangle mega_interface )
- target_link_libraries( mega_mangle log ) 
- target_link_libraries( mega_mangle protocol )
-
- IF( ${WIN32} )
- target_compile_options( mega_mangle PRIVATE /bigobj)
- # for windows need to work around limit of 65K symbols - /Ob2 appears to achieve this
- # target_compile_options(database PRIVATE /Ob2)
- # set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
- set_property(TARGET mega_mangle PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
- 
- ELSE( ${WIN32} )
- target_link_options( mega_mangle PUBLIC -export-dynamic )
- ENDIF( ${WIN32} )
- 
- target_include_directories( mega_mangle PUBLIC ${MEGA_API_DIR} )
- 
- link_boost( mega_mangle system )
- link_boost( mega_mangle filesystem )
- link_boost( mega_mangle serialization )
- link_common( mega_mangle )
- 
- install( TARGETS mega_interface EXPORT mega_interface DESTINATION bin)
- install( EXPORT mega_interface NAMESPACE MEGA:: FILE mega_interface-config.cmake DESTINATION share )
-
- install( TARGETS mega_mangle EXPORT mega_mangle DESTINATION bin)
- install( EXPORT mega_mangle NAMESPACE MEGA:: FILE mega_mangle-config.cmake DESTINATION share )
- 
- install( FILES ${MEGA_LIBRARY} DESTINATION include/mega )
- install( FILES ${MEGA_MANGLE_SRC} DESTINATION include/mega/mangle )
+add_library( mega_interface INTERFACE ${MEGA_LIBRARY} )
+set_target_properties( mega_interface PROPERTIES FOLDER service )

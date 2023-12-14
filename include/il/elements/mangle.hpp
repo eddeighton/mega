@@ -51,7 +51,7 @@ struct MangleCTor : MangleFunction
     {
         using namespace std::string_literals;
         setName( "new_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
     }
 };
 
@@ -62,7 +62,7 @@ struct MangleDTor : MangleFunction
     {
         using namespace std::string_literals;
         setName( "delete_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
     }
 };
 
@@ -73,8 +73,8 @@ struct MangleCopy : MangleFunction
     {
         using namespace std::string_literals;
         setName( "copy_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
-        parameterTypes.push_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
     }
 };
 
@@ -85,9 +85,9 @@ struct MangleSaveXML : MangleFunction
     {
         using namespace std::string_literals;
         setName( "save_xml_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
-        parameterTypes.push_back( ConstPtr{ e_char } );
-        parameterTypes.push_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( ConstPtr{ e_char } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
     }
 };
 
@@ -98,9 +98,9 @@ struct MangleLoadXML : MangleFunction
     {
         using namespace std::string_literals;
         setName( "load_xml_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
-        parameterTypes.push_back( ConstPtr{ e_char } );
-        parameterTypes.push_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( ConstPtr{ e_char } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
     }
 };
 
@@ -111,8 +111,8 @@ struct MangleSaveBin : MangleFunction
     {
         using namespace std::string_literals;
         setName( "save_bin_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
-        parameterTypes.push_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
     }
 };
 
@@ -123,11 +123,11 @@ struct MangleLoadBin : MangleFunction
     {
         using namespace std::string_literals;
         setName( "load_bin_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
-        parameterTypes.push_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
     }
 };
-
+/*
 struct MangleSaveRecord : MangleFunction
 {
     MangleSaveRecord( std::string mangleType )
@@ -135,11 +135,11 @@ struct MangleSaveRecord : MangleFunction
     {
         using namespace std::string_literals;
         setName( "save_record_"s );
-        parameterTypes.push_back( ConstRef{ e_reference } );
-        parameterTypes.push_back( ConstPtr{ e_void } );
+        parameterTypes.emplace_back( ConstRef{ e_reference } );
+        parameterTypes.emplace_back( ConstPtr{ e_void } );
     }
 };
-
+*/
 struct MangleLoadRecord : MangleFunction
 {
     MangleLoadRecord( std::string mangleType )
@@ -147,9 +147,9 @@ struct MangleLoadRecord : MangleFunction
     {
         using namespace std::string_literals;
         setName( "load_record_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
-        parameterTypes.push_back( Ptr{ e_void } );
-        parameterTypes.push_back( Mutable{ e_unsignedlong } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Mutable{ e_unsignedlong } );
     }
 };
 /*
@@ -160,7 +160,7 @@ struct MangleReadAny : MangleFunction
     {
         using namespace std::string_literals;
         setName( "read_any_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
     }
 };
 
@@ -171,8 +171,8 @@ struct MangleWriteAny : MangleFunction
     {
         using namespace std::string_literals;
         setName( "write_any_"s );
-        parameterTypes.push_back( Ptr{ e_void } );
-        parameterTypes.push_back( Mutable{ e_Any } );
+        parameterTypes.emplace_back( Ptr{ e_void } );
+        parameterTypes.emplace_back( Mutable{ e_Any } );
     }
 };
 */

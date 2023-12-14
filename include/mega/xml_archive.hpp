@@ -23,8 +23,8 @@
 
 #include "mega/values/compilation/type_id.hpp"
 
-#include "mega/values/runtime/reference.hpp"
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 #include "mega/values/runtime/maths_types.hpp"
 
 #include "mega/address_table.hpp"
@@ -66,7 +66,7 @@ public:
         }
     }
 
-    inline void save( const char* name, const reference& ref )
+    inline void save( const char* name, const Pointer& ref )
     {
         begin( name );
         std::string strEncode;
@@ -145,20 +145,20 @@ public:
         end( name );
     }
 
-    inline void beginStructure( const reference& ref )
+    inline void beginStructure( const Pointer& ref )
     {
         //
         m_table.refToIndex( ref );
     }
-    inline void endStructure( const reference& ref ) {}
+    inline void endStructure( const Pointer& ref ) {}
 
-    inline void beginData( const char* name, bool bIsObject, const reference& ref )
+    inline void beginData( const char* name, bool bIsObject, const Pointer& ref )
     {
         auto indexOpt = m_table.refToIndexIfObjectExist( ref );
         VERIFY_RTE( indexOpt.has_value() );
         *m_pFileStream << "<" << name << " index=\"" << indexOpt.value() << "\" >";
     }
-    inline void endData( const char* name, bool bIsObject, const reference& ref )
+    inline void endData( const char* name, bool bIsObject, const Pointer& ref )
     {
         auto indexOpt = m_table.refToIndexIfObjectExist( ref );
         VERIFY_RTE( indexOpt.has_value() );
@@ -166,11 +166,11 @@ public:
     }
 
 private:
-    inline std::optional< mega::AddressTable::Index > refToIndexIfExist( const mega::reference& maybeNetAddress )
+    inline std::optional< mega::AddressTable::Index > refToIndexIfExist( const mega::Pointer& maybeNetAddress )
     {
         return m_table.refToIndexIfObjectExist( maybeNetAddress );
     }
-    inline const mega::AddressTable::Index& refToIndex( const mega::reference& maybeNetAddress )
+    inline const mega::AddressTable::Index& refToIndex( const mega::Pointer& maybeNetAddress )
     {
         return m_table.refToIndex( maybeNetAddress );
     }
@@ -253,7 +253,7 @@ public:
         mega::consumeEnd( *m_pFileStream, name );
     }
 
-    inline void load( const char* name, mega::reference& ref )
+    inline void load( const char* name, mega::Pointer& ref )
     {
         mega::consumeStart( *m_pFileStream, name );
 
@@ -267,7 +267,7 @@ public:
             is >> index;
             auto iFind = m_indexToRefMap.find( index );
             VERIFY_RTE_MSG( iFind != m_indexToRefMap.end(),
-                            "Failed to locate reference index in archive for reference: " << strEncoding );
+                            "Failed to locate Pointer index in archive for Pointer: " << strEncoding );
             ref = iFind->second;
         }
         else
@@ -285,7 +285,7 @@ public:
         mega::consumeEnd( *m_pFileStream, name );
     }
 
-    inline void beginStructure( const char* name, bool bIsObject, const reference& ref )
+    inline void beginStructure( const char* name, bool bIsObject, const Pointer& ref )
     {
         if( !m_stack.empty() )
         {
@@ -318,19 +318,19 @@ public:
         }
     }
 
-    inline void endStructure( const char* name, bool bIsObject, const reference& ref )
+    inline void endStructure( const char* name, bool bIsObject, const Pointer& ref )
     {
         ASSERT( !m_stack.empty() );
         m_stack.pop_back();
     }
 
-    inline void beginData( const char* name, bool bIsObject, const reference& ref )
+    inline void beginData( const char* name, bool bIsObject, const Pointer& ref )
     {
         //
         mega::consumeStart( *m_pFileStream, name );
     }
 
-    inline void endData( const char* name, bool bIsObject, const reference& ref )
+    inline void endData( const char* name, bool bIsObject, const Pointer& ref )
     {
         //
         mega::consumeEnd( *m_pFileStream, name );
@@ -338,7 +338,7 @@ public:
 
     inline bool is_tag( const char* name ) { return getCurrentTag().key == name; }
 
-    inline void allocation( const reference& ref )
+    inline void allocation( const Pointer& ref )
     {
         const XMLTag& tag = getCurrentTag();
         ASSERT( tag.indexOpt.has_value() );
@@ -364,13 +364,13 @@ private:
         }
     }
 
-    inline void mapIndex( mega::AddressTable::Index index, const mega::reference& ref )
+    inline void mapIndex( mega::AddressTable::Index index, const mega::Pointer& ref )
     {
         m_indexToRefMap.insert( { index, ref } );
     }
 
 private:
-    using IndexRefMap = std::unordered_map< mega::AddressTable::Index, mega::reference >;
+    using IndexRefMap = std::unordered_map< mega::AddressTable::Index, mega::Pointer >;
 
     std::unique_ptr< std::istream > m_pFileStream;
     mega::XMLTag                    m_rootTag;

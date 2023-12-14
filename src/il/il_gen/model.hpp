@@ -219,6 +219,7 @@ struct Function
     AdaptedType             returnType;
     std::string             name;
     Namespaces              namespaces;
+    std::string             mangle;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const Function& function )

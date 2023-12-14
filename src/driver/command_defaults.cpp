@@ -21,8 +21,7 @@
 #include "database/FinalStage.hxx"
 
 #include "mega/defaults.hpp"
-#include "mega/values/compilation/type_id.hpp"
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 
 #include "service/network/log.hpp"
 

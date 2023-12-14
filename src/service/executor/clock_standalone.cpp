@@ -26,7 +26,7 @@
 #include "service/protocol/common/logical_thread_base.hpp"
 #include "service/protocol/model/messages.hxx"
 
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 
 #include <future>
 

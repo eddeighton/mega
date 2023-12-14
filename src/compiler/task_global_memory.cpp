@@ -40,12 +40,9 @@ namespace mega::compiler
 
 class Task_GlobalMemoryStage : public BaseTask
 {
-    const mega::io::Manifest m_manifest;
-
 public:
-    Task_GlobalMemoryStage( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+    Task_GlobalMemoryStage( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( m_environment, manifestFilePath )
     {
     }
 
@@ -179,10 +176,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_GlobalMemoryStage( const TaskArguments&              taskArguments,
-                                             const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_GlobalMemoryStage( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_GlobalMemoryStage >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_GlobalMemoryStage >( taskArguments );
 }
 
 class Task_GlobalMemoryStageRollout : public BaseTask

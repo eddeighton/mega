@@ -162,8 +162,8 @@ public:
                 {
                     if( pLink->get_singular() )
                     {
-                        const U64 szAlign       = alignof( mega::reference );
-                        const U64 szSize        = sizeof( mega::reference );
+                        const U64 szAlign       = alignof( mega::Pointer );
+                        const U64 szSize        = sizeof( mega::Pointer );
                         sizeAlignment.alignment = std::max( sizeAlignment.alignment, szAlign );
                         sizeAlignment.size      = padToAlignment( szAlign, sizeAlignment.size );
                         auto pLink2             = database.construct< Concrete::Dimensions::Link >(
@@ -378,8 +378,8 @@ struct PartDimensions
 
                 if( pLink->get_singular() )
                 {
-                    const U64 szAlign = alignof( mega::reference );
-                    const U64 szSize  = sizeof( mega::reference );
+                    const U64 szAlign = alignof( mega::Pointer );
+                    const U64 szSize  = sizeof( mega::Pointer );
                     result.alignment  = std::max( result.alignment, szAlign );
                     result.size       = padToAlignment( szAlign, result.size );
                     auto pLink2       = database.construct< Concrete::Dimensions::Link >(

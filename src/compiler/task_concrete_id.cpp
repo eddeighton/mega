@@ -50,8 +50,6 @@ namespace mega::compiler
 
 class Task_ConcreteTypeAnalysis : public BaseTask
 {
-    const mega::io::Manifest m_manifest;
-
 public:
     struct ConcreteHashCodeGenerator
     {
@@ -74,21 +72,9 @@ public:
         }
     };
 
-    Task_ConcreteTypeAnalysis( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+    Task_ConcreteTypeAnalysis( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( m_environment, manifestFilePath )
     {
-    }
-
-    using PathSet = std::set< mega::io::megaFilePath >;
-    PathSet getSortedSourceFiles() const
-    {
-        PathSet srcFiles;
-        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
-        {
-            srcFiles.insert( sourceFilePath );
-        }
-        return srcFiles;
     }
 
     ConcreteTypeAnalysis::Symbols::SymbolTable*
@@ -139,8 +125,8 @@ public:
             }
         }
 
-        using NewTypeIDSequenceMap = std::map< mega::TypeIDSequence, Symbols::ConcreteTypeID* >;
-        using NewTypeIDMap         = std::map< mega::TypeID, Symbols::ConcreteTypeID* >;
+        using NewTypeIDSequenceMap = std::map< mega::TypeIDSequence, Symbols::concrete::TypeID* >;
+        using NewTypeIDMap         = std::map< mega::TypeID, Symbols::concrete::TypeID* >;
 
         NewTypeIDSequenceMap new_concrete_type_id_sequences;
         NewTypeIDMap         new_concrete_type_ids;
@@ -176,8 +162,8 @@ public:
 
                     VERIFY_RTE( typeID != TypeID{} );
 
-                    auto pNewConcreteSymbol
-                        = newDatabase.construct< Symbols::ConcreteTypeID >( Symbols::ConcreteTypeID::Args{ typeID } );
+                    auto pNewConcreteSymbol = newDatabase.construct< Symbols::concrete::TypeID >(
+                        Symbols::concrete::TypeID::Args{ typeID } );
                     pNewConcreteSymbol->set_vertex( pVertex );
 
                     VERIFY_RTE(
@@ -234,10 +220,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_ConcreteTypeAnalysis( const TaskArguments&              taskArguments,
-                                                const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_ConcreteTypeAnalysis( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_ConcreteTypeAnalysis >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_ConcreteTypeAnalysis >( taskArguments );
 }
 
 class Task_ConcreteTypeRollout : public BaseTask
@@ -273,7 +258,7 @@ public:
 
         Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
-        const std::map< mega::TypeIDSequence, Symbols::ConcreteTypeID* > typeIDSequences
+        const std::map< mega::TypeIDSequence, Symbols::concrete::TypeID* > typeIDSequences
             = pSymbolTable->get_concrete_type_id_sequences();
 
         ConcreteTypeRollout::TypeIDSequenceGen typeIDSequenceGenerator;

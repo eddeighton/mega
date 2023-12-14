@@ -22,8 +22,8 @@
 #include "service/network/network.hpp"
 
 #include "mega/values/native_types.hpp"
-#include "mega/values/runtime/reference.hpp"
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 
 #include "log/range.hpp"
 
@@ -43,7 +43,7 @@
 struct MemoryRecordHeader
 {
     mega::U16       size;
-    mega::reference ref;
+    mega::Pointer ref;
     mega::U16       dataSize;
 };
 #pragma pack()

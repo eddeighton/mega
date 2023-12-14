@@ -11,9 +11,9 @@ typedef struct reference_
     int   instance;
     int   type;
     void* p;
-} reference;
+} Pointer;
 
-int test( reference* pReference )
+int test( Pointer* pReference )
 {
     if ( !pFunctionPtr )
     {

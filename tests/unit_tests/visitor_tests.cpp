@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 
@@ -260,13 +260,13 @@ struct TestLogicalInstantiation
         return LogicalObject{ 0, TypeID{ 0x10000 } };
     }
 
-    void* read( const LogicalReference& ref )
+    void* read( const LogicalPointer& ref )
     {
         //
         return nullptr;
     }
 
-    U64 linkSize( const LogicalReference& ref, bool bOwning, bool bOwned )
+    U64 linkSize( const LogicalPointer& ref, bool bOwning, bool bOwned )
     {
         if( ref.typeInstance.type == TypeID{ 0x10015 } )
         {
@@ -278,7 +278,7 @@ struct TestLogicalInstantiation
         }
     }
 
-    LogicalObject linkGet( const LogicalReference& link, U64 index )
+    LogicalObject linkGet( const LogicalPointer& link, U64 index )
     {
         if( index == 0 )
         {
@@ -305,78 +305,78 @@ struct TestLogicalTreeVisitor
     int component  = 0;
     int states     = 0;
 
-    void on_object_start( const LogicalReference& ref )
+    void on_object_start( const LogicalPointer& ref )
     {
         //
         ++objects;
     }
-    void on_object_end( const LogicalReference& ref )
+    void on_object_end( const LogicalPointer& ref )
     {
         //
     }
-    void on_component_start( const LogicalReference& ref )
+    void on_component_start( const LogicalPointer& ref )
     {
         //
         ++component;
     }
-    void on_component_end( const LogicalReference& ref )
+    void on_component_end( const LogicalPointer& ref )
     {
         //
     }
-    void on_action_start( const LogicalReference& ref )
+    void on_action_start( const LogicalPointer& ref )
     {
         //
         ++actions;
     }
-    void on_action_end( const LogicalReference& ref )
+    void on_action_end( const LogicalPointer& ref )
     {
         //
     }
-    void on_state_start( const LogicalReference& ref )
+    void on_state_start( const LogicalPointer& ref )
     {
         //
         ++states;
     }
-    void on_state_end( const LogicalReference& ref )
+    void on_state_end( const LogicalPointer& ref )
     {
         //
     }
-    void on_event_start( const LogicalReference& ref )
+    void on_event_start( const LogicalPointer& ref )
     {
         //
         ++events;
     }
-    void on_event_end( const LogicalReference& ref )
+    void on_event_end( const LogicalPointer& ref )
     {
         //
     }
-    void on_link_start( const LogicalReference& ref, bool bOwning, bool bOwned )
+    void on_link_start( const LogicalPointer& ref, bool bOwning, bool bOwned )
     {
         //
         ++links;
     }
-    void on_link_end( const LogicalReference& ref, bool bOwning, bool bOwned )
+    void on_link_end( const LogicalPointer& ref, bool bOwning, bool bOwned )
     {
         //
     }
-    void on_interupt( const LogicalReference& ref )
+    void on_interupt( const LogicalPointer& ref )
     {
         //
     }
-    void on_function( const LogicalReference& ref )
+    void on_function( const LogicalPointer& ref )
     {
         //
         ++functions;
     }
-    void on_decider( const LogicalReference& ref )
+    void on_decider( const LogicalPointer& ref )
     {
         //
     }
-    void on_namespace( const LogicalReference& ref )
+    void on_namespace( const LogicalPointer& ref )
     {
         //
     }
-    void on_dimension( const LogicalReference& ref, void* pData )
+    void on_dimension( const LogicalPointer& ref, void* pData )
     {
         //
         ++dimensions;

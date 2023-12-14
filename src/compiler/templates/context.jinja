@@ -1,12 +1,12 @@
-struct [[clang::eg_type( {{ typeid }} )]]{{ name }} : public mega::reference
+struct [[clang::eg_type( {{ typeid }} )]]{{ name }} : public mega::Pointer
 {
     enum : mega::TypeID::ValueType { ID = {{ typeid }} };
     inline {{ name }}() = default;
-    inline {{ name }}( mega::reference reference ) : mega::reference( reference ) {}
+    inline {{ name }}( mega::Pointer Pointer ) : mega::Pointer( Pointer ) {}
     template< typename T >
     inline bool operator==( const T& cmp ) const
     {
-        return mega::reference::operator==( cmp );
+        return mega::Pointer::operator==( cmp );
     }
     template< typename T >
     inline bool operator!=( const T& cmp ) const

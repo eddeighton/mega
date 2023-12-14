@@ -19,14 +19,13 @@
 
 
 #include "invocation_id.hpp"
-#include "type_id.hpp"
 
-#include "mega/values/compilation/operation_id.hpp"
+// #include "mega/values/compilation/operation_id.hpp"
 
 #include <vector>
 #include <array>
 #include <ostream>
-
+/*
 namespace detail
 {
     template< class Iter >
@@ -66,3 +65,4 @@ std::ostream& operator<<( std::ostream& os, const mega::InvocationID& invocation
     return os << mega::getOperationString( invocationID.m_operation );
 }
 }
+*/

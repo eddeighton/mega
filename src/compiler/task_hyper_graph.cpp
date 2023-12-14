@@ -50,12 +50,9 @@ namespace mega::compiler
 
 class Task_HyperGraph : public BaseTask
 {
-    const mega::io::Manifest m_manifest;
-
 public:
-    Task_HyperGraph( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+    Task_HyperGraph( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_manifest( m_environment, manifestFilePath )
     {
     }
 
@@ -93,7 +90,8 @@ public:
                             for( auto pIter = pContext; pIter;
                                  pIter      = db_cast< Interface::IContext >( pIter->get_parent() ) )
                             {
-                                if( std::find( variantResults.begin(), variantResults.end(), pIter ) != variantResults.end() )
+                                if( std::find( variantResults.begin(), variantResults.end(), pIter )
+                                    != variantResults.end() )
                                 {
                                     found.push_back( pContext );
                                     break;
@@ -234,17 +232,6 @@ public:
         }
 
         return database.construct< Graph >( Graph::Args{ pOwningRelation, nonOwningRelations } );
-    }
-
-    using PathSet = std::set< mega::io::megaFilePath >;
-    PathSet getSortedSourceFiles() const
-    {
-        PathSet sourceFiles;
-        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
-        {
-            sourceFiles.insert( sourceFilePath );
-        }
-        return sourceFiles;
     }
 
     void calculateEdges( HyperGraphAnalysis::Database& database, const HyperGraphAnalysis::HyperGraph::Graph* pGraph )
@@ -503,10 +490,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_HyperGraph( const TaskArguments&              taskArguments,
-                                      const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_HyperGraph( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_HyperGraph >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_HyperGraph >( taskArguments );
 }
 
 class Task_HyperGraphRollout : public BaseTask

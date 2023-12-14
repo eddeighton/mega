@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_September_02_logical_tree
 #define GUARD_2023_September_02_logical_tree
 
-#include "mega/logical_reference.hpp"
+#include "mega/logical_pointer.hpp"
 #include "mega/tree_traversal.hpp"
 
 namespace mega
@@ -29,7 +29,7 @@ namespace mega
 
 struct LogicalReferenceTraits
 {
-    using Reference = LogicalReference;
+    using Reference = LogicalPointer;
     using Object    = LogicalObject;
 };
 

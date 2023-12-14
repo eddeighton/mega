@@ -167,9 +167,9 @@ public:
 
     // network::memory::Impl
     virtual void      MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-    virtual reference NetworkToHeap( const reference& ref, const TimeStamp& lockCycle,
+    virtual Pointer NetworkToHeap( const Pointer& ref, const TimeStamp& lockCycle,
                                      boost::asio::yield_context& yield_ctx ) override;
-    virtual reference NetworkAllocate( const MPO& parent, const TypeID& objectTypeID, const TimeStamp& lockCycle,
+    virtual Pointer NetworkAllocate( const MPO& parent, const TypeID& objectTypeID, const TimeStamp& lockCycle,
                                        boost::asio::yield_context& yield_ctx ) override;
 
     // public network::jit::Impl

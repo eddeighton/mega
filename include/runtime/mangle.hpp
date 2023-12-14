@@ -20,8 +20,7 @@
 #ifndef SYMBOL_UTILS_SEPT_19_2022
 #define SYMBOL_UTILS_SEPT_19_2022
 
-#include "mega/values/compilation/type_id.hpp"
-#include "mega/values/compilation/sub_type_instance.hpp"
+// #include "mega/values/compilation/concrete/sub_object_id_instance.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -31,7 +30,7 @@
 
 namespace mega::runtime
 {
-
+/*
 static inline std::string printTypeID( const TypeID& typeID )
 {
     std::ostringstream os;
@@ -45,6 +44,7 @@ static inline std::string printSubTypeInstance( const SubTypeInstance& subTypeIn
     os << "0x" << std::hex << std::setfill( '0' ) << std::setw( 8 ) << subTypeInstance.getValue();
     return os.str();
 }
+*/
 
 static std::string megaMangle( const std::string& strCanonicalTypeName )
 {

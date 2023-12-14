@@ -100,11 +100,12 @@ public:
 // Expressions
 struct Read;
 struct ReadLiteral;
+struct Cast;
 struct Call;
 struct CallFunctor;
 struct Operator;
 
-using Expression = std::variant< Read, ReadLiteral, Call, CallFunctor, Operator >;
+using Expression = std::variant< Read, ReadLiteral, Cast, Call, CallFunctor, Operator >;
 
 struct Read
 {
@@ -114,6 +115,12 @@ struct Read
 struct ReadLiteral
 {
     Literal value;
+};
+
+struct Cast
+{
+    std::vector< Expression > arguments;
+    ValueType                 type;
 };
 
 struct Call
@@ -136,7 +143,9 @@ struct Operator
     {
         eEqual,
         eNotEqual,
-        eAdd
+        eAdd,
+        eIndex,
+        eAddressOf
     } type;
 
     template < typename T >
@@ -144,6 +153,13 @@ struct Operator
     {
         return Operator{
             { Read{ var }, ReadLiteral{ Literal{ getDataType( var.getValueType() ), "1" } } }, Operator::eAdd };
+    }
+
+    template < typename T >
+    static Operator makeIncrement( Variable< T > var, std::string amt )
+    {
+        return Operator{
+            { Read{ var }, ReadLiteral{ Literal{ getDataType( var.getValueType() ), amt } } }, Operator::eAdd };
     }
 };
 
@@ -155,13 +171,15 @@ struct ExpressionStatement;
 struct MaterialiserStatement;
 struct Return;
 struct VariableDeclaration;
+struct ArrayVariableDeclaration;
 struct Assignment;
+struct Scope;
 struct If;
 struct Switch;
 struct ForLoop;
 
-using Statement = std::variant< ExpressionStatement, VariableDeclaration, Assignment, MaterialiserStatement, Return, If,
-                                Switch, ForLoop >;
+using Statement = std::variant< ExpressionStatement, VariableDeclaration, ArrayVariableDeclaration, Assignment,
+                                MaterialiserStatement, Return, Scope, If, Switch, ForLoop >;
 
 struct ExpressionStatement
 {
@@ -172,6 +190,12 @@ struct VariableDeclaration
 {
     Variable< ValueType >       lValue;
     std::optional< Expression > rValue;
+};
+
+struct ArrayVariableDeclaration
+{
+    Variable< ValueType >     lValue;
+    std::vector< Expression > initialisations;
 };
 
 struct Assignment
@@ -190,6 +214,11 @@ struct MaterialiserStatement
 struct Return
 {
     Variable< ValueType > rValue;
+};
+
+struct Scope
+{
+    std::vector< Statement > statements;
 };
 
 struct If

@@ -29,23 +29,30 @@ namespace mega::compiler
 
 class BaseTask;
 
-#define TASK( taskName, sourceFileType, argumentType ) \
+#define TASK_PROJECT( taskName ) \
+    extern std::unique_ptr< BaseTask > create_Task_##taskName( const TaskArguments& );
+#define TASK_SRC( taskName, sourceFileType, argumentType ) \
     extern std::unique_ptr< BaseTask > create_Task_##taskName( const TaskArguments&, argumentType );
 #include "tasks.xmc"
-#undef TASK
+#undef TASK_PROJECT
+#undef TASK_SRC
 
 enum TaskType
 {
-#define TASK( taskName, sourceFileType, argumentType ) eTask_##taskName,
+#define TASK_PROJECT( taskName ) eTask_##taskName,
+#define TASK_SRC( taskName, sourceFileType, argumentType ) eTask_##taskName,
 #include "tasks.xmc"
-#undef TASK
+#undef TASK_PROJECT
+#undef TASK_SRC
     TOTAL_TASK_TYPES
 };
 
 const char* g_taskNames[] = {
-#define TASK( taskName, sourceFileType, argumentType ) "Task_" #taskName,
+#define TASK_PROJECT( taskName ) "Task_" #taskName,
+#define TASK_SRC( taskName, sourceFileType, argumentType ) "Task_" #taskName,
 #include "tasks.xmc"
-#undef TASK
+#undef TASK_PROJECT
+#undef TASK_SRC
 };
 
 inline const char* taskTypeToName( TaskType type ) { return g_taskNames[ type ]; }

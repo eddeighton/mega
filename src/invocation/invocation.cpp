@@ -701,7 +701,7 @@ class OperationBuilder
         {
             case eObjects:
             {
-                // reference context of object
+                // Pointer context of object
                 {
                     std::vector< Interface::IContext* > contexts;
                     for( auto pConcrete : objects )
@@ -719,7 +719,7 @@ class OperationBuilder
             break;
             case eComponents:
             {
-                // reference context of component
+                // Pointer context of component
                 {
                     std::vector< Interface::IContext* > contexts;
                     for( auto pConcrete : components )
@@ -737,7 +737,7 @@ class OperationBuilder
             break;
             case eStates:
             {
-                // reference context of state
+                // Pointer context of state
                 {
                     std::vector< Interface::IContext* > contexts;
                     for( auto pConcrete : states )
@@ -760,7 +760,7 @@ class OperationBuilder
             break;
             case eFunctions:
             {
-                // reference context of function
+                // Pointer context of function
                 {
                     std::vector< Interface::IContext* > contexts;
                     for( auto pConcrete : functions )
@@ -778,7 +778,7 @@ class OperationBuilder
             break;
             case eEvents:
             {
-                // reference context of events
+                // Pointer context of events
                 {
                     std::vector< Interface::IContext* > contexts;
                     for( auto pConcrete : events )

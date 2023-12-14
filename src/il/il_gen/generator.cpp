@@ -25,8 +25,6 @@
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
-#include "nlohmann/json.hpp"
-
 #include "inja/inja.hpp"
 #include "inja/environment.hpp"
 #include "inja/template.hpp"
@@ -54,372 +52,153 @@ std::string strEnumMangle( const std::string& strType )
 }
 } // namespace
 
-void generateTypes( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile )
+nlohmann::json generateJSON( const Model& model, const std::vector< boost::filesystem::path >& includes )
 {
-    try
-    {
-        std::string strOutput;
-        {
-            inja::Template tmp = injaEnv.parse_template( "/types.hxx.jinja" );
-
-            nlohmann::json data( { { "dataTypes", nlohmann::json::array() } } );
-
-            auto addType = [ & ]( const Type& type, const std::string& strComment ) -> nlohmann::json
-            {
-                std::string strTypeName;
-                {
-                    std::ostringstream osTypeName;
-                    osTypeName << type;
-                    strTypeName = osTypeName.str();
-                }
-
-                nlohmann::json dataType( {
-
-                    { "enum", strEnumMangle( strTypeName ) },
-                    { "name", strTypeName },  //
-                    { "comment", strComment } //
-
-                } );
-                return dataType;
-            };
-
-            for( const auto& nativeType : model.nativeTypes )
-            {
-                data[ "dataTypes" ].push_back( addType( nativeType, "native" ) );
-            }
-
-            for( const auto& inlineType : model.inlineTypes )
-            {
-                data[ "dataTypes" ].push_back( addType( inlineType, "inline" ) );
-            }
-
-            for( const auto& externType : model.externTypes )
-            {
-                data[ "dataTypes" ].push_back( addType( externType, "extern" ) );
-            }
-
-            std::ostringstream osOutput;
-            injaEnv.render_to( osOutput, tmp, data );
-
-            strOutput = osOutput.str();
-        }
-        boost::filesystem::updateFileIfChanged( outputFile, strOutput );
-    }
-    catch( std::exception& ex )
-    {
-        THROW_RTE( "Error generating template: types.hxx.jinja to output: " << outputFile.string()
-                                                                            << " Error: " << ex.what() );
-    }
-}
-
-void generateFunctions( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile )
-{
-    try
-    {
-        std::string strOutput;
-        {
-            inja::Template tmp = injaEnv.parse_template( "/functions.hxx.jinja" );
-
-            nlohmann::json data( { { "inlines", nlohmann::json::array() }, //
-                                   { "externs", nlohmann::json::array() } } );
-
-            auto addFunction = [ & ]( const Function& function ) -> nlohmann::json
-            {
-                nlohmann::json functionData( {
-
-                    { "element_name", function.name },
-                    { "function_name", function.name },
-                    { "return_variable_type", getVariableType( function.returnType ) },
-                    { "return_data_type", strEnumMangle( getDataType( function.returnType ).name ) },
-                    { "parameters", nlohmann::json::array() }
-
-                } );
-
-                for( const auto& param : function.arguments )
-                {
-                    nlohmann::json paramData( { { "variable_type", getVariableType( param.type ) },
-                                                { "data_type", strEnumMangle( getDataType( param.type ).name ) } } );
-                    functionData[ "parameters" ].push_back( paramData );
-                }
-
-                return functionData;
-            };
-
-            for( const auto function : model.inlineFunctions )
-            {
-                data[ "inlines" ].push_back( addFunction( function ) );
-            }
-
-            for( const auto function : model.externFunctions )
-            {
-                data[ "externs" ].push_back( addFunction( function ) );
-            }
-
-            std::ostringstream osOutput;
-            injaEnv.render_to( osOutput, tmp, data );
-
-            strOutput = osOutput.str();
-        }
-        boost::filesystem::updateFileIfChanged( outputFile, strOutput );
-    }
-    catch( std::exception& ex )
-    {
-        THROW_RTE( "Error generating template: types.hxx.jinja to output: " << outputFile.string()
-                                                                            << " Error: " << ex.what() );
-    }
-}
-
-void generateMaterialiser( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile )
-{
-    try
-    {
-        std::string strOutput;
-        {
-            inja::Template tmp = injaEnv.parse_template( "/materialisers.hxx.jinja" );
-
-            nlohmann::json data( { { "materialisers", nlohmann::json::array() } } );
-
-            auto addFunction = [ & ]( const Function& function ) -> nlohmann::json
-            {
-                nlohmann::json functionData( {
-
-                    { "name", function.name },
-                    { "return_variable_type", getVariableType( function.returnType ) },
-                    { "return_data_type", strEnumMangle( getDataType( function.returnType ).name ) },
-                    { "parameters", nlohmann::json::array() }
-
-                } );
-
-                for( const auto& param : function.arguments )
-                {
-                    nlohmann::json paramData( { { "variable_type", getVariableType( param.type ) },
-                                                { "data_type", strEnumMangle( getDataType( param.type ).name ) } } );
-                    functionData[ "parameters" ].push_back( paramData );
-                }
-
-                return functionData;
-            };
-
-            for( const auto& materialiser : model.materialisers )
-            {
-                nlohmann::json functionData( {
-
-                    { "name", materialiser.name },
-                    { "parameters", nlohmann::json::array() },
-                    { "functions", nlohmann::json::array() }
-
-                } );
-
-                for( const auto& param : materialiser.arguments )
-                {
-                    nlohmann::json paramData( { { "variable_type", getVariableType( param.type ) },
-                                                { "data_type", strEnumMangle( getDataType( param.type ).name ) } } );
-                    functionData[ "parameters" ].push_back( paramData );
-                }
-
-                for( const auto& function : materialiser.functions )
-                {
-                    functionData[ "functions" ].push_back( addFunction( function ) );
-                }
-                data[ "materialisers" ].push_back( functionData );
-            }
-
-            std::ostringstream osOutput;
-            injaEnv.render_to( osOutput, tmp, data );
-
-            strOutput = osOutput.str();
-        }
-        boost::filesystem::updateFileIfChanged( outputFile, strOutput );
-    }
-    catch( std::exception& ex )
-    {
-        THROW_RTE( "Error generating template: types.hxx.jinja to output: " << outputFile.string()
-                                                                            << " Error: " << ex.what() );
-    }
-}
-
-void generateFunctorCPP( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputHeader,
-                         const boost::filesystem::path&                outputSrc,
-                         const std::vector< boost::filesystem::path >& includes )
-{
-    nlohmann::json data( { { "includes", nlohmann::json::array() }, { "functors", nlohmann::json::array() } } );
+    nlohmann::json jsonModel( { { "includes", nlohmann::json::array() },
+                                { "dataTypes", nlohmann::json::array() },
+                                { "inlines", nlohmann::json::array() }, //
+                                { "externs", nlohmann::json::array() },
+                                { "materialisers", nlohmann::json::array() } } );
 
     for( const auto& p : includes )
     {
-        const auto includePath = edsInclude( outputHeader, p );
-        data[ "includes" ].push_back( includePath.string() );
+        jsonModel[ "includes" ].push_back( p.string() );
     }
+
+    auto addVariable = [ & ]( const Variable& variable ) -> nlohmann::json
+    {
+        nlohmann::json varData( { { "type_var", getVariableType( variable.type ) },
+                                  { "type_cpp", getCPPType( variable.type ) },
+                                  { "type_erased", getCPPErasedType( variable.type ) },
+                                  { "type_data", strEnumMangle( getDataType( variable.type ).name ) },
+                                  { "type_cpp", strEnumMangle( getDataType( variable.type ).name ) },
+                                  { "name", variable.name } } );
+        return varData;
+    };
+
+    auto addFunction = [ & ]( const Function& function ) -> nlohmann::json
+    {
+        nlohmann::json functionData( {
+
+            { "name", function.name },
+            { "return_type_var", getVariableType( function.returnType ) },
+            { "return_type_cpp", getCPPType( function.returnType ) },
+            { "return_type_erased", getCPPErasedType( function.returnType ) },
+            { "return_type_data", strEnumMangle( getDataType( function.returnType ).name ) },
+            { "parameters", nlohmann::json::array() },
+            { "symbol_prefix", "" },
+            { "symbol_postfix", "" }
+
+        } );
+
+        if( !function.mangle.empty() )
+        {
+            auto iFind = std::search(
+                function.mangle.begin(), function.mangle.end(), function.name.begin(), function.name.end() );
+            VERIFY_RTE_MSG( iFind != function.mangle.end(),
+                            "Failed to locate function name: " << function.name << " in mangle: " << function.mangle );
+            const auto iNameStart = std::distance( function.mangle.begin(), iFind );
+
+            // remove additional bytes for existing name length digits
+            std::ostringstream os;
+            os << std::dec << function.name.size();
+            const auto iExistingNameLen = os.str().size();
+            VERIFY_RTE( iNameStart > iExistingNameLen );
+
+            functionData[ "symbol_prefix" ]  = function.mangle.substr( 0, iNameStart - iExistingNameLen );
+            functionData[ "symbol_postfix" ] = function.mangle.substr( iNameStart + function.name.size() );
+        }
+
+        for( const auto& var : function.arguments )
+        {
+            functionData[ "parameters" ].push_back( addVariable( var ) );
+        }
+
+        return functionData;
+    };
 
     for( const auto& materialiser : model.materialisers )
     {
+        nlohmann::json materialiserData( {
+
+            { "name", materialiser.name },
+            { "functions", nlohmann::json::array() },
+            { "parameters", nlohmann::json::array() }
+
+        } );
+        for( const auto& var : materialiser.arguments )
+        {
+            materialiserData[ "parameters" ].push_back( addVariable( var ) );
+        }
+
         for( const auto& function : materialiser.functions )
         {
-            nlohmann::json functorData( {
-
-                { "materialiser", materialiser.name }, //
-                { "name", function.name },             //
-                { "return_type", getCPPType( function.returnType ) },
-                { "return_erased_type", getCPPErasedType( function.returnType ) },
-                { "ctor_args", nlohmann::json::array() },
-                { "arguments", nlohmann::json::array() }
-
-            } );
-
-            {
-                for( const auto& arg : materialiser.arguments )
-                {
-                    nlohmann::json paramData( { { "type", getCPPType( arg.type ) }, { "name", arg.name } } );
-                    functorData[ "ctor_args" ].push_back( paramData );
-                }
-            }
-            {
-                for( const auto& arg : function.arguments )
-                {
-                    nlohmann::json paramData( { { "type", getCPPType( arg.type ) },
-                                                { "erased_type", getCPPErasedType( arg.type ) },
-                                                { "name", arg.name } } );
-                    functorData[ "arguments" ].push_back( paramData );
-                }
-            }
-
-            data[ "functors" ].push_back( functorData );
+            materialiserData[ "functions" ].push_back( addFunction( function ) );
         }
+        jsonModel[ "materialisers" ].push_back( materialiserData );
     }
 
-    try
+    for( const auto function : model.inlineFunctions )
     {
-        std::string strOutput;
+        jsonModel[ "inlines" ].push_back( addFunction( function ) );
+    }
+
+    for( const auto function : model.externFunctions )
+    {
+        jsonModel[ "externs" ].push_back( addFunction( function ) );
+    }
+
+    auto addType = [ & ]( const Type& type, const std::string& strComment ) -> nlohmann::json
+    {
+        std::string strTypeName;
         {
-            inja::Template     tmp = injaEnv.parse_template( "/functor_cpp.hxx.jinja" );
-            std::ostringstream osOutput;
-            injaEnv.render_to( osOutput, tmp, data );
-            strOutput = osOutput.str();
+            std::ostringstream osTypeName;
+            osTypeName << type;
+            strTypeName = osTypeName.str();
         }
-        boost::filesystem::updateFileIfChanged( outputHeader, strOutput );
-    }
-    catch( std::exception& ex )
+
+        nlohmann::json dataType( {
+
+            { "enum", strEnumMangle( strTypeName ) },
+            { "name", strTypeName },  //
+            { "comment", strComment } //
+
+        } );
+        return dataType;
+    };
+
+    for( const auto& nativeType : model.nativeTypes )
     {
-        THROW_RTE( "Error generating template: types.hxx.jinja to output: " << outputHeader.string()
-                                                                            << " Error: " << ex.what() );
+        jsonModel[ "dataTypes" ].push_back( addType( nativeType, "native" ) );
     }
-    try
+
+    for( const auto& inlineType : model.inlineTypes )
     {
-        std::string strOutput;
-        {
-            inja::Template     tmp = injaEnv.parse_template( "/functor_cpp.cxx.jinja" );
-            std::ostringstream osOutput;
-            injaEnv.render_to( osOutput, tmp, data );
-            strOutput = osOutput.str();
-        }
-        boost::filesystem::updateFileIfChanged( outputSrc, strOutput );
+        jsonModel[ "dataTypes" ].push_back( addType( inlineType, "inline" ) );
     }
-    catch( std::exception& ex )
+
+    for( const auto& externType : model.externTypes )
     {
-        THROW_RTE( "Error generating template: types.hxx.jinja to output: " << outputSrc.string()
-                                                                            << " Error: " << ex.what() );
+        jsonModel[ "dataTypes" ].push_back( addType( externType, "extern" ) );
     }
+
+    return jsonModel;
 }
 
-void generateFunctorIDs( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile )
+void generate( inja::Environment& injaEnv, const nlohmann::json& model, const std::string& strTemplate,
+               const boost::filesystem::path& outputFile )
 {
     try
     {
-        std::string strOutput;
-        {
-            inja::Template tmp = injaEnv.parse_template( "/functor_id.hxx.jinja" );
-
-            nlohmann::json data( { { "materialisers", nlohmann::json::array() } } );
-
-            for( const auto& materialiser : model.materialisers )
-            {
-                nlohmann::json materialiserData( {
-
-                    { "name", materialiser.name }, //
-                    { "args", nlohmann::json::array() },
-                    { "functors", nlohmann::json::array() }
-
-                } );
-
-                for( const auto& arg : materialiser.arguments )
-                {
-                    nlohmann::json paramData( { { "type", getCPPType( arg.type ) }, { "name", arg.name } } );
-                    materialiserData[ "args" ].push_back( paramData );
-                }
-
-                for( const auto& function : materialiser.functions )
-                {
-                    nlohmann::json functorData( {
-
-                        { "name", function.name }
-
-                    } );
-                    materialiserData[ "functors" ].push_back( functorData );
-                }
-                data[ "materialisers" ].push_back( materialiserData );
-            }
-
-            std::ostringstream osOutput;
-            injaEnv.render_to( osOutput, tmp, data );
-
-            strOutput = osOutput.str();
-        }
-        boost::filesystem::updateFileIfChanged( outputFile, strOutput );
+        inja::Template     tmp = injaEnv.parse_template( strTemplate );
+        std::ostringstream osOutput;
+        injaEnv.render_to( osOutput, tmp, model );
+        boost::filesystem::updateFileIfChanged( outputFile, osOutput.str() );
     }
     catch( std::exception& ex )
     {
-        THROW_RTE( "Error generating template: types.hxx.jinja to output: " << outputFile.string()
-                                                                            << " Error: " << ex.what() );
-    }
-}
-void generateFunctorDispatch( inja::Environment& injaEnv, const Model& model, const boost::filesystem::path& outputFile )
-{
-    try
-    {
-        std::string strOutput;
-        {
-            inja::Template tmp = injaEnv.parse_template( "/functor_dispatch.cxx.jinja" );
-
-            nlohmann::json data( { { "materialisers", nlohmann::json::array() } } );
-
-            for( const auto& materialiser : model.materialisers )
-            {
-                nlohmann::json materialiserData( {
-
-                    { "name", materialiser.name }, //
-                    { "args", nlohmann::json::array() },
-                    { "functors", nlohmann::json::array() }
-
-                } );
-
-                for( const auto& arg : materialiser.arguments )
-                {
-                    nlohmann::json paramData( { { "type", getCPPType( arg.type ) }, { "name", arg.name } } );
-                    materialiserData[ "args" ].push_back( paramData );
-                }
-
-                for( const auto& function : materialiser.functions )
-                {
-                    nlohmann::json functorData( {
-
-                        { "name", function.name }
-
-                    } );
-                    materialiserData[ "functors" ].push_back( functorData );
-                }
-                data[ "materialisers" ].push_back( materialiserData );
-            }
-
-            std::ostringstream osOutput;
-            injaEnv.render_to( osOutput, tmp, data );
-
-            strOutput = osOutput.str();
-        }
-        boost::filesystem::updateFileIfChanged( outputFile, strOutput );
-    }
-    catch( std::exception& ex )
-    {
-        THROW_RTE( "Error generating template: types.hxx.jinja to output: " << outputFile.string()
-                                                                            << " Error: " << ex.what() );
+        THROW_RTE( "Error generating template: " << strTemplate << " to output: " << outputFile.string()
+                                                 << " Error: " << ex.what() );
     }
 }
 

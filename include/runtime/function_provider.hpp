@@ -23,8 +23,6 @@
 
 #include "service/stash_provider.hpp"
 
-#include "runtime/functor_id.hxx"
-
 #include "common/unreachable.hpp"
 
 #include <functional>
@@ -36,6 +34,7 @@ class MPOContext;
 
 namespace runtime
 {
+class FunctorID;
 
 class FunctionProvider
 {

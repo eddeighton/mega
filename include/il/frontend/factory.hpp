@@ -25,23 +25,34 @@
 
 #include "runtime/functor_id.hxx"
 
+namespace mega::runtime
+{
+    class JITDatabase;
+}
+
 namespace mega::il
 {
 class Factory
 {
 public:
-    FunctionDefinition generate_Object_constructor( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_destructor( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_binaryLoad( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_binarySave( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_getFunction( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_unParent( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_traverse( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_linkSize( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_linkGet( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_anyRead( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_anyWrite( const runtime::FunctorID& functorID );
-    FunctionDefinition generate_Object_enumerate( const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_constructor( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_destructor( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_binaryLoad( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_binarySave( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_getFunction( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_unParent( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_traverse( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_linkSize( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_linkGet( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_anyRead( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_anyWrite( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Object_enumerate( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+
+    FunctionDefinition generate_Relation_Make( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Relation_Break( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Relation_Reset( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Relation_Size( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Relation_Get( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
 };
 } // namespace mega::il
 

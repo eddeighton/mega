@@ -25,7 +25,7 @@
 
 #include "mega/values/compilation/size_alignment.hpp"
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 #include "mega/memory.hpp"
 

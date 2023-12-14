@@ -32,7 +32,7 @@
 
 #include "il/backend/backend.hpp"
 
-TEST( IL, Basic )
+TEST( CPP, Basic )
 {
     using namespace mega::il;
     using namespace std::string_literals;
@@ -58,7 +58,7 @@ TEST( IL, Basic )
     std::cout << generateCPP( func ) << std::endl;
 }
 
-TEST( IL, Switch )
+TEST( CPP, Switch )
 {
     using namespace mega::il;
     using namespace std::string_literals;
@@ -89,7 +89,7 @@ TEST( IL, Switch )
     std::cout << generateCPP( func ) << std::endl;
 }
 
-TEST( IL, If )
+TEST( CPP, If )
 {
     using namespace mega::il;
     using namespace std::string_literals;
@@ -127,7 +127,7 @@ TEST( IL, If )
     std::cout << generateCPP( func ) << std::endl;
 }
 
-TEST( IL, ForLoop )
+TEST( CPP, ForLoop )
 {
     using namespace mega::il;
     using namespace std::string_literals;
@@ -149,14 +149,16 @@ TEST( IL, ForLoop )
                    Read{ param1 },
                    Operator{ { Read{ iterator }, Read{ param2 } }, Operator::eNotEqual },
                    Operator::makeIncrement( iterator ),
-                   { ExpressionStatement{ Call{ log, { Read{ iterator } } } } } } }
+                   { ExpressionStatement{ Call{ log, { Read{ iterator } } } }
+
+                   } } }
         //
     };
 
     std::cout << generateCPP( func ) << std::endl;
 }
 
-TEST( IL, Materialiser )
+TEST( CPP, Materialiser )
 {
     using namespace mega::il;
     using namespace std::string_literals;
@@ -173,7 +175,7 @@ TEST( IL, Materialiser )
     Variable< ValueType > param3{ voidStar, "pBuffer"s };
     Variable< ValueType > param4{ boolType, "bLinkReset"s };
 
-    Object       mat;
+    Object                   mat;
     Variable< Materialiser > objectMat{ mat, "objectMat"s };
 
     const FunctionTemplate& jitFunctionType = mat.getFunctionTemplate( Object::destructor );
@@ -200,7 +202,7 @@ TEST( IL, Materialiser )
     std::cout << generateCPP( func ) << std::endl;
 }
 
-TEST( IL, Mangle )
+TEST( CPP, Mangle )
 {
     using namespace mega::il;
     using namespace std::string_literals;
@@ -226,7 +228,7 @@ TEST( IL, Mangle )
     std::cout << generateCPP( func ) << std::endl;
 }
 
-TEST( IL, Assignment )
+TEST( CPP, Assignment )
 {
     using namespace mega::il;
     using namespace std::string_literals;

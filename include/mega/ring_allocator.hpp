@@ -25,7 +25,7 @@
 #include <cstddef>
 
 #include "mega/values/native_types.hpp"
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/clock.hpp"
 
 #include <boost/circular_buffer.hpp>

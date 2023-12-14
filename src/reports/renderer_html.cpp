@@ -21,16 +21,6 @@
 #include "reports/renderer_html.hpp"
 #include "reports/report.hpp"
 
-#include "mega/values/compilation/invocation_id.hpp"
-#include "mega/values/compilation/relation_id.hpp"
-#include "mega/values/compilation/operator_id.hpp"
-#include "mega/values/compilation/type_id.hpp"
-
-#include "mega/values/runtime/any.hpp"
-#include "mega/values/runtime/reference.hpp"
-
-#include "mega/values/native_types_io.hpp"
-
 #include "common/process.hpp"
 #include "common/file.hpp"
 #include "common/string.hpp"

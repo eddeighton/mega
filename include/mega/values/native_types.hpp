@@ -20,28 +20,21 @@
 #ifndef MEGA_NATIVE_TYPES_18_SEPT_2022
 #define MEGA_NATIVE_TYPES_18_SEPT_2022
 
+#include "mega/values/native_types.h"
+
 namespace mega
 {
-using Void = void;
-using Char = char;
-using Bool = bool;
 
-using U8  = unsigned char;
-using I8  = signed char;
-using U16 = unsigned short;
-using I16 = signed short;
-using U32 = unsigned int;
-using I32 = signed int;
-using F32 = float;
-using F64 = double;
-
-#ifdef _WIN64
-using U64 = unsigned long long;
-using I64 = signed long long;
-#else
-using U64 = unsigned long int;
-using I64 = signed long int;
-#endif
+using U8        = c_u8;
+using U16       = c_u16;
+using U32       = c_u32;
+using U64       = c_u64;
+using I8        = c_i8;
+using I16       = c_i16;
+using I32       = c_i32;
+using I64       = c_i64;
+using F32       = c_f32;
+using F64       = c_f64;
 
 #ifndef MEGAJIT
 static_assert( sizeof( U8 ) == 1U, "Invalid U8 Size" );
@@ -56,27 +49,8 @@ static_assert( sizeof( F32 ) == 4U, "Invalid F32 Size" );
 static_assert( sizeof( F64 ) == 8U, "Invalid F64 Size" );
 #endif
 
-using TimeStamp = U32;
-using RefCount  = U16;
-using Instance  = U16;
-using SubType   = U16;
-using MachineID = U32;
-using ProcessID = U16;
-using OwnerID   = U8;
-
 } // namespace mega
 
 // make everything visible globally
-using U8        = mega::U8;
-using I8        = mega::I8;
-using U16       = mega::U16;
-using I16       = mega::I16;
-using U32       = mega::U32;
-using I32       = mega::I32;
-using U64       = mega::U64;
-using I64       = mega::I64;
-using F32       = mega::F32;
-using F64       = mega::F64;
-using TimeStamp = mega::TimeStamp;
 
 #endif // MEGA_NATIVE_TYPES_18_SEPT_2022

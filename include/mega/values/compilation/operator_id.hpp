@@ -21,14 +21,12 @@
 #ifndef GUARD_2023_October_03_operator_id
 #define GUARD_2023_October_03_operator_id
 
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
 
-#ifndef MEGAJIT
 #include <ostream>
 #include <array>
 #include <string>
 #include <utility>
-#endif
 
 namespace mega
 {
@@ -47,20 +45,19 @@ public:
         HIGHEST_OPERATOR_TYPE
     };
 
-    Type   m_operator;
-    TypeID m_typeID;
+    Type              m_operator;
+    interface::TypeID m_typeID;
 
-    inline bool operator==( const OperatorID& cmp ) const
-    {
-        return ( m_operator == cmp.m_operator ) && ( m_typeID == cmp.m_typeID );
-    }
-    inline bool operator!=( const OperatorID& cmp ) const { return !this->operator==( cmp ); }
-    inline bool operator<( const OperatorID& cmp ) const
-    {
-        return ( m_operator != cmp.m_operator ) ? ( m_operator < cmp.m_operator ) : ( m_typeID < cmp.m_typeID );
-    }
+    // inline bool operator==( const OperatorID& cmp ) const
+    // {
+    //     return ( m_operator == cmp.m_operator ) && ( m_typeID == cmp.m_typeID );
+    // }
+    // inline bool operator!=( const OperatorID& cmp ) const { return !this->operator==( cmp ); }
+    // inline bool operator<( const OperatorID& cmp ) const
+    // {
+    //     return ( m_operator != cmp.m_operator ) ? ( m_operator < cmp.m_operator ) : ( m_typeID < cmp.m_typeID );
+    // }
 
-#ifndef MEGAJIT
     using OperatorIDTypeName = std::pair< Type, std::string >;
     using Array              = std::array< OperatorIDTypeName, HIGHEST_OPERATOR_TYPE >;
     static const Array names;
@@ -71,13 +68,10 @@ public:
         archive& m_operator;
         archive& m_typeID;
     }
-#endif
 };
 
 } // namespace mega
 
-#ifndef MEGAJIT
 std::ostream& operator<<( std::ostream& os, const mega::OperatorID& operatorID );
-#endif
 
 #endif // GUARD_2023_October_03_operator_id

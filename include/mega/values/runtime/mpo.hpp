@@ -29,17 +29,18 @@ namespace mega
 class MPO;
 class MP
 {
-    MachineID m_machineID; // 4
-    ProcessID m_processID; // 2
-    U16       m_padding;   // 2
+    // MachineID m_machineID; // 4
+    // ProcessID m_processID; // 2
+    // U16       m_padding;   // 2
 public:
-    struct Hash
-    {
-        inline U64 operator()( const MP& mp ) const noexcept { return mp.m_machineID + ( ( U64 )mp.m_processID << 4 ); }
-    };
+    // struct Hash
+    // {
+    //     inline U64 operator()( const MP& mp ) const noexcept { return mp.m_machineID + ( ( U64 )mp.m_processID << 4 ); }
+    // };
 
     MP() = default;
 
+    /*
     constexpr explicit MP( MachineID machineID, ProcessID processID )
         : m_machineID( machineID )
         , m_processID( processID )
@@ -65,18 +66,18 @@ public:
     }
 
     constexpr void setMachineID( MachineID machineID ) { m_machineID = machineID; }
-    constexpr void setProcessID( ProcessID processID ) { m_processID = processID; }
+    constexpr void setProcessID( ProcessID processID ) { m_processID = processID; }*/
 };
-static_assert( sizeof( MP ) == 8U, "Invalid MP Size" );
+// static_assert( sizeof( MP ) == 8U, "Invalid MP Size" );
 
 class MPO
 {
-    MachineID m_machineID; // 4
-    ProcessID m_processID; // 2
-    OwnerID   m_ownerID;   // 1
-    U8        m_padding;   // 1
+    // MachineID m_machineID; // 4
+    // ProcessID m_processID; // 2
+    // OwnerID   m_ownerID;   // 1
+    // U8        m_padding;   // 1
 public:
-    struct Hash
+    /*struct Hash
     {
         inline U64 operator()( const MPO& mpo ) const noexcept
         {
@@ -117,15 +118,15 @@ public:
 
     constexpr void setMachineID( MachineID machineID ) { m_machineID = machineID; }
     constexpr void setProcessID( ProcessID processID ) { m_processID = processID; }
-    constexpr void setExecutorID( OwnerID ownerID ) { m_ownerID = ownerID; }
+    constexpr void setExecutorID( OwnerID ownerID ) { m_ownerID = ownerID; }*/
 };
-static_assert( sizeof( MPO ) == 8U, "Invalid MPO Size" );
-
+// static_assert( sizeof( MPO ) == 8U, "Invalid MPO Size" );
+/*
 constexpr MP::MP( const MPO& mpo )
     : MP{ mpo.getMachineID(), mpo.getProcessID() }
 {
 }
-
+*/
 } // namespace mega
 
 #endif // GUARD_2023_January_07_mpo

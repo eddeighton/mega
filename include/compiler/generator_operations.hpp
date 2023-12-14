@@ -169,7 +169,7 @@ private:
                     {
                         if( i > 0 )
                             osArgs << ", ";
-                        osArgs << "const mega::reference& _p" << i;
+                        osArgs << "const mega::Pointer& _p" << i;
                     }
                 }
             }

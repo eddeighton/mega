@@ -28,6 +28,7 @@
 #include "environment/environment_stash.hpp"
 
 #include "database/sources.hpp"
+#include "database/manifest.hxx"
 
 #include "mega/values/compilation/tool_chain_hash.hpp"
 
@@ -73,7 +74,7 @@
 
 namespace mega::compiler
 {
-// used by Task_InterfaceTree and others
+// used by Task_AST and others
 inline std::string toString( const std::vector< std::string >& name )
 {
     std::ostringstream os;
@@ -95,10 +96,11 @@ inline std::string toString( const std::vector< std::string >& name )
 
 struct TaskArguments
 {
-    TaskArguments( const mega::io::StashEnvironment& environment, const mega::utilities::ToolChain& toolChain,
-                   const boost::filesystem::path& unityProjectDir, const boost::filesystem::path& unityEditor,
-                   EG_PARSER_INTERFACE* parser )
+    TaskArguments( const mega::io::StashEnvironment& environment, const mega::io::Manifest& manifest,
+                   const mega::utilities::ToolChain& toolChain, const boost::filesystem::path& unityProjectDir,
+                   const boost::filesystem::path& unityEditor, EG_PARSER_INTERFACE* parser )
         : environment( environment )
+        , manifest( manifest )
         , toolChain( toolChain )
         , unityProjectDir( unityProjectDir )
         , unityEditor( unityEditor )
@@ -106,6 +108,7 @@ struct TaskArguments
     {
     }
     const mega::io::StashEnvironment& environment;
+    const mega::io::Manifest&         manifest;
     const mega::utilities::ToolChain& toolChain;
     const boost::filesystem::path&    unityProjectDir;
     const boost::filesystem::path&    unityEditor;
@@ -117,6 +120,7 @@ class BaseTask
 protected:
     TaskName                          m_taskName;
     const mega::io::StashEnvironment& m_environment;
+    const mega::io::Manifest&         m_manifest;
     const mega::utilities::ToolChain& m_toolChain;
     const boost::filesystem::path&    m_unityProjectDir;
     const boost::filesystem::path&    m_unityEditor;
@@ -128,6 +132,7 @@ public:
 
     BaseTask( const TaskArguments& taskArguments )
         : m_environment( taskArguments.environment )
+        , m_manifest( taskArguments.manifest )
         , m_toolChain( taskArguments.toolChain )
         , m_unityProjectDir( taskArguments.unityProjectDir )
         , m_unityEditor( taskArguments.unityEditor )
@@ -140,6 +145,17 @@ public:
 
     const TaskName& getTaskName() const { return m_taskName; }
     bool            isCompleted() const { return m_bCompleted; }
+
+    using PathSet = std::set< mega::io::megaFilePath >;
+    PathSet getSortedSourceFiles() const
+    {
+        PathSet sourceFiles;
+        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+        {
+            sourceFiles.insert( sourceFilePath );
+        }
+        return sourceFiles;
+    }
 
     template < typename TComponentType, typename TDatabase >
     TComponentType* getComponent( TDatabase& database, const mega::io::SourceFilePath& sourceFilePath ) const

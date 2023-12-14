@@ -21,6 +21,7 @@
 #include "generator.hpp"
 
 #include "compiler/cmake.hpp"
+#include "common/file.hpp"
 
 #include "inja/environment.hpp"
 
@@ -37,6 +38,7 @@ extern void parseNative( const boost::filesystem::path& filePath, Model& model )
 extern void parseInline( const boost::filesystem::path& filePath, Model& model );
 extern void parseExtern( const boost::filesystem::path& filePath, Model& model );
 extern void parseMaterialiser( const boost::filesystem::path& filePath, Model& model );
+extern void parseStubs( const boost::filesystem::path& filePath, Model& model );
 } // namespace il_gen
 
 int main( int argc, const char* argv[] )
@@ -58,7 +60,7 @@ int main( int argc, const char* argv[] )
         }
 
         std::string             inlineFiles, nativeFiles, externFiles, materialiserFiles;
-        boost::filesystem::path injaTemplatesDir, ilFolderPath, runtime_functors_include_dir, runtime_functors_impl_dir;
+        boost::filesystem::path injaTemplatesDir, ilFolderPath, mega_include_dir, runtime_functors_include_dir, runtime_functors_impl_dir;
 
         namespace po = boost::program_options;
         po::options_description commandOptions( " Execute inja template" );
@@ -72,7 +74,8 @@ int main( int argc, const char* argv[] )
                 ( "inja",           po::value< boost::filesystem::path >( &injaTemplatesDir )  )
                 ( "il_folder",      po::value< boost::filesystem::path >( &ilFolderPath )      )
 
-                ( "runtime_functors_include_dir",   po::value< boost::filesystem::path >( &runtime_functors_include_dir ) )
+                ( "mega_include_dir",  po::value< boost::filesystem::path >( &mega_include_dir ) )
+                ( "runtime_functors_include_dir",  po::value< boost::filesystem::path >( &runtime_functors_include_dir ) )
                 ( "runtime_functors_impl_dir",     po::value< boost::filesystem::path >( &runtime_functors_impl_dir ) )
                 ;
             // clang-format on
@@ -106,6 +109,9 @@ int main( int argc, const char* argv[] )
             const std::vector< boost::filesystem::path > materialiserFilePaths
                 = mega::utilities::pathListToFiles( mega::utilities::parseCMakeStringList( materialiserFiles, " " ) );
 
+            inja::Environment injaEnv( injaTemplatesDir.string() );
+            injaEnv.set_trim_blocks( true );
+
             // determine the model
             il_gen::Model                          model;
             std::vector< boost::filesystem::path > materialiserIncludes;
@@ -131,7 +137,6 @@ int main( int argc, const char* argv[] )
                         parseInline( f, model );
                     }
                 }
-
                 {
                     for( const auto& f : externFilePaths )
                     {
@@ -144,42 +149,59 @@ int main( int argc, const char* argv[] )
                 {
                     std::cout << "Materialiser file: " << f.string() << std::endl;
                     parseMaterialiser( f, model );
-                    materialiserIncludes.push_back( f );
+                    materialiserIncludes.push_back( edsInclude( mega_include_dir, f ) );
                 }
             }
 
-            inja::Environment injaEnv( injaTemplatesDir.string() );
-            injaEnv.set_trim_blocks( true );
+            const auto initialJSONModel = generateJSON( model, materialiserIncludes );
+            {
+                const auto jsonModelPath = ilFolderPath / "model.json";
+                auto pFileStream = boost::filesystem::createNewFileStream( jsonModelPath );
+                *pFileStream << initialJSONModel;
+            }
 
-            // generate the outputs
+            // generate materialiser function stubs
+            const auto materialiserStubs = ilFolderPath / "stubs.hxx";
+            std::cout << "Generating: " << materialiserStubs.string() << std::endl;
+            il_gen::generate( injaEnv, initialJSONModel, "/stubs.hxx.jinja", materialiserStubs );
 
-            // 1. Generate the IL mega/src/include/il/elements/types.hxx
+            // now determine the mangled name for each function stub
+            parseStubs( materialiserStubs, model );
+
+            // generate generic json file
+            const auto jsonModel = generateJSON( model, materialiserIncludes );
+            
+            {
+                const auto jsonModelPath = ilFolderPath / "model.json";
+                auto pFileStream = boost::filesystem::createNewFileStream( jsonModelPath );
+                *pFileStream << jsonModel;
+            }
+
             const auto ilTypesFilePath = ilFolderPath / "types.hxx";
             std::cout << "Generating: " << ilTypesFilePath.string() << std::endl;
-            generateTypes( injaEnv, model, ilTypesFilePath );
+            il_gen::generate( injaEnv, jsonModel, "/types.hxx.jinja", ilTypesFilePath );
 
-            // 2. Generate the IL mega/src/include/il/elements/functions.hxx
             const auto ilFunctionsFilePath = ilFolderPath / "functions.hxx";
             std::cout << "Generating: " << ilFunctionsFilePath.string() << std::endl;
-            generateFunctions( injaEnv, model, ilFunctionsFilePath );
+            il_gen::generate( injaEnv, jsonModel, "/functions.hxx.jinja", ilFunctionsFilePath );
 
             const auto ilMaterialiserPath = ilFolderPath / "materialisers.hxx";
             std::cout << "Generating: " << ilMaterialiserPath.string() << std::endl;
-            generateMaterialiser( injaEnv, model, ilMaterialiserPath );
+            il_gen::generate( injaEnv, jsonModel, "/materialisers.hxx.jinja", ilMaterialiserPath );
 
             const auto cppFunctorHeader = runtime_functors_include_dir / "functor_cpp.hxx";
             const auto cppFunctoSrc     = runtime_functors_impl_dir / "functor_cpp.cxx";
             std::cout << "Generating: " << cppFunctorHeader.string() << " and " << cppFunctoSrc.string() << std::endl;
-            generateFunctorCPP( injaEnv, model, cppFunctorHeader, cppFunctoSrc, materialiserIncludes );
+            il_gen::generate( injaEnv, jsonModel, "/functor_cpp.hxx.jinja", cppFunctorHeader );
+            il_gen::generate( injaEnv, jsonModel, "/functor_cpp.cxx.jinja", cppFunctoSrc );
 
             const auto cppFunctorIDs = runtime_functors_include_dir / "functor_id.hxx";
             std::cout << "Generating: " << cppFunctorIDs.string() << std::endl;
-            generateFunctorIDs( injaEnv, model, cppFunctorIDs );
+            il_gen::generate( injaEnv, jsonModel, "/functor_id.hxx.jinja", cppFunctorIDs );
 
             const auto functorDispatch = runtime_functors_impl_dir / "functor_dispatch.cxx";
             std::cout << "Generating: " << functorDispatch.string() << std::endl;
-            generateFunctorDispatch( injaEnv, model, functorDispatch );
-
+            il_gen::generate( injaEnv, jsonModel, "/functor_dispatch.cxx.jinja", functorDispatch );
 
             return 0;
         }

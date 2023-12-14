@@ -49,7 +49,7 @@ mega::reports::Container MemoryReporter::generate( const mega::reports::URL& url
 
     for( auto i = m_memoryManager.begin(), iEnd = m_memoryManager.end(); i != iEnd; ++i )
     {
-        const reference& ref = i->first;
+        const Pointer& ref = i->first;
         VERIFY_RTE( ref.isHeapAddress() );
 
         auto pHeader = reinterpret_cast< runtime::ObjectHeader* >( ref.getHeap() );

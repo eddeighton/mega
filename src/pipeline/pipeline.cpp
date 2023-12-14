@@ -147,8 +147,7 @@ TaskDescriptor::Vector Schedule::getReady() const
             if( m_complete.count( task ) )
                 continue;
             bool bWaiting = false;
-            for( Dependencies::Graph::const_iterator i = graph.lower_bound( task ), iEnd = graph.upper_bound( task );
-                 i != iEnd; ++i )
+            for( auto i = graph.lower_bound( task ), iEnd = graph.upper_bound( task ); i != iEnd; ++i )
             {
                 if( !m_complete.count( i->second ) )
                 {
@@ -259,7 +258,7 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
                                    const mega::pipeline::Configuration& pipelineConfig, const std::string& strTaskName,
                                    const std::string&             strSourceFile,
                                    const boost::filesystem::path& inputPipelineResultPath, bool bForceNoStash,
-                                   bool bExecuteUpTo, std::ostream& osLog )
+                                   bool bExecuteUpTo, bool bInclusive, std::ostream& osLog )
 {
     VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
     task::Stash          stash( stashDir );
@@ -400,16 +399,16 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
         {
             if( !strSourceFile.empty() )
             {
-                mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
                 osLog << "Running UP TO task: " << strTaskName << " with source: " << strSourceFile << std::endl;
-                schedule = schedule.getUpTo( strTaskName, strSourceFile, false );
+                schedule = schedule.getUpTo( strTaskName, strSourceFile, bInclusive );
             }
             else
             {
                 osLog << "Running UP TO task: " << strTaskName << std::endl;
-                schedule = schedule.getUpTo( strTaskName, false );
+                schedule = schedule.getUpTo( strTaskName, bInclusive );
             }
         }
+
         while( !schedule.isComplete() && pipelineResult.getSuccess() )
         {
             bool bProgress = false;

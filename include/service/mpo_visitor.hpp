@@ -22,8 +22,8 @@
 #define GUARD_2023_September_01_mpo_visitor
 
 #include "mega/iterator.hpp"
-#include "mega/logical_reference.hpp"
-#include "mega/values/runtime/reference.hpp"
+#include "mega/logical_pointer.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/values/runtime/any.hpp"
 
 // #include "jit/program_functions.hxx"
@@ -35,32 +35,32 @@ namespace mega
 
 struct MPORealToLogicalVisitor
 {
-    mega::reference m_root;
+    mega::Pointer m_root;
 
-    MPORealToLogicalVisitor( const mega::reference& root )
+    MPORealToLogicalVisitor( const mega::Pointer& root )
         : m_root( root )
     {
     }
     MPORealToLogicalVisitor( const MPO& mpo )
-        : m_root( mega::reference::make_root( mpo ) )
+        : m_root( mega::Pointer::make_root( mpo ) )
     {
     }
 
-    using LogicalToReal = std::unordered_map< mega::LogicalObject, mega::reference, mega::LogicalObject::Hash >;
-    using RealToLogical = std::unordered_map< mega::reference, mega::LogicalObject, mega::reference::Hash >;
+    using LogicalToReal = std::unordered_map< mega::LogicalObject, mega::Pointer, mega::LogicalObject::Hash >;
+    using RealToLogical = std::unordered_map< mega::Pointer, mega::LogicalObject, mega::Pointer::Hash >;
     LogicalToReal m_logicalToReal;
     RealToLogical m_realToLogical;
 
-    inline mega::reference fromLogical( const LogicalReference& logicalRef ) const
+    inline mega::Pointer fromLogical( const LogicalPointer& logicalRef ) const
     {
-        auto iFind = m_logicalToReal.find( LogicalReference::toLogicalObject( logicalRef ) );
+        auto iFind = m_logicalToReal.find( LogicalPointer::toLogicalObject( logicalRef ) );
         VERIFY_RTE_MSG( iFind != m_logicalToReal.end(), "Failed to locate logical object" );
-        return reference::make( iFind->second, logicalRef.typeInstance );
+        return Pointer::make( iFind->second, logicalRef.typeInstance );
     }
 
-    inline LogicalObject toLogicalObject( const reference& ref )
+    inline LogicalObject toLogicalObject( const Pointer& ref )
     {
-        const reference objectRef = ref.getObjectAddress();
+        const Pointer objectRef = ref.getObjectAddress();
         auto            iFind     = m_realToLogical.find( objectRef );
         if( iFind != m_realToLogical.end() )
         {
@@ -79,7 +79,7 @@ struct MPORealToLogicalVisitor
 
     mega::LogicalObject start() { return toLogicalObject( m_root ); }
 
-    U64 linkSize( const LogicalReference& logicalRef, bool bOwning, bool bOwned )
+    U64 linkSize( const LogicalPointer& logicalRef, bool bOwning, bool bOwned )
     {
         if( !bOwning )
             return 0U;
@@ -89,14 +89,14 @@ struct MPORealToLogicalVisitor
         //return linkSizeFPtr( fromLogical( logicalRef ) );
     }
 
-    LogicalObject linkGet( const LogicalReference& logicalRef, U64 index )
+    LogicalObject linkGet( const LogicalPointer& logicalRef, U64 index )
     {
         THROW_TODO;
         // static thread_local mega::runtime::program::LinkGet linkGetFptr;
         //return toLogicalObject( linkGetFptr( fromLogical( logicalRef ), index ) );
     }
 
-    Any read( const LogicalReference& logicalRef )
+    Any read( const LogicalPointer& logicalRef )
     {
         THROW_TODO;
         // static thread_local mega::runtime::program::ReadAny readAny;
@@ -106,20 +106,20 @@ struct MPORealToLogicalVisitor
 
 struct MPORealVisitor
 {
-    mega::reference m_root;
+    mega::Pointer m_root;
 
-    MPORealVisitor( const mega::reference& root )
+    MPORealVisitor( const mega::Pointer& root )
         : m_root( root )
     {
     }
     MPORealVisitor( const MPO& mpo )
-        : m_root( mega::reference::make_root( mpo ) )
+        : m_root( mega::Pointer::make_root( mpo ) )
     {
     }
 
-    reference start() { return m_root; }
+    Pointer start() { return m_root; }
 
-    U64 linkSize( const reference& ref, bool bOwning, bool bOwned )
+    U64 linkSize( const Pointer& ref, bool bOwning, bool bOwned )
     {
         if( !bOwning )
             return 0U;
@@ -129,14 +129,14 @@ struct MPORealVisitor
         // return linkSizeFPtr( ref );
     }
 
-    reference linkGet( const reference& ref, U64 index )
+    Pointer linkGet( const Pointer& ref, U64 index )
     {
         THROW_TODO;
         // static thread_local mega::runtime::program::LinkGet linkGetFptr;
         // return linkGetFptr( ref, index );
     }
 
-    Any read( const reference& ref )
+    Any read( const Pointer& ref )
     {
         THROW_TODO;
         // static thread_local mega::runtime::program::ReadAny readAny;

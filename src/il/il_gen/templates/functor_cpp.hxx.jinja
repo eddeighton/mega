@@ -27,20 +27,22 @@
 
 #include "runtime/functor_id.hxx"
 
-{% for functor in functors %}
-namespace mega::runtime::{{ functor.materialiser }}
+{% for mat in materialisers %}
+namespace mega::runtime::{{ mat.name }}
 {
-    class {{ functor.name }}
+{% for function in mat.functions %}
+    class {{ function.name }}
     {
-        using FunctionPtr = {{ functor.return_erased_type }} ( * ) ({% for arg in functor.arguments %}{{ arg.erased_type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
+        using FunctionPtr = {{ function.return_type_erased }} ( * ) ({% for arg in function.parameters %}{{ arg.type_erased }}{% if not loop.is_last%}, {% endif %}{% endfor %});
     public:
-        {{ functor.name }}( {% for arg in functor.ctor_args %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %} );
-        {{ functor.return_type }} operator() ({% for arg in functor.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
+        {{ function.name }}( {% for arg in mat.parameters %}{{ arg.type_cpp }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %} );
+        {{ function.return_type_cpp }} operator() ({% for arg in function.parameters %}{{ arg.type_cpp }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
     private:
-        const {{ functor.materialiser }}_id m_id;
+        const {{ mat.name }}_id m_id;
         mutable bool m_bResolving;
         mutable FunctionPtr m_function;
     };
+{% endfor %}
 }
 {% endfor %}
 

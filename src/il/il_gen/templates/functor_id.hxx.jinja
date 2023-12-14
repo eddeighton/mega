@@ -21,7 +21,11 @@
 #ifndef GUARD_2023_December_05_functor_id
 #define GUARD_2023_December_05_functor_id
 
-#include "mega/values/compilation/type_id.hpp"
+{% for include in includes %}
+#include "{{ include }}"
+{% endfor %}
+
+#include "mega/values/compilation/interface/type_id.hpp"
 #include "mega/values/hash.hpp"
 
 #include "common/unreachable.hpp"
@@ -34,11 +38,9 @@ namespace mega::runtime
 {% for materialiser in materialisers %}
 struct {{ materialiser.name }}_id
 {
-{% for arg in materialiser.args %}
-    {{ arg.type }} {{ arg.name }};
+{% for arg in materialiser.parameters %}
+    {{ arg.type_cpp }} {{ arg.name }};
 {% endfor %}
-
-    inline bool operator==( const {{ materialiser.name }}_id& cmp ) const = default;
 };
 
 {% endfor %}
@@ -48,10 +50,10 @@ struct FunctorID
     enum Type
     {
 {% for materialiser in materialisers %}
-{% for functor in materialiser.functors %}
-        e_{{ materialiser.name }}_{{ functor.name }}{% if not loop.is_last%}, {% endif %}
+{% for function in materialiser.functions %}
+        e_{{ materialiser.name }}_{{ function.name }}{% if not loop.is_last%}, {% endif %}
         
-{% endfor %}
+{% endfor %}{% if not loop.is_last%}, {% endif %}
 {% endfor %}
     } type;
 
@@ -70,17 +72,75 @@ struct FunctorID
     }
 {% endfor %}
 
+    inline const char* mat() const
+    {
+        switch( type )
+        {
+{% for materialiser in materialisers %}
+{% for function in materialiser.functions %}
+            case FunctorID::e_{{ materialiser.name }}_{{ function.name }}:
+{% endfor %}
+            {
+                return "{{ materialiser.name }}";
+            }
+            break;
+{% endfor %}
+        }
+        UNREACHABLE;
+    }
+
+    inline const char* name() const
+    {
+        switch( type )
+        {
+{% for materialiser in materialisers %}
+{% for function in materialiser.functions %}
+            case FunctorID::e_{{ materialiser.name }}_{{ function.name }}:
+            {
+                return "{{ function.name }}";
+            }
+            break;
+{% endfor %}
+{% endfor %}
+        }
+        UNREACHABLE;
+    }
+
+    inline std::string getSymbol() const
+    {
+        std::ostringstream os;
+        switch( type )
+        {
+{% for materialiser in materialisers %}
+{% for function in materialiser.functions %}
+            case e_{{ materialiser.name }}_{{ function.name }}:
+            {
+                std::ostringstream osFunctionName;
+                osFunctionName << name() << '_' << mega::materialiser::{{ materialiser.name }}::Name{}( {% for arg in materialiser.parameters %}m_{{ materialiser.name }}.{{ arg.name }}{% if not loop.is_last %}, {% endif %}{% endfor %} );
+                os << "{{ function.symbol_prefix }}" << osFunctionName.str().size() << osFunctionName.str() << "{{ function.symbol_postfix }}";
+            }
+            break;
+{% endfor %}
+{% endfor %}
+        }
+        return os.str();
+    }
+
     inline bool operator==( const FunctorID& cmp ) const
     {
         if( type != cmp.type ) return false;
         switch( type )
         {
 {% for materialiser in materialisers %}
-{% for functor in materialiser.functors %}
-            case e_{{ materialiser.name }}_{{ functor.name }}:
+{% for function in materialiser.functions %}
+            case e_{{ materialiser.name }}_{{ function.name }}:
 {% endfor %}
             {
-                return m_{{ materialiser.name }} == cmp.m_{{ materialiser.name }};
+                return true 
+{% for arg in materialiser.parameters %}
+                    && ( m_{{ materialiser.name }}.{{ arg.name }} == cmp.m_{{ materialiser.name }}.{{ arg.name }} )
+{% endfor %}
+                ;
             }
             break;
 {% endfor %}
@@ -95,12 +155,12 @@ struct FunctorID
             switch( functorID.type )
             {
 {% for materialiser in materialisers %}
-{% for functor in materialiser.functors %}
-                case e_{{ materialiser.name }}_{{ functor.name }}:
+{% for function in materialiser.functions %}
+                case e_{{ materialiser.name }}_{{ function.name }}:
 {% endfor %}
                 {
                     return common::Hash( static_cast< std::size_t >( functorID.type )
-{% for arg in materialiser.args %}
+{% for arg in materialiser.parameters %}
                         , functorID.m_{{ materialiser.name }}.{{ arg.name }} 
 {% endfor %}
                     ).get();
@@ -115,19 +175,7 @@ struct FunctorID
 
 inline std::ostream& operator<<( std::ostream& os, const FunctorID& functorID )
 {
-    switch( functorID.type )
-    {
-{% for materialiser in materialisers %}
-{% for functor in materialiser.functors %}
-        case FunctorID::e_{{ materialiser.name }}_{{ functor.name }}:
-        {
-            return os << "{{ materialiser.name }}_{{ functor.name }}";
-        }
-        break;
-{% endfor %}
-{% endfor %}
-    }
-    UNREACHABLE;
+    return os << functorID.mat() << '_' << functorID.name();
 }
 
 }

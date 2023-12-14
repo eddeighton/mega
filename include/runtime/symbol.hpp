@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_April_26_orc_symbol
 #define GUARD_2023_April_26_orc_symbol
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/values/compilation/relation_id.hpp"
 #include "mega/values/compilation/invocation_id.hpp"
 
@@ -34,9 +34,9 @@ class Symbol
 public:
     // VStar = void*
     // CVStar = const void*
-    // Ref = mega::reference
-    // RefR = mega::reference&
-    // RefCR = const mega::reference&
+    // Ref = mega::Pointer
+    // RefR = mega::Pointer&
+    // RefCR = const mega::Pointer&
     // ID = TypeID
     // U64 = mega::U64
     enum Parameters

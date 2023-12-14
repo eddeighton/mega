@@ -28,56 +28,52 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #get the database macro
 include( ${WORKSPACE_ROOT_PATH}/src/database/db_include.cmake )
 
-find_path( DB_LIB NAMES "api/api.hpp" PATHS "${BUILD_PATH}/${CFG_TUPLE}/db/install/lib" REQUIRED NO_DEFAULT_PATH)
+find_path( DB_LIB NAMES "api/component_info.hpp" PATHS "${BUILD_PATH}/${CFG_TUPLE}/db/install/lib" REQUIRED NO_DEFAULT_PATH)
 find_path( DB_TEMPLATES NAMES "manifest.cxx.jinja" PATHS "${BUILD_PATH}/${CFG_TUPLE}/db/install/templates" REQUIRED NO_DEFAULT_PATH)
 find_file( DB_COMPILER NAMES "database_compiler_driver" PATHS "${BUILD_PATH}/${CFG_TUPLE}/db/install/bin" REQUIRED NO_DEFAULT_PATH)
 
 list(APPEND CMAKE_PREFIX_PATH "${COMMON_INSTALL_PATH}/share" )
 
 set( MEGA_DATABASE_STAGES
-    AliasAnalysis
-    AliasAnalysisRollout
-    AliasAnalysisView
-    AutomataStage
+    # AutomataStage
     ComponentListing
     ComponentListingView
-    ConcreteStage
-    ConcreteTypeAnalysis
-    ConcreteTypeAnalysisView
-    ConcreteTypeRollout
+    # ConcreteStage
+    # ConcreteTypeAnalysis
+    # ConcreteTypeRollout
     DependencyAnalysis
     DependencyAnalysisView
-    FinalStage
-    GlobalMemoryStage
-    GlobalMemoryStageRollout
-    HyperGraphAnalysis
-    HyperGraphAnalysisRollout
-    HyperGraphAnalysisView
-    InheritanceAnalysis
-    InheritanceAnalysisRollout
-    InheritanceAnalysisView
-    InterfaceAnalysisStage
+    # FinalStage
+    # HyperGraphAnalysis
+    # HyperGraphAnalysisRollout
+    # HyperGraphAnalysisView
+    # InheritanceAnalysis
+    # InheritanceAnalysisRollout
+    # InheritanceAnalysisView
+    # TypeAnalysis
+    # TypeAnalysisRollout
     InterfaceStage
-    MemoryStage
-    MetaStage
-    OperationsLocs
-    OperationsStage
+    # MemoryStage
+    # MetaStage
+    # OperationsLocs
+    # OperationsStage
     ParserStage
     SymbolAnalysis
     SymbolRollout
-    UnityStage
-    UnityStageView
-    ValueSpaceStage
+    # UnityStage
+    # UnityStageView
+    # ValueSpaceStage
 )
 
 set( DATABASE_SCHEMAS 
     ${MEGA_SRC_DIR}/schema/stages.dbs
+    ${MEGA_SRC_DIR}/schema/components.dbs
     ${MEGA_SRC_DIR}/schema/parser.dbs
     ${MEGA_SRC_DIR}/schema/interface.dbs
-    ${MEGA_SRC_DIR}/schema/concrete.dbs
-    ${MEGA_SRC_DIR}/schema/operations.dbs
+    #${MEGA_SRC_DIR}/schema/concrete.dbs
+    #${MEGA_SRC_DIR}/schema/operations.dbs
     ${MEGA_SRC_DIR}/schema/analysis.dbs
-    ${MEGA_SRC_DIR}/schema/automata.dbs
+    #${MEGA_SRC_DIR}/schema/automata.dbs
 )
 
 MegaDatabase( 

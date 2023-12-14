@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_September_07_reference_tree
 #define GUARD_2023_September_07_reference_tree
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/tree_traversal.hpp"
 
 namespace mega
@@ -29,8 +29,8 @@ namespace mega
 
 struct ReferenceTraits
 {
-    using Reference = reference;
-    using Object    = reference;
+    using Reference = Pointer;
+    using Object    = Pointer;
 };
 
 template < typename Instantiation, typename Visitor >

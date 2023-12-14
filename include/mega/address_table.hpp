@@ -21,7 +21,7 @@
 #ifndef GUARD_2022_November_07_address_table
 #define GUARD_2022_November_07_address_table
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/values/native_types.hpp"
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
@@ -38,15 +38,20 @@ class AddressTable
 {
 public:
     using Index           = U64;
-    using IndexTable      = std::unordered_map< reference, Index, reference::Hash >;
-    using ReferenceVector = std::vector< reference >;
+    using IndexTable      = std::unordered_map< Pointer, Index, Pointer::Hash >;
+    using ReferenceVector = std::vector< Pointer >;
 
     inline const IndexTable& getTable() const { return m_table; }
 
     // NOTE: ensure the object address is always mapped to index
     // besides underlying contexts of the object
-    inline const Index& refToIndex( const reference& maybeNetAddress )
+    inline const Index& refToIndex( const Pointer& maybeNetAddress )
     {
+        THROW_TODO;
+        /*if( maybeNetAddress.isHeap() )
+        {
+            maybeNetAddress = maybeNetAddress.heap().getNet();
+        }
         const auto net = maybeNetAddress.getNetworkAddress();
         const auto obj = net.getObjectAddress();
         if( obj != net )
@@ -61,14 +66,15 @@ public:
             m_references.push_back( net );
             iFind = m_table.insert( { net, index } ).first;
         }
-        return iFind->second;
+        return iFind->second;*/
     }
 
-    // if the object has an index then store and index for the reference even if
+    // if the object has an index then store and index for the Pointer even if
     // it is a context of the object
-    inline std::optional< Index > refToIndexIfObjectExist( const reference& maybeNetAddress )
+    inline std::optional< Index > refToIndexIfObjectExist( const Pointer& maybeNetAddress )
     {
-        const auto net = maybeNetAddress.getNetworkAddress();
+        THROW_TODO;
+        /*const auto net = maybeNetAddress.getNetworkAddress();
         {
             auto iFind = m_table.find( net );
             if( iFind != m_table.end() )
@@ -84,23 +90,24 @@ public:
                 return refToIndex( net );
             }
         }
-        return {};
+        return {};*/
     }
 
-    inline const reference& indexToRef( Index index ) const
+    inline const Pointer& indexToRef( Index index ) const
     {
         ASSERT( index < m_references.size() );
         return m_references[ index ];
     }
 
-    inline void remap( const Index& index, const reference& ref )
+    inline void remap( const Index& index, const Pointer& ref )
     {
-        const auto existing = indexToRef( index );
+        THROW_TODO;
+        /*const auto existing = indexToRef( index );
         auto       iFind    = m_table.find( existing );
         ASSERT( iFind != m_table.end() );
         m_table.erase( iFind );
         m_table[ ref ]        = index;
-        m_references[ index ] = ref;
+        m_references[ index ] = ref;*/
     }
 
     template < class Archive >

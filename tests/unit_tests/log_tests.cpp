@@ -22,7 +22,7 @@
 #include <gtest/gtest-param-test.h>
 
 #include "mega/values/native_types.hpp"
-#include "mega/values/runtime/reference_limits.hpp"
+#include "mega/values/runtime/pointer_limits.hpp"
 #include "mega/values/compilation/relation_id.hpp"
 #include "mega/values/compilation/type_id_limits.hpp"
 
@@ -222,17 +222,17 @@ TEST_F( BasicLogTest, StructureMsg )
         Structure::eBreak,
         Structure::eBreak
     };
-    std::vector< mega::reference > sources =
+    std::vector< mega::Pointer > sources =
     {
-        mega::reference{},
+        mega::Pointer{},
         mega::max_net_ref,
         mega::min_net_ref,
         mega::max_heap_ref,
         mega::min_heap_ref,
     };
-    std::vector< mega::reference > targets =
+    std::vector< mega::Pointer > targets =
     {
-        mega::reference{},
+        mega::Pointer{},
         mega::max_net_ref,
         mega::min_net_ref,
         mega::max_heap_ref,
@@ -280,7 +280,7 @@ TEST_F( BasicLogTest, MemoryMsg )
 struct MemoryReadHeader
 {
     mega::U16       size;
-    mega::reference ref;
+    mega::Pointer ref;
     mega::U16       dataSize;
 };
 #pragma pack()
@@ -296,7 +296,7 @@ TEST_F( BasicLogTest, Range )
     std::string_view strView( strTest );
 
     auto                           start = log.getTimeStamp();
-    std::vector< mega::reference > expected{ mega::reference{}, mega::max_net_ref, mega::min_net_ref };
+    std::vector< mega::Pointer > expected{ mega::Pointer{}, mega::max_net_ref, mega::min_net_ref };
     {
         for( const auto& ex : expected )
         {

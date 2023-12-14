@@ -2,7 +2,7 @@
 {% if operation.requires_extern %}
 extern "C"
 {
-{{ operation.return_type }} _c{{ operation.hash }}_{{ operation.typeID }}( mega::reference* _p{% for param in operation.params %}, {{param.type}} {{param.name}}{% endfor %} )
+{{ operation.return_type }} _c{{ operation.hash }}_{{ operation.typeID }}( mega::Pointer* _p{% for param in operation.params %}, {{param.type}} {{param.name}}{% endfor %} )
 {
 {% if operation.return_type != "void" %}
     return 

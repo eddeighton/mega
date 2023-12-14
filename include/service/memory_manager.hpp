@@ -33,7 +33,7 @@
 
 #include "mega/values/service/status.hpp"
 #include "mega/memory.hpp"
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 
 #include <functional>
 #include <memory>
@@ -57,8 +57,8 @@ class MemoryManager
         return std::visit( GetPtrVisitor{}, ptr );
     }
 
-    using HeapMap = std::unordered_map< reference, PtrVariant, reference::Hash >;
-    using NetMap  = std::unordered_map< reference, reference, reference::Hash >;
+    using HeapMap = std::unordered_map< Pointer, PtrVariant, Pointer::Hash >;
+    using NetMap  = std::unordered_map< Pointer, Pointer, Pointer::Hash >;
     // using Allocators    = std::map< TypeID, FixedAllocator::Ptr >;
     // using AllocatorMap  = std::unordered_map< TypeID, FixedAllocator*, TypeID::Hash >;
     using OldHeapVector = std::vector< PtrVariant >;
@@ -131,21 +131,21 @@ public:
     inline AllocationID getAllocationID() const { return m_allocationIDCounter; }
     inline U64          getAllocationCount() const { return m_heapMap.size(); }
 
-    inline reference networkToHeap( const reference& networkAddress ) const
+    inline Pointer networkToHeap( const Pointer& networkAddress ) const
     {
         ASSERT( networkAddress.isNetworkAddress() );
         auto    iFind = m_netMap.find( networkAddress.getObjectAddress() );
         VERIFY_RTE_MSG( iFind != m_netMap.end(),
-                        "Failed to locate network address entry for reference: " << networkAddress.getObjectAddress() );
-        return reference::make( iFind->second, networkAddress.getTypeInstance() );
+                        "Failed to locate network address entry for Pointer: " << networkAddress.getObjectAddress() );
+        return Pointer::make( iFind->second, networkAddress.getTypeInstance() );
     }
 
 private:
-    inline reference construct( const reference& networkAddress, PtrVariant&& memory, Allocator::Ptr pAllocator )
+    inline Pointer construct( const Pointer& networkAddress, PtrVariant&& memory, Allocator::Ptr pAllocator )
     {
         VERIFY_RTE_MSG( networkAddress.isNetworkAddress(), "construct given heap address: " << networkAddress );
 
-        const reference objectNetAddress = networkAddress.getObjectAddress();
+        const Pointer objectNetAddress = networkAddress.getObjectAddress();
         void*           pAddress         = get( memory );
 
         // establish the header including the network address, lock timestamp and shared ownership of allocator
@@ -154,16 +154,16 @@ private:
         // invoke the constructor
         pAllocator->getCtor()( pAddress );
 
-        const reference heapAddress{ objectNetAddress.getTypeInstance(), pAddress };
+        const Pointer heapAddress{ objectNetAddress.getTypeInstance(), pAddress };
 
         VERIFY_RTE( m_heapMap.insert( { heapAddress, std::move( memory ) } ).second );
         VERIFY_RTE( m_netMap.insert( { objectNetAddress, heapAddress } ).second );
 
-        return reference::make( heapAddress, networkAddress.getTypeInstance() );
+        return Pointer::make( heapAddress, networkAddress.getTypeInstance() );
     }
 
 public:
-    inline reference New( TypeID typeID )
+    inline Pointer New( TypeID typeID )
     {
         // must acquire allocator EVERYTIME for now - which means request to JIT
         const TypeID   objectType = TypeID::make_object_from_typeID( typeID );
@@ -173,7 +173,7 @@ public:
         // {
         //     // SPDLOG_TRACE( "Memory Manager:New fixed allocation for: {} of {}", typeID, objectType );
         //     FixedAllocator::FixedPtr pFixed = iFind->second->allocate();
-        //     const reference          networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, pFixed.getID() };
+        //     const Pointer          networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, pFixed.getID() };
         //     return construct( networkAddress, PtrVariant{ std::move( pFixed ) }, pAllocator );
         // }
         // else
@@ -183,13 +183,13 @@ public:
             HeapBufferPtr memory( sizeAlign );
             m_usedHeapMemory += sizeAlign.size;
             const AllocationID allocationID = m_allocationIDCounter++;
-            const reference    networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, allocationID };
+            const Pointer    networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, allocationID };
             ASSERT( ( typeID != ROOT_TYPE_ID ) || ( allocationID == ROOT_OBJECT_ID ) );
             return construct( networkAddress, PtrVariant{ std::move( memory ) }, pAllocator );
         }
     }
 
-    inline void Delete( const reference& ref )
+    inline void Delete( const Pointer& ref )
     {
         ASSERT( ref.isHeapAddress() );
 
@@ -198,7 +198,7 @@ public:
         // remove the network address entry
         {
             auto    iFind2 = m_netMap.find( ref.getHeaderAddress() );
-            VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for reference: " << ref );
+            VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for Pointer: " << ref );
             m_netMap.erase( iFind2 );
         }
 
@@ -223,14 +223,14 @@ public:
 
     using MemoryEntry = HeapMap::node_type;
 
-    inline MemoryEntry Move( const reference& ref )
+    inline MemoryEntry Move( const Pointer& ref )
     {
         ASSERT( ref.isHeapAddress() );
 
         // remove the network address entry
         {
             auto    iFind2 = m_netMap.find( ref.getHeaderAddress() );
-            VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for reference: " << ref );
+            VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for Pointer: " << ref );
             m_netMap.erase( iFind2 );
         }
         return m_heapMap.extract( ref.getObjectAddress() );

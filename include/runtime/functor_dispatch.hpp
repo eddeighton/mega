@@ -23,14 +23,15 @@
 
 #include "runtime/functor_id.hxx"
 
-#include "il/elements/elements.hpp"
+#include "environment/jit_database.hpp"
 
+#include "il/elements/elements.hpp"
 #include "il/frontend/factory.hpp"
 
 namespace mega::runtime
 {
 
-il::FunctionDefinition dispatchFactory( il::Factory& factory, const FunctorID& functorID );
+il::FunctionDefinition dispatchFactory( JITDatabase& db, il::Factory& factory, const FunctorID& functorID );
 
 }
 

@@ -37,7 +37,7 @@
 namespace mega::service
 {
 
-struct MoveVisitor : public TreeVisitor< reference >
+struct MoveVisitor : public TreeVisitor< Pointer >
 {
 };
 

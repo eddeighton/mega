@@ -43,23 +43,23 @@ MPO getThisMPO()
 {
     return getMPOContext()->getThisMPO();
 }
-void networkToHeap( reference& ref )
+void networkToHeap( Pointer& ref )
 {
     getMPOContext()->networkToHeap( ref );
 }
-void readLock( reference& ref )
+void readLock( Pointer& ref )
 {
     getMPOContext()->readLock( ref );
 }
-void writeLock( reference& ref )
+void writeLock( Pointer& ref )
 {
     getMPOContext()->writeLock( ref );
 }
-reference allocate( mega::TypeID objectType )
+Pointer allocate( mega::TypeID objectType )
 {
     return getMPOContext()->allocate( objectType );
 }
-reference allocateRemote( const MPO& remote, mega::TypeID objectType )
+Pointer allocateRemote( const MPO& remote, mega::TypeID objectType )
 {
     return getMPOContext()->allocateRemote( remote, objectType );
 }
@@ -88,7 +88,7 @@ Cycle::~Cycle()
     }
 }
 
-reference MPOContext::getRoot( MPO mpo )
+Pointer MPOContext::getRoot( MPO mpo )
 {
     if( m_root.getMPO() == mpo )
     {
@@ -96,7 +96,7 @@ reference MPOContext::getRoot( MPO mpo )
     }
     else
     {
-        return reference::make_root( mpo );
+        return Pointer::make_root( mpo );
     }
 }
 
@@ -125,21 +125,21 @@ void MPOContext::destroyExecutor( MP mp )
     return request.EnroleDestroy();
 }
 
-reference MPOContext::allocate( TypeID objectTypeID )
+Pointer MPOContext::allocate( TypeID objectTypeID )
 {
     THROW_TODO;
     /*VERIFY_RTE_MSG( m_pMemoryManager, "Memory manager not instantiated" );
 
-    reference allocated = m_pMemoryManager->New( objectTypeID );
+    Pointer allocated = m_pMemoryManager->New( objectTypeID );
     m_pLog->record(
         mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
 
     return allocated;*/
 }
 
-reference MPOContext::allocateRemote( const MPO& remote, TypeID objectTypeID )
+Pointer MPOContext::allocateRemote( const MPO& remote, TypeID objectTypeID )
 {
-    reference allocated;
+    Pointer allocated;
     if( remote == getThisMPO() )
     {
         allocated = allocate( objectTypeID );
@@ -160,7 +160,7 @@ reference MPOContext::allocateRemote( const MPO& remote, TypeID objectTypeID )
 }
 
 // networkToHeap ONLY called when MPO matches
-void MPOContext::networkToHeap( reference& ref )
+void MPOContext::networkToHeap( Pointer& ref )
 {
     THROW_TODO;
     /*SPDLOG_TRACE( "MPOContext::networkToHeap: {}", ref );
@@ -174,7 +174,7 @@ void MPOContext::networkToHeap( reference& ref )
     }*/
 }
 
-void MPOContext::readLock( reference& ref )
+void MPOContext::readLock( Pointer& ref )
 {
     SPDLOG_TRACE( "MPOContext::readLock: {}", ref );
 
@@ -195,7 +195,7 @@ void MPOContext::readLock( reference& ref )
     }
 }
 
-void MPOContext::writeLock( reference& ref )
+void MPOContext::writeLock( Pointer& ref )
 {
     SPDLOG_TRACE( "MPOContext::writeLock: {}", ref );
 
@@ -376,7 +376,7 @@ void MPOContext::cycleComplete()
             if( unparentedObject.getMPO() == m_mpo.value() )
             {
                 // delete the heap address
-                reference deleteRef = unparentedObject;
+                Pointer deleteRef = unparentedObject;
                 if( deleteRef.isNetworkAddress() )
                 {
                     deleteRef = m_pMemoryManager->networkToHeap( deleteRef );

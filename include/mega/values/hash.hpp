@@ -21,19 +21,52 @@
 #ifndef GUARD_2023_December_06_hash
 #define GUARD_2023_December_06_hash
 
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/interface/symbol_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
+#include "mega/values/compilation/interface/relation_id.hpp"
+
+#include "mega/values/compilation/concrete/type_id.hpp"
 
 #include "common/hash.hpp"
 
 namespace common
 {
+template <>
+struct internal::HashFunctor< mega::interface::SymbolID >
+{
+    inline HashCodeType operator()( const mega::interface::SymbolID& symbolID ) const
+    {
+        return mega::interface::SymbolID::Hash{}( symbolID );
+    }
+};
 
 template <>
-struct internal::HashFunctor< mega::TypeID >
+struct internal::HashFunctor< mega::interface::TypeID >
 {
-    inline HashCodeType operator()( const mega::TypeID& typeID ) const { return mega::TypeID::Hash()( typeID ); }
+    inline HashCodeType operator()( const mega::interface::TypeID& typeID ) const
+    {
+        return mega::interface::TypeID::Hash{}( typeID );
+    }
+};
+
+template <>
+struct internal::HashFunctor< mega::interface::RelationID >
+{
+    inline HashCodeType operator()( const mega::interface::RelationID& relationID ) const
+    {
+        return mega::interface::RelationID::Hash{}( relationID );
+    }
+};
+
+template <>
+struct internal::HashFunctor< mega::concrete::TypeID >
+{
+    inline HashCodeType operator()( const mega::concrete::TypeID& typeID ) const
+    {
+        return mega::concrete::TypeID::Hash{}( typeID );
+    }
 };
 
 } // namespace common
 
-#endif //GUARD_2023_December_06_hash
+#endif // GUARD_2023_December_06_hash

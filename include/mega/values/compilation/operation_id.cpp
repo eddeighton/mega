@@ -27,23 +27,21 @@
 namespace mega
 {
 
-static const OperationIDStringArray g_pszOperationStrings = {
-    std::string( "__eg_ImpNoParams" ),
-    std::string( "__eg_ImpParams" ),
-    std::string( "MOVE" ),
-    std::string( "GET" ),
-    std::string( "RANGE" ),
-    std::string( "REMOVE" ),
-    std::string( "CLEAR" )
-};
-static_assert( HIGHEST_OPERATION_TYPE - TypeID::LOWEST_SYMBOL_ID == g_pszOperationStrings.size(),
+static const OperationIDStringArray g_pszOperationStrings = { std::string( "__eg_ImpNoParams" ),
+                                                              std::string( "__eg_ImpParams" ),
+                                                              std::string( "MOVE" ),
+                                                              std::string( "GET" ),
+                                                              std::string( "RANGE" ),
+                                                              std::string( "REMOVE" ),
+                                                              std::string( "CLEAR" ) };
+static_assert( HIGHEST_OPERATION_TYPE - interface::SymbolID::LOWEST_SYMBOL_ID == g_pszOperationStrings.size(),
                "Incorrect operation strings" );
 
 const std::string& getOperationString( OperationID op )
 {
-    ASSERT( static_cast< int >( op ) >= TypeID::LOWEST_SYMBOL_ID );
+    ASSERT( static_cast< int >( op ) >= interface::SymbolID::LOWEST_SYMBOL_ID );
     ASSERT( static_cast< int >( op ) < HIGHEST_OPERATION_TYPE );
-    return g_pszOperationStrings[ op - TypeID::LOWEST_SYMBOL_ID ];
+    return g_pszOperationStrings[ op - interface::SymbolID::LOWEST_SYMBOL_ID ];
 }
 
 OperationID getOperationName( const std::string& strName )
@@ -52,7 +50,7 @@ OperationID getOperationName( const std::string& strName )
     if( iFind == g_pszOperationStrings.end() )
         return HIGHEST_OPERATION_TYPE;
     else
-        return static_cast< OperationID >( TypeID::LOWEST_SYMBOL_ID
+        return static_cast< OperationID >( interface::SymbolID::LOWEST_SYMBOL_ID
                                            + std::distance( g_pszOperationStrings.begin(), iFind ) );
 }
 

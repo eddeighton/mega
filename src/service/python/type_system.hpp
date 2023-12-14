@@ -28,7 +28,7 @@
 #include "mega/values/service/program.hpp"
 
 #include "mega/values/compilation/type_id.hpp"
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 #include <pybind11/pybind11.h>
 
@@ -75,7 +75,7 @@ public:
     void reload( const Program& program );
 
     Type::Ptr getLinkType( SubType concreteObjectID, TypeID typeID );
-    PyObject* cast( const mega::reference& ref );
+    PyObject* cast( const mega::Pointer& ref );
 
 private:
     PythonModule&       m_module;

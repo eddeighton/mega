@@ -22,7 +22,7 @@
 #define GUARD_2023_March_12_MPO
 
 #include "mega/values/runtime/mpo.hpp"
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 namespace mega::service::python
 {
@@ -34,8 +34,8 @@ class PythonMPO
 public:
     PythonMPO( PythonModule& module, mega::MPO mpo );
 
-    mega::reference getRoot() const;
-    mega::reference new_( mega::SubType interfaceTypeID ) const;
+    mega::Pointer getRoot() const;
+    mega::Pointer new_( mega::SubType interfaceTypeID ) const;
     void            destroy() const;
 
 private:

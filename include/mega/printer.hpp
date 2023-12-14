@@ -23,7 +23,7 @@
 
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 #include "mega/values/runtime/any.hpp"
 #include "mega/values/runtime/any_io.hpp"
 
@@ -50,7 +50,7 @@ class LogicalTreePrinter
         return std::string( iFind.base(), s.end() );
     }
 
-    void line( std::ostream& os, const char* pszMetaType, const char* pszType, const LogicalReference& ref )
+    void line( std::ostream& os, const char* pszMetaType, const char* pszType, const LogicalPointer& ref )
     {
         os << ref.typeInstance << indent << pszMetaType << ": " << lastType( pszType );
     }
@@ -58,87 +58,87 @@ class LogicalTreePrinter
 public:
     LogicalTreePrinter( std::ostream& os ) : os( os ) {}
 
-    void on_object_start( const char* pszType, const LogicalReference& ref )
+    void on_object_start( const char* pszType, const LogicalPointer& ref )
     {
         line( os, "obj", pszType, ref );
         os << "\n";
         push();
     }
-    void on_object_end( const char* pszType, const LogicalReference& ref )
+    void on_object_end( const char* pszType, const LogicalPointer& ref )
     {
         pop();
     }
-    void on_component_start( const char* pszType, const LogicalReference& ref )
+    void on_component_start( const char* pszType, const LogicalPointer& ref )
     {
         line( os, "com", pszType, ref );
         os << "\n";
         push();
     }
-    void on_component_end( const char* pszType, const LogicalReference& ref )
+    void on_component_end( const char* pszType, const LogicalPointer& ref )
     {
         pop();
     }
-    void on_action_start( const char* pszType, const LogicalReference& ref )
+    void on_action_start( const char* pszType, const LogicalPointer& ref )
     {
         line( os, "act", pszType, ref );
         os << "\n";
         push();
     }
-    void on_action_end( const char* pszType, const LogicalReference& ref )
+    void on_action_end( const char* pszType, const LogicalPointer& ref )
     {
         pop();
     }
-    void on_state_start( const char* pszType, const LogicalReference& ref )
+    void on_state_start( const char* pszType, const LogicalPointer& ref )
     {
         line( os, "sta", pszType, ref );
         os << "\n";
         push();
     }
-    void on_state_end( const char* pszType, const LogicalReference& ref )
+    void on_state_end( const char* pszType, const LogicalPointer& ref )
     {
         pop();
     }
-    void on_event_start( const char* pszType, const LogicalReference& ref )
+    void on_event_start( const char* pszType, const LogicalPointer& ref )
     {
         line( os, "eve", pszType, ref );
         os << "\n";
         push();
     }
-    void on_event_end( const char* pszType, const LogicalReference& ref )
+    void on_event_end( const char* pszType, const LogicalPointer& ref )
     {
         pop();
     }
-    void on_link_start( const char* pszType, const LogicalReference& ref, bool bOwning, bool bOwned )
+    void on_link_start( const char* pszType, const LogicalPointer& ref, bool bOwning, bool bOwned )
     {
         line( os, "lin", pszType, ref );
         os << "\n";
         push();
     }
-    void on_link_end( const char* pszType, const LogicalReference& ref, bool bOwning, bool bOwned )
+    void on_link_end( const char* pszType, const LogicalPointer& ref, bool bOwning, bool bOwned )
     {
         pop();
     }
-    void on_interupt( const char* pszType, const LogicalReference& ref )
+    void on_interupt( const char* pszType, const LogicalPointer& ref )
     {
         line( os, "int", pszType, ref );
         os << "\n";
     }
-    void on_function( const char* pszType, const LogicalReference& ref )
+    void on_function( const char* pszType, const LogicalPointer& ref )
     {
         line( os, "fun", pszType, ref );
         os << "\n";
     }
-    void on_decider( const char* pszType, const LogicalReference& ref )
+    void on_decider( const char* pszType, const LogicalPointer& ref )
     {
         line( os, "dec", pszType, ref );
         os << "\n";
     }
-    void on_namespace( const char* pszType, const LogicalReference& ref )
+    void on_namespace( const char* pszType, const LogicalPointer& ref )
     {
         line( os, "nam", pszType, ref );
         os << "\n";
     }
-    void on_dimension( const char* pszType, const LogicalReference& ref, const mega::Any& value )
+    void on_dimension( const char* pszType, const LogicalPointer& ref, const mega::Any& value )
     {
         line( os, "dim", pszType, ref );
         os << " " << value << "\n";

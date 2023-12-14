@@ -23,19 +23,19 @@
 
 #include "environment/environment_archive.hpp"
 
-#include "database/FinalStage.hxx"
-#include "database/manifest.hxx"
+//#include "database/FinalStage.hxx"
+//#include "database/manifest.hxx"
 
 #include <map>
 
 namespace mega::runtime
 {
-
+/*
 class PythonDatabase
 {
     using SymbolTypeIDMap    = std::map< mega::TypeID, ::FinalStage::Symbols::SymbolTypeID* >;
-    using InterfaceTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::InterfaceTypeID* >;
-    using ConcreteTypeIDMap  = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
+    using InterfaceTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::interface::TypeID* >;
+    using ConcreteTypeIDMap  = std::map< TypeID, ::FinalStage::Symbols::concrete::TypeID* >;
 
 public:
     PythonDatabase( boost::filesystem::path databaseArchivePath );
@@ -56,7 +56,7 @@ private:
     SymbolTypeIDMap                   m_symbolTypeIDs;
     InterfaceTypeIDMap                m_interfaceTypeIDs;
     ConcreteTypeIDMap                 m_concreteTypeIDs;
-};
+};*/
 } // namespace mega::runtime
 
 #endif // GUARD_2023_September_06_python_database

@@ -20,7 +20,10 @@
 
 #include "runtime/runtime.hpp"
 #include "runtime/functor_dispatch.hpp"
+#include "runtime/functor_id.hxx"
 #include "runtime/clang.hpp"
+
+#include "environment/environment.hpp"
 
 #include "il/backend/backend.hpp"
 
@@ -40,88 +43,75 @@ Runtime::Runtime( const boost::filesystem::path& tempDir, const MegastructureIns
 
 void Runtime::loadProgram( const service::Program& program )
 {
+    // if existing program then migrate...
+    const auto                     programManifest = service::Environment::load( program );
+    std::unique_ptr< JITDatabase > pNewDatabase    = std::make_unique< JITDatabase >( programManifest.getDatabase() );
+
+    m_pDatabase.swap( pNewDatabase );
     m_program = program;
 }
 void Runtime::unloadProgram()
 {
     m_program = service::Program{};
+    m_pDatabase.reset();
 }
 
 service::Program Runtime::getProgram() const
 {
     return m_program;
 }
-/*
-void compileToLLVMIRImpl( const Clang& compiler, const std::string& strName, const std::string& strCPPCode,
-                          std::ostream& osIR, std::optional< const FinalStage::Components::Component* > pComponent )
-{
-    const boost::filesystem::path irFilePath = compiler.getTempDir() / ( strName + ".ir" );
 
-    const task::DeterminantHash determinant{ strCPPCode };
-    if( compiler.restore( irFilePath.string(), determinant.get() ) )
-    {
-        boost::filesystem::loadAsciiFile( irFilePath, osIR );
-    }
-    else
-    {
-        boost::filesystem::path inputCPPFilePath = compiler.getTempDir() / ( strName + ".cpp" );
-        {
-            auto pFStream = boost::filesystem::createNewFileStream( inputCPPFilePath );
-            *pFStream << strCPPCode;
-        }
-        compile( compiler.getClangPath(), inputCPPFilePath, irFilePath, pComponent, compiler.getMegaInstall() );
-        compiler.stash( irFilePath.string(), determinant.get() );
-        boost::filesystem::loadAsciiFile( irFilePath, osIR );
-    }
-}*/
 void Runtime::getFunction( service::StashProvider& stashProvider, const FunctorID& functionID, void** ppFunction )
 {
     // attempt to find function in hash table
     auto iFind = m_materialisedFunctions.find( functionID );
-    if( iFind != m_materialisedFunctions.end() )
+    if( iFind == m_materialisedFunctions.end() )
     {
-        *ppFunction = iFind->second.pFunction;
-    }
-    else
-    {
-        std::ostringstream osFunctionID;
-        osFunctionID << m_program << '_' << functionID;
-
-        const auto functionDef = dispatchFactory( m_materialisedFunctionFactory, functionID );
-
-        const std::string strCPPCode = il::generateCPP( functionDef );
-        const task::DeterminantHash determinant{ strCPPCode };
-        const boost::filesystem::path irFilePath       = m_tempDir / ( osFunctionID.str() + ".ir" );
+        VERIFY_RTE_MSG(
+            m_pDatabase, "No program database loaded when attempting to materialise function: " << functionID );
 
         std::ostringstream osIR;
-        if( stashProvider.restore( irFilePath.string(), determinant.get() ) )
         {
-            boost::filesystem::loadAsciiFile( irFilePath, osIR );
-        }
-        else
-        {
-            const boost::filesystem::path inputCPPFilePath = m_tempDir / ( osFunctionID.str() + ".cpp" );
+            const auto functionDef = dispatchFactory( *m_pDatabase, m_materialisedFunctionFactory, functionID );
+
+            const std::string           strCPPCode = il::generateCPP( functionDef );
+            const task::DeterminantHash determinant{ strCPPCode };
+
+            std::ostringstream osFunctionID;
+            osFunctionID << m_program << '_' << functionID;
+            const boost::filesystem::path irFilePath = m_tempDir / ( osFunctionID.str() + ".ir" );
+
+            if( stashProvider.restore( irFilePath.string(), determinant.get() ) )
             {
-                auto pFStream = boost::filesystem::createNewFileStream( inputCPPFilePath );
-                *pFStream << strCPPCode;
+                boost::filesystem::loadAsciiFile( irFilePath, osIR );
             }
-            m_clang.compileToLLVMIR( inputCPPFilePath, irFilePath, nullptr );
-            
-            stashProvider.stash( irFilePath.string(), determinant.get() );
-            boost::filesystem::loadAsciiFile( irFilePath, osIR );
+            else
+            {
+                const boost::filesystem::path inputCPPFilePath = m_tempDir / ( osFunctionID.str() + ".cpp" );
+                {
+                    auto pFStream = boost::filesystem::createNewFileStream( inputCPPFilePath );
+                    *pFStream << strCPPCode;
+                }
+                m_clang.compileToLLVMIR( inputCPPFilePath, irFilePath, nullptr );
+
+                stashProvider.stash( irFilePath.string(), determinant.get() );
+                boost::filesystem::loadAsciiFile( irFilePath, osIR );
+            }
         }
 
         auto pModule = m_orc.compile( osIR.str() );
 
-        FunctionInfo functionInfo
-        {
-            nullptr,
-            std::move( pModule )
-        };
-        m_materialisedFunctions.insert( { functionID, std::move( functionInfo ) } );
+        void* pFunction = pModule->get( functionID );
+        VERIFY_RTE_MSG( pFunction, "Failed to compiled function: " << functionID );
 
-        // pModule = m_jitCompiler.compile( strCode );
+        FunctionInfo functionInfo{ pFunction, std::move( pModule ) };
+        iFind = m_materialisedFunctions.insert( { functionID, std::move( functionInfo ) } ).first;
     }
+
+    *ppFunction = iFind->second.pFunction;
+
+    // record the pointer to the function pointer so can reset when reprogram
+    iFind->second.functionPointers.push_back( ppFunction );
 }
 
 } // namespace mega::runtime

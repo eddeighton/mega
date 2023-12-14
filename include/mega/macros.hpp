@@ -22,7 +22,7 @@
 
 #include "mega/values/native_types_io.hpp"
 #include "mega/values/runtime/maths_types_io.hpp"
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 
 #include "service/protocol/common/context.hpp"
 #include "log/file_log.hpp"

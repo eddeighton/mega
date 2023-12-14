@@ -21,7 +21,8 @@
 #ifndef GUARD_2022_November_02_snapshot
 #define GUARD_2022_November_02_snapshot
 
-#include "mega/values/runtime/reference.hpp"
+#include "mega/values/runtime/pointer.hpp"
+#include "mega/values/runtime/timestamp.hpp"
 #include "mega/values/native_types.hpp"
 #include "mega/address_table.hpp"
 
@@ -55,10 +56,10 @@ public:
     void setTimeStamp( TimeStamp timeStamp ) { m_timeStamp = timeStamp; }
     void setBuffer( const Buffer& buffer ) { m_buffer = buffer; }
 
-    void beginObject( const reference& ref ) { m_objects.push_back( m_table.refToIndex( ref ) ); }
+    void beginObject( const Pointer& ref ) { m_objects.push_back( m_table.refToIndex( ref ) ); }
 
-    const AddressTable::Index& refToIndex( const reference& ref ) { return m_table.refToIndex( ref ); }
-    void remap( const AddressTable::Index& index, const reference& ref ) { m_table.remap( index, ref ); }
+    const AddressTable::Index& refToIndex( const Pointer& ref ) { return m_table.refToIndex( ref ); }
+    void remap( const AddressTable::Index& index, const Pointer& ref ) { m_table.remap( index, ref ); }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )

@@ -175,7 +175,9 @@ clang::LangOptions Stuff::createEGLangOpts()
     // LangOpts.MicrosoftExt = 1;    // To get kw___try, kw___finally.
     LangOpts.DeclSpecKeyword = 1; // To get __declspec.
     LangOpts.WChar           = 1; // To get wchar_t
-    LangOpts.EG              = 1; // enable eg
+
+    LangOpts.EG = 1; // enable eg
+
     return LangOpts;
 }
 

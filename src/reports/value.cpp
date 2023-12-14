@@ -29,4 +29,5 @@ std::string toString( const Value& value )
     boost::apply_visitor( [ & ]( const auto& arg ) { osValue << arg; }, value );
     return osValue.str();
 }
+
 } // namespace mega::reports

@@ -46,11 +46,11 @@
             ],
             "fields": [
                 {
-                    "type": "mega::reference",
+                    "type": "mega::Pointer",
                     "name": "Source"
                 },
                 {
-                    "type": "mega::reference",
+                    "type": "mega::Pointer",
                     "name": "Target"
                 },
                 {
@@ -69,7 +69,7 @@
             "enums": [],
             "fields": [
                 {
-                    "type": "mega::reference",
+                    "type": "mega::Pointer",
                     "name": "Ref"
                 }
             ],
@@ -97,7 +97,7 @@
             ],
             "fields": [
                 {
-                    "type": "mega::reference",
+                    "type": "mega::Pointer",
                     "name": "Ref"
                 }
             ],
@@ -113,7 +113,7 @@
             ],
             "fields": [
                 {
-                    "type": "mega::reference",
+                    "type": "mega::Pointer",
                     "name": "Ref"
                 }
             ],

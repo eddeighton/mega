@@ -21,21 +21,31 @@
 #ifndef GUARD_2023_October_17_value
 #define GUARD_2023_October_17_value
 
-#include "database/directories.hpp"
-#include "database/manifest_data.hpp"
-#include "database/component_info.hpp"
+// #include "database/directories.hpp"
+// #include "database/manifest_data.hpp"
+// #include "database/component_info.hpp"
+
+#include "mega/values/compilation/interface/object_id.hpp"
+#include "mega/values/compilation/interface/relation_id.hpp"
+#include "mega/values/compilation/interface/sub_object_id.hpp"
+#include "mega/values/compilation/interface/symbol_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
+
+#include "mega/values/compilation/concrete/instance.hpp"
+#include "mega/values/compilation/concrete/object_id.hpp"
+#include "mega/values/compilation/concrete/sub_object_id_instance.hpp"
+#include "mega/values/compilation/concrete/sub_object_id.hpp"
+#include "mega/values/compilation/concrete/type_id_instance.hpp"
+#include "mega/values/compilation/concrete/type_id.hpp"
 
 #include "mega/values/compilation/compilation_configuration.hpp"
 #include "mega/values/compilation/megastructure_installation.hpp"
 #include "mega/values/compilation/invocation_id.hpp"
-#include "mega/values/compilation/relation_id.hpp"
-#include "mega/values/compilation/type_id.hpp"
 #include "mega/values/compilation/size_alignment.hpp"
-#include "mega/values/compilation/sub_type_instance.hpp"
 #include "mega/values/compilation/type_id_sequence.hpp"
 
-#include "mega/values/runtime/reference.hpp"
-#include "mega/values/runtime/reference_io.hpp"
+#include "mega/values/runtime/pointer.hpp"
+#include "mega/values/runtime/pointer_io.hpp"
 #include "mega/values/runtime/mpo.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
@@ -51,7 +61,7 @@
 
 namespace mega::reports
 {
-    
+
 // clang-format off
 using Value = boost::variant
 < 
@@ -62,19 +72,29 @@ using Value = boost::variant
     // mega::io::Directories,
 
     // Compilation Types
-    TypeID, 
-    TypeIDSequence,
-    SubTypeInstance,
-    InvocationID, 
-    RelationID, 
+    interface::ObjectID, 
+    interface::RelationID, 
+    interface::SubObjectID, 
+    interface::SymbolID, 
+    interface::TypeID, 
+
+    concrete::Instance,
+    // concrete::ObjectID,
+    // concrete::SubObjectIDInstance,
+    // concrete::SubObjectID,
+    concrete::TypeIDInstance,
+    concrete::TypeID,
+
+    //interface::TypeIDSequence,
+    //ConcreteTypeIDSequence,
+    // InvocationID, 
     SizeAlignment,
     MegastructureInstallation,
 
     // Runtime Types
-    MachineID,
-    MP,
-    MPO,
-    reference,
+    // MP,
+    // MPO,
+    // Pointer,
 
     // Service Types
     mega::network::LogicalThreadID,
