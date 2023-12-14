@@ -1,0 +1,187 @@
+
+<html>
+
+<head>
+<style>
+table
+{
+    font-size:14px;
+    font-family:monospace;
+    border-collapse: collapse;
+}
+th
+{
+    border: 2px solid darkblue;
+    border-collapse: collapse;
+}
+td 
+{
+    border: 1px solid darkblue;
+    border-collapse: collapse;
+}
+.multiline_default
+{
+    white-space:pre;
+    font-size:14px;
+    font-family:monospace;
+    background-color:#b0c0c0;
+}
+.branch_default
+{
+    font-size:14px;
+    font-family:monospace;
+    background-color:#cfdfdf;
+}
+</style>
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+    currentReportType = "home"
+    
+    stateMachine = function() 
+    {
+        const queryString = window.location.search
+        const urlParams = new URLSearchParams(queryString);
+
+        if( window.location.hash.length === 0 )
+        {
+            // no fragment - nothing to do
+            console.log( "No fragment nothing to do" )
+        }
+        else
+        {
+            hash = window.location.hash.substring( 1 )
+            const element = document.getElementById( hash );
+            if( element )
+            {
+                element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+                console.log( "Scrolled to element: " + hash )
+            }
+            else
+            {I
+                console.log( "Could not locate element: " + hash )
+            }
+        }
+
+        if( urlParams.has( "report" ) )
+        {
+            currentReportType = urlParams.get( "report" )
+            console.log( "Report Type is: " + currentReportType )
+        }
+    }
+
+    window.onrefresh    = stateMachine
+    window.onload       = stateMachine
+    
+    function keyCodeToReportType( keyCode )
+    {
+        if( keyCode == 0 )
+        {
+            return ""
+        }
+        return ""
+    }
+
+    document.onkeypress = function (e) 
+    {
+        e = e || window.event;
+        lastKeyPressed = e.keyCode
+        console.log( "onkeypress= " + lastKeyPressed )
+        currentReportType = keyCodeToReportType( lastKeyPressed );
+        console.log( "Report Type is: " + currentReportType )
+    };
+
+    function navigateTo( path, params, fragment ) 
+    {
+        if( params )
+        {
+            newLocation = path + "?" + params + "&report=" + currentReportType
+        }
+        else
+        {
+            newLocation = path + "?report=" + currentReportType
+        }
+
+        if( fragment )
+        {
+            newLocation = newLocation + "#" + fragment
+        }
+
+        console.log( "href= " + newLocation + "\n" )
+
+        window.location.href = newLocation
+    }
+
+</script>
+
+<div style="position:relative;min-width:960px">
+    <table style="position: absolute;right:0;top:0">
+        <tr><th>Report</th><th>Shortcut Key</th></tr>
+            </table>
+</div>
+
+<div class="branch_default" >InterfaceTypeID</div>
+<ul class="branch_default" >
+    <li><table>
+<tr>
+<th>Interface Type ID</th>
+<th>Full Type Name</th>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00020000_IT">00020000_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object1</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00020001_IT">00020001_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object1::m_test1</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00020002_IT">00020002_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object1::m_test2</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00030000_IT">00030000_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object2</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00030001_IT">00030001_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object2::A</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00030002_IT">00030002_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object2::A::B</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00030003_IT">00030003_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object2::A::B::C</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00030004_IT">00030004_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object2::action1</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00030005_IT">00030005_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object2::action2</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00030006_IT">00030006_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object2::m_test1</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00030007_IT">00030007_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object2::m_test2</div></td>
+</tr>
+<tr>
+<td><div class="multiline_default" style="color:black;background-color:white;" id="00030008_IT">00030008_IT</div></td>
+<td><div class="multiline_default" style="color:black;background-color:white;" >Object2::m_test3</div></td>
+</tr>
+</table></li>
+</ul>
+
+</body>
+
+</html>
+

@@ -60,7 +60,6 @@ public:
     //     , m_type_path( std::move( typePath ) )
     //     , m_operation( operationID )
     // {
-    //     ASSERT( static_cast< int >( m_operation ) >= mega::TypeID::LOWEST_SYMBOL_ID );
     //     ASSERT( static_cast< int >( m_operation ) < mega::HIGHEST_OPERATION_TYPE );
     // }
     // template < mega::U64 Size >

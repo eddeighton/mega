@@ -383,6 +383,11 @@ ComponentFilePath BuildEnvironment::InitComponentPath_fromPath( const boost::fil
     return ComponentFilePath( boost::filesystem::relative( pythonFileName, m_directories.buildDir ) );
 }
 
+bool BuildEnvironment::exists( const BuildFilePath& filePath ) const
+{
+    return boost::filesystem::exists( toPath( filePath ) );
+}
+
 std::unique_ptr< std::istream > BuildEnvironment::read( const BuildFilePath& filePath ) const
 {
     return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );

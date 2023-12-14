@@ -22,6 +22,7 @@
 #define GUARD_2023_January_22_invoke_fixture
 
 #include "mega/values/compilation/tool_chain_hash.hpp"
+#include "mega/values/service/url.hpp"
 
 #include "compiler/configuration.hpp"
 
@@ -34,6 +35,9 @@
 
 #include "database/manifest.hxx"
 #include "database/environment.hxx"
+
+#include "database_reporters/factory.hpp"
+#include "reports/renderer_html.hpp"
 
 #include "common/file.hpp"
 #include "common/string.hpp"
@@ -120,6 +124,38 @@ public:
         return mega::pipeline::runPipelineLocally( g_stashDir, std::nullopt, g_toolChain, m_pipeline, TASK_NAME,
                                                    strSourceFile, {}, false, true, true, std::cout );
     };
+
+    void generateReport( const std::string& strURL, const std::string& strFileNameNoExt )
+    {
+        using namespace mega::reports;
+        using namespace mega::reporters;
+
+        std::ostringstream osOutFile;
+        osOutFile << strFileNameNoExt << ".html";
+        const boost::filesystem::path resultFile = g_resultDir / osOutFile.str();
+
+        try
+        {
+            const URL url = boost::urls::parse_origin_form( strURL ).value();
+
+            mega::io::Manifest manifest( m_environment, m_environment.project_manifest() );
+
+            const Container result = generateCompilationReport( url, CompilationReportArgs{ manifest, m_environment } );
+            VERIFY_RTE_MSG( !result.empty(), "Failed to generate any report for: " << url.c_str() );
+
+            HTMLRenderer::JavascriptShortcuts shortcuts;
+            HTMLRenderer                      renderer( g_report_templatesDir, shortcuts, true );
+
+            std::ostringstream os;
+            renderer.render( result, os );
+
+            boost::filesystem::updateFileIfChanged( resultFile, os.str() );
+        }
+        catch( std::exception& ex )
+        {
+            THROW_RTE( "Error generating report: " << resultFile.string() << " exception: " << ex.what() );
+        }
+    }
 };
 
 inline Compilation::Ptr createBuildAndRun( const std::vector< std::string >& sourceFiles,

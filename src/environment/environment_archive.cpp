@@ -31,6 +31,11 @@ ArchiveEnvironment::ArchiveEnvironment( const boost::filesystem::path& archiveFi
 }
 
 // FileSystem
+bool ArchiveEnvironment::exists( const BuildFilePath& filePath ) const
+{
+    return m_fileArchive.exists( filePath );
+}
+
 std::unique_ptr< std::istream > ArchiveEnvironment::read( const BuildFilePath& filePath ) const
 {
     return m_fileArchive.read( filePath );

@@ -18,39 +18,6 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-
-namespace Dependencies
-{
-    object Glob -> DependencyAnalysis::DPGraph
-    {
-        value< boost::filesystem::path > location;
-        value< std::string > glob;
-    }
-
-    object SourceFileDependencies -> DependencyAnalysis::DPGraph
-    {
-        value< mega::io::megaFilePath > source_file;
-        value< mega::U64 > hash_code;
-        array< ref< Glob > > globs;
-        array< value< boost::filesystem::path > > resolution;
-    }
-
-    object TransitiveDependencies -> DependencyAnalysis::DPGraph
-    {
-        array< value< mega::io::megaFilePath > > mega_source_files;
-    }
-
-    object Analysis -> DependencyAnalysis::DPGraph
-    {
-        array< ref< SourceFileDependencies > > objects;
-
-        map< value< mega::io::megaFilePath >, ref< TransitiveDependencies > > mega_dependencies;
-        map< value< mega::io::cppFilePath >, ref< TransitiveDependencies > > cpp_dependencies;
-        array< value< mega::io::megaFilePath > > topological_mega_files;
-    }
-
-}
-
 namespace Symbols
 {
     // SymbolTypeID are negative

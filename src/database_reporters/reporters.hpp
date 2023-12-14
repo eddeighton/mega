@@ -41,7 +41,6 @@ struct ASTReporter
     static const reports::ReporterID ID;
     reports::Container               generate( const reports::URL& url );
 };
-/*
 struct SymbolsReporter
 {
     CompilationReportArgs            m_args;
@@ -56,6 +55,7 @@ struct InterfaceTypeIDReporter
     reports::Container               generate( const reports::URL& url );
 };
 
+/*
 struct ConcreteTypeIDReporter
 {
     CompilationReportArgs            m_args;

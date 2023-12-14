@@ -59,8 +59,9 @@ public:
         }
         inline task::DeterminantHash operator()( const mega::io::megaFilePath& megaFilePath ) const
         {
-            return task::DeterminantHash( { toolChainHash, env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) ),
-                                            env.getBuildHashCode( env.InterfaceStage_Tree( megaFilePath ) ) } );
+            return task::DeterminantHash(
+                { toolChainHash, env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) ),
+                  env.getBuildHashCode( env.InterfaceStage_Tree( env.project_manifest() ) ) } );
         }
     };
 
@@ -157,7 +158,7 @@ public:
                     }
                 }
 
-                if( !request.newSymbols.empty() )
+                if( !request.newInterfaceObjects.empty() || !request.newInterfaceElements.empty() )
                 {
                     symbolTable = m_environment.newSymbols( request );
                 }
@@ -166,8 +167,6 @@ public:
             for( auto pNode : database.many< Interface::Node >( m_environment.project_manifest() ) )
             {
                 auto sequencePair = idSequenceGen( pNode );
-
-                const auto* pInterfaceObject = symbolTable.findInterfaceObject( sequencePair.second );
 
                 interface::TypeID                 interfaceTypeID;
                 std::vector< Symbols::SymbolID* > symbolSequence;

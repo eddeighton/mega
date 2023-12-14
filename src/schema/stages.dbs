@@ -65,49 +65,12 @@ stage InterfaceStage
     persource accessor ref< Parser::ObjectSourceRoot >;
     persource accessor array< ref< Parser::SystemInclude > >;
     persource accessor array< ref< Parser::CPPInclude > >;
-
-    // persource accessor array< ref< Interface::Namespace > >;
-    // persource accessor array< ref< Interface::Abstract > >;
-    // persource accessor array< ref< Interface::State > >;
-    // persource accessor array< ref< Interface::Action > >;
-    // persource accessor array< ref< Interface::Component > >;
-    // persource accessor array< ref< Interface::Event > >;
-    // persource accessor array< ref< Interface::Function > >;
-    // persource accessor array< ref< Interface::Object > >;
-    // persource accessor array< ref< Interface::LinkTrait > >;
-    // persource accessor array< ref< Interface::Interupt > >;
-    // persource accessor array< ref< Interface::Decider > >;
-    // persource accessor array< ref< Interface::Requirement > >;
-}
-
-stage DependencyAnalysis
-{
-    source .manifest;
-    dependency InterfaceStage;
-
-    file DPGraph;
-
-    global accessor array< ref< Components::Component > >;
-    global accessor ref< Dependencies::Analysis >;
-    persource accessor ref< Interface::Root >;
-}
-
-stage DependencyAnalysisView
-{
-    source .manifest;
-    dependency DependencyAnalysis;
-
-    global accessor array< ref< Components::Component > >;
-    global accessor ref< Dependencies::Analysis >;
-    persource accessor ref< Interface::Root >;
-    persource accessor array< ref< Parser::SystemInclude > >;
-    persource accessor array< ref< Parser::CPPInclude > >;
 }
 
 stage SymbolAnalysis
 {
     source .manifest;
-    dependency DependencyAnalysis;
+    dependency InterfaceStage;
 
     file SymbolTable;
 

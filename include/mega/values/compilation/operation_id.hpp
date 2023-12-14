@@ -31,7 +31,7 @@ namespace mega
 
 enum OperationID : interface::SymbolID::ValueType
 {
-    id_Imp_NoParams = interface::SymbolID::LOWEST_SYMBOL_ID,
+    id_Imp_NoParams = 1,
     id_Imp_Params,
     id_Move,
     id_Get,
@@ -40,8 +40,6 @@ enum OperationID : interface::SymbolID::ValueType
     id_Clear,
     HIGHEST_OPERATION_TYPE
 };
-
-static const interface::SymbolID::ValueType TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - interface::SymbolID::LOWEST_SYMBOL_ID;
 
 inline constexpr bool isOperationImplicit( OperationID operationType )
 {
@@ -116,7 +114,7 @@ enum ExplicitOperationID : interface::SymbolID::ValueType
     HIGHEST_EXPLICIT_OPERATION_TYPE
 };
 
-using OperationIDStringArray = std::array< std::string, TOTAL_OPERATION_TYPES >;
+using OperationIDStringArray = std::array< std::string, HIGHEST_OPERATION_TYPE >;
 OperationID                   getOperationName( const std::string& strName );
 const std::string&            getOperationString( OperationID op );
 const OperationIDStringArray& getOperationStrings();

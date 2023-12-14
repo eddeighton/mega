@@ -34,14 +34,13 @@ static const OperationIDStringArray g_pszOperationStrings = { std::string( "__eg
                                                               std::string( "RANGE" ),
                                                               std::string( "REMOVE" ),
                                                               std::string( "CLEAR" ) };
-static_assert( HIGHEST_OPERATION_TYPE - interface::SymbolID::LOWEST_SYMBOL_ID == g_pszOperationStrings.size(),
+static_assert( HIGHEST_OPERATION_TYPE == g_pszOperationStrings.size(),
                "Incorrect operation strings" );
 
 const std::string& getOperationString( OperationID op )
 {
-    ASSERT( static_cast< int >( op ) >= interface::SymbolID::LOWEST_SYMBOL_ID );
-    ASSERT( static_cast< int >( op ) < HIGHEST_OPERATION_TYPE );
-    return g_pszOperationStrings[ op - interface::SymbolID::LOWEST_SYMBOL_ID ];
+    ASSERT( static_cast< interface::SymbolID::ValueType >( op ) < HIGHEST_OPERATION_TYPE );
+    return g_pszOperationStrings[ op ];
 }
 
 OperationID getOperationName( const std::string& strName )
@@ -50,8 +49,7 @@ OperationID getOperationName( const std::string& strName )
     if( iFind == g_pszOperationStrings.end() )
         return HIGHEST_OPERATION_TYPE;
     else
-        return static_cast< OperationID >( interface::SymbolID::LOWEST_SYMBOL_ID
-                                           + std::distance( g_pszOperationStrings.begin(), iFind ) );
+        return static_cast< OperationID >( std::distance( g_pszOperationStrings.begin(), iFind ) );
 }
 
 const OperationIDStringArray& getOperationStrings()
@@ -83,8 +81,7 @@ static_assert( HIGHEST_EXPLICIT_OPERATION_TYPE == g_pszExplicitOperationStrings.
 
 const std::string& getExplicitOperationString( ExplicitOperationID op )
 {
-    ASSERT( ( static_cast< int >( op ) >= 0 )
-            && ( static_cast< int >( op ) < static_cast< int >( HIGHEST_EXPLICIT_OPERATION_TYPE ) ) );
+    ASSERT( op < HIGHEST_EXPLICIT_OPERATION_TYPE );
     return g_pszExplicitOperationStrings[ op ];
 }
 

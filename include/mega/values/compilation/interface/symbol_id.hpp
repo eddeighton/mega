@@ -44,8 +44,6 @@ public:
         inline U64 operator()( const SymbolID& ref ) const noexcept { return ref.getValue(); }
     };
 
-    static constexpr auto LOWEST_SYMBOL_ID = std::numeric_limits< ValueType >::min();
-
     constexpr inline SymbolID()
         : c_symbol_id{ 0 }
     {

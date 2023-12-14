@@ -31,6 +31,8 @@
 
 #include "mega/values/compilation/type_id_sequence.hpp"
 #include "mega/values/hash.hpp"
+#include "mega/values/compilation/operation_id.hpp"
+#include "mega/common_strings.hpp"
 
 #include "common/serialisation.hpp"
 
@@ -268,6 +270,21 @@ public:
         // root concrete object type
         m_concreteVector.push_back( ConcreteObject( concrete::ROOT_OBJECT_ID, { interface::ROOT_TYPE_ID } ) );
         m_concreteMap.insert( { { interface::ROOT_TYPE_ID }, concrete::ROOT_OBJECT_ID } );
+
+        // add operations symbols
+        {
+            const auto opStrings = getOperationStrings();
+            for( interface::SymbolID::ValueType i = 0; i != HIGHEST_OPERATION_TYPE; ++i )
+            {
+                m_symbolVector.push_back( opStrings[ i ] );
+                m_symbolMap.insert( { opStrings[ i ], interface::SymbolID( i ) } );
+            }
+
+            m_symbolVector.push_back( EG_TYPE_PATH );
+            m_symbolMap.insert( { EG_TYPE_PATH, interface::SymbolID( id_TypePath ) } );
+            m_symbolVector.push_back( EG_VARIANT_TYPE );
+            m_symbolMap.insert( { EG_VARIANT_TYPE, interface::SymbolID( id_Variant ) } );
+        }
     }
 
     template < class Archive >
@@ -350,7 +367,7 @@ public:
             if( iFind == m_symbolMap.end() )
             {
                 const auto symbolIndex = static_cast< interface::SymbolID::ValueType >( m_symbolVector.size() );
-                m_symbolMap.insert( { str, interface::SymbolID{ -symbolIndex } } );
+                m_symbolMap.insert( { str, interface::SymbolID{ symbolIndex } } );
                 m_symbolVector.push_back( str );
             }
         }

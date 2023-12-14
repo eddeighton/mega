@@ -22,14 +22,13 @@
 #include "database_reporters/factory.hpp"
 
 #include "environment/environment_archive.hpp"
-#include "database/FinalStage.hxx"
+#include "database/SymbolRollout.hxx"
 
 #include "reports/renderer_html.hpp"
 
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
-#include "mega/mangle/traits.hpp"
 #include "mega/common_strings.hpp"
 
 #include "common/assert_verify.hpp"
@@ -41,70 +40,35 @@
 #include <string>
 #include <vector>
 
-namespace FinalStage
+namespace SymbolRollout
 {
 #include "compiler/interface_printer.hpp"
-#include "compiler/concrete_printer.hpp"
+// #include "compiler/concrete_printer.hpp"
 #include "compiler/interface.hpp"
-#include "compiler/concrete.hpp"
-} // namespace FinalStage
+// #include "compiler/concrete.hpp"
+} // namespace SymbolRollout
 
 namespace mega::reporters
 {
+using namespace SymbolRollout;
 
 mega::reports::Container SymbolsReporter::generate( const mega::reports::URL& url )
 {
-    using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
     Branch branch{ { ID } };
 
-    FinalStage::Database database( m_args.environment, m_args.environment.project_manifest() );
+    Database database( m_args.environment, m_args.environment.project_manifest() );
 
     auto pSymbolTable = database.one< Symbols::SymbolTable >( m_args.environment.project_manifest() );
 
     {
-        Table symbols{ { "Symbol ID"s, "Name"s } };
-        for( auto [ symbolID, pSymbolID ] : pSymbolTable->get_symbol_type_ids() )
+        Table symbols{ { "Symbol ID"s, "Token"s } };
+        for( auto [ symbolID, pSymbolID ] : pSymbolTable->get_symbol_ids() )
         {
-            Branch branch;
-            for( auto pContext : pSymbolID->get_contexts() )
-            {
-                Branch interfaceTypeID{
-                    { "Context"s, pContext->get_interface_id(), Interface::printIContextFullType( pContext ) } };
-                for( auto pConcrete : pContext->get_concrete() )
-                {
-                    interfaceTypeID.m_elements.push_back(
-                        Multiline{ { pConcrete->get_concrete_id(), Concrete::printContextFullType( pConcrete ) } } );
-                }
-                branch.m_elements.push_back( interfaceTypeID );
-            }
-            for( auto pLink : pSymbolID->get_links() )
-            {
-                Branch interfaceTypeID{
-                    { "Link"s, pLink->get_interface_id(), Interface::printLinkTraitFullType( pLink ) } };
-                for( auto pConcrete : pLink->get_concrete() )
-                {
-                    interfaceTypeID.m_elements.push_back(
-                        Multiline{ { pConcrete->get_concrete_id(), Concrete::printContextFullType( pConcrete ) } } );
-                }
-                branch.m_elements.push_back( interfaceTypeID );
-            }
-            for( auto pDim : pSymbolID->get_dimensions() )
-            {
-                Branch interfaceTypeID{
-                    { "Dim"s, pDim->get_interface_id(), Interface::printDimensionTraitFullType( pDim ) } };
-                for( auto pConcrete : pDim->get_concrete() )
-                {
-                    interfaceTypeID.m_elements.push_back(
-                        Multiline{ { pConcrete->get_concrete_id(), Concrete::printContextFullType( pConcrete ) } } );
-                }
-                branch.m_elements.push_back( interfaceTypeID );
-            }
-
             symbols.m_rows.push_back( ContainerVector{
-                Line{ symbolID, std::nullopt, symbolID }, Line{ pSymbolID->get_symbol() }, branch
+                Line{ symbolID, std::nullopt, symbolID }, Line{ pSymbolID->get_token() }
 
             } );
         }
@@ -116,11 +80,10 @@ mega::reports::Container SymbolsReporter::generate( const mega::reports::URL& ur
 
 mega::reports::Container InterfaceTypeIDReporter::generate( const mega::reports::URL& url )
 {
-    using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    FinalStage::Database database( m_args.environment, m_args.environment.project_manifest() );
+    Database database( m_args.environment, m_args.environment.project_manifest() );
 
     Branch branch{ { ID } };
 
@@ -129,64 +92,34 @@ mega::reports::Container InterfaceTypeIDReporter::generate( const mega::reports:
     {
         Table interface {
             {
-                "Interface Type ID"s, "Full Type Name"s, "Symbol IDs"s
+                "Interface Type ID"s, "Full Type Name"s
             }
         };
         for( auto [ typeID, pInterfaceTypeID ] : pSymbolTable->get_interface_type_ids() )
         {
-            if( pInterfaceTypeID->get_context().has_value() )
-            {
-                // clang-format off
-                interface.m_rows.push_back( ContainerVector{
-                    Line{ typeID, std::nullopt, typeID }, 
-                    Line{ Interface::printIContextFullType( pInterfaceTypeID->get_context().value() ) },
-                    Line{ pInterfaceTypeID->get_symbol_ids() }
+            auto pNode = pInterfaceTypeID->get_node();
 
-                } );
-                // clang-format on
-            }
-            else if( pInterfaceTypeID->get_dimension().has_value() )
-            {
-                Interface::DimensionTrait* pDimension = pInterfaceTypeID->get_dimension().value();
-                // clang-format off
-                interface.m_rows.push_back( 
-                    ContainerVector{
-                        Line{ typeID, std::nullopt, typeID }, 
-                        Line{ Interface::printDimensionTraitFullType( pDimension ) },
-                        Line{ pInterfaceTypeID->get_symbol_ids() }
-                    } );
-                // clang-format on
-            }
-            else if( pInterfaceTypeID->get_link().has_value() )
-            {
-                Interface::LinkTrait* pLink = pInterfaceTypeID->get_link().value();
-                // clang-format off
-                interface.m_rows.push_back( ContainerVector{ 
-                    Line{ typeID, std::nullopt, typeID },
-                    Line{ Interface::printLinkTraitFullType( pLink ) },
-                    Line{ pInterfaceTypeID->get_symbol_ids() } } );
-                // clang-format on
-            }
-            else
-            {
-                THROW_RTE( "Interface TypeID: " << typeID << " has no context or dimension" );
-            }
+            // clang-format off
+            interface.m_rows.push_back( ContainerVector{
+                Line{ typeID, std::nullopt, typeID }, 
+                Line{ Interface::fullTypeName( pNode ) }
+
+            } );
         }
         branch.m_elements.push_back( std::move( interface ) );
     }
 
     return branch;
 }
-
+/*
 mega::reports::Container ConcreteTypeIDReporter::generate( const mega::reports::URL& url )
 {
-    using namespace FinalStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
     Branch branch{ { ID } };
 
-    FinalStage::Database database( m_args.environment, m_args.environment.project_manifest() );
+    Database database( m_args.environment, m_args.environment.project_manifest() );
 
     auto pSymbolTable = database.one< Symbols::SymbolTable >( m_args.environment.project_manifest() );
 
@@ -198,9 +131,9 @@ mega::reports::Container ConcreteTypeIDReporter::generate( const mega::reports::
 
             // clang-format off
             concrete.m_rows.push_back( ContainerVector{
-                Line{ typeID, std::nullopt, typeID }, 
+                Line{ typeID, std::nullopt, typeID },
                 Line{ Concrete::getConcreteInterfaceTypeID( pVertex ) },
-                Line{ Concrete::printContextFullType( pVertex ) }, 
+                Line{ Concrete::printContextFullType( pVertex ) },
                 Line{ pVertex->get_component()->get_name() } }
 
             );
@@ -210,5 +143,5 @@ mega::reports::Container ConcreteTypeIDReporter::generate( const mega::reports::
     }
 
     return branch;
-}
+}*/
 } // namespace mega::reporters

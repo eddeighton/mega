@@ -237,11 +237,9 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc interfaceTree = encode( Task{ eTask_AST } );
     dependencies.add( interfaceTree, parserTasks );
 
-    const TskDesc dependencyAnalysis = encode( Task{ eTask_DependencyAnalysis } );
     const TskDesc symbolAnalysis     = encode( Task{ eTask_SymbolAnalysis } );
 
-    dependencies.add( dependencyAnalysis, { interfaceTree } );
-    dependencies.add( symbolAnalysis, { dependencyAnalysis } );
+    dependencies.add( symbolAnalysis, { interfaceTree } );
 
     TskDescVec symbolRolloutTasks;
     {

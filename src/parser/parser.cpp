@@ -1407,6 +1407,8 @@ public:
             }
             else if( Tok.is( clang::tok::kw_dependency ) )
             {
+                MEGA_PARSER_ERROR( "Dependencies NOT supported" );
+        
                 ConsumeToken();
                 Dependency* pDependency = parse_dependency();
                 bodyArgs.dependencies.value().push_back( pDependency );

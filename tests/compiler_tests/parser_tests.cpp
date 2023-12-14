@@ -25,21 +25,24 @@
 
 #include <iostream>
 
-struct ParserData
+namespace
+{
+struct Data
 {
     std::string filename;
 };
 
-std::ostream& operator<<( std::ostream& os, const ParserData& testData )
+std::ostream& operator<<( std::ostream& os, const Data& testData )
 {
     return os;
 }
 
-using ParserFixtureType = CompilerTestFixture< ParserData >;
+using ParserFixtureType = CompilerTestFixture< Data >;
+} // namespace
 
 TEST_P( ParserFixtureType, ParserParameterizedTest )
 {
-    const ParserData data = GetParam();
+    const Data data = GetParam();
 
     try
     {
@@ -50,35 +53,7 @@ TEST_P( ParserFixtureType, ParserParameterizedTest )
         mega::pipeline::PipelineResult result = pCompilation->runPipeline( osFileName.str() );
         ASSERT_TRUE( result.m_bSuccess );
 
-        mega::io::Manifest manifest( pCompilation->m_environment, pCompilation->m_environment.project_manifest() );
-
-        std::ostringstream osOutFile;
-        osOutFile << data.filename << ".html";
-        const boost::filesystem::path resultFile = g_resultDir / osOutFile.str();
-        {
-            using namespace mega::reports;
-            using namespace mega::reporters;
-
-            const URL       url    = boost::urls::parse_origin_form( "/?report=Parser" ).value();
-            const Container result = mega::reporters::generateCompilationReport(
-                url, CompilationReportArgs{ manifest, pCompilation->m_environment } );
-            VERIFY_RTE_MSG( !result.empty(), "Failed to generate any report for: " << url.c_str() );
-
-            HTMLRenderer::JavascriptShortcuts shortcuts;
-            HTMLRenderer                      renderer( g_report_templatesDir, shortcuts, true );
-
-            std::ostringstream os;
-            renderer.render( result, os );
-
-            try
-            {
-                boost::filesystem::updateFileIfChanged( resultFile, os.str() );
-            }
-            catch( std::exception& ex )
-            {
-                THROW_RTE( "Error generating report: " << resultFile.string() << " exception: " << ex.what() );
-            }
-        }
+        pCompilation->generateReport( "/?report=Parser", data.filename );
     }
     catch( std::exception& ex )
     {
@@ -92,6 +67,6 @@ using namespace std::string_literals;
 INSTANTIATE_TEST_SUITE_P( Parser, ParserFixtureType,
         ::testing::Values
         ( 
-            ParserData{ "parser_basic" }
+            Data{ "parser_basic" }
         ));
 // clang-format on

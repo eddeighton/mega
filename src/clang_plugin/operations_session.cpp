@@ -363,9 +363,8 @@ public:
                 return {};
             }
             operationTypeID = static_cast< mega::OperationID >( operationTypeIDOpt.value().getSymbolID() );
-            VERIFY_RTE_MSG( ( static_cast< int >( operationTypeID ) >= mega::TypeID::LOWEST_SYMBOL_ID )
-                                && ( static_cast< int >( operationTypeID ) < mega::HIGHEST_OPERATION_TYPE ),
-                            "Invalid operation ID" );
+            VERIFY_RTE_MSG(
+                static_cast< int >( operationTypeID ) < mega::HIGHEST_OPERATION_TYPE, "Invalid operation ID" );
         }
 
         return mega::InvocationID{ contextSymbolIDs, typePathSymbolIDs, operationTypeID };

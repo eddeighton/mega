@@ -40,7 +40,6 @@ static constexpr auto min_typeID_context = TypeID::make_context( min_object_id, 
 static constexpr auto max_symbol_id = -1;
 static constexpr auto min_symbol_id = std::numeric_limits< TypeID::ValueType >::min();
 
-static_assert( TypeID::LOWEST_SYMBOL_ID == min_symbol_id, "Lowest symbol ID incorrect" );
 
 static constexpr auto max_typeID_symbol = TypeID{ max_symbol_id };
 static constexpr auto min_typeID_symbol = TypeID{ min_symbol_id };

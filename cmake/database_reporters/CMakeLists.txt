@@ -40,6 +40,7 @@ set( DATABASE_REPORTERS_SRC
 
     ${DATABASE_REPORTERS_SRC}/parser.cpp
     ${DATABASE_REPORTERS_SRC}/ast.cpp
+    ${DATABASE_REPORTERS_SRC}/symbols.cpp
     # ${DATABASE_REPORTERS_SRC}/and_or_tree.cpp
     # ${DATABASE_REPORTERS_SRC}/bdd.cpp
     # ${DATABASE_REPORTERS_SRC}/derivation.cpp
@@ -47,7 +48,6 @@ set( DATABASE_REPORTERS_SRC
     # ${DATABASE_REPORTERS_SRC}/functions.cpp
     # ${DATABASE_REPORTERS_SRC}/inheritance.cpp
     # ${DATABASE_REPORTERS_SRC}/interface.cpp
-    # ${DATABASE_REPORTERS_SRC}/symbols.cpp
     # ${DATABASE_REPORTERS_SRC}/truth_table.cpp
 )
 

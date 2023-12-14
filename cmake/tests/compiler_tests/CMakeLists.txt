@@ -38,6 +38,7 @@ set( COMPILER_TESTS_DIR ${MEGA_TEST_DIR}/compiler_tests )
 set( COMPILER_UNIT_TESTS
 	${COMPILER_TESTS_DIR}/parser_tests.cpp 
 	${COMPILER_TESTS_DIR}/ast_tests.cpp 
+	${COMPILER_TESTS_DIR}/symbols_tests.cpp 
 	)
 
 enable_testing()

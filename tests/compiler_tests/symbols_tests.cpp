@@ -20,18 +20,14 @@
 
 #include "compiler_fixture.hpp"
 
-#include "database_reporters/factory.hpp"
-#include "reports/renderer_html.hpp"
-
 #include <iostream>
 
 namespace
 {
 struct Data
 {
-    std::string                testName;
-    std::vector< std::string > sourceFiles;
-    std::vector< std::string > includeFiles;
+    std::string filename;
+    std::string symbolReport, interfaceReport;
 };
 
 std::ostream& operator<<( std::ostream& os, const Data& testData )
@@ -39,21 +35,24 @@ std::ostream& operator<<( std::ostream& os, const Data& testData )
     return os;
 }
 
-using ASTFixtureType = CompilerTestFixture< Data >;
+using SymbolsFixtureType = CompilerTestFixture< Data >;
 } // namespace
 
-TEST_P( ASTFixtureType, ASTParameterizedTest )
+TEST_P( SymbolsFixtureType, SymbolsTest )
 {
     const Data data = GetParam();
 
     try
     {
-        auto pCompilation = createBuildAndRun( data.sourceFiles, data.includeFiles, data.testName.c_str(), "Task_AST" );
+        std::ostringstream osFileName;
+        osFileName << data.filename << ".mega";
+        auto pCompilation = createBuildAndRun( osFileName.str(), data.filename.c_str(), "Task_SymbolRollout" );
 
-        mega::pipeline::PipelineResult result = pCompilation->runPipeline( "" );
+        mega::pipeline::PipelineResult result = pCompilation->runPipeline( osFileName.str() );
         ASSERT_TRUE( result.m_bSuccess );
 
-        pCompilation->generateReport( "/?report=AST", data.testName );
+        pCompilation->generateReport( "/?report=Symbols", data.symbolReport );
+        pCompilation->generateReport( "/?report=InterfaceTypeID", data.interfaceReport );
     }
     catch( std::exception& ex )
     {
@@ -64,9 +63,9 @@ TEST_P( ASTFixtureType, ASTParameterizedTest )
 using namespace std::string_literals;
 
 // clang-format off
-INSTANTIATE_TEST_SUITE_P( AST, ASTFixtureType,
+INSTANTIATE_TEST_SUITE_P( Symbols, SymbolsFixtureType,
         ::testing::Values
         ( 
-            Data{ "ast_basic", { "ast_basic.mega" }, { "ast_include.mega" } }
+            Data{ "symbols_basic"s, "symbols"s, "interface"s }
         ));
 // clang-format on

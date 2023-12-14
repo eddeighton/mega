@@ -146,6 +146,8 @@ public:
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     // FileSystem
+    virtual bool exists( const BuildFilePath& filePath ) const;
+
     virtual std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const;
     virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath&     filePath,
                                                         boost::filesystem::path& tempFilePath ) const;

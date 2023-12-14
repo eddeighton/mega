@@ -1,0 +1,29 @@
+
+object Object1
+{
+    dim m_test1 std::vector< int >;
+    dim m_test2 std::vector< @Object2 >;
+
+}
+
+object Object2
+{
+    dim m_test1 int;
+    dim m_test2 @Object1;
+    dim m_test3 ^Object2.m_test1;
+
+    function A::B::C() : void
+    {
+
+    }
+
+    action action1 > @action2
+    {
+
+    }
+    
+    action action2 > @action1
+    {
+
+    }
+}
