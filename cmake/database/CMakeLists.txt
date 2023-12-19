@@ -41,7 +41,7 @@ set( MEGA_DATABASE_STAGES
     ConcreteStage
     ConcreteTypeAnalysis
     # FinalStage
-    # HyperGraphAnalysis
+    HyperGraphAnalysis
     # TypeAnalysis
     # TypeAnalysisRollout
     InterfaceStage

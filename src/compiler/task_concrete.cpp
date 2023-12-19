@@ -30,7 +30,6 @@
 namespace ConcreteStage
 {
 #include "compiler/interface_printer.hpp"
-#include "compiler/type_path.hpp"
 } // namespace ConcreteStage
 
 namespace mega::compiler
@@ -48,8 +47,8 @@ public:
 
     using Inheritors = std::multimap< Interface::Node*, Concrete::Node* >;
 
-    void inherit( Database& database, Interface::SymbolIDSequenceMap& symbolIDSequenceMap,
-                  Interface::Node* pIParentNode, Concrete::Node* pCParentNode, Inheritors& inheritors )
+    void inherit( Database& database, Interface::Node* pIParentNode, Concrete::Node* pCParentNode,
+                  Inheritors& inheritors )
     {
         inheritors.insert( { pIParentNode, pCParentNode } );
 
@@ -63,8 +62,8 @@ public:
                 {
                     if( auto pAbsolutePath = db_cast< Parser::Type::Absolute >( pPath ) )
                     {
-                        auto pNode = Interface::resolve( symbolIDSequenceMap, pAbsolutePath );
-                        inherit( database, symbolIDSequenceMap, pNode, pCParentNode, inheritors );
+                        auto pNode = pAbsolutePath->get_type();
+                        inherit( database, pNode, pCParentNode, inheritors );
                     }
                     else
                     {
@@ -107,7 +106,7 @@ public:
                 pChildCNode->set_node( pINode );
             }
 
-            inherit( database, symbolIDSequenceMap, pINode, pChildCNode, inheritors );
+            inherit( database, pINode, pChildCNode, inheritors );
         }
     }
 
@@ -132,8 +131,12 @@ public:
         const mega::io::CompilationFilePath concreteFile = m_environment.ConcreteStage_Concrete( projectManifestPath );
         start( taskProgress, "Task_ConcreteTree", interfaceTreeFile.path(), concreteFile.path() );
 
-        const task::DeterminantHash determinant(
+        task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceTreeFile ) } );
+        for( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
+        {
+            determinant ^= m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
+        }
 
         if( m_environment.restore( concreteFile, determinant ) )
         {
@@ -143,9 +146,6 @@ public:
         }
 
         Database database( m_environment, projectManifestPath );
-
-        Symbols::SymbolTable*          pSymbolTable   = database.one< Symbols::SymbolTable >( projectManifestPath );
-        Interface::SymbolIDSequenceMap symbolIDSeqMap = pSymbolTable->get_interface_symbol_id_sequences();
 
         Interface::Root* pInterfaceRoot = database.one< Interface::Root >( projectManifestPath );
 
@@ -158,7 +158,7 @@ public:
             auto pCNode = database.construct< Concrete::Node >(
                 Concrete::Node::Args{ Concrete::NodeGroup::Args{ {} }, pConcreteRoot, pINode } );
             pConcreteRoot->push_back_children( pCNode );
-            inherit( database, symbolIDSeqMap, pINode, pCNode, inheritors );
+            inherit( database, pINode, pCNode, inheritors );
         }
 
         // record all inheritors

@@ -24,7 +24,7 @@
 namespace Interface
 {
 
-using SymbolIDSequenceMap = std::map< ::mega::interface::SymbolIDSequence, ::ConcreteStage::Symbols::InterfaceTypeID* >;
+using SymbolIDSequenceMap = std::map< ::mega::interface::SymbolIDSequence, Symbols::InterfaceTypeID* >;
 
 static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, Parser::Type::Absolute* pAbsolutePath )
 {

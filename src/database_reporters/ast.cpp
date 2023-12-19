@@ -332,7 +332,18 @@ void recurse( Interface::Aggregate* pNode, reports::Branch& tree )
     }
     else if( auto pGeneratedAggregate = db_cast< Interface::GeneratedAggregate >( pNode ) )
     {
-        THROW_TODO;
+        if( auto pOwnershipLink = db_cast< Interface::OwnershipLink >( pGeneratedAggregate ) )
+        {
+            branch.m_label = { { "Ownership Link "s, Interface::getIdentifier( pNode ) } };
+        }
+        else if( auto pActivationBitSet = db_cast< Interface::ActivationBitSet >( pGeneratedAggregate ) )
+        {
+            branch.m_label = { { "Activation Bitset "s, Interface::getIdentifier( pNode ) } };
+        }
+        else
+        {
+            THROW_RTE( "Unknown Generated Aggregate type" );
+        }
     }
     else
     {

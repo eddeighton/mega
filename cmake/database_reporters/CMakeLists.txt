@@ -43,6 +43,7 @@ set( DATABASE_REPORTERS_SRC
     ${DATABASE_REPORTERS_SRC}/ast.cpp
     ${DATABASE_REPORTERS_SRC}/concrete.cpp
     ${DATABASE_REPORTERS_SRC}/concrete_id.cpp
+    ${DATABASE_REPORTERS_SRC}/hyper_graph.cpp
     # ${DATABASE_REPORTERS_SRC}/and_or_tree.cpp
     # ${DATABASE_REPORTERS_SRC}/bdd.cpp
     # ${DATABASE_REPORTERS_SRC}/derivation.cpp

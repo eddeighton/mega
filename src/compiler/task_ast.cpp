@@ -36,6 +36,8 @@ using namespace InterfaceStage;
 
 class Task_AST : public BaseTask
 {
+    using ReservedSymbolMap = std::map< std::string, Parser::ReservedSymbol* >;
+
 public:
     Task_AST( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
@@ -187,6 +189,12 @@ public:
                         });
                 // clang-format on
                 pAggregateParent->push_back_children( pParsedAggregate );
+
+                // refine the aggregate as needed
+                if( auto pParserLink = db_cast< Parser::Link >( pAggregate ) )
+                {
+                    database.construct< Interface::UserLink >( Interface::UserLink::Args{ pParsedAggregate, pParserLink } );
+                }
             }
         }
         else
@@ -462,7 +470,8 @@ public:
         }
     }
 
-    void checkIContext( Interface::IContext* pIContext )
+    void checkAndConstructIContext( Database& database, Interface::IContext* pIContext,
+                                    const ReservedSymbolMap& reservedSymbols )
     {
         using namespace InterfaceStage::Interface;
 
@@ -540,6 +549,43 @@ public:
             }
             else if( auto pObject = db_cast< Object >( pIContext ) )
             {
+                // check no existing OWNER
+                for( auto pChild : pObject->get_children() )
+                {
+                    VERIFY_RTE_MSG( pChild->get_symbol()->get_token() != EG_OWNER,
+                                    "Invalid use of reserved symbol: " << EG_OWNER << " in: "
+                                                                       << Interface::fullTypeName( pChild ) );
+                }
+
+                // create ownership link
+                auto iFind = reservedSymbols.find( EG_OWNER );
+                VERIFY_RTE_MSG( iFind != reservedSymbols.end(), "Failed to locate reserved symbol for: " << EG_OWNER );
+
+                // clang-format off
+                auto pOwnershipLink = database.construct< Interface::OwnershipLink >(
+                {
+                    Interface::OwnershipLink::Args
+                    {
+                        Interface::GeneratedAggregate::Args
+                        {
+                            Interface::Aggregate::Args
+                            {
+                                Interface::Node::Args
+                                {
+                                    Interface::NodeGroup::Args{ {} },
+                                    iFind->second,
+                                    pObject,
+                                    pObject->get_component()
+                                }
+                            }
+                        }
+                    }
+                });
+                // clang-format on
+                pObject->set_ownership_link( pOwnershipLink );
+                pObject->push_back_children( pOwnershipLink );
+
+                // OwnershipLink
             }
             else if( auto pAction = db_cast< Action >( pIContext ) )
             {
@@ -603,19 +649,19 @@ public:
         }
     }
 
-    void check( Interface::Node* pNode )
+    void check( Database& database, Interface::Node* pNode, const ReservedSymbolMap& reservedSymbols )
     {
         pNode->set_kind( Interface::getKind( pNode ) );
 
         // set the kind
         if( auto pIContext = db_cast< Interface::IContext >( pNode ) )
         {
-            checkIContext( pIContext );
+            checkAndConstructIContext( database, pIContext, reservedSymbols );
         }
 
         for( auto pChild : pNode->get_children() )
         {
-            check( pChild );
+            check( database, pChild, reservedSymbols );
         }
     }
 
@@ -641,6 +687,15 @@ public:
 
         Database database( m_environment, projectManifestPath );
 
+        ReservedSymbolMap reservedSymbols;
+        for( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
+        {
+            for( auto pReservedSymbol : database.many< Parser::ReservedSymbol >( sourceFilePath ) )
+            {
+                reservedSymbols.insert( { pReservedSymbol->get_token(), pReservedSymbol } );
+            }
+        }
+
         Interface::Root* pInterfaceRoot
             = database.construct< Interface::Root >( Interface::Root::Args{ Interface::NodeGroup::Args{ {} } } );
 
@@ -664,7 +719,7 @@ public:
         }
         for( auto pNode : pInterfaceRoot->get_children() )
         {
-            check( pNode );
+            check( database, pNode, reservedSymbols );
         }
 
         const task::FileHash fileHashCode = database.save_Tree_to_temp();

@@ -20,6 +20,13 @@
 
 namespace Concrete
 {
+    object Edge -> HyperGraphAnalysis::Model
+    {
+        value< mega::EdgeType > type;
+        ref< Node >             source;
+        ref< Node >             target;
+    }
+    
     object NodeGroup -> ConcreteStage::Concrete
     {
         array< ref< Node > > children;
@@ -35,8 +42,10 @@ namespace Concrete
         ref< Interface::Node >  node;
 
         ref< Symbols::ConcreteID > concrete_id -> ConcreteTypeAnalysis::ConcreteTable;
-    }
 
+        array< ref< Edge > > out_edges -> HyperGraphAnalysis::Model;
+        array< ref< Edge > > in_edges  -> HyperGraphAnalysis::Model;
+    }
 
     object Object : Node -> ConcreteStage::Concrete
     {
@@ -44,25 +53,6 @@ namespace Concrete
     }
 
     /*
-    namespace Graph
-    {
-        object Vertex -> ConcreteStage::Concrete
-        {
-            ref< Components::Component > component;
-
-            array< ref< Edge > > out_edges   -> HyperGraphAnalysisRollout::PerSourceModel;
-            array< ref< Edge > > in_edges    -> HyperGraphAnalysisRollout::PerSourceModel;
-
-            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
-        }
-
-        object Edge -> HyperGraphAnalysis::Model
-        {
-            value< mega::EdgeType > type;
-            ref< Vertex >           source;
-            ref< Vertex >           target;
-        }
-    }
 
     namespace Dimensions
     {

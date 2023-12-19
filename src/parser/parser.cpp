@@ -26,6 +26,7 @@
 
 #include "mega/values/compilation/cardinality.hpp"
 #include "mega/values/compilation/ownership.hpp"
+#include "mega/common_strings.hpp"
 
 #include "database/sources.hpp"
 
@@ -141,7 +142,16 @@ public:
         std::vector< Symbol* > symbols;
         while( Tok.is( clang::tok::identifier ) )
         {
-            symbols.push_back( getSymbol( Tok.getIdentifierInfo()->getName().str() ) );
+            const auto str = Tok.getIdentifierInfo()->getName().str();
+            if( str == mega::EG_OWNER )
+            {
+                MEGA_PARSER_ERROR( "Invalid use of reserved symbol: " << mega::EG_OWNER );
+            }
+            if( str == mega::EG_STATE )
+            {
+                MEGA_PARSER_ERROR( "Invalid use of reserved symbol: " << mega::EG_STATE );
+            }
+            symbols.push_back( getSymbol( str ) );
             ConsumeToken();
 
             if( !Tok.is( clang::tok::coloncolon ) )

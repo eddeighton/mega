@@ -41,6 +41,7 @@ set( COMPILER_UNIT_TESTS
 	${COMPILER_TESTS_DIR}/symbols_tests.cpp 
 	${COMPILER_TESTS_DIR}/concrete_tests.cpp 
 	${COMPILER_TESTS_DIR}/concrete_id_tests.cpp 
+	${COMPILER_TESTS_DIR}/hyper_graph_tests.cpp 
 	)
 
 enable_testing()

@@ -46,7 +46,6 @@ namespace FinalStage
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 #include "compiler/interface.hpp"
-#include "compiler/concrete.hpp"
 } // namespace FinalStage
 
 namespace mega::reporters

@@ -38,6 +38,7 @@ namespace SymbolRollout
 {
 #include "compiler/interface_printer.hpp"
 #include "compiler/interface_typeid_sequence.hpp"
+#include "compiler/type_path.hpp"
 } // namespace SymbolRollout
 
 #include <map>
@@ -279,8 +280,9 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
+        const auto                          manifestFilePath = m_environment.project_manifest();
         const mega::io::CompilationFilePath symbolAnalysisFilePath
-            = m_environment.SymbolAnalysis_SymbolTable( m_environment.project_manifest() );
+            = m_environment.SymbolAnalysis_SymbolTable( manifestFilePath );
         const mega::io::CompilationFilePath symbolRolloutFilePath
             = m_environment.SymbolRollout_PerSourceSymbols( m_sourceFilePath );
         start( taskProgress, "Task_SymbolRollout", m_sourceFilePath.path(), symbolRolloutFilePath.path() );
@@ -299,8 +301,8 @@ public:
 
         Database database( m_environment, m_sourceFilePath );
 
-        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-        const auto            symbolNames  = pSymbolTable->get_symbol_names();
+        Symbols::SymbolTable* pSymbolTable     = database.one< Symbols::SymbolTable >( manifestFilePath );
+        const auto            symbolNames      = pSymbolTable->get_symbol_names();
         const auto            interfaceTypeIDs = pSymbolTable->get_interface_symbol_id_sequences();
 
         // reconstruct all symbols with their associated symbolID
@@ -310,6 +312,13 @@ public:
             auto iFind = symbolNames.find( token );
             VERIFY_RTE( iFind != symbolNames.end() );
             database.construct< Parser::Symbol >( Parser::Symbol::Args{ pSymbol, iFind->second } );
+        }
+
+        // determine absolute types
+        for( auto pAbsoluteTypePath : database.many< Parser::Type::Absolute >( m_sourceFilePath ) )
+        {
+            auto pNode = Interface::resolve( interfaceTypeIDs, pAbsoluteTypePath );
+            database.construct< Parser::Type::Absolute >( Parser::Type::Absolute::Args{ pAbsoluteTypePath, pNode } );
         }
 
         const task::FileHash fileHashCode = database.save_PerSourceSymbols_to_temp();

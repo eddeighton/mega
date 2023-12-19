@@ -35,6 +35,10 @@ namespace Parser
         ref< Symbols::SymbolID >  id -> SymbolRollout::PerSourceSymbols;
     }
 
+    object ReservedSymbol : Symbol -> ParserStage::AST
+    {
+    }
+
     object Identifier : SourceRange -> ParserStage::AST
     {
         array< ref< Symbol > > symbols;
@@ -67,6 +71,7 @@ namespace Parser
 
         object Absolute : Path -> ParserStage::AST
         {
+            ref< Interface::Node > type -> SymbolRollout::PerSourceSymbols;
         }
 
         object Deriving : Path -> ParserStage::AST

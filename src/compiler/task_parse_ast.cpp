@@ -40,10 +40,10 @@ public:
     }
 
     ParserStage::Parser::Container* parseInputFile( ParserStage::Database&                    database,
-                                                     const ParserStage::Components::Component* pComponent,
-                                                     const mega::io::megaFilePath&             sourceFilePath,
-                                                     std::ostream&                             osError,
-                                                     std::ostream&                             osWarn )
+                                                    const ParserStage::Components::Component* pComponent,
+                                                    const mega::io::megaFilePath&             sourceFilePath,
+                                                    std::ostream&                             osError,
+                                                    std::ostream&                             osWarn )
     {
         VERIFY_RTE_MSG( m_parser, "Parser not initialised" );
         ParserStage::Parser::Container* pContainer
@@ -63,6 +63,14 @@ public:
         using namespace ParserStage;
         Database database( m_environment, m_sourceFilePath );
 
+        // create reserved symbols
+        {
+            database.construct< Parser::ReservedSymbol >(
+                Parser::ReservedSymbol::Args{ Parser::Symbol::Args{ EG_OWNER } } );
+            database.construct< Parser::ReservedSymbol >(
+                Parser::ReservedSymbol::Args{ Parser::Symbol::Args{ EG_STATE } } );
+        }
+
         std::ostringstream osError, osWarn;
 
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
@@ -79,14 +87,14 @@ public:
         // greedy algorithm to parse transitive closure of include files
         {
             bool bExhaustedAll = false;
-            while ( !bExhaustedAll )
+            while( !bExhaustedAll )
             {
                 bExhaustedAll = true;
 
-                for ( MegaInclude* pInclude : database.many< MegaInclude >( m_sourceFilePath ) )
+                for( MegaInclude* pInclude : database.many< MegaInclude >( m_sourceFilePath ) )
                 {
                     FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->get_megaSourceFilePath() );
-                    if ( iFind == m_rootFiles.end() )
+                    if( iFind == m_rootFiles.end() )
                     {
                         Container* pIncludeContextDef
                             = parseInputFile( database, pComponent,
@@ -112,7 +120,7 @@ public:
                 }
             }
         }
-        if ( !osError.str().empty() )
+        if( !osError.str().empty() )
         {
             // Error
             msg( taskProgress, osError.str() );
@@ -120,7 +128,7 @@ public:
         }
         else
         {
-            if ( !osWarn.str().empty() )
+            if( !osWarn.str().empty() )
             {
                 // Warning
                 msg( taskProgress, osWarn.str() );
@@ -139,7 +147,7 @@ public:
 
                 const task::DeterminantHash determinant( { m_toolChain.toolChainHash, astHashCode } );
 
-                if ( !m_environment.restore( astFile, determinant ) )
+                if( !m_environment.restore( astFile, determinant ) )
                 {
                     m_environment.temp_to_real( astFile );
                     m_environment.stash( astFile, determinant );
@@ -152,7 +160,7 @@ public:
 
                 const task::DeterminantHash determinant( { m_toolChain.toolChainHash, bodyHashCode } );
 
-                if ( !m_environment.restore( bodyFile, determinant ) )
+                if( !m_environment.restore( bodyFile, determinant ) )
                 {
                     m_environment.temp_to_real( bodyFile );
                     m_environment.stash( bodyFile, determinant );
@@ -160,7 +168,7 @@ public:
                 }
             }
 
-            if ( bRestored )
+            if( bRestored )
             {
                 cached( taskProgress );
             }

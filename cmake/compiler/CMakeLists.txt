@@ -70,7 +70,6 @@ set( COMPILER_LIB_HEADERS
     # reusable
     ${MEGA_API_DIR}/compiler/common_ancestor.hpp
     ${MEGA_API_DIR}/compiler/concrete_printer.hpp
-    ${MEGA_API_DIR}/compiler/concrete.hpp
     ${MEGA_API_DIR}/compiler/derivation_printer.hpp
     ${MEGA_API_DIR}/compiler/derivation.hpp
     ${MEGA_API_DIR}/compiler/interface_printer.hpp
@@ -129,7 +128,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     # ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
     # ${MEGA_SRC_DIR}/compiler/task_global_memory.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
+    ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
     # ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
     # ${MEGA_SRC_DIR}/compiler/task_includes.cpp
     # ${MEGA_SRC_DIR}/compiler/task_inheritance.cpp

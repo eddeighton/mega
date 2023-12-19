@@ -36,7 +36,6 @@
 namespace MemoryStage
 {
 #include "compiler/interface.hpp"
-#include "compiler/concrete.hpp"
 }
 
 namespace

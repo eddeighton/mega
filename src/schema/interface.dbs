@@ -149,6 +149,11 @@ namespace Interface
         ref< Parser::Aggregate > aggregate;
     }
 
+    object UserLink : ParsedAggregate -> InterfaceStage::Tree
+    {
+        ref< Parser::Link > link;
+    }
+
     object GeneratedAggregate : Aggregate -> InterfaceStage::Tree
     {
     }
@@ -194,6 +199,7 @@ namespace Interface
 
     object Object : IContext -> InterfaceStage::Tree
     {
+        late< ref< OwnershipLink > > ownership_link;
     }
 
     object InvocationContext : IContext -> InterfaceStage::Tree

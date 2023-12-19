@@ -63,6 +63,7 @@ stage InterfaceStage
     global accessor ref< Interface::Root >;
 
     persource accessor ref< Parser::ObjectSourceRoot >;
+    persource accessor array< ref< Parser::ReservedSymbol > >;
     persource accessor array< ref< Parser::SystemInclude > >;
     persource accessor array< ref< Parser::CPPInclude > >;
 }
@@ -92,7 +93,9 @@ stage SymbolRollout
     global accessor ref< Symbols::SymbolTable >;
 
     persource accessor array< ref< Parser::Symbol > >;
+    persource accessor array< ref< Parser::Type::Absolute > >;
     global accessor array< ref< Interface::Node > >;
+
 }
 
 stage ConcreteStage
@@ -107,6 +110,7 @@ stage ConcreteStage
     global accessor ref< Symbols::SymbolTable >;
     global accessor ref< Interface::Root >;
     global accessor ref< Concrete::Root >;
+    persource accessor array< ref< Parser::Type::Absolute > >;
 }
 
 stage ConcreteTypeAnalysis
@@ -122,6 +126,22 @@ stage ConcreteTypeAnalysis
     global accessor ref< Symbols::SymbolTable >;
     global accessor array< ref< Concrete::Node > >;
 
+}
+
+stage HyperGraphAnalysis
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+    
+    dependency ConcreteTypeAnalysis;
+
+    file Model;
+
+    global accessor array< ref< Interface::UserLink > >;
+    global accessor array< ref< Interface::OwnershipLink > >;
+    global accessor ref< Concrete::Root >;
+    global accessor ref< Symbols::SymbolTable >;
 }
 
 /*
@@ -219,19 +239,6 @@ stage InheritanceAnalysisRollout
     persource accessor array< ref< Interface::DimensionTrait > >;
     persource accessor array< ref< Interface::LinkTrait > >;
     global accessor ref< Inheritance::Mapping >;
-}
-
-stage HyperGraphAnalysis
-{
-    source .manifest;
-    dependency InheritanceAnalysisRollout;
-
-    file Model;
-
-    persource accessor array< ref< Interface::LinkTrait > >;
-    persource accessor array< ref< Concrete::Graph::Vertex > >;
-    persource accessor ref< Concrete::Root >;
-    global accessor ref< Symbols::SymbolTable >;
 }
 
 stage HyperGraphAnalysisView

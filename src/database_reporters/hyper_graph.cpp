@@ -21,8 +21,7 @@
 
 #include "database_reporters/factory.hpp"
 
-#include "environment/environment_archive.hpp"
-#include "database/ConcreteTypeAnalysis.hxx"
+#include "database/HyperGraphAnalysis.hxx"
 
 #include "reports/renderer_html.hpp"
 
@@ -40,18 +39,18 @@
 #include <string>
 #include <vector>
 
-namespace ConcreteTypeAnalysis
+namespace HyperGraphAnalysis
 {
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 #include "compiler/interface.hpp"
-} // namespace ConcreteTypeAnalysis
+} // namespace HyperGraphAnalysis
 
 namespace mega::reporters
 {
-using namespace ConcreteTypeAnalysis;
+using namespace HyperGraphAnalysis;
 
-mega::reports::Container ConcreteIDReporter::generate( const mega::reports::URL& url )
+mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL& url )
 {
     using namespace std::string_literals;
     using namespace mega::reports;
@@ -60,27 +59,7 @@ mega::reports::Container ConcreteIDReporter::generate( const mega::reports::URL&
 
     Database database( m_args.environment, m_args.environment.project_manifest(), true );
 
-    auto pSymbolTable = database.one< Symbols::SymbolTable >( m_args.environment.project_manifest() );
-
-    {
-        Table concrete{ { "Concrete Type ID"s, "Interface Type ID"s, "Full Type Name"s } };
-        const auto concreteTypeIDs = pSymbolTable->get_concrete_type_ids();
-        for( const auto& [ typeID, pConcreteID ] : concreteTypeIDs )
-        {
-            auto pNode = pConcreteID->get_node();
-
-            // clang-format off
-            concrete.m_rows.push_back( ContainerVector{
-                Line{ typeID, std::nullopt, typeID }
-                , Line{ pNode->get_node()->get_interface_id()->get_type_id() }
-                , Line{ Concrete::fullTypeName( pNode ) }
-                }
-
-            );
-            // clang-format on
-        }
-        branch.m_elements.push_back( std::move( concrete ) );
-    }
+    
 
     return branch;
 }

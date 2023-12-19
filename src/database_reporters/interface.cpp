@@ -46,7 +46,6 @@ namespace FinalStage
 #include "compiler/interface.hpp"
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
-#include "compiler/concrete.hpp"
 #include "compiler/symbol_variant_printer.hpp"
 } // namespace FinalStage
 

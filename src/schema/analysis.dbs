@@ -55,33 +55,34 @@ namespace Symbols
         map< value< mega::concrete::TypeID >, ref< ConcreteID > >           concrete_type_ids             -> ConcreteTypeAnalysis::ConcreteTable;
     }
 }
-/*
 
 namespace HyperGraph
 {
     object Relation -> HyperGraphAnalysis::Model
     {
-        value< mega::RelationID > id;
+        value< mega::interface::RelationID > id;
     }
 
-    object OwningObjectRelation : Relation -> HyperGraphAnalysis::Model
+    object OwningRelation : Relation -> HyperGraphAnalysis::Model
     {
-        multimap< ref< Interface::UserLinkTrait >, ref< Concrete::Dimensions::OwnershipLink > > owners;
-        multimap< ref< Concrete::Dimensions::OwnershipLink >, ref< Interface::UserLinkTrait > > owned;
+        multimap< ref< Interface::UserLink >, ref< Interface::OwnershipLink > > owners;
+        multimap< ref< Interface::OwnershipLink >, ref< Interface::UserLink > > owned;
     }
 
-    object NonOwningObjectRelation : Relation -> HyperGraphAnalysis::Model
+    object NonOwningRelation : Relation -> HyperGraphAnalysis::Model
     {
-        ref< Interface::UserLinkTrait > source;
-        ref< Interface::UserLinkTrait > target;
+        ref< Interface::UserLink > source;
+        ref< Interface::UserLink > target;
     }
 
     object Graph -> HyperGraphAnalysis::Model
     {
-        ref< OwningObjectRelation >                                             owning_relation;
-        map< ref< Interface::UserLinkTrait >, ref< NonOwningObjectRelation > >  non_owning_relations;
+        ref< OwningRelation >                                        owning_relation;
+        map< ref< Interface::UserLink >, ref< NonOwningRelation > >  non_owning_relations;
     }
 }
+
+/*
 
 namespace MemoryLayout
 {

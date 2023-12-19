@@ -256,16 +256,9 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     const TskDesc concreteTypeID = encode( Task{ eTask_ConcreteTypeAnalysis } );
     dependencies.add( concreteTypeID, { concreteTree } );
-    {
-        // eTask_HyperGraph
-        
-        // eTask_Inheritance
-        // eTask_InheritanceRollout
-        // eTask_HyperGraphRollout
 
-        // eTask_Allocators
-        // eTask_GlobalMemoryStageRollout
-    }
+    const TskDesc hyperGraph = encode( Task{ eTask_HyperGraph } );
+    dependencies.add( hyperGraph, { concreteTypeID } );
 
     /*
         TskDescVec interfaceAnalysisTasks;
