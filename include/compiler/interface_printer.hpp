@@ -22,6 +22,105 @@
 namespace Interface
 {
 
+static const std::string& getKind( const Node* pNode )
+{
+    using namespace std::string_literals;
+    if( auto* p = db_cast< ParsedAggregate >( pNode ) )
+    {
+        static const std::string s = "ParsedAggregate"s;
+        return s;
+    }
+    else if( auto* p = db_cast< GeneratedAggregate >( pNode ) )
+    {
+        static const std::string s = "GeneratedAggregate"s;
+        return s;
+    }
+    else if( auto* p = db_cast< OwnershipLink >( pNode ) )
+    {
+        static const std::string s = "OwnershipLink"s;
+        return s;
+    }
+    else if( auto* p = db_cast< ActivationBitSet >( pNode ) )
+    {
+        static const std::string s = "ActivationBitSet"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Aggregate >( pNode ) )
+    {
+        static const std::string s = "Aggregate"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Namespace >( pNode ) )
+    {
+        static const std::string s = "Namespace"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Abstract >( pNode ) )
+    {
+        static const std::string s = "Abstract"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Event >( pNode ) )
+    {
+        static const std::string s = "Event"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Object >( pNode ) )
+    {
+        static const std::string s = "Object"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Interupt >( pNode ) )
+    {
+        static const std::string s = "Interupt"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Requirement >( pNode ) )
+    {
+        static const std::string s = "Requirement"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Decider >( pNode ) )
+    {
+        static const std::string s = "Decider"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Function >( pNode ) )
+    {
+        static const std::string s = "Function"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Action >( pNode ) )
+    {
+        static const std::string s = "Action"s;
+        return s;
+    }
+    else if( auto* p = db_cast< Component >( pNode ) )
+    {
+        static const std::string s = "Component"s;
+        return s;
+    }
+    else if( auto* p = db_cast< State >( pNode ) )
+    {
+        static const std::string s = "State"s;
+        return s;
+    }
+    else if( auto* p = db_cast< InvocationContext >( pNode ) )
+    {
+        static const std::string s = "InvocationContext"s;
+        return s;
+    }
+    else if( auto* p = db_cast< IContext >( pNode ) )
+    {
+        static const std::string s = "IContext"s;
+        return s;
+    }
+    else
+    {
+        THROW_RTE( "Unknown interface node type" );
+    }
+}
+
 static const std::string& getIdentifier( const Node* pNode )
 {
     return pNode->get_symbol()->get_token();

@@ -70,6 +70,8 @@ stage InterfaceStage
 stage SymbolAnalysis
 {
     source .manifest;
+    source .mega;
+    source .cpp;
     dependency InterfaceStage;
 
     file SymbolTable;
@@ -91,6 +93,35 @@ stage SymbolRollout
 
     persource accessor array< ref< Parser::Symbol > >;
     global accessor array< ref< Interface::Node > >;
+}
+
+stage ConcreteStage
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+    dependency SymbolRollout;
+
+    file Concrete;
+
+    global accessor ref< Symbols::SymbolTable >;
+    global accessor ref< Interface::Root >;
+    global accessor ref< Concrete::Root >;
+}
+
+stage ConcreteTypeAnalysis
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+    
+    dependency ConcreteStage;
+
+    file ConcreteTable;
+
+    global accessor ref< Symbols::SymbolTable >;
+    global accessor array< ref< Concrete::Node > >;
+
 }
 
 /*
@@ -267,18 +298,6 @@ stage AliasAnalysisRollout
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Concrete::Graph::Vertex >;
     global accessor ref< HyperGraph::Graph >;
-}
-
-stage ConcreteTypeAnalysis
-{
-    source .manifest;
-    dependency AliasAnalysisRollout;
-
-    file ConcreteTable;
-
-    persource accessor ref< Concrete::Graph::Vertex >;
-    global accessor ref< Symbols::SymbolTable >;
-
 }
 
 stage ConcreteTypeAnalysisView

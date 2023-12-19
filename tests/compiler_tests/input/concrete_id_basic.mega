@@ -1,0 +1,61 @@
+
+
+interface IOne
+{
+    dim m_int5 int;
+
+    function f1( int i ) : void
+    {
+    }
+}
+
+namespace testing
+{
+    interface ITwo
+    {
+        namespace nested
+        {
+            function f2( int i, @Object2 o ) : void
+            {
+                //
+                o.dosomething( i );
+            }
+        }
+    }
+}
+
+object Object1
+{
+    component A
+    {
+        dim m_int1 int;
+    }
+}
+
+object Object2 : ^Object1
+{
+    component A : ^IOne, ^testing.ITwo
+    {
+        dim m_int2 int;
+    }
+}
+
+object Object3
+{
+    component A
+    {
+        dim m_int3 int;
+    }
+}
+
+object Object4 : ^Object2, ^Object3
+{
+    component A
+    {
+        dim m_int4 int;
+    }
+
+    component B : ^Object2.A
+    {
+    }
+}

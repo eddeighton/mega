@@ -26,7 +26,8 @@
 namespace InterfaceStage
 {
 #include "compiler/interface.hpp"
-}
+#include "compiler/interface_printer.hpp"
+} // namespace InterfaceStage
 
 namespace mega::compiler
 {
@@ -231,6 +232,17 @@ public:
         return p;
     }
 
+    template < typename ParserContainerType, typename IContextType >
+    void refineInheritance( ParserContainerType* pContainer, IContextType* pIContext )
+    {
+        if( auto pInheritanceOpt = pContainer->get_inheritance_type_opt() )
+        {
+            VERIFY_PARSER(
+                !pIContext->is_inheritance_opt(), "Type has duplicate inheritance specifications", pContainer );
+            pIContext->set_inheritance_opt( pInheritanceOpt.value() );
+        }
+    }
+
     void refineIContext( Database& database, Interface::IContext* pIContext )
     {
         using namespace InterfaceStage::Parser;
@@ -241,11 +253,14 @@ public:
         {
             if( auto pAbstract = db_cast< Abstract >( pContainer ) )
             {
-                getOrCreate< Interface::Abstract >( database, pIContext, pContainer, bRefined );
+                auto pIAbstract = getOrCreate< Interface::Abstract >( database, pIContext, pContainer, bRefined );
+
+                refineInheritance( pAbstract, pIAbstract );
             }
             else if( auto pEvent = db_cast< Event >( pContainer ) )
             {
-                getOrCreate< Interface::Event >( database, pIContext, pContainer, bRefined );
+                auto pIEvent = getOrCreate< Interface::Event >( database, pIContext, pContainer, bRefined );
+                refineInheritance( pEvent, pIEvent );
             }
             else if( auto pInterupt = db_cast< Interupt >( pContainer ) )
             {
@@ -337,6 +352,7 @@ public:
             else if( auto pObject = db_cast< Object >( pContainer ) )
             {
                 auto* p = getOrCreate< Interface::Object >( database, pIContext, pContainer, bRefined );
+                refineInheritance( pObject, p );
             }
             else if( auto pAction = db_cast< Action >( pContainer ) )
             {
@@ -354,6 +370,7 @@ public:
                         bRefined = true;
                     }
                 }
+                refineInheritance( pAction, p );
 
                 if( auto transitionOpt = pAction->get_transition_type_opt() )
                 {
@@ -387,6 +404,7 @@ public:
                         bRefined = true;
                     }
                 }
+                refineInheritance( pComponent, p );
 
                 if( auto transitionOpt = pComponent->get_transition_type_opt() )
                 {
@@ -402,6 +420,7 @@ public:
             else if( auto pState = db_cast< State >( pContainer ) )
             {
                 auto* p = getOrCreateInvocationContext< Interface::State >( database, pIContext, pContainer, bRefined );
+                refineInheritance( pState, p );
 
                 if( auto transitionOpt = pState->get_transition_type_opt() )
                 {
@@ -443,7 +462,7 @@ public:
         }
     }
 
-    void checkContext( Interface::IContext* pIContext )
+    void checkIContext( Interface::IContext* pIContext )
     {
         using namespace InterfaceStage::Interface;
 
@@ -584,6 +603,22 @@ public:
         }
     }
 
+    void check( Interface::Node* pNode )
+    {
+        pNode->set_kind( Interface::getKind( pNode ) );
+
+        // set the kind
+        if( auto pIContext = db_cast< Interface::IContext >( pNode ) )
+        {
+            checkIContext( pIContext );
+        }
+
+        for( auto pChild : pNode->get_children() )
+        {
+            check( pChild );
+        }
+    }
+
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const auto                          projectManifestPath = m_environment.project_manifest();
@@ -627,9 +662,9 @@ public:
         {
             refineIContext( database, pIContext );
         }
-        for( auto pIContext : icontexts )
+        for( auto pNode : pInterfaceRoot->get_children() )
         {
-            checkContext( pIContext );
+            check( pNode );
         }
 
         const task::FileHash fileHashCode = database.save_Tree_to_temp();

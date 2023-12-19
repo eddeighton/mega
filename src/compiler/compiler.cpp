@@ -237,8 +237,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc interfaceTree = encode( Task{ eTask_AST } );
     dependencies.add( interfaceTree, parserTasks );
 
-    const TskDesc symbolAnalysis     = encode( Task{ eTask_SymbolAnalysis } );
-
+    const TskDesc symbolAnalysis = encode( Task{ eTask_SymbolAnalysis } );
     dependencies.add( symbolAnalysis, { interfaceTree } );
 
     TskDescVec symbolRolloutTasks;
@@ -250,6 +249,22 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
             dependencies.add( symbolRollout, TskDescVec{ symbolAnalysis } );
         }
+    }
+
+    const TskDesc concreteTree = encode( Task{ eTask_ConcreteTree } );
+    dependencies.add( concreteTree, symbolRolloutTasks );
+
+    const TskDesc concreteTypeID = encode( Task{ eTask_ConcreteTypeAnalysis } );
+    dependencies.add( concreteTypeID, { concreteTree } );
+    {
+        // eTask_HyperGraph
+        
+        // eTask_Inheritance
+        // eTask_InheritanceRollout
+        // eTask_HyperGraphRollout
+
+        // eTask_Allocators
+        // eTask_GlobalMemoryStageRollout
     }
 
     /*

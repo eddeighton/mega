@@ -156,6 +156,11 @@ void recurse( Parser::Container* pContainer, reports::Branch& branch )
     {
     }
 
+    if( auto bodyOpt = pContainer->get_body_type_opt() )
+    {
+        
+    }
+
     if( auto pNamespace = db_cast< Namespace >( pContainer ) )
     {
         container.m_label.emplace_back( "Namespace"s );

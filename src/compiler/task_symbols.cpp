@@ -109,6 +109,15 @@ public:
                 symbolTable = m_environment.newSymbols( request );
             }
 
+            // add NULL_SYMBOL
+            /*{
+                auto symbolIDOpt = symbolTable.findSymbol( "" );
+                VERIFY_RTE( symbolIDOpt.has_value() );
+                auto pSymbol
+                    = database.construct< Symbols::SymbolID >( Symbols::SymbolID::Args{ "", symbolIDOpt.value(), {} } );
+                newSymbolIDs.insert( { symbolIDOpt.value(), pSymbol } );
+            }*/
+
             for( auto i = symbols.begin(), iEnd = symbols.end(); i != iEnd; )
             {
                 const auto& token       = i->first;
@@ -137,7 +146,6 @@ public:
                 for( auto pNode : database.many< Interface::Node >( m_environment.project_manifest() ) )
                 {
                     auto sequencePair = idSequenceGen( pNode );
-                    VERIFY_RTE( !sequencePair.first.empty() );
                     if( auto pInterfaceObject = symbolTable.findInterfaceObject( sequencePair.first ) )
                     {
                         if( !sequencePair.second.empty() )
@@ -209,6 +217,8 @@ public:
                 VERIFY_RTE( newInterfaceTypeIDSequences.insert( { symbolIDSequence, pInterfaceTypeID } ).second );
                 VERIFY_RTE_MSG( newInterfaceTypeIDs.insert( { interfaceTypeID, pInterfaceTypeID } ).second,
                                 "Duplicate interface typeID: " << interfaceTypeID );
+
+                database.construct< Interface::Node >( Interface::Node::Args{ pNode, pInterfaceTypeID } );
             }
         }
 
@@ -300,20 +310,6 @@ public:
             auto iFind = symbolNames.find( token );
             VERIFY_RTE( iFind != symbolNames.end() );
             database.construct< Parser::Symbol >( Parser::Symbol::Args{ pSymbol, iFind->second } );
-        }
-
-        const TypeIDSequenceGen idSequenceGen( symbolNames );
-
-        // NOTE: this uses the result of the previous step where the SymbolID is set in pNode->get_symbol()->get_id()
-        for( Interface::Node* pNode : database.many< Interface::Node >( m_sourceFilePath ) )
-        {
-            const auto id          = idSequenceGen( pNode );
-            auto       symbolIDSeq = id.first;
-            std::copy( id.second.begin(), id.second.end(), std::back_inserter( symbolIDSeq ) );
-            auto iFind = interfaceTypeIDs.find( symbolIDSeq );
-            VERIFY_RTE( iFind != interfaceTypeIDs.end() );
-            database.construct< Interface::Node >(
-                Interface::Node::Args{ pNode, pNode->get_symbol()->get_id(), iFind->second } );
         }
 
         const task::FileHash fileHashCode = database.save_PerSourceSymbols_to_temp();

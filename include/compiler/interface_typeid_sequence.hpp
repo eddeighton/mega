@@ -39,6 +39,9 @@ struct TypeIDSequenceGen
         return pSymbolID->get_id();
     }
 
+    // recurse up the tree from the node to the root
+    // record the initial path into second - then if encounter object
+    // record remaining into first.
     template< typename T >
     void recurse( T* pInterface, ObjectSubObjectIDSequence& sequence, bool bFoundObject ) const
     {
@@ -73,11 +76,7 @@ struct TypeIDSequenceGen
     {
         ObjectSubObjectIDSequence sequence;
         recurse( pContext, sequence, false );
-        if( sequence.first.empty() )
-        {
-            sequence.first.push_back( mega::interface::NULL_SYMBOL_ID );
-        }
-        else
+        if( !sequence.first.empty() )
         {
             std::reverse( sequence.first.begin(), sequence.first.end() );
         }

@@ -19,11 +19,18 @@ object Object2
 
     action action1 > @action2
     {
-
+        for( int i = 0; i != 10; ++i )
+        {
+            @action2 a = action2();
+        }
     }
     
     action action2 > @action1
     {
 
     }
+}
+
+object Object3 : ^Object1, ^Object2
+{
 }

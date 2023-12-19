@@ -20,6 +20,30 @@
 
 namespace Concrete
 {
+    object NodeGroup -> ConcreteStage::Concrete
+    {
+        array< ref< Node > > children;
+    }
+
+    object Root : NodeGroup -> ConcreteStage::Concrete
+    {
+    }
+
+    object Node : NodeGroup -> ConcreteStage::Concrete
+    {
+        ref< NodeGroup >        parent;
+        ref< Interface::Node >  node;
+
+        ref< Symbols::ConcreteID > concrete_id -> ConcreteTypeAnalysis::ConcreteTable;
+    }
+
+
+    object Object : Node -> ConcreteStage::Concrete
+    {
+
+    }
+
+    /*
     namespace Graph
     {
         object Vertex -> ConcreteStage::Concrete
@@ -232,5 +256,5 @@ namespace Concrete
     object Root : ContextGroup -> ConcreteStage::Concrete
     {
         ref< Interface::Root > interface_root;
-    }
+    }*/
 }

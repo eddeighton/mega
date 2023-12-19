@@ -355,7 +355,7 @@ public:
         return m_database.construct< Type::CPP >( Type::CPP::Args{ fragments } );
     }
 
-    Type::CPP* parse_cpp_block()
+    std::vector< Type::Fragment* > parse_cpp_block_fragments()
     {
         const unsigned short startParenCount = ParenCount, startBraceCount = BraceCount;
 
@@ -406,8 +406,12 @@ public:
                 fragments.push_back( pOpaque );
             }
         }
+        return fragments;
+    }
 
-        return m_database.construct< Type::CPP >( Type::CPP::Args{ fragments } );
+    Type::CPP* parse_cpp_block()
+    {
+        return m_database.construct< Type::CPP >( Type::CPP::Args{ parse_cpp_block_fragments() } );
     }
 
     Size* parse_size()
@@ -513,12 +517,21 @@ public:
             TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pNamedPathSequence } );
     }
 
-    TypeDecl::Inheritance* parse_inheritance()
+    std::optional< TypeDecl::Inheritance* > parse_inheritance()
     {
-        auto                startLoc          = Tok.getLocation();
-        Type::PathSequence* pTypePathSequence = parse_type_path_sequence();
-        return m_database.construct< TypeDecl::Inheritance >( TypeDecl::Inheritance::Args{
-            TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pTypePathSequence } );
+        if( Tok.is( clang::tok::colon ) )
+        {
+            ConsumeAnyToken();
+            parse_comment();
+            auto                startLoc          = Tok.getLocation();
+            Type::PathSequence* pTypePathSequence = parse_type_path_sequence();
+            return m_database.construct< TypeDecl::Inheritance >( TypeDecl::Inheritance::Args{
+                TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pTypePathSequence } );
+        }
+        else
+        {
+            return {};
+        }
     }
 
     TypeDecl::Data* parse_data_type()
@@ -712,34 +725,6 @@ public:
         return pResult;
     }
 
-    Dependency* parse_dependency()
-    {
-        BalancedDelimiterTracker T( *this, clang::tok::l_paren );
-
-        T.consumeOpen();
-
-        clang::SourceLocation startLoc = Tok.getLocation();
-        clang::SourceLocation endLoc   = Tok.getEndLoc();
-
-        while( !Tok.is( clang::tok::r_paren ) )
-        {
-            endLoc = Tok.getEndLoc();
-            ConsumeAnyToken();
-        }
-
-        std::string strDependency;
-        VERIFY_RTE( getSourceText( startLoc, endLoc, strDependency ) );
-        strDependency.erase( std::remove( strDependency.begin(), strDependency.end(), '\"' ), strDependency.end() );
-        strDependency.erase( std::remove( strDependency.begin(), strDependency.end(), ' ' ), strDependency.end() );
-        auto pSourceRange = getSourceRange( startLoc, endLoc );
-
-        T.consumeClose();
-
-        parse_semicolon();
-
-        return m_database.construct< Dependency >( Dependency::Args{ pSourceRange, strDependency } );
-    }
-
     Part* parse_part()
     {
         const clang::SourceLocation startLoc = Tok.getLocation();
@@ -808,7 +793,7 @@ public:
     // named elements ( ignoring named include )
 
     // begin of actual parsing routines for mega grammar
-    Dimension* parse_dimension( bool bIsConst )
+    Dimension* parse_dimension()
     {
         Identifier*     pIdentifier = parse_identifier();
         TypeDecl::Data* pData       = parse_data_type();
@@ -912,7 +897,7 @@ public:
             Link::Args{ Aggregate::Args{ pIdentifier }, pType, bOwning, cardinality_range } );
     }
 
-    Alias* parse_alias( bool bIsConst )
+    Alias* parse_alias()
     {
         Identifier*      pIdentifier = parse_identifier();
         TypeDecl::Alias* pType       = parse_alias_type();
@@ -920,7 +905,7 @@ public:
         return m_database.construct< Alias >( Alias::Args{ Aggregate::Args{ pIdentifier }, pType } );
     }
 
-    Using* parse_using( bool bIsConst )
+    Using* parse_using()
     {
         Identifier*      pIdentifier = parse_identifier();
         TypeDecl::Using* pType       = parse_using_type();
@@ -980,7 +965,7 @@ public:
         parse_comment();
         Size* pSize = parse_size();
         parse_comment();
-        TypeDecl::Inheritance* pInheritance = parse_inheritance();
+        auto pInheritanceOpt = parse_inheritance();
         parse_comment();
 
         Container::Args body = defaultContainer( pIdentifier );
@@ -998,7 +983,7 @@ public:
             }
         }
 
-        return m_database.construct< Abstract >( Abstract::Args{ body, pSize, pInheritance } );
+        return m_database.construct< Abstract >( Abstract::Args{ body, pSize, pInheritanceOpt } );
     }
 
     Event* parse_event()
@@ -1007,7 +992,7 @@ public:
         parse_comment();
         Size* pSize = parse_size();
         parse_comment();
-        TypeDecl::Inheritance* pInheritance = parse_inheritance();
+        auto pInheritanceOpt = parse_inheritance();
         parse_comment();
 
         Container::Args body = defaultContainer( pIdentifier );
@@ -1029,7 +1014,7 @@ public:
             }
         }
 
-        return m_database.construct< Event >( Event::Args{ body, pSize, pInheritance } );
+        return m_database.construct< Event >( Event::Args{ body, pSize, pInheritanceOpt } );
     }
 
     Interupt* parse_interupt()
@@ -1091,8 +1076,7 @@ public:
             }
         }
 
-        return m_database.construct< Requirement >(
-            Requirement::Args{ body, pEventsOpt, pTransitionsOpt } );
+        return m_database.construct< Requirement >( Requirement::Args{ body, pEventsOpt, pTransitionsOpt } );
     }
 
     Function* parse_function()
@@ -1166,7 +1150,7 @@ public:
         parse_comment();
         Size* pSize = parse_size();
         parse_comment();
-        TypeDecl::Inheritance* pInheritance = parse_inheritance();
+        auto pInheritanceOpt = parse_inheritance();
         parse_comment();
 
         Container::Args body = defaultContainer( pIdentifier );
@@ -1188,7 +1172,7 @@ public:
             }
         }
 
-        return m_database.construct< Object >( Object::Args{ body, pSize, pInheritance } );
+        return m_database.construct< Object >( Object::Args{ body, pSize, pInheritanceOpt } );
     }
 
     State* parse_state()
@@ -1197,7 +1181,7 @@ public:
         parse_comment();
         Size* pSize = parse_size();
         parse_comment();
-        TypeDecl::Inheritance* pInheritance = parse_inheritance();
+        auto pInheritanceOpt = parse_inheritance();
         parse_comment();
         std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
         parse_comment();
@@ -1221,7 +1205,7 @@ public:
             }
         }
 
-        return m_database.construct< State >( State::Args{ body, pSize, pInheritance, pTransitionsOpt } );
+        return m_database.construct< State >( State::Args{ body, pSize, pInheritanceOpt, pTransitionsOpt } );
     }
 
     Action* parse_action()
@@ -1230,7 +1214,7 @@ public:
         parse_comment();
         Size* pSize = parse_size();
         parse_comment();
-        TypeDecl::Inheritance* pInheritance = parse_inheritance();
+        auto pInheritanceOpt = parse_inheritance();
         parse_comment();
         std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
         parse_comment();
@@ -1255,7 +1239,7 @@ public:
         }
 
         return m_database.construct< Action >(
-            Action::Args{ State::Args{ body, pSize, pInheritance, pTransitionsOpt } } );
+            Action::Args{ State::Args{ body, pSize, pInheritanceOpt, pTransitionsOpt } } );
     }
 
     Component* parse_component()
@@ -1264,7 +1248,7 @@ public:
         parse_comment();
         Size* pSize = parse_size();
         parse_comment();
-        TypeDecl::Inheritance* pInheritance = parse_inheritance();
+        auto pInheritanceOpt = parse_inheritance();
         parse_comment();
         std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
         parse_comment();
@@ -1289,7 +1273,7 @@ public:
         }
 
         return m_database.construct< Component >(
-            Component::Args{ State::Args{ body, pSize, pInheritance, pTransitionsOpt } } );
+            Component::Args{ State::Args{ body, pSize, pInheritanceOpt, pTransitionsOpt } } );
     }
 
     Container::Args parse_container( Identifier* pIdentifier )
@@ -1357,34 +1341,27 @@ public:
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_object() );
             }
-            else if( ( Tok.is( clang::tok::kw_const ) && NextToken().is( clang::tok::kw_dim ) )
-                     || Tok.is( clang::tok::kw_dim ) )
+            else if( Tok.is( clang::tok::kw_dim ) )
             {
-                bool bIsConst = false;
-                if( Tok.is( clang::tok::kw_const ) )
-                {
-                    bIsConst = true;
-                    ConsumeToken();
-                }
                 ConsumeToken();
-                Dimension* pDimension = parse_dimension( bIsConst );
+                Dimension* pDimension = parse_dimension();
                 bodyArgs.dimensions.value().push_back( pDimension );
                 bodyArgs.aggregates.value().push_back( pDimension );
             }
-            // else if( Tok.is( clang::tok::kw_alias ) )
-            // {
-            //     ConsumeToken();
-            //     Alias* pAlias = parse_alias( false );
-            //     bodyArgs.aliases.value().push_back( pAlias );
-            //    bodyArgs.aggregates.value().push_back( pAlias );
-            // }
-            // else if( Tok.is( clang::tok::kw_using ) )
-            // {
-            //     ConsumeToken();
-            //     Using* pUsing = parse_using( false );
-            //     bodyArgs.usings.value().push_back( pUsing );
-            //    bodyArgs.aggregates.value().push_back( pUsing );
-            // }
+            else if( Tok.is( clang::tok::kw_mega ) )
+            {
+                ConsumeToken();
+                Alias* pAlias = parse_alias();
+                bodyArgs.aliases.value().push_back( pAlias );
+                bodyArgs.aggregates.value().push_back( pAlias );
+            }
+            else if( Tok.is( clang::tok::kw_cpp ) )
+            {
+                ConsumeToken();
+                Using* pUsing = parse_using();
+                bodyArgs.usings.value().push_back( pUsing );
+                bodyArgs.aggregates.value().push_back( pUsing );
+            }
             else if( Tok.is( clang::tok::kw_link ) )
             {
                 ConsumeToken();
@@ -1404,14 +1381,6 @@ public:
                 ConsumeToken();
                 Include* pInclude = parse_include();
                 bodyArgs.includes.value().push_back( pInclude );
-            }
-            else if( Tok.is( clang::tok::kw_dependency ) )
-            {
-                MEGA_PARSER_ERROR( "Dependencies NOT supported" );
-        
-                ConsumeToken();
-                Dependency* pDependency = parse_dependency();
-                bodyArgs.dependencies.value().push_back( pDependency );
             }
             else if( Tok.is( clang::tok::kw_part ) )
             {
@@ -1435,29 +1404,28 @@ public:
                 (
                     !isEofOrEom() &&
                     (
-                        !(
-                            Tok.is( clang::tok::kw_const ) &&
-                            NextToken().is( clang::tok::kw_dim )
-                        ) &&
                         !Tok.isOneOf
                         (
                             clang::tok::kw_action,
-                            clang::tok::kw_object,
-                            clang::tok::kw_function,
+                            clang::tok::kw_component,
+                            clang::tok::kw_cpp,
                             clang::tok::kw_decider,
+                            clang::tok::kw_dim,
                             clang::tok::kw_event,
+                            clang::tok::kw_function,
+                            clang::tok::kw_include,
                             clang::tok::kw_interface,
                             clang::tok::kw_interupt,
-                            clang::tok::kw_requirement,
-                            clang::tok::kw_dim,
                             clang::tok::kw_link,
+                            clang::tok::kw_mega,
+                            clang::tok::kw_namespace,
+                            clang::tok::kw_object,
                             clang::tok::kw_owns,
-                            clang::tok::kw_include,
-                            clang::tok::kw_dependency,
                             clang::tok::kw_part,
-                            clang::tok::kw_state,
-                            clang::tok::kw_component,
-                            clang::tok::kw_namespace // NOTE: cannot now using 'using namespace ...' in function bodies
+                            clang::tok::kw_requirement,
+                            clang::tok::kw_state
+                            
+                            // NOTE: cannot now using 'using namespace ...' in function bodies
                         )
                     ) &&
                     !(
@@ -1484,9 +1452,22 @@ public:
                     // capture body if allowed
                     if( !strBodyPart.empty() && bIsBodyDefinition )
                     {
-                        THROW_TODO;
-                        // bodyArgs.body_opt = m_database.construct< TypeDecl::Body >( TypeDecl::Body::Args{
-                        //     strBodyPart, sm.getFilename( startLoc ).str(), sm.getSpellingLineNumber( startLoc ) } );
+                        if( bodyArgs.body_type_opt.has_value() && bodyArgs.body_type_opt.value().has_value() )
+                        {
+                            auto                           pBody     = bodyArgs.body_type_opt.value().value();
+                            auto                           pCPP      = pBody->get_cpp_fragments();
+                            std::vector< Type::Fragment* > fragments = parse_cpp_block_fragments();
+                            for( auto pFragment : fragments )
+                            {
+                                pCPP->push_back_elements( pFragment );
+                            }
+                        }
+                        else
+                        {
+                            auto pCPP              = parse_cpp_block();
+                            bodyArgs.body_type_opt = m_database.construct< TypeDecl::Body >(
+                                { TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, endLoc ) }, pCPP } );
+                        }
                     }
                 }
             }

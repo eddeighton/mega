@@ -20,86 +20,46 @@
 
 struct TypeIDSequenceGen
 {
-    mega::TypeID getTypeID( const Interface::IContext* pIContext ) const { return pIContext->get_interface_id(); }
-    mega::TypeID getTypeID( const Interface::DimensionTrait* pIDim ) const { return pIDim->get_interface_id(); }
-    mega::TypeID getTypeID( const Interface::LinkTrait* pILink ) const { return pILink->get_interface_id(); }
+    inline mega::interface::TypeID getTypeID( const Concrete::Node* pNode ) const
+    {
+        return pNode->get_node()->get_interface_id()->get_type_id();
+    }
 
     using TypeIDSeqPair = mega::SymbolTraits::TypeIDSequencePair;
 
-    void recurse( Concrete::Context* pContext, TypeIDSeqPair& sequence, bool bFoundObject ) const
+    inline void recurse( Concrete::Node* pNode, TypeIDSeqPair& sequence, bool bFoundObject ) const
     {
         if( !bFoundObject )
         {
-            if( db_cast< Concrete::Object >( pContext ) )
+            if( db_cast< Concrete::Object >( pNode ) )
             {
                 bFoundObject = true;
             }
         }
         else
         {
-            VERIFY_RTE( !db_cast< Concrete::Object >( pContext ) );
+            VERIFY_RTE( !db_cast< Concrete::Object >( pNode ) );
         }
         if( bFoundObject )
         {
-            sequence.first.push_back( getTypeID( pContext->get_interface() ) );
+            sequence.first.push_back( getTypeID( pNode ) );
         }
         else
         {
-            sequence.second.push_back( getTypeID( pContext->get_interface() ) );
+            sequence.second.push_back( getTypeID( pNode ) );
         }
 
-        if( auto pParent = db_cast< Concrete::Context >( pContext->get_parent() ) )
+        if( auto pParent = db_cast< Concrete::Node >( pNode->get_parent() ) )
         {
             recurse( pParent, sequence, bFoundObject );
         }
     }
 
-    TypeIDSeqPair operator()( Concrete::Graph::Vertex* pVertex ) const
+    inline TypeIDSeqPair operator()( Concrete::Node* pNode ) const
     {
         TypeIDSeqPair sequence;
-        {
-            if( auto pContext = db_cast< Concrete::Context >( pVertex ) )
-            {
-                recurse( pContext, sequence, false );
-            }
-            else if( auto pDimUser = db_cast< Concrete::Dimensions::User >( pVertex ) )
-            {
-                sequence.second.push_back( getTypeID( pDimUser->get_interface_dimension() ) );
-                recurse( pDimUser->get_parent_context(), sequence, false );
-            }
-            else if( auto pBitset = db_cast< Concrete::Dimensions::Bitset >( pVertex ) )
-            {
-                sequence.second.push_back( getTypeID( pBitset->get_interface_compiler_dimension() ) );
-                recurse( pBitset->get_parent_object(), sequence, false  );
-            }
-            else if( auto pDimLink = db_cast< Concrete::Dimensions::Link >( pVertex ) )
-            {
-                if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pDimLink ) )
-                {
-                    sequence.second.push_back( getTypeID( pUserLink->get_interface_user_link() ) );
-                    recurse( pUserLink->get_parent_context(), sequence, false );
-                }
-                else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pDimLink ) )
-                {
-                    sequence.second.push_back( getTypeID( pOwnershipLink->get_interface_owner_link() ) );
-                    recurse( pOwnershipLink->get_parent_context(), sequence, false );
-                }
-                else
-                {
-                    THROW_RTE( "Unknown link type" );
-                }
-            }
-            else
-            {
-                THROW_RTE( "Unknown vertex type" );
-            }
-        }
-
-        if( sequence.first.empty() )
-        {
-            sequence.first.push_back( mega::NULL_SYMBOL_ID );
-        }
-        else
+        recurse( pNode, sequence, false );
+        if( !sequence.first.empty() )
         {
             std::reverse( sequence.first.begin(), sequence.first.end() );
         }

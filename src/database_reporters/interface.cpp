@@ -342,23 +342,20 @@ mega::reports::Container InterfaceReporter::generate( const mega::reports::URL& 
     using namespace mega::reports;
 
     Table root{ { "Interface TypeID"s, ID, "Concrete TypeIDs"s } };
+    
+    Database database( m_args.environment, m_args.environment.project_manifest() );
 
-    for( const mega::io::megaFilePath& sourceFilePath : m_args.manifest.getMegaSourceFiles() )
+    Branch interfaceTypeIDs( { { sourceFilePath.path() } } );
+    Branch fileBranch( { { sourceFilePath.path() } } );
+    Branch concreteTypeIDs( { { sourceFilePath.path() } } );
+    for( Interface::Root* pRoot : database.many< Interface::Root >( m_args.environment.project_manifest() ) )
     {
-        Database database( m_args.environment, sourceFilePath );
-
-        Branch interfaceTypeIDs( { { sourceFilePath.path() } } );
-        Branch fileBranch( { { sourceFilePath.path() } } );
-        Branch concreteTypeIDs( { { sourceFilePath.path() } } );
-        for( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
+        for( Interface::IContext* pContext : pRoot->get_children() )
         {
-            for( Interface::IContext* pContext : pRoot->get_children() )
-            {
-                recurse( interfaceTypeIDs, fileBranch, concreteTypeIDs, pContext );
-            }
+            recurse( interfaceTypeIDs, fileBranch, concreteTypeIDs, pContext );
         }
-        root.m_rows.push_back( { interfaceTypeIDs, fileBranch, concreteTypeIDs } );
     }
+    root.m_rows.push_back( { interfaceTypeIDs, fileBranch, concreteTypeIDs } );
 
     return root;
 }

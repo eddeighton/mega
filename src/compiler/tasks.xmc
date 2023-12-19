@@ -27,34 +27,27 @@ TASK_PROJECT(PythonStages)
 TASK_SRC(CPPStages,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
 
 TASK_PROJECT(DependencyAnalysis)
-TASK_PROJECT(SymbolAnalysis)
 
+TASK_PROJECT(SymbolAnalysis)
 TASK_SRC(SymbolRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
+TASK_PROJECT(ConcreteTree)
+TASK_PROJECT(ConcreteTypeAnalysis)
+
+
+
+
 
 TASK_SRC(Include,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(IncludePCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(InterfaceGeneration,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(InterfaceAnalysis,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(ConcreteTree,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-
-TASK_PROJECT(ConcreteTypeAnalysis)
-TASK_SRC(ConcreteTypeRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-
-TASK_PROJECT(Inheritance)
-TASK_SRC(InheritanceRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
 TASK_PROJECT(HyperGraph)
 TASK_SRC(HyperGraphRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
-TASK_PROJECT(Alias)
-TASK_SRC(AliasRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-
-TASK_PROJECT(GlobalMemoryStage)
-TASK_SRC(GlobalMemoryStageRollout,  std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-
 TASK_SRC(Meta,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
-TASK_SRC(Allocators,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(Operations,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(Automata,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(OperationsPCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)

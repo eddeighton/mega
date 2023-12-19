@@ -29,116 +29,16 @@
 namespace mega::reporters
 {
 
-struct ParserReporter
-{
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-struct ASTReporter
-{
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-struct SymbolsReporter
-{
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-struct InterfaceTypeIDReporter
-{
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-/*
-struct ConcreteTypeIDReporter
-{
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-struct InterfaceReporter
-{
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-struct InheritanceReporter
-{
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-class AndOrTreeReporter
-{
-    std::size_t recurse( reports::Graph& graph, FinalStage::Automata::Vertex* pVertex,
-                         std::vector< std::size_t >& nodes );
-
-public:
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-class EnumReporter
-{
-    using SwitchIndex       = U32;
-    using SwitchIDToNodeMap = std::map< SwitchIndex, reports::Graph::Node::ID >;
-
-    struct Edges
-    {
-        std::multimap< SwitchIndex, SwitchIndex > treeEdges, siblingEdges, failureEdges;
+#define REPORTER( reportname )                                                \
+    struct reportname##Reporter                                               \
+    {                                                                         \
+        CompilationReportArgs            m_args;                              \
+        static const reports::ReporterID ID;                                  \
+        reports::Container               generate( const reports::URL& url ); \
     };
-    std::size_t recurse( reports::Graph& graph, FinalStage::Automata::Enum* pEnum, std::vector< std::size_t >& nodes,
-                         SwitchIDToNodeMap& nodeMap, Edges& edges );
+#include "reporters.hxx"
+#undef REPORTER
 
-public:
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-class DerivationReporter
-{
-public:
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-class BDDReporter
-{
-    mega::reports::Graph makeBDDGraph( FinalStage::Decision::DecisionProcedure* pProcedure );
-public:
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-class TruthTableReporter
-{
-public:
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-
-class FunctionsReporter
-{
-public:
-    CompilationReportArgs            m_args;
-    static const reports::ReporterID ID;
-    reports::Container               generate( const reports::URL& url );
-};
-*/
 } // namespace mega::reporters
 
 #endif // REPORTERS_24_OCT_2023

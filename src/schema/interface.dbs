@@ -25,9 +25,6 @@ namespace Interface
     {
         ref< IContext > parent;
         
-        value< mega::interface::SymbolID >  symbol_id     -> SymbolRollout::PerSourceSymbols;
-        value< mega::interface::TypeID >    interface_id  -> SymbolRollout::PerSourceSymbols;
-        
         array< ref< Concrete::Dimensions::User > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
 
         // value< std::string >                    canonical_type  -> InterfaceAnalysisStage::Clang;
@@ -53,9 +50,6 @@ namespace Interface
     object LinkTrait -> InterfaceStage::Tree
     {
         ref< IContext > parent;
-
-        value< mega::interface::SymbolID >  symbol_id       -> SymbolRollout::PerSourceSymbols;
-        value< mega::interface::TypeID >    interface_id    -> SymbolRollout::PerSourceSymbols;
 
         array< ref< Concrete::Dimensions::Link > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
 
@@ -124,7 +118,7 @@ namespace Interface
     // Tree Nodes
     object NodeGroup -> InterfaceStage::Tree
     {
-        array< ref< Node > >            children;
+        array< ref< Node > > children;
     }
 
     object Root : NodeGroup -> InterfaceStage::Tree
@@ -136,9 +130,11 @@ namespace Interface
         ref< Parser::Symbol >           symbol;
         ref< NodeGroup >                parent;
         ref< Components::Component >    component;
+        late< value< std::string > >    kind;
 
-        ref< Symbols::SymbolID >        symbol_id    -> SymbolRollout::PerSourceSymbols;
-        ref< Symbols::InterfaceTypeID > interface_id -> SymbolRollout::PerSourceSymbols;
+        ref< Symbols::InterfaceTypeID > interface_id -> SymbolAnalysis::SymbolTable;
+
+        array< ref< Concrete::Node > >  inheritors -> ConcreteStage::Concrete;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -175,8 +171,6 @@ namespace Interface
 
         late< opt< ref< Parser::TypeDecl::Inheritance > > > inheritance_opt;
         late< opt< ref< Parser::Size > > >                  size_opt;
-        
-        ref< Symbols::InterfaceTypeID > interface_id -> SymbolRollout::PerSourceSymbols;
 
         // array< ref< Concrete::Context > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
 

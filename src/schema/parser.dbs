@@ -270,13 +270,13 @@ namespace Parser
     object Abstract : Container -> ParserStage::AST
     {
         ref< Size >                         size;
-        ref< TypeDecl::Inheritance >        inheritance_type;
+        opt< ref< TypeDecl::Inheritance > > inheritance_type_opt;
     }
 
     object Event : Container -> ParserStage::AST
     {
-        ref< Size >                     size;
-        ref< TypeDecl::Inheritance >    inheritance_type;
+        ref< Size >                         size;
+        opt< ref< TypeDecl::Inheritance > > inheritance_type_opt;
     }
 
     object Interupt : Container -> ParserStage::AST
@@ -304,14 +304,14 @@ namespace Parser
 
     object Object : Container -> ParserStage::AST
     {
-        ref< Size >                     size;
-        ref< TypeDecl::Inheritance >    inheritance_type;
+        ref< Size >                         size;
+        opt< ref< TypeDecl::Inheritance > > inheritance_type_opt;
     }
 
     object State : Container -> ParserStage::AST
     {
         ref< Size >                         size;
-        ref< TypeDecl::Inheritance >        inheritance_type;
+        opt< ref< TypeDecl::Inheritance > > inheritance_type_opt;
         opt< ref< TypeDecl::Transitions > > transition_type_opt;
     }
 

@@ -25,11 +25,8 @@
 #include "base_task.hpp"
 
 #include "database/ConcreteTypeAnalysis.hxx"
-// #include "database/ConcreteTypeAnalysisView.hxx"
-#include "database/ConcreteTypeRollout.hxx"
 #include "database/manifest.hxx"
 
-#include "environment/environment_archive.hpp"
 #include "database/exception.hpp"
 #include "database/sources.hpp"
 
@@ -39,51 +36,27 @@ namespace ConcreteTypeAnalysis
 #include "compiler/concrete_printer.hpp"
 #include "compiler/concrete_typeid_sequence.hpp"
 } // namespace ConcreteTypeAnalysis
-namespace ConcreteTypeRollout
-{
-#include "compiler/interface_printer.hpp"
-#include "compiler/concrete_typeid_sequence.hpp"
-} // namespace ConcreteTypeRollout
 
 namespace mega::compiler
 {
+using namespace ConcreteTypeAnalysis;
 
 class Task_ConcreteTypeAnalysis : public BaseTask
 {
 public:
-    struct ConcreteHashCodeGenerator
-    {
-        const mega::io::StashEnvironment& env;
-        task::DeterminantHash             toolChainHash;
-        ConcreteHashCodeGenerator( const mega::io::StashEnvironment& env, task::DeterminantHash toolChainHash )
-            : env( env )
-            , toolChainHash( toolChainHash )
-        {
-        }
-        inline task::DeterminantHash operator()( const mega::io::megaFilePath& sourceFilePath ) const
-        {
-            return task::DeterminantHash(
-                toolChainHash,
-                env.getBuildHashCode( env.ConcreteStage_Concrete( sourceFilePath ) ),
-                env.getBuildHashCode( env.ParserStage_AST( sourceFilePath ) ),
-                env.getBuildHashCode( env.InterfaceStage_Tree( sourceFilePath ) ),
-                env.getBuildHashCode( env.InterfaceAnalysisStage_Clang( sourceFilePath ) ),
-                env.getBuildHashCode( env.SymbolRollout_PerSourceSymbols( sourceFilePath ) ) );
-        }
-    };
-
     Task_ConcreteTypeAnalysis( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
     {
     }
 
-    ConcreteTypeAnalysis::Symbols::SymbolTable*
-    requestNewSymbols( ConcreteTypeAnalysis::Database&             newDatabase,
-                       ConcreteTypeAnalysis::Symbols::SymbolTable* pSymbolTable )
+    Symbols::SymbolTable*
+    requestNewSymbols( Database&             database,
+                       Symbols::SymbolTable* pSymbolTable )
     {
         using namespace ConcreteTypeAnalysis;
 
-        const auto  sourceFiles = getSortedSourceFiles();
+        const auto manifestPath = m_environment.project_manifest();
+
         SymbolTable symbolTable = m_environment.getSymbolTable();
 
         TypeIDSequenceGen typeIDSequenceGenerator;
@@ -91,31 +64,25 @@ public:
         // request new concrete type IDs
         {
             SymbolRequest request;
-            for( const mega::io::megaFilePath& newSourceFile : sourceFiles )
+            for( Concrete::Node* pNode : database.many< Concrete::Node >( manifestPath ) )
             {
-                for( Concrete::Graph::Vertex* pVertex : newDatabase.many< Concrete::Graph::Vertex >( newSourceFile ) )
+                const SymbolTraits::TypeIDSequencePair idSeq = typeIDSequenceGenerator( pNode );
+                if( auto* pConcrete = symbolTable.findConcreteObject( idSeq.first ) )
                 {
-                    if( db_cast< Concrete::Root >( pVertex ) )
-                        continue;
-
-                    const SymbolTraits::TypeIDSequencePair idSeq = typeIDSequenceGenerator( pVertex );
-                    if( auto* pConcrete = symbolTable.findConcreteObject( idSeq.first ) )
+                    if( !idSeq.second.empty() )
                     {
-                        if( !idSeq.second.empty() )
-                        {
-                            if( TypeID{} == pConcrete->find( idSeq.second ) )
-                            {
-                                request.newConcreteElements.insert( idSeq );
-                            }
-                        }
-                    }
-                    else
-                    {
-                        request.newConcreteObjects.insert( idSeq.first );
-                        if( !idSeq.second.empty() )
+                        if( concrete::NULL_TYPE_ID == pConcrete->find( idSeq.second ) )
                         {
                             request.newConcreteElements.insert( idSeq );
                         }
+                    }
+                }
+                else
+                {
+                    request.newConcreteObjects.insert( idSeq.first );
+                    if( !idSeq.second.empty() )
+                    {
+                        request.newConcreteElements.insert( idSeq );
                     }
                 }
             }
@@ -125,55 +92,52 @@ public:
             }
         }
 
-        using NewTypeIDSequenceMap = std::map< mega::TypeIDSequence, Symbols::concrete::TypeID* >;
-        using NewTypeIDMap         = std::map< mega::TypeID, Symbols::concrete::TypeID* >;
+        using NewTypeIDSequenceMap = std::map< mega::interface::TypeIDSequence, Symbols::ConcreteID* >;
+        using NewTypeIDMap         = std::map< mega::concrete::TypeID, Symbols::ConcreteID* >;
 
         NewTypeIDSequenceMap new_concrete_type_id_sequences;
         NewTypeIDMap         new_concrete_type_ids;
 
         // construct concrete type IDs
         {
-            for( const mega::io::megaFilePath& newSourceFile : sourceFiles )
+            for( Concrete::Node* pNode : database.many< Concrete::Node >( manifestPath ) )
             {
-                for( Concrete::Graph::Vertex* pVertex : newDatabase.many< Concrete::Graph::Vertex >( newSourceFile ) )
+                mega::interface::TypeIDSequence typeIDSequence;
+                mega::concrete::TypeID          concreteTypeID;
+
                 {
-                    if( db_cast< Concrete::Root >( pVertex ) )
-                        continue;
+                    const SymbolTraits::TypeIDSequencePair idSeq = typeIDSequenceGenerator( pNode );
+                    typeIDSequence                               = idSeq.first;
 
-                    mega::TypeIDSequence typeIDSequence;
-                    mega::TypeID         typeID;
-
+                    auto* pConcrete = symbolTable.findConcreteObject( idSeq.first );
+                    VERIFY_RTE( pConcrete );
+                    if( !idSeq.second.empty() )
                     {
-                        const SymbolTraits::TypeIDSequencePair idSeq = typeIDSequenceGenerator( pVertex );
-                        typeIDSequence                               = idSeq.first;
-
-                        auto* pConcrete = symbolTable.findConcreteObject( idSeq.first );
-                        VERIFY_RTE( pConcrete );
-                        if( !idSeq.second.empty() )
-                        {
-                            std::copy( idSeq.second.begin(), idSeq.second.end(), std::back_inserter( typeIDSequence ) );
-                            typeID = pConcrete->find( idSeq.second );
-                        }
-                        else
-                        {
-                            typeID = TypeID::make_object_from_objectID( pConcrete->getObjectID() );
-                        }
+                        std::copy( idSeq.second.begin(), idSeq.second.end(), std::back_inserter( typeIDSequence ) );
+                        concreteTypeID = pConcrete->find( idSeq.second );
                     }
-
-                    VERIFY_RTE( typeID != TypeID{} );
-
-                    auto pNewConcreteSymbol = newDatabase.construct< Symbols::concrete::TypeID >(
-                        Symbols::concrete::TypeID::Args{ typeID } );
-                    pNewConcreteSymbol->set_vertex( pVertex );
-
-                    VERIFY_RTE(
-                        new_concrete_type_id_sequences.insert( { typeIDSequence, pNewConcreteSymbol } ).second );
-                    VERIFY_RTE( new_concrete_type_ids.insert( { typeID, pNewConcreteSymbol } ).second );
+                    else
+                    {
+                        concreteTypeID = concrete::TypeID( pConcrete->getObjectID(), concrete::NULL_SUB_OBJECT_ID );
+                    }
                 }
+
+                VERIFY_RTE( concreteTypeID != concrete::NULL_TYPE_ID );
+
+                auto pNewConcreteSymbol
+                    = database.construct< Symbols::ConcreteID >( Symbols::ConcreteID::Args{ concreteTypeID, pNode } );
+
+                VERIFY_RTE( new_concrete_type_id_sequences.insert( { typeIDSequence, pNewConcreteSymbol } ).second );
+                VERIFY_RTE( new_concrete_type_ids.insert( { concreteTypeID, pNewConcreteSymbol } ).second );
+
+                database.construct< Concrete::Node >( Concrete::Node::Args
+                {
+                    pNode, pNewConcreteSymbol
+                });
             }
         }
 
-        return newDatabase.construct< Symbols::SymbolTable >(
+        return database.construct< Symbols::SymbolTable >(
             Symbols::SymbolTable::Args{ pSymbolTable, new_concrete_type_id_sequences, new_concrete_type_ids } );
     }
 
@@ -187,16 +151,11 @@ public:
         // std::ostringstream os;
         task::DeterminantHash determinant(
             m_toolChain.toolChainHash,
-            m_environment.getBuildHashCode( m_environment.SymbolAnalysis_SymbolTable( manifestFilePath ) ) );
-        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
-        {
-            const task::DeterminantHash hashCode(
-                m_environment.getBuildHashCode( m_environment.ConcreteStage_Concrete( sourceFilePath ) ),
-                m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) ),
-                m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( sourceFilePath ) ),
-                m_environment.getBuildHashCode( m_environment.InterfaceAnalysisStage_Clang( sourceFilePath ) ) );
-            determinant ^= hashCode;
-        }
+            m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( manifestFilePath ) ),
+            m_environment.getBuildHashCode( m_environment.ConcreteStage_Concrete( manifestFilePath ) ),
+            m_environment.getBuildHashCode( m_environment.SymbolAnalysis_SymbolTable( manifestFilePath ) )
+
+        );
 
         if( m_environment.restore( symbolCompilationFile, determinant ) )
         {
@@ -208,7 +167,7 @@ public:
         using namespace ConcreteTypeAnalysis;
         Database database( m_environment, manifestFilePath );
 
-        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( manifestFilePath );
 
         requestNewSymbols( database, pSymbolTable );
 
@@ -223,82 +182,6 @@ public:
 BaseTask::Ptr create_Task_ConcreteTypeAnalysis( const TaskArguments& taskArguments )
 {
     return std::make_unique< Task_ConcreteTypeAnalysis >( taskArguments );
-}
-
-class Task_ConcreteTypeRollout : public BaseTask
-{
-public:
-    Task_ConcreteTypeRollout( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
-        : BaseTask( taskArguments )
-        , m_sourceFilePath( sourceFilePath )
-    {
-    }
-
-    virtual void run( mega::pipeline::Progress& taskProgress )
-    {
-        const mega::io::CompilationFilePath symbolAnalysisFilePath
-            = m_environment.ConcreteTypeAnalysis_ConcreteTable( m_environment.project_manifest() );
-        const mega::io::CompilationFilePath symbolRolloutFilePath
-            = m_environment.ConcreteTypeRollout_PerSourceConcreteTable( m_sourceFilePath );
-        start( taskProgress, "Task_ConcreteTypeRollout", m_sourceFilePath.path(), symbolRolloutFilePath.path() );
-
-        Task_ConcreteTypeAnalysis::ConcreteHashCodeGenerator hashGen( m_environment, m_toolChain.toolChainHash );
-        const task::DeterminantHash                          determinant = hashGen( m_sourceFilePath );
-
-        if( m_environment.restore( symbolRolloutFilePath, determinant ) )
-        {
-            m_environment.setBuildHashCode( symbolRolloutFilePath );
-            cached( taskProgress );
-            return;
-        }
-
-        using namespace ConcreteTypeRollout;
-
-        Database database( m_environment, m_sourceFilePath );
-
-        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-
-        const std::map< mega::TypeIDSequence, Symbols::concrete::TypeID* > typeIDSequences
-            = pSymbolTable->get_concrete_type_id_sequences();
-
-        ConcreteTypeRollout::TypeIDSequenceGen typeIDSequenceGenerator;
-
-        for( auto pVertex : database.many< Concrete::Graph::Vertex >( m_sourceFilePath ) )
-        {
-            if( auto pRoot = db_cast< Concrete::Root >( pVertex ) )
-            {
-                // special case for concrete tree root
-                database.construct< Concrete::Graph::Vertex >( Concrete::Graph::Vertex::Args{ pVertex, TypeID{} } );
-            }
-            else
-            {
-                mega::TypeIDSequence typeIDSequence;
-                {
-                    const auto idSeqPair = typeIDSequenceGenerator( pVertex );
-                    typeIDSequence       = idSeqPair.first;
-                    std::copy( idSeqPair.second.begin(), idSeqPair.second.end(), std::back_inserter( typeIDSequence ) );
-                }
-
-                auto iFind = typeIDSequences.find( typeIDSequence );
-                VERIFY_RTE( iFind != typeIDSequences.end() );
-                database.construct< Concrete::Graph::Vertex >(
-                    Concrete::Graph::Vertex::Args{ pVertex, iFind->second->get_id() } );
-            }
-        }
-
-        const task::FileHash fileHashCode = database.save_PerSourceConcreteTable_to_temp();
-        m_environment.setBuildHashCode( symbolRolloutFilePath, fileHashCode );
-        m_environment.temp_to_real( symbolRolloutFilePath );
-        m_environment.stash( symbolRolloutFilePath, determinant );
-        succeeded( taskProgress );
-    }
-    const mega::io::megaFilePath& m_sourceFilePath;
-};
-
-BaseTask::Ptr create_Task_ConcreteTypeRollout( const TaskArguments&          taskArguments,
-                                               const mega::io::megaFilePath& sourceFilePath )
-{
-    return std::make_unique< Task_ConcreteTypeRollout >( taskArguments, sourceFilePath );
 }
 
 } // namespace mega::compiler

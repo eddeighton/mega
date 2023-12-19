@@ -76,7 +76,7 @@ set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/interface_printer.hpp
     ${MEGA_API_DIR}/compiler/interface.hpp
     ${MEGA_API_DIR}/compiler/invocation_policy.hpp
-    ${MEGA_API_DIR}/compiler/symbol_variant_printer.hpp
+    ${MEGA_API_DIR}/compiler/type_path.hpp
 )
 
 set( COMPILER_LIB_SOURCE
@@ -125,8 +125,8 @@ set( COMPILER_TASKS
     # ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
     # ${MEGA_SRC_DIR}/compiler/task_automata.cpp
     # ${MEGA_SRC_DIR}/compiler/task_complete.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_concrete_id.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
+    ${MEGA_SRC_DIR}/compiler/task_concrete_id.cpp
+    ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     # ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
     # ${MEGA_SRC_DIR}/compiler/task_global_memory.cpp
     # ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp

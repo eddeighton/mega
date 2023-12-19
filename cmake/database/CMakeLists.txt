@@ -38,20 +38,13 @@ set( MEGA_DATABASE_STAGES
     # AutomataStage
     ComponentListing
     ComponentListingView
-    # ConcreteStage
-    # ConcreteTypeAnalysis
-    # ConcreteTypeRollout
+    ConcreteStage
+    ConcreteTypeAnalysis
     # FinalStage
     # HyperGraphAnalysis
-    # HyperGraphAnalysisRollout
-    # HyperGraphAnalysisView
-    # InheritanceAnalysis
-    # InheritanceAnalysisRollout
-    # InheritanceAnalysisView
     # TypeAnalysis
     # TypeAnalysisRollout
     InterfaceStage
-    # MemoryStage
     # MetaStage
     # OperationsLocs
     # OperationsStage
@@ -68,7 +61,7 @@ set( DATABASE_SCHEMAS
     ${MEGA_SRC_DIR}/schema/components.dbs
     ${MEGA_SRC_DIR}/schema/parser.dbs
     ${MEGA_SRC_DIR}/schema/interface.dbs
-    #${MEGA_SRC_DIR}/schema/concrete.dbs
+    ${MEGA_SRC_DIR}/schema/concrete.dbs
     #${MEGA_SRC_DIR}/schema/operations.dbs
     ${MEGA_SRC_DIR}/schema/analysis.dbs
     #${MEGA_SRC_DIR}/schema/automata.dbs
