@@ -21,6 +21,8 @@
 
 #include "database/ParserStage.hxx"
 
+#include "mega/values/compilation/anon_symbols.hpp"
+
 #include "parser/parser.hpp"
 
 namespace mega::compiler
@@ -69,6 +71,12 @@ public:
                 Parser::ReservedSymbol::Args{ Parser::Symbol::Args{ EG_OWNER } } );
             database.construct< Parser::ReservedSymbol >(
                 Parser::ReservedSymbol::Args{ Parser::Symbol::Args{ EG_STATE } } );
+
+            for( const auto& strAnon : mega::getAnonSymbols() )
+            {
+                database.construct< Parser::ReservedSymbol >(
+                    Parser::ReservedSymbol::Args{ Parser::Symbol::Args{ strAnon } } );
+            }
         }
 
         std::ostringstream osError, osWarn;

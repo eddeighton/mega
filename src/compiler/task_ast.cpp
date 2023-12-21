@@ -23,6 +23,8 @@
 
 #include "database/InterfaceStage.hxx"
 
+#include "mega/values/compilation/anon_symbols.hpp"
+
 namespace InterfaceStage
 {
 #include "compiler/interface.hpp"
@@ -97,7 +99,8 @@ public:
     }
 
     void buildInterfaceTree( Database& database, Components::Component* pComponent, Interface::NodeGroup* pNodeGroup,
-                             Parser::Container* pContainer, std::vector< Interface::IContext* >& icontexts )
+                             Parser::Container* pContainer, std::vector< Interface::IContext* >& icontexts,
+                             const ReservedSymbolMap& reservedSymbols )
     {
         VERIFY_RTE( pNodeGroup );
 
@@ -111,7 +114,7 @@ public:
 
         for( auto pChild : pContainer->get_children() )
         {
-            buildInterfaceTree( database, pComponent, pNodeGroup, pChild, icontexts );
+            buildInterfaceTree( database, pComponent, pNodeGroup, pChild, icontexts, reservedSymbols );
         }
 
         for( auto pInclude : pContainer->get_includes() )
@@ -120,8 +123,8 @@ public:
             {
                 if( auto pMegaIncludeInline = db_cast< Parser::MegaIncludeInline >( pMegaInclude ) )
                 {
-                    buildInterfaceTree(
-                        database, pComponent, pNodeGroup, pMegaIncludeInline->get_root()->get_ast(), icontexts );
+                    buildInterfaceTree( database, pComponent, pNodeGroup, pMegaIncludeInline->get_root()->get_ast(),
+                                        icontexts, reservedSymbols );
                 }
                 else if( auto pMegaIncludeNested = db_cast< Parser::MegaIncludeNested >( pMegaInclude ) )
                 {
@@ -130,8 +133,8 @@ public:
 
                     auto pIncludeGroup
                         = findOrCreate( database, pComponent, pNodeGroup, symbols.begin(), symbols.end(), icontexts );
-                    buildInterfaceTree(
-                        database, pComponent, pIncludeGroup, pMegaIncludeNested->get_root()->get_ast(), icontexts );
+                    buildInterfaceTree( database, pComponent, pIncludeGroup, pMegaIncludeNested->get_root()->get_ast(),
+                                        icontexts, reservedSymbols );
                 }
                 else
                 {
@@ -146,7 +149,7 @@ public:
 
             for( auto pAggregate : pContainer->get_aggregates() )
             {
-                const auto aggregateSymbols = pAggregate->get_symbols();
+                auto aggregateSymbols = pAggregate->get_symbols();
 
                 auto pAggregateParent = pIContext;
                 if( aggregateSymbols.size() > 1 )
@@ -156,15 +159,48 @@ public:
                                       aggregateSymbols.end() - 1, icontexts ) );
                     VERIFY_RTE( pAggregateParent );
                 }
-                else if( aggregateSymbols.empty() )
-                {
-                    THROW_TODO;
-                }
 
-                for( auto pExisting : pAggregateParent->get_children() )
+                Parser::Symbol* pSymbol = nullptr;
                 {
-                    VERIFY_PARSER( pExisting->get_symbol()->get_token() != aggregateSymbols.back()->get_token(),
-                                   "Duplicate symbols: " << aggregateSymbols.back()->get_token(), pContainer );
+                    if( !aggregateSymbols.empty() )
+                    {
+                        pSymbol = aggregateSymbols.back();
+                        // check for duplicate symbols
+                        for( auto pExisting : pAggregateParent->get_children() )
+                        {
+                            VERIFY_PARSER( pExisting->get_symbol()->get_token() != pSymbol->get_token(),
+                                           "Duplicate symbols: " << pSymbol->get_token(), pContainer );
+                        }
+                    }
+                    else
+                    {
+                        std::optional< std::string > strUnusedAnonOpt;
+                        {
+                            for( const auto& strAnon : getAnonSymbols() )
+                            {
+                                bool bFound = false;
+                                for( auto pExisting : pAggregateParent->get_children() )
+                                {
+                                    if( pExisting->get_symbol()->get_token() == strAnon )
+                                    {
+                                        bFound = true;
+                                        break;
+                                    }
+                                }
+                                if( !bFound )
+                                {
+                                    strUnusedAnonOpt = strAnon;
+                                    break;
+                                }
+                            }
+                            VERIFY_RTE_MSG( strUnusedAnonOpt.has_value(), "No remaining anon symbols to use" );
+                        }
+
+                        // use the anon symbol - and allow duplicate use
+                        auto iFind = reservedSymbols.find( strUnusedAnonOpt.value() );
+                        VERIFY_RTE( iFind != reservedSymbols.end() );
+                        pSymbol = iFind->second;
+                    }
                 }
 
                 // clang-format off
@@ -180,7 +216,7 @@ public:
                                     {
                                         {}
                                     },
-                                    aggregateSymbols.back(), 
+                                    pSymbol, 
                                     pAggregateParent, 
                                     pComponent
                                 }
@@ -193,7 +229,8 @@ public:
                 // refine the aggregate as needed
                 if( auto pParserLink = db_cast< Parser::Link >( pAggregate ) )
                 {
-                    database.construct< Interface::UserLink >( Interface::UserLink::Args{ pParsedAggregate, pParserLink } );
+                    database.construct< Interface::UserLink >(
+                        Interface::UserLink::Args{ pParsedAggregate, pParserLink } );
                 }
             }
         }
@@ -251,6 +288,37 @@ public:
         }
     }
 
+    template < typename ParserContainerType, typename IContextType >
+    void refineSize( ParserContainerType* pContainer, IContextType* pIContext )
+    {
+        auto sizeOpt = pContainer->get_size_opt();
+        if( sizeOpt.has_value() )
+        {
+            Parser::Size* pSize      = sizeOpt.value();
+            bool          bWriteSize = false;
+
+            if( pIContext->is_size_opt() )
+            {
+                if( !pSize->get_singular() )
+                {
+                    VERIFY_PARSER( pIContext->get_singular(), "Duplicate size specification", pContainer );
+                    bWriteSize = true;
+                }
+            }
+            else
+            {
+                bWriteSize = true;
+            }
+
+            if( bWriteSize )
+            {
+                pIContext->set_size_opt( pSize );
+                pIContext->set_size( pSize->get_amount() );
+                pIContext->set_singular( pSize->get_singular() );
+            }
+        }
+    }
+
     void refineIContext( Database& database, Interface::IContext* pIContext )
     {
         using namespace InterfaceStage::Parser;
@@ -264,11 +332,13 @@ public:
                 auto pIAbstract = getOrCreate< Interface::Abstract >( database, pIContext, pContainer, bRefined );
 
                 refineInheritance( pAbstract, pIAbstract );
+                refineSize( pAbstract, pIAbstract );
             }
             else if( auto pEvent = db_cast< Event >( pContainer ) )
             {
                 auto pIEvent = getOrCreate< Interface::Event >( database, pIContext, pContainer, bRefined );
                 refineInheritance( pEvent, pIEvent );
+                refineSize( pEvent, pIEvent );
             }
             else if( auto pInterupt = db_cast< Interupt >( pContainer ) )
             {
@@ -361,6 +431,7 @@ public:
             {
                 auto* p = getOrCreate< Interface::Object >( database, pIContext, pContainer, bRefined );
                 refineInheritance( pObject, p );
+                refineSize( pObject, p );
             }
             else if( auto pAction = db_cast< Action >( pContainer ) )
             {
@@ -379,6 +450,7 @@ public:
                     }
                 }
                 refineInheritance( pAction, p );
+                refineSize( pAction, p );
 
                 if( auto transitionOpt = pAction->get_transition_type_opt() )
                 {
@@ -413,6 +485,7 @@ public:
                     }
                 }
                 refineInheritance( pComponent, p );
+                refineSize( pComponent, p );
 
                 if( auto transitionOpt = pComponent->get_transition_type_opt() )
                 {
@@ -429,6 +502,7 @@ public:
             {
                 auto* p = getOrCreateInvocationContext< Interface::State >( database, pIContext, pContainer, bRefined );
                 refineInheritance( pState, p );
+                refineSize( pState, p );
 
                 if( auto transitionOpt = pState->get_transition_type_opt() )
                 {
@@ -490,6 +564,13 @@ public:
             VERIFY_RTE( pContainer );
         }
 
+        if( !pIContext->is_size_opt() )
+        {
+            pIContext->set_size_opt( std::nullopt );
+            pIContext->set_size( 1 );
+            pIContext->set_singular( true );
+        }
+
         std::vector< IContext* >  contexts;
         std::vector< Aggregate* > aggregates;
         Interface::getNodes( pIContext, contexts, aggregates );
@@ -521,30 +602,29 @@ public:
             }
             else if( auto pAbstract = db_cast< Abstract >( pIContext ) )
             {
-                VERIFY_PARSER( !pAbstract->is_size_opt(), "Interface cannot have size", pContainer );
             }
             else if( auto pEvent = db_cast< Event >( pIContext ) )
             {
             }
             else if( auto pInterupt = db_cast< Interupt >( pIContext ) )
             {
-                VERIFY_PARSER( !pInterupt->is_size_opt(), "Interupt cannot have size", pContainer );
+                VERIFY_PARSER( pInterupt->get_singular(), "Interupt cannot have non-singular size", pContainer );
             }
             else if( auto pRequirement = db_cast< Requirement >( pIContext ) )
             {
-                VERIFY_PARSER( !pRequirement->is_size_opt(), "Requirement cannot have size", pContainer );
+                VERIFY_PARSER( pRequirement->get_singular(), "Requirement cannot have non-singular size", pContainer );
                 VERIFY_PARSER( pRequirement->is_events(), "Requirement requires events", pContainer );
                 VERIFY_PARSER( pRequirement->is_transition(), "Requirement requires transitions", pContainer );
             }
             else if( auto pFunction = db_cast< Function >( pIContext ) )
             {
-                VERIFY_PARSER( !pFunction->is_size_opt(), "Function cannot have size", pContainer );
+                VERIFY_PARSER( pFunction->get_singular(), "Function cannot have non-singular size", pContainer );
                 VERIFY_PARSER( pFunction->is_return_type(), "Function requires return type", pContainer );
                 VERIFY_PARSER( pFunction->is_arguments(), "Function requires return type", pContainer );
             }
             else if( auto pDecider = db_cast< Decider >( pIContext ) )
             {
-                VERIFY_PARSER( !pDecider->is_size_opt(), "Decider cannot have size", pContainer );
+                VERIFY_PARSER( pDecider->get_singular(), "Decider cannot have non-singular size", pContainer );
                 VERIFY_PARSER( pDecider->is_events(), "Decider MUST have events", pContainer );
             }
             else if( auto pObject = db_cast< Object >( pIContext ) )
@@ -609,10 +689,6 @@ public:
             if( !pIContext->is_inheritance_opt() )
             {
                 pIContext->set_inheritance_opt( std::nullopt );
-            }
-            if( !pIContext->is_size_opt() )
-            {
-                pIContext->set_size_opt( std::nullopt );
             }
 
             if( auto pInvocable = db_cast< InvocationContext >( pIContext ) )
@@ -708,7 +784,8 @@ public:
                 VERIFY_RTE( pComponent );
                 auto* pParserRoot = database.one< Parser::ObjectSourceRoot >( sourceFilePath );
                 VERIFY_RTE( pParserRoot );
-                buildInterfaceTree( database, pComponent, pInterfaceRoot, pParserRoot->get_ast(), icontexts );
+                buildInterfaceTree(
+                    database, pComponent, pInterfaceRoot, pParserRoot->get_ast(), icontexts, reservedSymbols );
             }
         }
 

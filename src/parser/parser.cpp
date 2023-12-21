@@ -26,6 +26,8 @@
 
 #include "mega/values/compilation/cardinality.hpp"
 #include "mega/values/compilation/ownership.hpp"
+#include "mega/values/compilation/anon_symbols.hpp"
+
 #include "mega/common_strings.hpp"
 
 #include "database/sources.hpp"
@@ -150,6 +152,13 @@ public:
             if( str == mega::EG_STATE )
             {
                 MEGA_PARSER_ERROR( "Invalid use of reserved symbol: " << mega::EG_STATE );
+            }
+            for( const auto& strAnon : mega::getAnonSymbols() )
+            {
+                if( str == strAnon )
+                {
+                    MEGA_PARSER_ERROR( "Invalid use of reserved symbol: " << strAnon );
+                }
             }
             symbols.push_back( getSymbol( str ) );
             ConsumeToken();
@@ -424,11 +433,10 @@ public:
         return m_database.construct< Type::CPP >( Type::CPP::Args{ parse_cpp_block_fragments() } );
     }
 
-    Size* parse_size()
+    std::optional< Size* > parse_size()
     {
         auto startLoc = Tok.getLocation();
 
-        std::string strSize;
         if( Tok.is( clang::tok::l_square ) )
         {
             BalancedDelimiterTracker T( *this, clang::tok::l_square );
@@ -443,13 +451,36 @@ public:
                 endLoc = Tok.getEndLoc();
                 ConsumeAnyToken();
             }
+            std::string strSize;
             if( !getSourceText( startLoc, endLoc, strSize ) )
             {
                 MEGA_PARSER_ERROR( "Error parsing size" );
             }
             T.consumeClose();
+
+            mega::U64 size      = 1U;
+            bool      bSingular = true;
+            try
+            {
+                std::istringstream is( strSize );
+                is >> size;
+            }
+            catch( std::exception& )
+            {
+                MEGA_PARSER_ERROR( "Error parsing size" );
+            }
+            if( size == 0 )
+            {
+                MEGA_PARSER_ERROR( "Invalid zero size specified" );
+            }
+            if( size != 1 )
+            {
+                bSingular = true;
+            }
+            return m_database.construct< Size >(
+                Size::Args{ getSourceRange( startLoc, Tok.getLocation() ), size, bSingular } );
         }
-        return m_database.construct< Size >( Size::Args{ getSourceRange( startLoc, Tok.getLocation() ), strSize } );
+        return std::nullopt;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -973,7 +1004,7 @@ public:
     {
         Identifier* pIdentifier = parse_identifier();
         parse_comment();
-        Size* pSize = parse_size();
+        auto pSizeOpt = parse_size();
         parse_comment();
         auto pInheritanceOpt = parse_inheritance();
         parse_comment();
@@ -993,14 +1024,14 @@ public:
             }
         }
 
-        return m_database.construct< Abstract >( Abstract::Args{ body, pSize, pInheritanceOpt } );
+        return m_database.construct< Abstract >( Abstract::Args{ body, pSizeOpt, pInheritanceOpt } );
     }
 
     Event* parse_event()
     {
         Identifier* pIdentifier = parse_identifier();
         parse_comment();
-        Size* pSize = parse_size();
+        auto pSizeOpt = parse_size();
         parse_comment();
         auto pInheritanceOpt = parse_inheritance();
         parse_comment();
@@ -1024,7 +1055,7 @@ public:
             }
         }
 
-        return m_database.construct< Event >( Event::Args{ body, pSize, pInheritanceOpt } );
+        return m_database.construct< Event >( Event::Args{ body, pSizeOpt, pInheritanceOpt } );
     }
 
     Interupt* parse_interupt()
@@ -1158,7 +1189,7 @@ public:
     {
         Identifier* pIdentifier = parse_identifier();
         parse_comment();
-        Size* pSize = parse_size();
+        auto pSizeOpt = parse_size();
         parse_comment();
         auto pInheritanceOpt = parse_inheritance();
         parse_comment();
@@ -1182,14 +1213,14 @@ public:
             }
         }
 
-        return m_database.construct< Object >( Object::Args{ body, pSize, pInheritanceOpt } );
+        return m_database.construct< Object >( Object::Args{ body, pSizeOpt, pInheritanceOpt } );
     }
 
     State* parse_state()
     {
         Identifier* pIdentifier = parse_identifier();
         parse_comment();
-        Size* pSize = parse_size();
+        auto pSizeOpt = parse_size();
         parse_comment();
         auto pInheritanceOpt = parse_inheritance();
         parse_comment();
@@ -1215,14 +1246,14 @@ public:
             }
         }
 
-        return m_database.construct< State >( State::Args{ body, pSize, pInheritanceOpt, pTransitionsOpt } );
+        return m_database.construct< State >( State::Args{ body, pSizeOpt, pInheritanceOpt, pTransitionsOpt } );
     }
 
     Action* parse_action()
     {
         Identifier* pIdentifier = parse_identifier();
         parse_comment();
-        Size* pSize = parse_size();
+        auto pSizeOpt = parse_size();
         parse_comment();
         auto pInheritanceOpt = parse_inheritance();
         parse_comment();
@@ -1249,14 +1280,14 @@ public:
         }
 
         return m_database.construct< Action >(
-            Action::Args{ State::Args{ body, pSize, pInheritanceOpt, pTransitionsOpt } } );
+            Action::Args{ State::Args{ body, pSizeOpt, pInheritanceOpt, pTransitionsOpt } } );
     }
 
     Component* parse_component()
     {
         Identifier* pIdentifier = parse_identifier();
         parse_comment();
-        Size* pSize = parse_size();
+        auto pSizeOpt = parse_size();
         parse_comment();
         auto pInheritanceOpt = parse_inheritance();
         parse_comment();
@@ -1283,7 +1314,7 @@ public:
         }
 
         return m_database.construct< Component >(
-            Component::Args{ State::Args{ body, pSize, pInheritanceOpt, pTransitionsOpt } } );
+            Component::Args{ State::Args{ body, pSizeOpt, pInheritanceOpt, pTransitionsOpt } } );
     }
 
     Container::Args parse_container( Identifier* pIdentifier )

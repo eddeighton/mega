@@ -59,7 +59,98 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
 
     Database database( m_args.environment, m_args.environment.project_manifest(), true );
 
-    
+    HyperGraph::Graph* pGraph = database.one< HyperGraph::Graph >( m_args.environment.project_manifest() );
+
+    const auto nonOwningRelations = pGraph->get_non_owning_relations();
+
+    {
+        Branch nonOwningBranch{ { "Non Owning Relations"s } };
+        Table  nonOwning{ { "Relation ID"s, "Source"s, "Source Type ID"s, "Target"s, "Target Type ID"s } };
+
+        std::set< HyperGraph::Relation* > uniqueRelations;
+        for( const auto [ pUserLink, pRelation ] : nonOwningRelations )
+        {
+            if( !uniqueRelations.contains( pRelation ) )
+            {
+                uniqueRelations.insert( pRelation );
+                nonOwning.m_rows.push_back( { Line{ pRelation->get_id() },
+                                              Line{ Interface::fullTypeName( pRelation->get_source() ) },
+                                              Line{ pRelation->get_source()->get_interface_id()->get_type_id() },
+                                              Line{ Interface::fullTypeName( pRelation->get_target() ) },
+                                              Line{ pRelation->get_target()->get_interface_id()->get_type_id() } } );
+            }
+        }
+        nonOwningBranch.m_elements.push_back( nonOwning );
+        branch.m_elements.push_back( nonOwningBranch );
+    }
+
+    const auto* pOwningRelation = pGraph->get_owning_relation();
+    {
+        Branch owningBranch{ { "Owners"s } };
+        Table  ownersTable{ { "Link"s, "Link Type ID"s, "Object"s, "Object Type ID"s } };
+
+        const auto owners = pOwningRelation->get_owners();
+        for( auto i = owners.begin(), iEnd = owners.end(); i != iEnd; )
+        {
+            for( auto j = owners.upper_bound( i->first ); i != j; ++i )
+            {
+                Interface::UserLink*      pLink  = i->first;
+                Interface::OwnershipLink* pOwned = i->second;
+                ownersTable.m_rows.push_back(
+                    { Line{ Interface::fullTypeName( pLink ) }, Line{ pLink->get_interface_id()->get_type_id() },
+                      Line{ Interface::fullTypeName( pOwned ) }, Line{ pOwned->get_interface_id()->get_type_id() } } );
+            }
+        }
+
+        owningBranch.m_elements.push_back( ownersTable );
+        branch.m_elements.push_back( owningBranch );
+    }
+
+    {
+        Branch ownedBranch{ { "Owned"s } };
+        Table  ownedTable{ { "Object"s, "Object Type ID"s, "Link"s, "Link Type ID"s } };
+
+        const auto owned = pOwningRelation->get_owned();
+        for( auto i = owned.begin(), iEnd = owned.end(); i != iEnd; )
+        {
+            for( auto j = owned.upper_bound( i->first ); i != j; ++i )
+            {
+                Interface::OwnershipLink* pLink  = i->first;
+                Interface::UserLink*      pOwner = i->second;
+                ownedTable.m_rows.push_back(
+                    { Line{ Interface::fullTypeName( pLink ) }, Line{ pLink->get_interface_id()->get_type_id() },
+                      Line{ Interface::fullTypeName( pOwner ) }, Line{ pOwner->get_interface_id()->get_type_id() } } );
+            }
+        }
+
+        ownedBranch.m_elements.push_back( ownedTable );
+        branch.m_elements.push_back( ownedBranch );
+    }
+
+    {
+        Branch graphBranch{ { "Graph"s } };
+
+        Graph graph;
+        {
+            std::map< Concrete::Node*, U64 > nodeIDs;
+
+            for( auto pNode : database.many< Concrete::Node >( m_args.environment.project_manifest() ) )
+            {
+                nodeIDs.insert( { pNode, nodeIDs.size() } );
+
+                graph.m_nodes.push_back( Graph::Node{ { { Interface::fullTypeName( pNode->get_node() ) } } } );
+            }
+
+            for( auto pEdge : database.many< Concrete::Edge >( m_args.environment.project_manifest() ) )
+            {
+                graph.m_edges.push_back(
+                    Graph::Edge{ nodeIDs[ pEdge->get_source() ], nodeIDs[ pEdge->get_target() ] } );
+            }
+        }
+        graphBranch.m_elements.push_back( graph );
+
+        branch.m_elements.push_back( graphBranch );
+    }
 
     return branch;
 }

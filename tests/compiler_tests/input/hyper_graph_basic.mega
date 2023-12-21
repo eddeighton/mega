@@ -1,0 +1,31 @@
+
+
+object Obj1
+{
+    component test
+    {
+        link a ^Obj2.test;
+    }
+    component test2
+    {
+        link b ^Obj2;
+    }
+}
+
+object Obj2
+{
+    component test
+    {
+        link a ^Obj1.test;
+    }
+    component test2
+    {
+        link b ^Obj1;
+    }
+}
+
+object Obj3
+{
+    owns ^Obj1;
+    owns ^Obj2;
+}

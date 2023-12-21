@@ -73,6 +73,7 @@ set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/derivation_printer.hpp
     ${MEGA_API_DIR}/compiler/derivation.hpp
     ${MEGA_API_DIR}/compiler/interface_printer.hpp
+    ${MEGA_API_DIR}/compiler/interface_visitor.hpp
     ${MEGA_API_DIR}/compiler/interface.hpp
     ${MEGA_API_DIR}/compiler/invocation_policy.hpp
     ${MEGA_API_DIR}/compiler/type_path.hpp

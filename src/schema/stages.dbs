@@ -140,8 +140,12 @@ stage HyperGraphAnalysis
 
     global accessor array< ref< Interface::UserLink > >;
     global accessor array< ref< Interface::OwnershipLink > >;
+    global accessor array< ref< Concrete::Object > >;
+    global accessor array< ref< Concrete::Node > >;
+    global accessor array< ref< Concrete::Edge > >;
     global accessor ref< Concrete::Root >;
     global accessor ref< Symbols::SymbolTable >;
+    global accessor ref< HyperGraph::Graph >;
 }
 
 /*

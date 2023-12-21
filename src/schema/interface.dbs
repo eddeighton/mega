@@ -152,6 +152,18 @@ namespace Interface
     object UserLink : ParsedAggregate -> InterfaceStage::Tree
     {
         ref< Parser::Link > link;
+
+        ref< Node > type -> HyperGraphAnalysis::Model;
+    }
+
+    object NonOwningLink : UserLink -> HyperGraphAnalysis::Model
+    {
+        late< ref< NonOwningLink > > counterpart;
+    }
+
+    object OwningLink : UserLink -> HyperGraphAnalysis::Model
+    {
+        ref< OwnershipLink > owned;
     }
 
     object GeneratedAggregate : Aggregate -> InterfaceStage::Tree
@@ -160,6 +172,7 @@ namespace Interface
 
     object OwnershipLink : GeneratedAggregate -> InterfaceStage::Tree
     {
+        array< ref< OwningLink > > owners -> HyperGraphAnalysis::Model;
     }
 
     object ActivationBitSet : GeneratedAggregate -> InterfaceStage::Tree
@@ -176,7 +189,9 @@ namespace Interface
 
         late< opt< ref< Parser::TypeDecl::Inheritance > > > inheritance_opt;
         late< opt< ref< Parser::Size > > >                  size_opt;
-
+        late< value< mega::U64 > >                          size;
+        late< value< bool > >                               singular;
+        
         // array< ref< Concrete::Context > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
 
         // value< bool > is_meta_type  -> MetaStage::MetaAnalysis;
