@@ -48,14 +48,14 @@ namespace Automata
 
     object Enum  -> AutomataStage::AutomataAnalysis
     {
-        ref< Vertex >                   vertex;
-        value< mega::U32 >              switch_index;
-        value< mega::U32 >              next_switch_index;
-        array< value< mega::U32 > >     child_switch_indices;
-        value< bool >                   is_or;
-        opt< ref< Concrete::Action > >  action;
-        value< mega::SubTypeInstance >  sub_type_instance;
-        array< ref< Enum > >            children;
+        ref< Vertex >                                   vertex;
+        value< mega::U32 >                              switch_index;
+        value< mega::U32 >                              next_switch_index;
+        array< value< mega::U32 > >                     child_switch_indices;
+        value< bool >                                   is_or;
+        opt< ref< Concrete::Action > >                  action;
+        value< mega::concrete::SubObjectIDInstance >    sub_object_id_instance;
+        array< ref< Enum > >                            children;
     }
 
     object Test : Enum -> AutomataStage::AutomataAnalysis
@@ -64,13 +64,13 @@ namespace Automata
         late< value< mega::U32 > >  failure_switch_index;
         late< value< mega::U32 > >  bitset_index;
     }
-
+/*
     object TruthAssignment -> OperationsStage::Operations
     {
         array< ref< Vertex > > true_vertices;
-    }
+    }*/
 }
-
+/*
 namespace Decision
 {
     object Step -> OperationsStage::Operations
@@ -111,4 +111,4 @@ namespace Decision
         value< mega::Instance > instance_divider;
         ref< Step >             root;
     }
-}
+}*/

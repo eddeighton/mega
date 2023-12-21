@@ -1,0 +1,36 @@
+
+
+object A
+{
+    component B : ^OR
+    {
+        action C > @D
+        {
+
+        }
+
+        state D : ^Historical, ^OR
+        {
+            action H
+            {
+
+            }
+            action I
+            {
+
+            }
+        }
+
+        action E[ 2 ] : ^OR
+        {
+            action F
+            {
+
+            }
+            action G
+            {
+
+            }
+        }
+    }
+}

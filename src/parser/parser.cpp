@@ -552,8 +552,22 @@ public:
 
     TypeDecl::Events* parse_events()
     {
-        auto                     startLoc           = Tok.getLocation();
-        Type::NamedPathSequence* pNamedPathSequence = parse_named_path_sequence();
+        auto startLoc = Tok.getLocation();
+
+        Type::NamedPathSequence* pNamedPathSequence = nullptr;
+        if( Tok.is( clang::tok::l_paren ) )
+        {
+            BalancedDelimiterTracker T( *this, clang::tok::l_paren );
+            T.consumeOpen();
+            pNamedPathSequence = parse_named_path_sequence();
+            T.consumeClose();
+        }
+        else
+        {
+            MEGA_PARSER_ERROR( "Error parsing events" );
+            pNamedPathSequence = m_database.construct< Type::NamedPathSequence >( Type::NamedPathSequence::Args{ {} } );
+        }
+
         return m_database.construct< TypeDecl::Events >( TypeDecl::Events::Args{
             TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pNamedPathSequence } );
     }

@@ -84,7 +84,7 @@ inline constexpr Instance operator ""_CI( unsigned long long int value )
     return Instance{ static_cast< Instance::ValueType >( value ) };
 }
 
-static constexpr Instance NULL_INSTANCE = 0x0000_CI;
+static constexpr Instance INSTANCE_ZERO = 0x0000_CI;
 
 inline std::ostream& operator<<( std::ostream& os, const Instance& instance )
 {

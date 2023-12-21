@@ -47,9 +47,51 @@ namespace Concrete
         array< ref< Edge > > in_edges  -> HyperGraphAnalysis::Model;
     }
 
-    object Object : Node -> ConcreteStage::Concrete
+    object ActivationBitSet : Node -> ConcreteStage::Concrete
     {
+        ref< Interface::ActivationBitSet > bitset;
 
+        value< mega::U64 > number_of_bits -> AutomataStage::AutomataAnalysis;
+    }
+
+    object OwnershipLink : Node -> ConcreteStage::Concrete
+    {
+        ref< Interface::OwnershipLink > link;
+    }
+
+    object Context : Node -> ConcreteStage::Concrete
+    {
+        ref< Interface::IContext > icontext;
+    }
+
+    object State : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::State > state;
+
+        ref< Automata::Vertex > automata_vertex -> AutomataStage::AutomataAnalysis;
+    }
+
+    object Decider : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Decider > decider;
+    }
+
+    object Action : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Action > action;
+    }
+
+    object Object : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Object >        object;
+        late< ref< ActivationBitSet > > activation_bitset;
+        late< ref< OwnershipLink > >    ownership_link;
+
+        ref< Automata::Vertex >             automata_root       -> AutomataStage::AutomataAnalysis;
+        array< ref< Automata::Vertex > >    automata_tests      -> AutomataStage::AutomataAnalysis;
+        array< ref< Automata::Enum > >      automata_enums      -> AutomataStage::AutomataAnalysis;
+        value< mega::U32 >                  total_bitset_index  -> AutomataStage::AutomataAnalysis;
+        value< mega::U32 >                  total_switch_index  -> AutomataStage::AutomataAnalysis;
     }
 
     /*

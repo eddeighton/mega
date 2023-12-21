@@ -87,6 +87,7 @@ set( MEGA_VALUES_COMPILATION_HEADERS
     ${MEGA_VALUES_COMPILATION_DIR}/cardinality.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/compilation_configuration.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/hyper_graph.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/icontext_flags.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/invocation_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/megastructure_installation.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/modes.hpp
@@ -103,6 +104,7 @@ set( MEGA_VALUES_COMPILATION_SRC
 
     ${MEGA_VALUES_COMPILATION_DIR}/anon_symbols.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/hyper_graph.cpp
+    ${MEGA_VALUES_COMPILATION_DIR}/icontext_flags.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/invocation_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/megastructure_installation.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/modes.cpp

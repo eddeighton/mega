@@ -26,7 +26,7 @@ namespace testing
 
 object Object1
 {
-    component A
+    component A : ^OR
     {
         dim m_int1 int;
     }
@@ -55,7 +55,7 @@ object Object4 : ^Object2, ^Object3
         dim m_int4 int;
     }
 
-    component B : ^Object2.A
+    component B : ^Object2.A, ^Historical
     {
     }
 }

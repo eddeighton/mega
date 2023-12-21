@@ -47,8 +47,8 @@ public:
 
     using Inheritors = std::multimap< Interface::Node*, Concrete::Node* >;
 
-    void inherit( Database& database, Interface::Node* pIParentNode, Concrete::Node* pCParentNode,
-                  Inheritors& inheritors )
+    void
+    inherit( Database& database, Interface::Node* pIParentNode, Concrete::Node* pCParentNode, Inheritors& inheritors )
     {
         inheritors.insert( { pIParentNode, pCParentNode } );
 
@@ -112,13 +112,59 @@ public:
 
     void refine( Database& database, Concrete::Node* pCNode )
     {
-        if( auto pIObject = db_cast< Interface::Object >( pCNode->get_node() ) )
+        if( auto pIContext = db_cast< Interface::IContext >( pCNode->get_node() ) )
         {
-            database.construct< Concrete::Object >( Concrete::Object::Args{ pCNode } );
+            if( auto pState = db_cast< Interface::State >( pIContext ) )
+            {
+                database.construct< Concrete::State >(
+                    Concrete::State::Args{ Concrete::Context::Args{ pCNode, pIContext }, pState } );
+            }
+            else if( auto pDecider = db_cast< Interface::Decider >( pIContext ) )
+            {
+                database.construct< Concrete::Decider >(
+                    Concrete::Decider::Args{ Concrete::Context::Args{ pCNode, pIContext }, pDecider } );
+            }
+            else if( auto pAction = db_cast< Interface::Action >( pIContext ) )
+            {
+                database.construct< Concrete::Action >(
+                    Concrete::Action::Args{ Concrete::Context::Args{ pCNode, pIContext }, pAction } );
+            }
+            else if( auto pObject = db_cast< Interface::Object >( pIContext ) )
+            {
+                database.construct< Concrete::Object >(
+                    Concrete::Object::Args{ Concrete::Context::Args{ pCNode, pIContext }, pObject } );
+            }
+            else
+            {
+                database.construct< Concrete::Context >( Concrete::Context::Args{ pCNode, pIContext } );
+            }
+        }
+        else if( auto pIOwnershipLink = db_cast< Interface::OwnershipLink >( pCNode->get_node() ) )
+        {
+            auto pOwnershipLink = 
+                database.construct< Concrete::OwnershipLink >( Concrete::OwnershipLink::Args{ pCNode, pIOwnershipLink } );
+            
+            auto pObject = db_cast< Concrete::Object >( pOwnershipLink->get_parent() );
+            VERIFY_RTE( pObject );
+            pObject->set_ownership_link( pOwnershipLink );
+        }
+        else if( auto pActivation = db_cast< Interface::ActivationBitSet >( pCNode->get_node() ) )
+        {
+            auto pActivationBitset = 
+                database.construct< Concrete::ActivationBitSet >( Concrete::ActivationBitSet::Args{ pCNode, pActivation } );
+            
+            auto pObject = db_cast< Concrete::Object >( pActivationBitset->get_parent() );
+            VERIFY_RTE( pObject );
+            pObject->set_activation_bitset( pActivationBitset );
         }
         else
         {
-            // leave as node
+            // leave as Concrete::Node
+        }
+
+        for( auto pChild : pCNode->get_children() )
+        {
+            refine( database, pChild );
         }
     }
 
@@ -176,6 +222,38 @@ public:
         for( auto pCNode : pConcreteRoot->get_children() )
         {
             refine( database, pCNode );
+        }
+
+        // detect flags
+        {
+            std::map< Interface::IContext*, IContextFlags > contextFlags;
+            for( auto pInterface : database.many< Interface::Abstract >( projectManifestPath ) )
+            {
+                for( U64 i = 1; i != IContextFlags::TOTAL_FLAGS; ++i )
+                {
+                    const auto bit = static_cast< IContextFlags::Value >( i );
+                    if( pInterface->get_symbol()->get_token() == IContextFlags::str( bit ) )
+                    {
+                        contextFlags[ pInterface ].set( IContextFlags::eMeta );
+
+                        for( auto i = inheritors.lower_bound( pInterface ), iEnd = inheritors.upper_bound( pInterface );
+                             i != iEnd;
+                             ++i )
+                        {
+                            if( auto pContext = db_cast< Interface::IContext >( i->second->get_node() ) )
+                            {
+                                contextFlags[ pContext ].set( bit );
+                            }
+                        }
+                    }
+                }
+            }
+
+            for( auto pContext : database.many< Interface::IContext >( projectManifestPath ) )
+            {
+                database.construct< Interface::IContext >(
+                    Interface::IContext::Args{ pContext, contextFlags[ pContext ] } );
+            }
         }
 
         const task::FileHash buildHash = database.save_Concrete_to_temp();

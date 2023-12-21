@@ -34,22 +34,17 @@ TASK_SRC(SymbolRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath )
 TASK_PROJECT(ConcreteTree)
 TASK_PROJECT(ConcreteTypeAnalysis)
 
-
+TASK_PROJECT(HyperGraph)
+TASK_PROJECT(Automata)
 
 
 
 TASK_SRC(Include,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(IncludePCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(InterfaceGeneration,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(InterfaceAnalysis,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-
-TASK_PROJECT(HyperGraph)
-TASK_SRC(HyperGraphRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
 TASK_SRC(Meta,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
 TASK_SRC(Operations,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(Automata,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(OperationsPCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(OperationsLocs,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(ValueSpace,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)

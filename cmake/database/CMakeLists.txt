@@ -35,7 +35,7 @@ find_file( DB_COMPILER NAMES "database_compiler_driver" PATHS "${BUILD_PATH}/${C
 list(APPEND CMAKE_PREFIX_PATH "${COMMON_INSTALL_PATH}/share" )
 
 set( MEGA_DATABASE_STAGES
-    # AutomataStage
+    AutomataStage
     ComponentListing
     ComponentListingView
     ConcreteStage
@@ -64,7 +64,7 @@ set( DATABASE_SCHEMAS
     ${MEGA_SRC_DIR}/schema/concrete.dbs
     #${MEGA_SRC_DIR}/schema/operations.dbs
     ${MEGA_SRC_DIR}/schema/analysis.dbs
-    #${MEGA_SRC_DIR}/schema/automata.dbs
+    ${MEGA_SRC_DIR}/schema/automata.dbs
 )
 
 MegaDatabase( 

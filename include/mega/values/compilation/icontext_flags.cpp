@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mega/values/compilation/ownership.hpp"
+#include "mega/values/compilation/icontext_flags.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -26,36 +27,52 @@
 
 namespace
 {
-static const std::array< std::string, mega::Ownership::TOTAL_OWNERSHIP_MODES > g_pszModes
-    = { "OwnNothing", "OwnSource", "OwnTarget" };
+static const std::array< std::string, mega::IContextFlags::TOTAL_FLAGS > g_pszModes = { "Meta", "OR", "Historical" };
 }
 
 namespace mega
 {
 
-const char* Ownership::str() const
+std::string IContextFlags::str() const
 {
-    switch( m_value )
+    std::ostringstream os;
+    os << "[";
+    bool bFirst = true;
+    for( std::size_t sz = 0; sz != TOTAL_FLAGS; ++sz )
     {
-        case eOwnNothing:
-        case eOwnSource:
-        case eOwnTarget:
-            return g_pszModes[ m_value ].c_str();
-        case TOTAL_OWNERSHIP_MODES:
-        default:
-            THROW_RTE( "Invalid Ownership type" );
+        if( bFirst )
+        {
+            bFirst = false;
+        }
+        else
+        {
+            os << ",";
+        }
+        if( m_value.test( sz ) )
+        {
+            os << g_pszModes[ sz ].c_str() << "=1";
+        }
+        else
+        {
+            os << g_pszModes[ sz ].c_str() << "=0";
+        }
     }
+    os << "]";
+    return os.str();
 }
 
-Ownership Ownership::fromStr( const char* psz )
+const char* IContextFlags::str( Value bit )
 {
-    auto iFind = std::find( g_pszModes.begin(), g_pszModes.end(), psz );
-    VERIFY_RTE_MSG( iFind != g_pszModes.end(), "Unknown ownership mode: " << psz );
-    return Ownership{ static_cast< Ownership::Value >( std::distance( g_pszModes.cbegin(), iFind ) ) };
+    return g_pszModes[ bit ].c_str();
 }
-std::ostream& operator<<( std::ostream& os, Ownership ownership )
+const std::array< std::string, IContextFlags::TOTAL_FLAGS >& IContextFlags::strings()
 {
-    return os << ownership.str();
+    return g_pszModes;
+}
+
+std::ostream& operator<<( std::ostream& os, IContextFlags value )
+{
+    return os << value.str();
 }
 
 } // namespace mega

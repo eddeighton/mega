@@ -561,7 +561,6 @@ public:
                     break;
                 }
             }
-            VERIFY_RTE( pContainer );
         }
 
         if( !pIContext->is_size_opt() )
@@ -629,43 +628,78 @@ public:
             }
             else if( auto pObject = db_cast< Object >( pIContext ) )
             {
-                // check no existing OWNER
+                // check no existing EG_OWNER or EG_STATE
                 for( auto pChild : pObject->get_children() )
                 {
                     VERIFY_RTE_MSG( pChild->get_symbol()->get_token() != EG_OWNER,
                                     "Invalid use of reserved symbol: " << EG_OWNER << " in: "
                                                                        << Interface::fullTypeName( pChild ) );
+                    VERIFY_RTE_MSG( pChild->get_symbol()->get_token() != EG_STATE,
+                                    "Invalid use of reserved symbol: " << EG_STATE << " in: "
+                                                                       << Interface::fullTypeName( pChild ) );
                 }
 
                 // create ownership link
-                auto iFind = reservedSymbols.find( EG_OWNER );
-                VERIFY_RTE_MSG( iFind != reservedSymbols.end(), "Failed to locate reserved symbol for: " << EG_OWNER );
-
-                // clang-format off
-                auto pOwnershipLink = database.construct< Interface::OwnershipLink >(
                 {
-                    Interface::OwnershipLink::Args
+                    auto iFind = reservedSymbols.find( EG_OWNER );
+                    VERIFY_RTE_MSG( iFind != reservedSymbols.end(), "Failed to locate reserved symbol for: " << EG_OWNER );
+
+                    VERIFY_RTE( pObject->get_component_opt().has_value() );
+                    // clang-format off
+                    auto pOwnershipLink = database.construct< Interface::OwnershipLink >(
                     {
-                        Interface::GeneratedAggregate::Args
+                        Interface::OwnershipLink::Args
                         {
-                            Interface::Aggregate::Args
+                            Interface::GeneratedAggregate::Args
                             {
-                                Interface::Node::Args
+                                Interface::Aggregate::Args
                                 {
-                                    Interface::NodeGroup::Args{ {} },
-                                    iFind->second,
-                                    pObject,
-                                    pObject->get_component()
+                                    Interface::Node::Args
+                                    {
+                                        Interface::NodeGroup::Args{ {} },
+                                        iFind->second,
+                                        pObject,
+                                        pObject->get_component_opt().value()
+                                    }
                                 }
                             }
                         }
-                    }
-                });
-                // clang-format on
-                pObject->set_ownership_link( pOwnershipLink );
-                pObject->push_back_children( pOwnershipLink );
+                    });
+                    // clang-format on
+                    pObject->set_ownership_link( pOwnershipLink );
+                    pObject->push_back_children( pOwnershipLink );
+                }
 
-                // OwnershipLink
+                // create activation bitset
+                // clang-format off
+                {
+                    auto iFind = reservedSymbols.find( EG_STATE );
+                    VERIFY_RTE_MSG( iFind != reservedSymbols.end(), "Failed to locate reserved symbol for: " << EG_STATE );
+
+                    auto pActivationBitset = database.construct< Interface::ActivationBitSet >(
+                    {
+                        Interface::ActivationBitSet::Args
+                        {
+                            Interface::GeneratedAggregate::Args
+                            {
+                                Interface::Aggregate::Args
+                                {
+                                    Interface::Node::Args
+                                    {
+                                        Interface::NodeGroup::Args{ {} },
+                                        iFind->second,
+                                        pObject,
+                                        pObject->get_component_opt().value()
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    // clang-format on
+                    pObject->set_activation_bitset( pActivationBitset );
+                    pObject->push_back_children( pActivationBitset );
+                }
+
             }
             else if( auto pAction = db_cast< Action >( pIContext ) )
             {
@@ -794,6 +828,20 @@ public:
         {
             refineIContext( database, pIContext );
         }
+
+        // add generated meta inheritance types
+        for( const auto& strFlags : IContextFlags::strings() )
+        {
+            auto iFind = reservedSymbols.find( strFlags );
+            VERIFY_RTE( iFind != reservedSymbols.end() );
+            auto pContext = database.construct< Interface::Abstract >( Interface::Abstract::Args{
+                Interface::IContext::Args{ Interface::Node::Args{ Interface::NodeGroup::Args{ {} }, iFind->second,
+                                                                  pInterfaceRoot, std::nullopt },
+                                           {},
+                                           {} } } );
+            pInterfaceRoot->push_back_children( pContext );
+        }
+
         for( auto pNode : pInterfaceRoot->get_children() )
         {
             check( database, pNode, reservedSymbols );

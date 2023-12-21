@@ -64,6 +64,16 @@ void recurse( Concrete::Node* pNode, mega::reports::Branch& tree )
 
     branch.m_label = { { Interface::getKind( pNode->get_node() ), ": "s, Concrete::getIdentifier( pNode ) } };
 
+    if( auto pContext = db_cast< Concrete::Context >( pNode ) )
+    {
+        branch.m_label.push_back( { pContext->get_icontext()->get_flags() } );
+    }
+
+    // if( auto pContext = db_cast< Interface::IContext >( pNode->get_node() ) )
+    // {
+    //     branch.m_label.push_back( { pContext->get_flags() } );
+    // }
+
     for( auto pChild : pNode->get_children() )
     {
         recurse( pChild, branch );

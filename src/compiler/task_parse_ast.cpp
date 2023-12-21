@@ -77,6 +77,12 @@ public:
                 database.construct< Parser::ReservedSymbol >(
                     Parser::ReservedSymbol::Args{ Parser::Symbol::Args{ strAnon } } );
             }
+
+            for( const auto& strFlag : mega::IContextFlags::strings() )
+            {
+                database.construct< Parser::ReservedSymbol >(
+                    Parser::ReservedSymbol::Args{ Parser::Symbol::Args{ strFlag } } );
+            }
         }
 
         std::ostringstream osError, osWarn;

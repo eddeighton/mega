@@ -50,7 +50,7 @@ public:
 
     constexpr inline TypeIDInstance()
         : c_concrete_type_id_instance(
-            c_concrete_type_id_instance_make( NULL_TYPE_ID.getValue(), NULL_INSTANCE.getValue() ) )
+            c_concrete_type_id_instance_make( NULL_TYPE_ID.getValue(), INSTANCE_ZERO.getValue() ) )
     {
     }
     constexpr inline explicit TypeIDInstance( c_concrete_type_id_instance value )

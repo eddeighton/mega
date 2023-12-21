@@ -44,12 +44,12 @@ using namespace AutomataStage;
 
 class Task_Automata : public BaseTask
 {
-    const mega::io::megaFilePath& m_sourceFilePath;
+    const mega::io::manifestFilePath m_manifestFilePath;
 
 public:
-    Task_Automata( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+    Task_Automata( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
-        , m_sourceFilePath( sourceFilePath )
+        , m_manifestFilePath( m_environment.project_manifest() )
     {
     }
 
@@ -77,18 +77,18 @@ public:
             bool bIsHistorical = false;
             if( auto pParentState = db_cast< Concrete::State >( pParent->get_context() ) )
             {
-                bIsHistorical = pParentState->get_interface_state()->get_is_historical();
+                bIsHistorical = pParentState->get_state()->get_flags().get( IContextFlags::eHistorical );
             }
 
             bool bHasRequirement = false;
-            if( !pState->get_requirements().empty() )
-            {
-                bHasRequirement = true;
-            }
+            // if( !pState->get_requirements().empty() )
+            // {
+            //     bHasRequirement = true;
+            // }
 
-            const bool bFirst = pParent->get_children().empty();
-
-            if( pState->get_interface_state()->get_is_or_state() )
+            const bool bFirst     = pParent->get_children().empty();
+            const bool bIsOrState = pState->get_state()->get_flags().get( IContextFlags::eOR );
+            if( bIsOrState )
             {
                 pResult = database.construct< Automata::Or >( { Automata::Or::Args{ Automata::Vertex::Args{
 
@@ -136,10 +136,13 @@ public:
             database.construct< Concrete::State >( Concrete::State::Args{ pState, pResult } );
         }
 
-        for( auto pChildContext : pContext->get_children() )
+        for( Concrete::Node* pChild : pContext->get_children() )
         {
-            recurseAndOrTree( database, pChildContext, pResult, testAncestor,
-                              relative_domain * pChildContext->get_local_size(), tests );
+            if( auto pChildContext = db_cast< Concrete::Context >( pChild ) )
+            {
+                recurseAndOrTree( database, pChildContext, pResult, testAncestor,
+                                  relative_domain * pChildContext->get_icontext()->get_size(), tests );
+            }
         }
 
         return pResult;
@@ -166,11 +169,11 @@ public:
         using Vector = std::vector< Node >;
         struct SubTypeNode
         {
-            SubType      subtype;
-            Node::Vector instances;
+            concrete::SubObjectID subtype;
+            Node::Vector          instances;
         };
 
-        Instance                   instance;
+        concrete::Instance         instance;
         Automata::Vertex*          pVertex = nullptr;
         std::vector< SubTypeNode > subTypes;
     };
@@ -184,12 +187,12 @@ public:
             auto       pContext    = pChildVertex->get_context();
             const auto localDomain = pChildVertex->get_relative_domain();
 
-            Node::SubTypeNode subTypeNode{ pContext->get_concrete_id().getSubObjectID(), {} };
+            Node::SubTypeNode subTypeNode{ pContext->get_concrete_id()->get_type_id().getSubObjectID(), {} };
 
-            for( Instance i = 0; i != localDomain; ++i )
+            for( concrete::Instance::ValueType i = 0; i != localDomain; ++i )
             {
-                const auto instance = static_cast< Instance >( i + ( localDomain * node.instance ) );
-                Node       subTypeInstance{ instance, pChildVertex, {} };
+                const auto instance( i + ( localDomain * node.instance.getValue() ) );
+                Node       subTypeInstance{ concrete::Instance( instance ), pChildVertex, {} };
                 recurseNode( subTypeInstance );
                 subTypeNode.instances.push_back( subTypeInstance );
             }
@@ -217,9 +220,9 @@ public:
         {
             for( const auto& instance : subType.instances )
             {
-                const bool                         bIsOr = db_cast< Automata::Or >( instance.pVertex );
-                const mega::SubTypeInstance        subTypeInstance( subType.subtype, instance.instance );
-                std::optional< Concrete::Action* > pActionOpt;
+                const bool                                bIsOr = db_cast< Automata::Or >( instance.pVertex );
+                const mega::concrete::SubObjectIDInstance subTypeInstance( subType.subtype, instance.instance );
+                std::optional< Concrete::Action* >        pActionOpt;
                 if( auto pAction = db_cast< Concrete::Action >( instance.pVertex->get_context() ) )
                 {
                     pActionOpt = pAction;
@@ -305,14 +308,13 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath compilationFile
-            = m_environment.AutomataStage_AutomataAnalysis( m_sourceFilePath );
-        start( taskProgress, "Task_Automata", m_sourceFilePath.path(), compilationFile.path() );
+            = m_environment.AutomataStage_AutomataAnalysis( m_manifestFilePath );
+        start( taskProgress, "Task_Automata", m_manifestFilePath.path(), compilationFile.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash,
-              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.MetaStage_MetaAnalysis( m_sourceFilePath ) ) } );
+              m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( m_manifestFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.ConcreteStage_Concrete( m_manifestFilePath ) ) } );
 
         if( m_environment.restore( compilationFile, determinant ) )
         {
@@ -323,9 +325,9 @@ public:
 
         using namespace AutomataStage;
 
-        Database database( m_environment, m_sourceFilePath );
+        Database database( m_environment, m_manifestFilePath );
 
-        for( auto pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
+        for( auto pObject : database.many< Concrete::Object >( m_manifestFilePath ) )
         {
             Automata::And* pRoot = database.construct< Automata::And >( { Automata::And::Args{
                 Automata::Vertex::Args{ true, false, false, false, 1, pObject, std::nullopt, 0, {}, {} } } } );
@@ -340,7 +342,7 @@ public:
             U32 switchIndex = 0;
             U32 totalBits   = 0;
             {
-                Node rootNode{ 0, pRoot };
+                Node rootNode{ concrete::INSTANCE_ZERO, pRoot };
                 recurseNode( rootNode );
 
                 TestMap tests;
@@ -378,11 +380,8 @@ public:
             database.construct< Concrete::Object >(
                 { Concrete::Object::Args{ pObject, pRoot, tests, enums, totalBits, switchIndex } } );
 
-            for( auto pBitset : pObject->get_bitsets() )
-            {
-                database.construct< Concrete::Dimensions::Bitset >(
-                    Concrete::Dimensions::Bitset::Args{ pBitset, totalBits } );
-            }
+            database.construct< Concrete::ActivationBitSet >(
+                Concrete::ActivationBitSet::Args{ pObject->get_activation_bitset(), totalBits } );
         }
 
         const task::FileHash fileHashCode = database.save_AutomataAnalysis_to_temp();
@@ -394,9 +393,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Automata( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_Automata( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_Automata >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_Automata >( taskArguments );
 }
 
 } // namespace mega::compiler

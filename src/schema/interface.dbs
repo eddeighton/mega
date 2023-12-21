@@ -127,10 +127,10 @@ namespace Interface
 
     object Node : NodeGroup -> InterfaceStage::Tree
     {
-        ref< Parser::Symbol >           symbol;
-        ref< NodeGroup >                parent;
-        ref< Components::Component >    component;
-        late< value< std::string > >    kind;
+        ref< Parser::Symbol >                   symbol;
+        ref< NodeGroup >                        parent;
+        opt< ref< Components::Component > >     component_opt;
+        late< value< std::string > >            kind;
 
         ref< Symbols::InterfaceTypeID > interface_id -> SymbolAnalysis::SymbolTable;
 
@@ -191,12 +191,8 @@ namespace Interface
         late< opt< ref< Parser::Size > > >                  size_opt;
         late< value< mega::U64 > >                          size;
         late< value< bool > >                               singular;
-        
-        // array< ref< Concrete::Context > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
 
-        // value< bool > is_meta_type  -> MetaStage::MetaAnalysis;
-        // value< bool > is_or_state   -> MetaStage::MetaAnalysis;
-        // value< bool > is_historical -> MetaStage::MetaAnalysis;
+        value< mega::IContextFlags > flags -> ConcreteStage::Concrete;
     }
 
     object Namespace : IContext -> InterfaceStage::Tree
@@ -214,7 +210,8 @@ namespace Interface
 
     object Object : IContext -> InterfaceStage::Tree
     {
-        late< ref< OwnershipLink > > ownership_link;
+        late< ref< OwnershipLink > >    ownership_link;
+        late< ref< ActivationBitSet > > activation_bitset;
     }
 
     object InvocationContext : IContext -> InterfaceStage::Tree

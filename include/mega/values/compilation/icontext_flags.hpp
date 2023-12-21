@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,51 +18,52 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef OWNERSHIP_13_MAY_2022
-#define OWNERSHIP_13_MAY_2022
+#ifndef GUARD_2023_December_21_icontext_flags
+#define GUARD_2023_December_21_icontext_flags
 
-#include <ostream>
+#include "common/serialisation.hpp"
+
+#include <bitset>
 
 namespace mega
 {
-class Ownership
+class IContextFlags
 {
 public:
     enum Value
     {
-        eOwnNothing,
-        eOwnSource,
-        eOwnTarget,
-        TOTAL_OWNERSHIP_MODES
+        eMeta,
+        eOR,
+        eHistorical,
+        TOTAL_FLAGS
     };
+    using Bits = std::bitset< TOTAL_FLAGS >;
 
-    Ownership()
-        : m_value( TOTAL_OWNERSHIP_MODES )
-    {
-    }
-    explicit Ownership( Value value )
-        : m_value( value )
-    {
-    }
+    std::string                                          str() const;
+    static const char*                                   str( Value bit );
+    static const std::array< std::string, TOTAL_FLAGS >& strings();
 
-    const char*      str() const;
-    static Ownership fromStr( const char* psz );
-
-    Value get() const { return m_value; }
-    void  set( Value value ) { m_value = value; }
+    inline bool get( Value bit ) const { return m_value.test( bit ); }
+    inline void set( Value bit ) { m_value.set( bit ); }
+    inline void reset( Value bit ) { m_value.reset( bit ); }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& m_value;
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            archive& boost::serialization::make_nvp( "value", m_value );
+        }
+        else
+        {
+            archive& m_value;
+        }
     }
 
 private:
-    Value m_value;
+    Bits m_value;
 };
-
-std::ostream& operator<<( std::ostream& os, Ownership ownership );
-
+std::ostream& operator<<( std::ostream& os, IContextFlags iContextFlags );
 } // namespace mega
 
-#endif // MODES_10_MAY_2022
+#endif // GUARD_2023_December_21_icontext_flags

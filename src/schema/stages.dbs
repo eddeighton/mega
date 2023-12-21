@@ -110,7 +110,11 @@ stage ConcreteStage
     global accessor ref< Symbols::SymbolTable >;
     global accessor ref< Interface::Root >;
     global accessor ref< Concrete::Root >;
+    global accessor array< ref< Interface::Abstract > >;
+    global accessor array< ref< Interface::IContext > >;
+
     persource accessor array< ref< Parser::Type::Absolute > >;
+    
 }
 
 stage ConcreteTypeAnalysis
@@ -146,6 +150,18 @@ stage HyperGraphAnalysis
     global accessor ref< Concrete::Root >;
     global accessor ref< Symbols::SymbolTable >;
     global accessor ref< HyperGraph::Graph >;
+}
+
+stage AutomataStage
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+    dependency HyperGraphAnalysis;
+
+    file AutomataAnalysis;
+
+    global accessor array< ref< Concrete::Object > >;
 }
 
 /*
@@ -368,18 +384,6 @@ stage GlobalMemoryStageRollout
     file GlobalMemoryRollout;
 
     global accessor array< ref< MemoryLayout::MemoryMap > >;
-    persource accessor array< ref< Concrete::Object > >;
-}
-
-stage AutomataStage
-{
-    source .manifest;
-    source .mega;
-    source .cpp;
-    dependency GlobalMemoryStageRollout;
-
-    file AutomataAnalysis;
-
     persource accessor array< ref< Concrete::Object > >;
 }
 

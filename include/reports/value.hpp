@@ -43,6 +43,7 @@
 #include "mega/values/compilation/invocation_id.hpp"
 #include "mega/values/compilation/size_alignment.hpp"
 #include "mega/values/compilation/type_id_sequence.hpp"
+#include "mega/values/compilation/icontext_flags.hpp"
 
 #include "mega/values/runtime/pointer.hpp"
 #include "mega/values/runtime/pointer_io.hpp"
@@ -90,6 +91,7 @@ using Value = boost::variant
     // InvocationID, 
     SizeAlignment,
     MegastructureInstallation,
+    IContextFlags,
 
     // Runtime Types
     // MP,
