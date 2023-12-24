@@ -83,8 +83,9 @@ public:
     Path ImplementationTemplate() const;
 
     // interface file paths
-    GeneratedHPPSourceFilePath Include( const megaFilePath& source ) const;
-    PrecompiledHeaderFile      IncludePCH( const megaFilePath& source ) const;
+    GeneratedHPPSourceFilePath Include() const;
+    PrecompiledHeaderFile      IncludePCH() const;
+    /*
     GeneratedHPPSourceFilePath Interface( const megaFilePath& source ) const;
     PrecompiledHeaderFile      InterfacePCH( const megaFilePath& source ) const;
     GeneratedHPPSourceFilePath Operations( const megaFilePath& source ) const;
@@ -115,7 +116,7 @@ public:
     ObjectFilePath             CPPObj( const cppFilePath& source ) const;
 
     // schematic file paths
-    MapFilePath Map( const schFilePath& schematic ) const;
+    MapFilePath Map( const schFilePath& schematic ) const;*/
 
     // note lowercase file type function names are used in generated code based on file type
     ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const;

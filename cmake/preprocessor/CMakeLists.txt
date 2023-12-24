@@ -19,48 +19,38 @@
 
 
 
+
 cmake_minimum_required( VERSION 3.1...3.16 )
 
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get json
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
-
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
-set( INVOCATION_HEADERS
-    ${MEGA_API_DIR}/invocation/invocation.hpp
-)
+set( PREPROCESSOR_API ${MEGA_API_DIR}/preprocessor/preprocessor.hpp )
 
-set( INVOCATION_SOURCE
-    ${MEGA_SRC_DIR}/invocation/deciders.cpp
-    ${MEGA_SRC_DIR}/invocation/decision.cpp
-    ${MEGA_SRC_DIR}/invocation/interupts.cpp
-    ${MEGA_SRC_DIR}/invocation/invocation.cpp
-    ${MEGA_SRC_DIR}/invocation/transitions.cpp
-)
+set( PREPROCESSOR_SOURCES
+    ${MEGA_SRC_DIR}/preprocessor/preprocessor.cpp
+    )
 
-add_library( invocation
-    ${INVOCATION_HEADERS} 
-    ${INVOCATION_SOURCE}
-)
-target_precompile_headers( invocation REUSE_FROM mega_pch )
+add_library( preprocessor
+                    ${PREPROCESSOR_API}
+                    ${PREPROCESSOR_SOURCES} )
 
-set_target_properties( invocation PROPERTIES FOLDER compiler )
+target_precompile_headers( preprocessor REUSE_FROM mega_pch )
 
-target_link_libraries( invocation mega_values )
-target_link_libraries( invocation database )
+target_include_directories( preprocessor PUBLIC ${MEGA_API_DIR} )
 
-target_include_directories( invocation PUBLIC ${MEGA_API_DIR} )
+# target_link_libraries( invocation mega_values )
 
-link_boost( invocation system )
-link_boost( invocation filesystem )
-link_boost( invocation serialization )
-link_json( invocation )
-link_common( invocation )
+set_target_properties( preprocessor PROPERTIES FOLDER compiler )
 
-install( FILES ${INVOCATION_HEADERS} DESTINATION include/invocation )
-install( TARGETS invocation EXPORT invocation DESTINATION bin)
-install( EXPORT invocation NAMESPACE MEGA:: FILE invocation-config.cmake DESTINATION share )
+link_boost( preprocessor filesystem )
+link_boost( preprocessor system )
+link_boost( preprocessor wave )
+link_common( preprocessor )
+
+install( FILES ${PREPROCESSOR_API} DESTINATION include/preprocessor )
+install( TARGETS preprocessor EXPORT preprocessor DESTINATION bin)
+install( EXPORT preprocessor NAMESPACE MEGA:: FILE preprocessor-config.cmake DESTINATION share )

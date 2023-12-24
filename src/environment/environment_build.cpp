@@ -137,23 +137,21 @@ BuildEnvironment::Path BuildEnvironment::ImplementationTemplate() const
     return result;
 }
 
-GeneratedHPPSourceFilePath BuildEnvironment::Include( const megaFilePath& source ) const
+GeneratedHPPSourceFilePath BuildEnvironment::Include() const
 {
     std::ostringstream os;
-    os << source.path().filename().string() << ".include" << GeneratedHPPSourceFilePath::extension().string();
-    auto dirPath = source.path();
-    dirPath.remove_filename();
-    return GeneratedHPPSourceFilePath( dirPath / os.str() );
+    os << "include" << GeneratedHPPSourceFilePath::extension().string();
+    return { os.str() };
 }
 
-PrecompiledHeaderFile BuildEnvironment::IncludePCH( const megaFilePath& source ) const
+PrecompiledHeaderFile BuildEnvironment::IncludePCH() const
 {
     std::ostringstream os;
-    os << source.path().filename().string() << ".include" << PrecompiledHeaderFile::extension().string();
-    auto dirPath = source.path();
-    dirPath.remove_filename();
-    return PrecompiledHeaderFile( dirPath / os.str() );
+    os << "include" << PrecompiledHeaderFile::extension().string();
+    return { os.str() };
 }
+
+/*
 
 GeneratedHPPSourceFilePath BuildEnvironment::Interface( const megaFilePath& source ) const
 {
@@ -320,7 +318,7 @@ MapFilePath BuildEnvironment::Map( const schFilePath& schematic ) const
     dirPath.remove_filename();
     return MapFilePath( dirPath / os.str() );
 }
-
+*/
 ComponentListingFilePath BuildEnvironment::ComponentListingFilePath_fromPath( const Path& buildDirectory ) const
 {
     VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDirectory ),

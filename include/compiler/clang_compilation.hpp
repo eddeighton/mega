@@ -72,7 +72,7 @@ public:
     template < typename TComponentType >
     static inline Compilation
     make_includePCH_compilation( const io::BuildEnvironment& environment, const utilities::ToolChain& toolChain,
-                                 TComponentType* pComponent, const io::megaFilePath& sourceFile )
+                                 TComponentType* pComponent )
     {
         Compilation compilation;
         compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
@@ -82,12 +82,12 @@ public:
         compilation.defines     = pComponent->get_cpp_defines();
         compilation.includeDirs = pComponent->get_include_directories();
 
-        compilation.inputFile = environment.FilePath( environment.Include( sourceFile ) );
-        compilation.outputPCH = environment.FilePath( environment.IncludePCH( sourceFile ) );
+        compilation.inputFile = environment.FilePath( environment.Include() );
+        compilation.outputPCH = environment.FilePath( environment.IncludePCH() );
 
         return compilation;
     }
-
+/*
     template < typename TComponentType >
     static inline Compilation make_interfacePCH_compilation( const io::BuildEnvironment& environment,
                                                              const utilities::ToolChain& toolChain,
@@ -111,7 +111,7 @@ public:
         compilation.defines     = pComponent->get_cpp_defines();
         compilation.includeDirs = pComponent->get_include_directories();
 
-        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ) };
+        compilation.inputPCH = { environment.FilePath( environment.IncludePCH() ) };
 
         compilation.inputFile = environment.FilePath( environment.Interface( sourceFile ) );
         compilation.outputPCH = environment.FilePath( environment.InterfacePCH( sourceFile ) );
@@ -344,7 +344,7 @@ public:
         compilation.outputObject = environment.FilePath( environment.InitialiserObj( sourceFile ) );
 
         return compilation;
-    }
+    }*/
 };
 
 } // namespace mega

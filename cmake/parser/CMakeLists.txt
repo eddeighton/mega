@@ -28,9 +28,6 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get clang
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
 
-#get json
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
-
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -64,7 +61,6 @@ link_boost( parser iostreams )
 link_boost( parser serialization )
 link_boost( parser system )
 link_clang( parser )
-link_json( parser )
 link_common( parser )
 
 

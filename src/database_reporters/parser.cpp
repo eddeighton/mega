@@ -149,9 +149,6 @@ void recurse( Parser::Container* pContainer, reports::Branch& branch )
     for( auto p : pContainer->get_includes() )
     {
     }
-    for( auto p : pContainer->get_dependencies() )
-    {
-    }
     for( auto p : pContainer->get_parts() )
     {
     }

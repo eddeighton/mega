@@ -23,10 +23,8 @@ TASK_SRC(ParseAST,std::get< mega::io::megaFilePath >( task.sourceFilePath ),cons
 
 TASK_PROJECT(AST)
 
-TASK_PROJECT(PythonStages)
-TASK_SRC(CPPStages,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
-
-TASK_PROJECT(DependencyAnalysis)
+TASK_PROJECT(Include)
+TASK_PROJECT(IncludePCH)
 
 TASK_PROJECT(SymbolAnalysis)
 TASK_SRC(SymbolRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
@@ -39,10 +37,6 @@ TASK_PROJECT(Automata)
 
 
 
-TASK_SRC(Include,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(IncludePCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-
-TASK_SRC(Meta,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
 TASK_SRC(Operations,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK_SRC(OperationsPCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)

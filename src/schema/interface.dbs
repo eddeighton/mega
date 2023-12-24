@@ -184,7 +184,6 @@ namespace Interface
     // Contexts
     object IContext : Node -> InterfaceStage::Tree
     {
-        array< ref< Parser::Dependency > >  dependencies;
         array< ref< Parser::Container > >   containers;
 
         late< opt< ref< Parser::TypeDecl::Inheritance > > > inheritance_opt;

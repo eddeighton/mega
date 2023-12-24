@@ -263,18 +263,26 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc automata = encode( Task{ eTask_Automata } );
     dependencies.add( automata, { hyperGraph } );
 
+
+
+    const TskDesc includes   = encode( Task{ eTask_Include } );
+    const TskDesc includePCH = encode( Task{ eTask_IncludePCH } );
+    dependencies.add( includes, parserTasks );
+    dependencies.add( includePCH, { includes } );
+
+    // const TskDesc objectInterfaceGeneration = encode( Task{ eTask_InterfaceGeneration } );
+    // const TskDesc objectInterfaceAnalysis   = encode( Task{ eTask_InterfaceAnalysis } );
+
     /*
         TskDescVec interfaceAnalysisTasks;
         {
             for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
             {
-                const TskDesc metaTask                  = encode( Task{ eTask_Meta, sourceFilePath } );
                 const TskDesc includes                  = encode( Task{ eTask_Include, sourceFilePath } );
                 const TskDesc includePCH                = encode( Task{ eTask_IncludePCH, sourceFilePath } );
                 const TskDesc objectInterfaceGeneration = encode( Task{ eTask_InterfaceGeneration, sourceFilePath } );
                 const TskDesc objectInterfaceAnalysis   = encode( Task{ eTask_InterfaceAnalysis, sourceFilePath } );
 
-                dependencies.add( metaTask, symbolRolloutTasks );
                 dependencies.add( includes, symbolRolloutTasks );
                 dependencies.add( includePCH, TskDescVec{ includes } );
                 dependencies.add( objectInterfaceGeneration, TskDescVec{ includePCH, metaTask } );
@@ -305,13 +313,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                     {
                         for( const mega::io::megaFilePath& sourceFilePath : pComponent->get_mega_source_files() )
                         {
-                            const TskDesc automata       = encode( Task{ eTask_Automata, sourceFilePath } );
                             const TskDesc operations     = encode( Task{ eTask_Operations, sourceFilePath } );
                             const TskDesc operationsPCH  = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
                             const TskDesc operationsLocs = encode( Task{ eTask_OperationsLocs, sourceFilePath } );
                             const TskDesc valueSpace     = encode( Task{ eTask_ValueSpace, sourceFilePath } );
 
-                            dependencies.add( automata, globalMemoryRolloutTasks );
                             dependencies.add( operations, TskDescVec{ automata } );
                             dependencies.add( operationsPCH, TskDescVec{ operations } );
                             dependencies.add( operationsLocs, TskDescVec{ operationsPCH } );

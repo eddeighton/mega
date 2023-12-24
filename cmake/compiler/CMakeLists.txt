@@ -121,28 +121,25 @@ set( JINJA_TEMPLATES
 	)
 
 set( COMPILER_TASKS
-    # ${MEGA_SRC_DIR}/compiler/task_alias.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
     ${MEGA_SRC_DIR}/compiler/task_automata.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_complete.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete_id.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_global_memory.cpp
     ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_includes.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_inheritance.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_initialiser.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp
+    ${MEGA_SRC_DIR}/compiler/task_includes.cpp
     ${MEGA_SRC_DIR}/compiler/task_ast.cpp
     ${MEGA_SRC_DIR}/compiler/task_components.cpp
-    # ${MEGA_SRC_DIR}/compiler/task_meta.cpp
+    ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
+    ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
+    
+    # ${MEGA_SRC_DIR}/compiler/task_alias.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_complete.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_initialiser.cpp
+    # ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp
     # ${MEGA_SRC_DIR}/compiler/task_operations_locs.cpp
     # ${MEGA_SRC_DIR}/compiler/task_operations.cpp
-    ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
     # ${MEGA_SRC_DIR}/compiler/task_python.cpp
-    ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
     # ${MEGA_SRC_DIR}/compiler/task_unity.cpp
     # ${MEGA_SRC_DIR}/compiler/task_value_space.cpp
 )

@@ -85,7 +85,6 @@ public:
                             pIter, 
                             pComponent
                         }, 
-                        {}, // dependencies
                         {}  // containers
                     } );
                 // clang-format on
@@ -837,7 +836,6 @@ public:
             auto pContext = database.construct< Interface::Abstract >( Interface::Abstract::Args{
                 Interface::IContext::Args{ Interface::Node::Args{ Interface::NodeGroup::Args{ {} }, iFind->second,
                                                                   pInterfaceRoot, std::nullopt },
-                                           {},
                                            {} } } );
             pInterfaceRoot->push_back_children( pContext );
         }

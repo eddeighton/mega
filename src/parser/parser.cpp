@@ -984,7 +984,6 @@ public:
                               std::vector< Using* >{},
 
                               std::vector< Include* >{},
-                              std::vector< Dependency* >{},
                               std::vector< Part* >{},
 
                               std::nullopt );

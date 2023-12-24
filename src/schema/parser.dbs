@@ -141,11 +141,6 @@ namespace Parser
         array< value< std::string > > identifiers;
     }
 
-    object Dependency : SourceRange -> ParserStage::AST
-    {
-        value< std::string > str;
-    }
-
     //////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
     // TypeDeclaration
@@ -263,7 +258,6 @@ namespace Parser
         array< ref< Using > >               usings;
 
         array< ref< Include > >             includes;
-        array< ref< Dependency > >          dependencies;
         array< ref< Part > >                parts;
 
         opt< ref< TypeDecl::Body > >        body_type_opt;

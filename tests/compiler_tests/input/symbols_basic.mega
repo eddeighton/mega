@@ -1,16 +1,16 @@
 
-object Object1
+object SymObject1
 {
     dim m_test1 std::vector< int >;
-    dim m_test2 std::vector< @Object2 >;
+    dim m_test2 std::vector< @SymObject2 >;
 
 }
 
-object Object2
+object SymObject2
 {
     dim m_test1 int;
-    dim m_test2 @Object1;
-    dim m_test3 ^Object2.m_test1;
+    dim m_test2 @SymObject1;
+    dim m_test3 ^SymObject2.m_test1;
 
     function A::B::C() : void
     {
