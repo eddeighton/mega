@@ -17,7 +17,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/terminal.hpp"
+//#include "service/terminal.hpp"
+
+#include "log/log.hpp"
 
 #include "pipeline/configuration.hpp"
 #include "pipeline/stash.hpp"
@@ -26,9 +28,9 @@
 #include "parser/parser.hpp"
 
 #include "compiler/cmake.hpp"
+
 #include "mega/values/compilation/tool_chain_hash.hpp"
 
-#include "service/network/log.hpp"
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 #include "common/stash.hpp"
@@ -82,6 +84,8 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
+    bRunLocally = true;
+
     if( !strTaskName.empty() )
     {
         VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
@@ -127,7 +131,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                     = runPipelineLocally( stashDir, symbolXMLOpt, toolchain, pipelineConfig, strTaskName, strSourceFile,
                                           inputPipelineResultPath, bForceNoStash, bExecuteUpTo, false, std::cout );
             }
-            else
+            /*else
             {
                 try
                 {
@@ -138,7 +142,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 {
                     THROW_RTE( "Exception executing pipeline: " << ex.what() );
                 }
-            }
+            }*/
         }
 
         VERIFY_RTE_MSG( pipelineResult.has_value(), "Failed to get pipeline result" );

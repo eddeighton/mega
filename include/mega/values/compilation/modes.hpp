@@ -30,6 +30,7 @@ public:
     enum Value
     {
         eNormal,
+        eTraits,
         eInterface,
         eLibrary,
         eOperations,

@@ -26,7 +26,7 @@
 #include "service/network/logical_thread.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
 #include "mega/values/compilation/megastructure_installation.hpp"

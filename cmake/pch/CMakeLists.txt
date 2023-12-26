@@ -23,12 +23,6 @@ cmake_minimum_required( VERSION 3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -50,8 +44,6 @@ add_library( mega_pch STATIC ${MEGA_SRC_DIR}/environment/pch.cpp )
 #link_boost( mega_pch serialization )
 #link_boost( mega_pch program_options )
 
-#link_fmt( mega_pch )
-#link_spdlog( mega_pch )
 #link_json( mega_pch )
 #link_inja( mega_pch )
 #link_pybind11( mega_pch )

@@ -4,7 +4,7 @@
 #include "http_logical_thread.hpp"
 
 #include "service/network/network.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include "service/protocol/model/report.hxx"
 
 #include <boost/beast/core.hpp>

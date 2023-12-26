@@ -23,12 +23,10 @@
 
 struct CommonAncestor
 {
-    using GraphVertex     = Concrete::Graph::Vertex;
-    using GraphEdge       = Concrete::Graph::Edge;
-    using GraphEdgeVector = std::vector< GraphEdge* >;
+    using GraphEdgeVector = std::vector< Concrete::Edge* >;
 
 private:
-    static inline GraphVertex* pathToObjectRoot( GraphVertex* pVertex, GraphEdgeVector& path )
+    static inline Concrete::Node* pathToObjectRoot( Concrete::Node* pVertex, GraphEdgeVector& path )
     {
         while( !db_cast< Concrete::Object >( pVertex ) )
         {
@@ -97,7 +95,7 @@ private:
     }
 
 public:
-    static inline GraphVertex* commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges,
+    static inline Concrete::Node* commonRootDerivation( Concrete::Node* pSource, Concrete::Node* pTarget, GraphEdgeVector& edges,
                                                      bool bAllowNonSingular = false )
     {
         if( pSource == pTarget )

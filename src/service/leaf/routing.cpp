@@ -20,7 +20,7 @@
 #include "request.hpp"
 #include "mpo_lifetime.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include "service/protocol/model/memory.hxx"
 
 namespace mega::service

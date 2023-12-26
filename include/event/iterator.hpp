@@ -21,9 +21,9 @@
 #ifndef GUARD_2023_July_31_iterator
 #define GUARD_2023_July_31_iterator
 
-#include "log/buffer.hpp"
+#include "event/buffer.hpp"
 
-namespace mega::log
+namespace mega::event
 {
 
 template < class BufferFactory >
@@ -110,6 +110,6 @@ private:
     mutable Offset                         m_position = Offset{};
 };
 
-} // namespace mega::log
+} // namespace mega::event
 
 #endif // GUARD_2023_July_31_iterator

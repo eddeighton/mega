@@ -73,7 +73,7 @@ std::string getCanonicalTypeStr( QualType type )
     return strCanonicalType;
 }
 
-std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType type )
+std::optional< mega::interface::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType type )
 {
     if( type.getTypePtrOrNull() && !type->isDependentType() )
     {
@@ -83,7 +83,7 @@ std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType t
         {
             if( pBaseTypeID == pASTContext->getEGTypePathName() )
             {
-                return mega::TypeID( mega::id_TypePath );
+                //return mega::interface::TypeID( mega::id_TypePath );
             }
         }
 
@@ -93,7 +93,7 @@ std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType t
             {
                 if( EGTypeIDAttr* pAttr = pRecordDecl->getAttr< EGTypeIDAttr >() )
                 {
-                    return mega::TypeID( static_cast< mega::TypeID::ValueType >( pAttr->getId() ) );
+                    return mega::interface::TypeID( static_cast< mega::interface::TypeID::ValueType >( pAttr->getId() ) );
                 }
             }
         }
@@ -119,7 +119,7 @@ std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType t
 
     // CLANG_PLUGIN_LOG( "No symbol id for: "  << type.getAsString() );
 
-    return std::optional< mega::TypeID >();
+    return std::optional< mega::interface::TypeID >();
 }
 
 const IdentifierInfo* getOperationIdentifier( ASTContext* pASTContext, const std::string& strName )
@@ -300,10 +300,11 @@ bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType,
         }
         else
         {
-            if( std::optional< mega::TypeID > typeIDOpt = getMegaTypeID( pASTContext, canonicalType );
+            if( std::optional< mega::interface::TypeID > typeIDOpt = getMegaTypeID( pASTContext, canonicalType );
                 typeIDOpt.has_value() )
             {
-                contextTypes.push_back( typeIDOpt.value() );
+                THROW_TODO;
+                // contextTypes.push_back( typeIDOpt.value() );
                 return true;
             }
             else
@@ -327,7 +328,8 @@ bool getSymbol( ASTContext* pASTContext, QualType typePath, SymbolID& symbol )
 
     if( auto typeIDOpt = getMegaTypeID( pASTContext, canonicalType ) )
     {
-        symbol = typeIDOpt.value();
+        THROW_TODO;
+        // symbol = typeIDOpt.value();
         return true;
     }
     else
@@ -519,7 +521,7 @@ bool getSymbolVariantSequence( ASTContext* pASTContext, QualType typePath,
     }
     else
     {
-        // std::vector< mega::TypeID > typePathTypes;
+        // std::vector< mega::interface::TypeID > typePathTypes;
         // if( !getSymbolVariant( pASTContext, typePath, typePathTypes ) )
         //     return false;
         // symbolIDVariantSequence.emplace_back( std::move( typePathTypes ) );
@@ -836,7 +838,7 @@ QualType getUIntType( ASTContext* pASTContext )
     return pASTContext->UnsignedIntTy;
 }
 
-QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext*& pDeclContext, const SourceLocation& loc,
+QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, const SourceLocation& loc,
                        const std::string& strTypeName )
 {
     IdentifierInfo& identifierInfo = pASTContext->Idents.get( strTypeName );
@@ -848,7 +850,6 @@ QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext*& pDecl
             return pASTContext->getTypeDeclType( pTypeAliasDecl );
         }
     }
-    pDeclContext = nullptr;
     return QualType();
 }
 /*

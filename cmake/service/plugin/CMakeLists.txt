@@ -25,12 +25,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -76,8 +70,6 @@ link_boost( plugin timer )
 link_boost( plugin filesystem )
 link_boost( plugin iostreams )
 link_boost( plugin serialization )
-link_fmt( plugin )
-link_spdlog( plugin )
 link_json( plugin )
 link_inja( plugin )
 link_common( plugin )
@@ -114,8 +106,6 @@ link_boost( plugin_test timer )
 link_boost( plugin_test filesystem )
 link_boost( plugin_test iostreams )
 link_boost( plugin_test serialization )
-link_fmt( plugin_test )
-link_spdlog( plugin_test )
 link_json( plugin_test )
 link_inja( plugin_test )
 link_common( plugin_test )

@@ -23,8 +23,6 @@
 
 #include "service/leaf.hpp"
 
-#include "mega/mangle/traits.hpp"
-
 namespace mega::service
 {
 
@@ -40,10 +38,10 @@ public:
     const MPO& getMPO() const { return m_mpo; }
 
 private:
-    Leaf&                         m_leaf;
-    LeafRequestLogicalThread&      m_logicalthread;
-    boost::asio::yield_context&   m_yield_ctx;
-    MPO                           m_mpo;
+    Leaf&                       m_leaf;
+    LeafRequestLogicalThread&   m_logicalthread;
+    boost::asio::yield_context& m_yield_ctx;
+    MPO                         m_mpo;
 };
 
 } // namespace mega::service

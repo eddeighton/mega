@@ -76,6 +76,7 @@ namespace Parser
 
         object Deriving : Path -> ParserStage::AST
         {
+            // ref< ClangTraits::Derivation::Root > derivation -> ClangTraitsStage::Traits;
         }
 
         object PathSequence -> ParserStage::AST

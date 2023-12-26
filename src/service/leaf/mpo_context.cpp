@@ -33,7 +33,7 @@
 
 #include "common/assert_verify.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 namespace mega
 {
@@ -132,7 +132,7 @@ Pointer MPOContext::allocate( TypeID objectTypeID )
 
     Pointer allocated = m_pMemoryManager->New( objectTypeID );
     m_pLog->record(
-        mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+        mega::event::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::event::Structure::eConstruct ) );
 
     return allocated;*/
 }
@@ -271,7 +271,7 @@ void MPOContext::createRoot( const mega::MPO& mpo )
         VERIFY_RTE_MSG( m_root.valid(), "Root allocation failed" );
         SPDLOG_INFO( "Created Root: {} net: {}", m_root.getObjectAddress(), m_root.getNetworkAddress() );
         m_pLog->record(
-            mega::log::Structure::Write( m_root, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+            mega::event::Structure::Write( m_root, m_root.getNetworkAddress(), 0, mega::event::Structure::eConstruct ) );
     }
     else
     {
@@ -382,8 +382,8 @@ void MPOContext::cycleComplete()
                     deleteRef = m_pMemoryManager->networkToHeap( deleteRef );
                 }
                 m_pMemoryManager->Delete( deleteRef );
-                m_pLog->record( mega::log::Structure::Write(
-                    deleteRef, deleteRef.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
+                m_pLog->record( mega::event::Structure::Write(
+                    deleteRef, deleteRef.getNetworkAddress(), 0, mega::event::Structure::eDestruct ) );
             }
         }
     }*/

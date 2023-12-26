@@ -26,6 +26,9 @@ namespace Interface
 struct Visitor
 {
     virtual ~Visitor() = default;
+    virtual bool visit( UserDimension* pNode ) const { return false; }
+    virtual bool visit( UserAlias* pNode ) const { return false; }
+    virtual bool visit( UserUsing* pNode ) const { return false; }
     virtual bool visit( UserLink* pNode ) const { return false; }
     virtual bool visit( ParsedAggregate* pNode ) const { return false; }
     virtual bool visit( OwnershipLink* pNode ) const { return false; }
@@ -50,7 +53,49 @@ struct Visitor
 
 inline bool visit( Visitor& visitor, Interface::Node* pINode )
 {
-    if( auto* pUserLink = db_cast< UserLink >( pINode ) )
+    if( auto* pUserDimension = db_cast< UserDimension >( pINode ) )
+    {
+        if( !visitor.visit( pUserDimension ) )
+        {
+            if( !visitor.visit( static_cast< ParsedAggregate* >( pUserDimension ) ) )
+            {
+                if( !visitor.visit( static_cast< Aggregate* >( pUserDimension ) ) )
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    else if( auto* pUserAlias = db_cast< UserAlias >( pINode ) )
+    {
+        if( !visitor.visit( pUserAlias ) )
+        {
+            if( !visitor.visit( static_cast< ParsedAggregate* >( pUserAlias ) ) )
+            {
+                if( !visitor.visit( static_cast< Aggregate* >( pUserAlias ) ) )
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    else if( auto* pUserUsing = db_cast< UserUsing >( pINode ) )
+    {
+        if( !visitor.visit( pUserUsing ) )
+        {
+            if( !visitor.visit( static_cast< ParsedAggregate* >( pUserUsing ) ) )
+            {
+                if( !visitor.visit( static_cast< Aggregate* >( pUserUsing ) ) )
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    else if( auto* pUserLink = db_cast< UserLink >( pINode ) )
     {
         if( !visitor.visit( pUserLink ) )
         {

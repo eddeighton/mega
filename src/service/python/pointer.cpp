@@ -30,16 +30,14 @@
 
 #include "service/mpo_visitor.hpp"
 
-#include "mega/values/runtime/pointer_io.hpp"
 #include "mega/values/compilation/invocation_id.hpp"
-#include "mega/mangle/traits.hpp"
 
 #include "mega/mangle/python_mangle.hpp"
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 #include "mega/printer.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/assert_verify.hpp"
 

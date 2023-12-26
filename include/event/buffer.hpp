@@ -21,15 +21,17 @@
 #ifndef GUARD_2023_July_31_buffer
 #define GUARD_2023_July_31_buffer
 
-#include "log/records.hxx"
-#include "log/index_record.hpp"
-#include "log/offset.hpp"
+#include "event/records.hxx"
+#include "event/index_record.hpp"
+#include "event/offset.hpp"
+
+#include "mega/values/runtime/timestamp.hpp"
 
 #include <memory>
 #include <vector>
 #include <cstring>
 
-namespace mega::log
+namespace mega::event
 {
 
 template < class BufferFactory >
@@ -187,6 +189,6 @@ public:
     }
 };
 
-} // namespace mega::log
+} // namespace mega::event
 
 #endif // GUARD_2023_July_31_buffer

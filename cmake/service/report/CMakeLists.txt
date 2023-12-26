@@ -22,12 +22,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -71,8 +65,6 @@ link_boost( report timer )
 link_boost( report filesystem )
 link_boost( report iostreams )
 link_boost( report serialization )
-link_fmt( report )
-link_spdlog( report )
 link_json( report )
 link_inja( report )
 link_common( report )

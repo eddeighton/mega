@@ -19,7 +19,7 @@
 
 #include "service/network/client.hpp"
 #include "service/network/network.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/sender_factory.hpp"
 

@@ -38,9 +38,10 @@ set( CLANG_PLUGIN_SOURCES
     ${MEGA_SRC_DIR}/clang_plugin/clang_utils.hpp
     ${MEGA_SRC_DIR}/clang_plugin/clang_utils.cpp
     ${MEGA_SRC_DIR}/clang_plugin/session.hpp
-    ${MEGA_SRC_DIR}/clang_plugin/interface_session.cpp
-    ${MEGA_SRC_DIR}/clang_plugin/operations_session.cpp
+    # ${MEGA_SRC_DIR}/clang_plugin/interface_session.cpp
+    # ${MEGA_SRC_DIR}/clang_plugin/operations_session.cpp
     ${MEGA_SRC_DIR}/clang_plugin/library_session.cpp
+    ${MEGA_SRC_DIR}/clang_plugin/traits_session.cpp
     )
 
 add_definitions(-DMEGA_CLANG_PLUGIN_MODULE)
@@ -65,7 +66,7 @@ import_clang( clang_plugin )
 ENDIF()
 
 target_link_libraries( clang_plugin database )
-target_link_libraries( clang_plugin invocation )
+# target_link_libraries( clang_plugin invocation )
 
 install( FILES ${CLANG_PLUGIN_API} DESTINATION include/clang_plugin )
 install( TARGETS clang_plugin DESTINATION bin)

@@ -164,6 +164,34 @@ stage AutomataStage
     global accessor array< ref< Concrete::Object > >;
 }
 
+stage ClangTraitsStage
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+
+    dependency AutomataStage;
+
+    file Traits;
+
+    global accessor ref< Interface::Root >;
+    global accessor array< ref< Components::Component > >;
+}
+
+stage ClangAnalysisStage
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+
+    dependency ClangTraitsStage;
+
+    file Analysis;
+
+    global accessor ref< Interface::Root >;
+    global accessor array< ref< Components::Component > >;
+    global accessor ref< Symbols::SymbolTable >;
+}
 /*
 stage MetaStage
 {

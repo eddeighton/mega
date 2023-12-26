@@ -23,7 +23,7 @@
 
 #include "mega/values/native_types.hpp"
 #include "mega/values/runtime/pointer.hpp"
-#include "mega/values/compilation/relation_id.hpp"
+#include "mega/values/compilation/interface/relation_id.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/unreachable.hpp"
@@ -36,7 +36,7 @@
 #include <type_traits>
 #include <array>
 
-namespace mega::log
+namespace mega::event
 {
 
 enum class TrackID : U8

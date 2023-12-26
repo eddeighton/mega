@@ -19,7 +19,7 @@
 
 #include "service/executor/request.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "service/executor/executor.hpp"
 

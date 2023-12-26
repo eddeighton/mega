@@ -19,9 +19,9 @@
 
 #include "service/terminal.hpp"
 
-#include "log/file_log.hpp"
+#include "event/file_log.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "compiler/build_report.hpp"
 #include "compiler/base_task.hpp"

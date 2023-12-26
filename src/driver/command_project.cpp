@@ -21,7 +21,7 @@
 
 #include "environment/environment.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
 

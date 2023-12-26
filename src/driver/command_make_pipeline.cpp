@@ -21,16 +21,19 @@
 #include "pipeline/configuration.hpp"
 #include "pipeline/pipeline.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
+
+#include "environment/environment_build.hpp"
 
 #include "database/manifest.hxx"
+#include "database/component_info.hpp"
 
 #include "compiler/configuration.hpp"
 #include "compiler/cmake.hpp"
 
 #include "mega/values/compilation/tool_chain_hash.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include "common/file.hpp"
 #include "common/stash.hpp"
 
@@ -101,11 +104,11 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
         const mega::io::Directories directories{ srcDir, buildDir, installDir, templatesDir };
 
-        std::vector< io::ComponentInfo > componentInfos;
+        std::vector< mega::io::ComponentInfo > componentInfos;
         {
             for( const boost::filesystem::path& componentInfoPath : componentInfoPaths )
             {
-                componentInfos.emplace_back( io::ComponentInfo::load( componentInfoPath ) );
+                componentInfos.emplace_back( mega::io::ComponentInfo::load( componentInfoPath ) );
             }
         }
 
@@ -130,7 +133,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             componentInfos,
 
             directories,
-            manifestData,
+            manifest,
             
             unityProjectDir,
             unityEditor

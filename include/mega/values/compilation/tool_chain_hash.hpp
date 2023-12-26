@@ -44,19 +44,7 @@ struct ToolChain
                const boost::filesystem::path& clangPlugin,
                const boost::filesystem::path& database );
 
-    ToolChain( const std::string&             strClangCompilerVersion,
-               mega::U64                      databaseVersion,
-               const boost::filesystem::path& parser,
-               const boost::filesystem::path& megaCompiler,
-               const boost::filesystem::path& megaExecutor,
-               const boost::filesystem::path& clangCompiler,
-               const boost::filesystem::path& clangPlugin,
-               const boost::filesystem::path& database,
-               const boost::filesystem::path& megaMangle,
-               const boost::filesystem::path& leaf );
-
-    boost::filesystem::path parserPath, megaCompilerPath, megaExecutorPath, clangCompilerPath, clangPluginPath, databasePath, 
-        megaManglePath, leafPath;
+    boost::filesystem::path parserPath, megaCompilerPath, clangCompilerPath, clangPluginPath, databasePath;
     task::FileHash        parserHash, megaCompilerHash, clangPluginHash;
     std::string           strClangCompilerVersion;
     common::Hash          databaseVersion;
@@ -86,12 +74,9 @@ struct ToolChain
     {
         archive& boost::serialization::make_nvp( "parserPath", parserPath );
         archive& boost::serialization::make_nvp( "megaCompilerPath", megaCompilerPath );
-        archive& boost::serialization::make_nvp( "megaExecutorPath", megaExecutorPath );
         archive& boost::serialization::make_nvp( "clangCompilerPath", clangCompilerPath );
         archive& boost::serialization::make_nvp( "clangPluginPath", clangPluginPath );
         archive& boost::serialization::make_nvp( "databasePath", databasePath );
-        archive& boost::serialization::make_nvp( "megaManglePath", megaManglePath );
-        archive& boost::serialization::make_nvp( "leafPath", leafPath );
 
         archive& boost::serialization::make_nvp( "clangVersion", strClangCompilerVersion );
 
@@ -109,12 +94,9 @@ struct ToolChain
     {
         archive& boost::serialization::make_nvp( "parserPath", parserPath );
         archive& boost::serialization::make_nvp( "megaCompilerPath", megaCompilerPath );
-        archive& boost::serialization::make_nvp( "megaExecutorPath", megaExecutorPath );
         archive& boost::serialization::make_nvp( "clangCompilerPath", clangCompilerPath );
         archive& boost::serialization::make_nvp( "clangPluginPath", clangPluginPath );
         archive& boost::serialization::make_nvp( "databasePath", databasePath );
-        archive& boost::serialization::make_nvp( "megaManglePath", megaManglePath );
-        archive& boost::serialization::make_nvp( "leafPath", leafPath );
 
         archive& boost::serialization::make_nvp( "clangVersion", strClangCompilerVersion );
 

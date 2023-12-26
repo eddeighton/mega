@@ -87,7 +87,7 @@ static constexpr SubObjectID NULL_SUB_OBJECT_ID = 0_CSO;
 
 inline std::ostream& operator<<( std::ostream& os, const SubObjectID& value )
 {
-    return os << std::hex << std::setw( 4 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_CSO";
+    return os << "0x" << std::hex << std::setw( 4 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_CSO";
 }
 
 inline std::istream& operator>>( std::istream& is, SubObjectID& typeID )

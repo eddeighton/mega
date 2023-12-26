@@ -22,15 +22,15 @@
 #define GUARD_2023_July_31_memory_log
 
 #include "mega/values/native_types.hpp"
-#include "log/offset.hpp"
-#include "log/records.hxx"
-#include "log/buffer.hpp"
-#include "log/storage.hpp"
+#include "event/offset.hpp"
+#include "event/records.hxx"
+#include "event/buffer.hpp"
+#include "event/storage.hpp"
 
 #include <memory>
 #include <vector>
 
-namespace mega::log
+namespace mega::event
 {
 
 namespace impl
@@ -87,6 +87,6 @@ using MemoryStorage = Storage< impl::MemoryBufferFactory >;
 template < typename RecordType >
 using MemoryIterator = Iterator< impl::MemoryBufferFactory, RecordType >;
 
-} // namespace mega::log
+} // namespace mega::event
 
 #endif // GUARD_2023_July_31_memory_log

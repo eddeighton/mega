@@ -35,6 +35,8 @@ TASK_PROJECT(ConcreteTypeAnalysis)
 TASK_PROJECT(HyperGraph)
 TASK_PROJECT(Automata)
 
+TASK_PROJECT(Clang_Traits_Gen)
+TASK_PROJECT(Clang_Traits_Analysis)
 
 
 

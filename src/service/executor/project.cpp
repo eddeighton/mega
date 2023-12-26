@@ -22,7 +22,7 @@
 #include "service/executor/request.hpp"
 #include "service/executor/simulation.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 namespace mega::service
 {

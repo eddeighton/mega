@@ -23,7 +23,7 @@
 
 #include "service/protocol/model/stash.hxx"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include <boost/algorithm/string.hpp>
 

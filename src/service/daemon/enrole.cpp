@@ -19,7 +19,7 @@
 
 #include "request.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "boost/process.hpp"
 

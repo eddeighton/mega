@@ -270,6 +270,12 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     dependencies.add( includes, parserTasks );
     dependencies.add( includePCH, { includes } );
 
+    const TskDesc clang_Traits_Gen = encode( Task{ eTask_Clang_Traits_Gen } );
+    dependencies.add( clang_Traits_Gen, { includePCH, automata } );
+    
+    const TskDesc clang_Traits_Analysis = encode( Task{ eTask_Clang_Traits_Analysis } );
+    dependencies.add( clang_Traits_Analysis, { clang_Traits_Gen } );
+
     // const TskDesc objectInterfaceGeneration = encode( Task{ eTask_InterfaceGeneration } );
     // const TskDesc objectInterfaceAnalysis   = encode( Task{ eTask_InterfaceAnalysis } );
 

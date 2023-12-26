@@ -28,12 +28,6 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 #get inja
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get clang
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
 
@@ -96,8 +90,6 @@ link_boost( runtime filesystem )
 link_boost( runtime serialization )
 link_json( runtime )
 link_inja( runtime )
-link_fmt( runtime )
-link_spdlog( runtime )
 link_common( runtime )
 link_orc( runtime )
 

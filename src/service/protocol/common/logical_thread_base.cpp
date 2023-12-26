@@ -19,7 +19,7 @@
 
 #include "service/protocol/common/logical_thread_base.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 namespace mega::network
 {

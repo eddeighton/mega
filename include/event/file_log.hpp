@@ -18,14 +18,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2022_October_10_log
-#define GUARD_2022_October_10_log
+#ifndef GUARD_2022_October_10_event
+#define GUARD_2022_October_10_event
 
 #include "mega/values/native_types.hpp"
-#include "log/offset.hpp"
-#include "log/records.hxx"
-#include "log/buffer.hpp"
-#include "log/storage.hpp"
+
+#include "event/offset.hpp"
+#include "event/records.hxx"
+#include "event/buffer.hpp"
+#include "event/storage.hpp"
 
 #include <boost/filesystem/path.hpp>
 #include <boost/interprocess/file_mapping.hpp>
@@ -33,7 +34,7 @@
 
 #include <memory>
 
-namespace mega::log
+namespace mega::event
 {
 
 namespace impl
@@ -64,7 +65,7 @@ public:
     using TrackType      = Track< FileBufferFactory >;
     using IndexType      = Index< FileBufferFactory >;
 
-    FileBufferFactory( FileBufferFactory& ) = delete;
+    FileBufferFactory( FileBufferFactory& )            = delete;
     FileBufferFactory& operator=( FileBufferFactory& ) = delete;
 
     FileBufferFactory( const boost::filesystem::path logFolderPath, bool bLoad );
@@ -75,7 +76,7 @@ public:
 
     void cycle()
     {
-        ++m_timestamp;
+        m_timestamp                     = TimeStamp{ m_timestamp.getValue() + 1 };
         BufferType*             pBuffer = m_index.getBuffer( IndexType::toBufferIndex( m_timestamp ) );
         const InterBufferOffset offset  = pBuffer->write( &m_iterator, IndexType::RecordSize );
         ASSERT( offset.get() % IndexType::RecordSize == 0U );
@@ -85,11 +86,12 @@ public:
         // such that ( 4 % 4 ) + 1 == end of timestamp 4's data in second file
         ASSERT( ( m_timestamp % IndexType::RecordsPerFile ) + 1 == ( offset.get() / IndexType::RecordSize ) );
     }
+
 private:
     void loadIterator();
 
 protected:
-    TimeStamp   m_timestamp = 0U;
+    TimeStamp   m_timestamp;
     IndexRecord m_iterator;
     IndexType   m_index;
 
@@ -104,6 +106,6 @@ using FileStorage = Storage< impl::FileBufferFactory >;
 template < typename RecordType >
 using FileIterator = Iterator< impl::FileBufferFactory, RecordType >;
 
-} // namespace mega::log
+} // namespace mega::event
 
-#endif // GUARD_2022_October_10_log
+#endif // GUARD_2022_October_10_event

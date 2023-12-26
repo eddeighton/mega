@@ -21,13 +21,13 @@
 #ifndef GUARD_2022_October_10_filename
 #define GUARD_2022_October_10_filename
 
-#include "log/offset.hpp"
+#include "event/offset.hpp"
 
 #include <boost/filesystem/path.hpp>
 
 #include <string>
 
-namespace mega::log
+namespace mega::event
 {
 
 boost::filesystem::path toFilePath( const boost::filesystem::path& logFolderPath, const std::string& strFileType,
@@ -35,6 +35,6 @@ boost::filesystem::path toFilePath( const boost::filesystem::path& logFolderPath
 
 bool fromFilePath( const boost::filesystem::path& logFilePath, std::string& strFileType, BufferIndex& index );
 
-} // namespace mega::log
+} // namespace mega::event
 
 #endif // GUARD_2022_October_10_filename

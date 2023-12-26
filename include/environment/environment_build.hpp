@@ -20,7 +20,6 @@
 #ifndef ENVIRONMENT_BUILD_18_JUNE
 #define ENVIRONMENT_BUILD_18_JUNE
 
-
 #include "database/environment.hxx"
 
 #include "database/directories.hpp"
@@ -58,6 +57,7 @@ public:
     Path UnityAnalysis() const;
     Path UnityDatabase() const;
 
+    Path FilePath( const manifestFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const GeneratedHPPSourceFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const GeneratedCPPSourceFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const PrecompiledHeaderFile& filePath ) const { return toPath( filePath ); }
@@ -85,6 +85,10 @@ public:
     // interface file paths
     GeneratedHPPSourceFilePath Include() const;
     PrecompiledHeaderFile      IncludePCH() const;
+    GeneratedHPPSourceFilePath ClangTraits() const;
+    GeneratedHPPSourceFilePath CPPAlias() const;
+    PrecompiledHeaderFile      CPPAliasPCH() const;
+
     /*
     GeneratedHPPSourceFilePath Interface( const megaFilePath& source ) const;
     PrecompiledHeaderFile      InterfacePCH( const megaFilePath& source ) const;

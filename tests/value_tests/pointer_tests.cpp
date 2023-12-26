@@ -20,8 +20,6 @@
 #include <gtest/gtest.h>
 
 #include "mega/values/runtime/pointer.hpp"
-#include "mega/values/runtime/pointer_io.hpp"
-#include "mega/values/runtime/pointer_limits.hpp"
 
 #include <limits>
 #include <sstream>

@@ -151,8 +151,28 @@ PrecompiledHeaderFile BuildEnvironment::IncludePCH() const
     return { os.str() };
 }
 
-/*
+GeneratedHPPSourceFilePath BuildEnvironment::ClangTraits() const
+{
+    std::ostringstream os;
+    os << "Traits" << GeneratedHPPSourceFilePath::extension().string();
+    return { os.str() };
+}
 
+GeneratedHPPSourceFilePath BuildEnvironment::CPPAlias() const
+{
+    std::ostringstream os;
+    os << "Alias" << GeneratedHPPSourceFilePath::extension().string();
+    return { os.str() };
+}
+
+PrecompiledHeaderFile BuildEnvironment::CPPAliasPCH() const
+{
+    std::ostringstream os;
+    os << "Alias" << PrecompiledHeaderFile::extension().string();
+    return { os.str() };
+}
+
+/*
 GeneratedHPPSourceFilePath BuildEnvironment::Interface( const megaFilePath& source ) const
 {
     std::ostringstream os;

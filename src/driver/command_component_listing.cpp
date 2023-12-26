@@ -26,7 +26,8 @@
 
 #include "compiler/cmake.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
+
 #include "common/assert_verify.hpp"
 
 #include <boost/process/environment.hpp>
@@ -106,9 +107,9 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             {
                 for ( const boost::filesystem::path& srcFile : inputSourceFiles )
                 {
-                    VERIFY_RTE_MSG( srcFile.extension() == mega::io::megaFilePath::extension() || 
-                                    srcFile.extension() == mega::io::schFilePath::extension(),
-                                    "Source file is NOT a mega source file or Schematic: " << srcFile.string() );
+                    // VERIFY_RTE_MSG( srcFile.extension() == mega::io::megaFilePath::extension() || 
+                    //                 srcFile.extension() == mega::io::schFilePath::extension(),
+                    //                 "Source file is NOT a mega source file or Schematic: " << srcFile.string() );
                 }
             }
             break;

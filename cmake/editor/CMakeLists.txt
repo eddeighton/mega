@@ -25,12 +25,6 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get cgal
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/cgal/cgal_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -142,10 +136,8 @@ link_boost( editor serialization )
 link_boost( editor timer )
 link_common( editor )
 link_ed( editor )
-link_fmt( editor )
 link_json( editor )
 link_inja( editor )
-link_spdlog( editor )
 
 install( FILES ${EDITOR_HEADERS} DESTINATION include/editor )
 install( FILES ${EDITOR_SRC_DIR}/config.ed DESTINATION bin )

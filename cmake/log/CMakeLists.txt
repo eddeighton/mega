@@ -17,8 +17,6 @@
 ##  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 ##  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 cmake_minimum_required( VERSION 3.1...3.16 )
 
 #get boost
@@ -27,36 +25,18 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
 
-include( ../run_inja.cmake )
-
-add_custom_target( generate_log_records
-    COMMAND inja
-        --data ${MEGA_API_DIR}/log/records.json
-        --template ${MEGA_API_DIR}/log/records.hxx.jinja
-        --output ${MEGA_API_DIR}/log/records.hxx
-    DEPENDS ${MEGA_API_DIR}/log/records.json ${MEGA_API_DIR}/log/records.hxx.jinja inja
-    BYPRODUCTS  ${MEGA_API_DIR}/log/records.hxx
-    COMMENT "Generating Log Record types" 
-    SOURCES ${MEGA_API_DIR}/log/records.json
-)
+#get spdlog
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
 set( LOG_HEADERS
-    ${MEGA_API_DIR}/log/buffer.hpp
-    ${MEGA_API_DIR}/log/file_log.hpp
-    ${MEGA_API_DIR}/log/filename.hpp
-    ${MEGA_API_DIR}/log/index_record.hpp
-    ${MEGA_API_DIR}/log/iterator.hpp
-    ${MEGA_API_DIR}/log/memory_log.hpp
-    ${MEGA_API_DIR}/log/offset.hpp
-    ${MEGA_API_DIR}/log/range.hpp
-    ${MEGA_API_DIR}/log/records.hxx
-    ${MEGA_API_DIR}/log/storage.hpp
+    ${MEGA_API_DIR}/log/log.hpp
 )
 
 set( LOG_SOURCE
-    ${MEGA_SRC_DIR}/log/file_log.cpp
-    ${MEGA_SRC_DIR}/log/filename.cpp
+    ${MEGA_SRC_DIR}/log/log.cpp
 )
 
 add_library( log
@@ -65,13 +45,9 @@ add_library( log
 )
 target_precompile_headers( log REUSE_FROM mega_pch )
 
-set_target_properties( log PROPERTIES FOLDER service )
+target_link_libraries( log mega_values )
 
-#IF( ${WIN32} )
-#target_compile_options( log PUBLIC "/await:strict" )
-#set_property(TARGET log PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-#ELSE( ${WIN32} )
-#ENDIF( ${WIN32} )
+set_target_properties( log PROPERTIES FOLDER service )
 
 target_include_directories( log PUBLIC ${MEGA_API_DIR} )
 
@@ -79,7 +55,9 @@ link_boost( log system )
 link_boost( log filesystem )
 link_boost( log serialization )
 link_common( log )
+link_fmt( log )
+link_spdlog( log )
 
-install( FILES ${LOG_HEADERS} DESTINATION include/log )
+install( FILES ${EVENT_HEADERS} DESTINATION include/log )
 install( TARGETS log EXPORT log DESTINATION bin)
 install( EXPORT log NAMESPACE MEGA:: FILE log-config.cmake DESTINATION share )

@@ -22,98 +22,110 @@
 namespace Interface
 {
 
+template< typename T >
+static const std::string& getKind();
+
+#define MAKE_KIND_GETTER( TypeName ) \
+template<>\
+inline const std::string& getKind< TypeName >()\
+{\
+    static const std::string s = #TypeName;\
+    return s;\
+}
+
+MAKE_KIND_GETTER( ParsedAggregate )
+MAKE_KIND_GETTER( GeneratedAggregate )
+MAKE_KIND_GETTER( OwnershipLink )
+MAKE_KIND_GETTER( ActivationBitSet )
+MAKE_KIND_GETTER( Aggregate )
+MAKE_KIND_GETTER( Namespace )
+MAKE_KIND_GETTER( Abstract )
+MAKE_KIND_GETTER( Event )
+MAKE_KIND_GETTER( Object )
+MAKE_KIND_GETTER( Interupt )
+MAKE_KIND_GETTER( Requirement )
+MAKE_KIND_GETTER( Decider )
+MAKE_KIND_GETTER( Function )
+MAKE_KIND_GETTER( Action )
+MAKE_KIND_GETTER( Component )
+MAKE_KIND_GETTER( State )
+MAKE_KIND_GETTER( InvocationContext )
+MAKE_KIND_GETTER( IContext )
+
 static const std::string& getKind( const Node* pNode )
 {
     using namespace std::string_literals;
     if( auto* p = db_cast< ParsedAggregate >( pNode ) )
     {
-        static const std::string s = "ParsedAggregate"s;
-        return s;
+        return getKind< ParsedAggregate >();
     }
     else if( auto* p = db_cast< GeneratedAggregate >( pNode ) )
     {
-        static const std::string s = "GeneratedAggregate"s;
-        return s;
+        return getKind< GeneratedAggregate >();
     }
     else if( auto* p = db_cast< OwnershipLink >( pNode ) )
     {
-        static const std::string s = "OwnershipLink"s;
-        return s;
+        return getKind< OwnershipLink >();
     }
     else if( auto* p = db_cast< ActivationBitSet >( pNode ) )
     {
-        static const std::string s = "ActivationBitSet"s;
-        return s;
+        return getKind< ActivationBitSet >();
     }
     else if( auto* p = db_cast< Aggregate >( pNode ) )
     {
-        static const std::string s = "Aggregate"s;
-        return s;
+        return getKind< Aggregate >();
     }
     else if( auto* p = db_cast< Namespace >( pNode ) )
     {
-        static const std::string s = "Namespace"s;
-        return s;
+        return getKind< Namespace >();
     }
     else if( auto* p = db_cast< Abstract >( pNode ) )
     {
-        static const std::string s = "Abstract"s;
-        return s;
+        return getKind< Abstract >();
     }
     else if( auto* p = db_cast< Event >( pNode ) )
     {
-        static const std::string s = "Event"s;
-        return s;
+        return getKind< Event >();
     }
     else if( auto* p = db_cast< Object >( pNode ) )
     {
-        static const std::string s = "Object"s;
-        return s;
+        return getKind< Object >();
     }
     else if( auto* p = db_cast< Interupt >( pNode ) )
     {
-        static const std::string s = "Interupt"s;
-        return s;
+        return getKind< Interupt >();
     }
     else if( auto* p = db_cast< Requirement >( pNode ) )
     {
-        static const std::string s = "Requirement"s;
-        return s;
+        return getKind< Requirement >();
     }
     else if( auto* p = db_cast< Decider >( pNode ) )
     {
-        static const std::string s = "Decider"s;
-        return s;
+        return getKind< Decider >();
     }
     else if( auto* p = db_cast< Function >( pNode ) )
     {
-        static const std::string s = "Function"s;
-        return s;
+        return getKind< Function >();
     }
     else if( auto* p = db_cast< Action >( pNode ) )
     {
-        static const std::string s = "Action"s;
-        return s;
+        return getKind< Action >();
     }
     else if( auto* p = db_cast< Component >( pNode ) )
     {
-        static const std::string s = "Component"s;
-        return s;
+        return getKind< Component >();
     }
     else if( auto* p = db_cast< State >( pNode ) )
     {
-        static const std::string s = "State"s;
-        return s;
+        return getKind< State >();
     }
     else if( auto* p = db_cast< InvocationContext >( pNode ) )
     {
-        static const std::string s = "InvocationContext"s;
-        return s;
+        return getKind< InvocationContext >();
     }
     else if( auto* p = db_cast< IContext >( pNode ) )
     {
-        static const std::string s = "IContext"s;
-        return s;
+        return getKind< IContext >();
     }
     else
     {

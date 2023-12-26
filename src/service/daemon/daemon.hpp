@@ -23,7 +23,7 @@
 #include "service/network/client.hpp"
 #include "service/network/server.hpp"
 #include "service/network/logical_thread_manager.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "service/network/network.hpp"
 

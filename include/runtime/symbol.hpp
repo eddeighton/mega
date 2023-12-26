@@ -22,7 +22,7 @@
 #define GUARD_2023_April_26_orc_symbol
 
 #include "mega/values/runtime/pointer.hpp"
-#include "mega/values/compilation/relation_id.hpp"
+#include "mega/values/compilation/interface/relation_id.hpp"
 #include "mega/values/compilation/invocation_id.hpp"
 
 namespace mega::runtime

@@ -21,7 +21,7 @@
 #include "service/executor/executor.hpp"
 
 #include "service/network/network.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "mega/values/service/node.hpp"
 

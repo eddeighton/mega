@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "log/filename.hpp"
+#include "event/filename.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -35,7 +35,7 @@
 #include <sstream>
 #include <iomanip>
 
-namespace mega::log
+namespace mega::event
 {
 
 struct FileNameID
@@ -44,17 +44,17 @@ struct FileNameID
     U32         id;
 };
 
-} // namespace mega::log
+} // namespace mega::event
 
 // clang-format off
-using MegaLogFileNameID = mega::log::FileNameID;
+using MegaLogFileNameID = mega::event::FileNameID;
 using MegaU32 = mega::U32;
 BOOST_FUSION_ADAPT_STRUCT( MegaLogFileNameID,
     ( std::string, filename )
     ( MegaU32, id ) )
 // clang-format on
 
-namespace mega::log
+namespace mega::event
 {
 
 const char* LOG_FILE_EXTENSION = ".log";
@@ -111,4 +111,4 @@ bool fromFilePath( const boost::filesystem::path& logFilePath, std::string& strF
     return false;
 }
 
-} // namespace mega::log
+} // namespace mega::event

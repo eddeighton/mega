@@ -25,12 +25,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -82,8 +76,6 @@ link_boost( tool system )
 link_boost( tool coroutine )
 link_boost( tool serialization )
 link_common( tool )
-link_fmt( tool )
-link_spdlog( tool )
 
 target_link_libraries( tool protocol )
 target_link_libraries( tool network )

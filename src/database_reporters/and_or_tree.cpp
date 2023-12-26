@@ -29,7 +29,6 @@
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
-#include "mega/mangle/traits.hpp"
 #include "mega/common_strings.hpp"
 
 #include "common/assert_verify.hpp"

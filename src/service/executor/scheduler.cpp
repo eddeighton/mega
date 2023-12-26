@@ -20,7 +20,6 @@
 
 #include "service/executor/scheduler.hpp"
 
-#include "mega/values/runtime/pointer_io.hpp"
 
 
 #include <iostream>

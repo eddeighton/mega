@@ -21,7 +21,7 @@
 #include "request.hpp"
 #include "http_logical_thread.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 namespace mega::service::report
 {

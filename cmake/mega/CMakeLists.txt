@@ -22,12 +22,6 @@ cmake_minimum_required( VERSION 3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -47,6 +41,9 @@ include( ../run_inja.cmake )
 set( MEGA_VALUES_DIR ${MEGA_API_DIR}/mega/values )
 
 set( MEGA_VALUES_COMMON_HEADERS
+
+    ${MEGA_VALUES_DIR}/runtime.h
+    ${MEGA_VALUES_DIR}/native_types.h
 
     ${MEGA_VALUES_DIR}/hash.hpp
     ${MEGA_VALUES_DIR}/native_types.hpp
@@ -117,24 +114,29 @@ set( MEGA_VALUES_COMPILATION_SRC
 
 set( MEGA_VALUES_CLANG_DIR ${MEGA_VALUES_DIR}/clang )
 set( MEGA_VALUES_CLANG_HEADERS
-    ${MEGA_VALUES_CLANG_DIR}/event.hpp
     ${MEGA_VALUES_CLANG_DIR}/operation_id_types.hpp
     ${MEGA_VALUES_CLANG_DIR}/result_type.hpp
     ${MEGA_VALUES_CLANG_DIR}/type_path.hpp
-    ${MEGA_VALUES_CLANG_DIR}/variant.hpp
+    ${MEGA_VALUES_CLANG_DIR}/typed_pointer.hpp
 )
 # NOTE: MEGA_VALUES_CLANG_HEADERS NOTE added to lib
 
 set( MEGA_VALUES_RUNTIME_DIR ${MEGA_VALUES_DIR}/runtime )
 set( MEGA_VALUES_RUNTIME_HEADERS
+    ${MEGA_VALUES_RUNTIME_DIR}/allocation_id.h
+    ${MEGA_VALUES_RUNTIME_DIR}/machine_id.h
+    ${MEGA_VALUES_RUNTIME_DIR}/owner_id.h
+    ${MEGA_VALUES_RUNTIME_DIR}/pointer.h
+    ${MEGA_VALUES_RUNTIME_DIR}/process_id.h
+    ${MEGA_VALUES_RUNTIME_DIR}/time_stamp.h
+
     ${MEGA_VALUES_RUNTIME_DIR}/any_io.hpp
     ${MEGA_VALUES_RUNTIME_DIR}/any.hpp
     ${MEGA_VALUES_RUNTIME_DIR}/maths_types_io.hpp
     ${MEGA_VALUES_RUNTIME_DIR}/maths_types.hpp
     ${MEGA_VALUES_RUNTIME_DIR}/mpo.hpp
-    ${MEGA_VALUES_RUNTIME_DIR}/pointer_io.hpp
-    ${MEGA_VALUES_RUNTIME_DIR}/pointer_limits.hpp
     ${MEGA_VALUES_RUNTIME_DIR}/pointer.hpp
+    ${MEGA_VALUES_RUNTIME_DIR}/timestamp.hpp
 )
 set( MEGA_VALUES_RUNTIME_SRC
 )
@@ -184,8 +186,6 @@ link_boost( mega_values system )
 link_boost( mega_values timer )
 link_boost( mega_values url )
 
-link_fmt( mega_values )
-link_spdlog( mega_values )
 link_json( mega_values )
 link_inja( mega_values )
 link_pybind11( mega_values )
@@ -244,3 +244,5 @@ set( MEGA_LIBRARY
  
 add_library( mega_interface INTERFACE ${MEGA_LIBRARY} )
 set_target_properties( mega_interface PROPERTIES FOLDER service )
+
+install( FILES ${MEGA_LIBRARY} DESTINATION include/mega )

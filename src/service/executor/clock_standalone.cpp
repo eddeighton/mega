@@ -20,13 +20,12 @@
 
 #include "service/executor/clock_standalone.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
 #include "service/protocol/common/logical_thread_base.hpp"
 #include "service/protocol/model/messages.hxx"
 
-#include "mega/values/runtime/pointer_io.hpp"
 
 #include <future>
 

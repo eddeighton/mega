@@ -19,7 +19,7 @@
 
 #include "base_task.hpp"
 
-#include "database/ParserStage.hxx"
+#include "database/InterfaceStage.hxx"
 
 #include "compiler/clang_compilation.hpp"
 #include "database/sources.hpp"
@@ -40,7 +40,7 @@ const char* pszStandardIncludes =
 
 } // namespace
 
-using namespace ParserStage;
+using namespace InterfaceStage;
 
 class Task_Include : public BaseTask
 {
@@ -153,14 +153,39 @@ public:
         const mega::io::PrecompiledHeaderFile      pchPath         = m_environment.IncludePCH();
         start( taskProgress, "Task_IncludePCH", includeFilePath.path(), pchPath.path() );
 
-        using namespace ParserStage;
+        Database database( m_environment, m_manifestFilePath );
 
-        //Database               database( m_environment, m_sourceFilePath );
-        //Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
         Components::Component* pComponent = nullptr;
+        {
+            for( Components::Component* pIter :
+                 database.template many< Components::Component >( m_environment.project_manifest() ) )
+            {
+                switch( pIter->get_type().get() )
+                {
+                    case ComponentType::eLibrary:
+                    {
+                        // do nothing
+                    }
+                    break;
+                    case ComponentType::eInterface:
+                    {
+                        VERIFY_RTE_MSG( pComponent == nullptr, "Duplicate interface components found" );
+                        pComponent = pIter;
+                    }
+                    break;
+                    default:
+                    case ComponentType::TOTAL_COMPONENT_TYPES:
+                    {
+                        THROW_RTE( "Unknown component type" );
+                    }
+                    break;
+                }
+            }
+            VERIFY_RTE_MSG( pComponent, "Failed to locate interface component" );
+        }
 
-        const mega::Compilation compilationCMD = mega::Compilation::make_includePCH_compilation(
-            m_environment, m_toolChain, pComponent );
+        const mega::Compilation compilationCMD
+            = mega::Compilation::make_includePCH_compilation( m_environment, m_toolChain, pComponent );
 
         const task::DeterminantHash determinant( { m_toolChain.clangCompilerHash,
                                                    m_environment.getBuildHashCode( includeFilePath ),

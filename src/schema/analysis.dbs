@@ -28,6 +28,7 @@ namespace Symbols
         value< std::string >               token;
         value< mega::interface::SymbolID > id;
         array< ref< Parser::Symbol > >     symbols;
+        array< ref< InterfaceTypeID > >    interfaceIDs;
     }
 
     object InterfaceTypeID -> SymbolAnalysis::SymbolTable

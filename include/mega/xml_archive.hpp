@@ -24,7 +24,6 @@
 #include "mega/values/compilation/type_id.hpp"
 
 #include "mega/values/runtime/pointer.hpp"
-#include "mega/values/runtime/pointer_io.hpp"
 #include "mega/values/runtime/maths_types.hpp"
 
 #include "mega/address_table.hpp"

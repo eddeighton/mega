@@ -19,14 +19,13 @@
 
 #include "service/terminal.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include "mega/values/service/status.hpp"
 
 #include "service/network/status_printer.hpp"
 
-#include "mega/values/runtime/pointer_io.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include "spdlog/stopwatch.h"
 
 #include <boost/program_options.hpp>

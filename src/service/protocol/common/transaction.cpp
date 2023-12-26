@@ -20,12 +20,12 @@
 
 #include "service/protocol/common/transaction.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 namespace mega::network
 {
 
-TransactionProducer::TransactionProducer( mega::log::FileStorage& log )
+TransactionProducer::TransactionProducer( mega::event::FileStorage& log )
     : m_log( log )
     , m_iteratorEnd( m_log.getIterator() )
     , m_iterator( m_log.getIterator() )

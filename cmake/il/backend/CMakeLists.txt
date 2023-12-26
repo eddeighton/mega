@@ -31,12 +31,6 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 #get inja
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 

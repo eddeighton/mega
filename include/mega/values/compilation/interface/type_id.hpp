@@ -123,7 +123,7 @@ static_assert( ROOT_TYPE_ID.getSubObjectID() == NULL_SUB_OBJECT_ID );
 
 inline std::ostream& operator<<( std::ostream& os, const TypeID& value )
 {
-    return os << std::hex << std::setw( 8 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_IT";
+    return os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_IT";
 }
 
 inline std::istream& operator>>( std::istream& is, TypeID& typeID )

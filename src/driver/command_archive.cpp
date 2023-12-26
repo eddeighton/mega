@@ -27,7 +27,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/archive.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"

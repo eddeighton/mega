@@ -489,8 +489,19 @@ public:
 
     TypeDecl::Return* parse_return()
     {
-        auto       startLoc = Tok.getLocation();
-        Type::CPP* pCPP     = parse_cpp_declaration();
+        auto startLoc = Tok.getLocation();
+
+        Type::CPP* pCPP = nullptr;
+        if( Tok.is( clang::tok::colon ) )
+        {
+            ConsumeAnyToken();
+            pCPP = parse_cpp_declaration();
+        }
+        else
+        {
+            MEGA_PARSER_ERROR( "Function missing return type" );
+            pCPP = m_database.construct< Type::CPP >( Type::CPP::Args{ {} } );
+        }
         return m_database.construct< TypeDecl::Return >( TypeDecl::Return::Args{
             TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pCPP } );
     }

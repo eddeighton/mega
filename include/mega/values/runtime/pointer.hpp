@@ -147,6 +147,18 @@ public:
         }
     };
     
+    inline bool operator==( const Pointer& cmp ) const
+    {
+        throw "TODO";
+    }
+    inline bool operator<( const Pointer& cmp ) const
+    {
+        throw "TODO";
+    }
+    inline bool valid() const
+    {
+        throw "TODO";
+    }
 /*
     const PointerHeap& getHeapPointer() const
     {

@@ -47,14 +47,18 @@ bool                g_bMegaEnabled = false;
 
 namespace clang
 {
+    /*
 extern Session::Ptr make_interface_session( clang::ASTContext* pASTContext, clang::Sema* pSema, const char* strSrcDir,
                                             const char* strBuildDir, const char* strSourceFile );
 
 extern Session::Ptr make_operations_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir,
                                              const char* strBuildDir, const char* strSourceFile );
-
+*/
 Session::Ptr make_library_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir,
                                    const char* strSourceFile );
+
+Session::Ptr make_traits_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir,
+                                     const char* strBuildDir );
 
 } // namespace clang
 
@@ -91,10 +95,15 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
             const mega::CompilationMode compilationMode = mega::CompilationMode::fromStr( strMode );
             switch( compilationMode.get() )
             {
+                case mega::CompilationMode::eTraits:
+                    g_bMegaEnabled = true;
+                    g_pSession     = clang::make_traits_session(
+                        g_pASTContext, g_pSema, strSrcDir, strBuildDir );
+                    break;
                 case mega::CompilationMode::eInterface:
                     g_bMegaEnabled = true;
-                    g_pSession     = clang::make_interface_session(
-                        g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
+                    //g_pSession     = clang::make_interface_session(
+                    //    g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eLibrary:
                     g_bMegaEnabled = true;
@@ -103,13 +112,13 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
                     break;
                 case mega::CompilationMode::eOperations:
                     g_bMegaEnabled = true;
-                    g_pSession     = clang::make_operations_session(
-                        g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
+                    //g_pSession     = clang::make_operations_session(
+                    //    g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eCPP:
                     g_bMegaEnabled = false;
-                    g_pSession     = clang::make_operations_session(
-                        g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
+                    //g_pSession     = clang::make_operations_session(
+                    //    g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eNormal:
                 case mega::CompilationMode::TOTAL_COMPILATION_MODES:

@@ -23,7 +23,7 @@
 #include "service/python/type.hpp"
 #include "service/python/type_system.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 namespace mega::service::python
 {

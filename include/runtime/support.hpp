@@ -53,7 +53,7 @@ namespace mega::runtime
 #include "mega/record_archive.hpp"
 #include "mega/bin_archive.hpp"
 
-#include "log/file_log.hpp"
+#include "event/file_log.hpp"
 
 #include "service/protocol/common/context.hpp"
 
@@ -80,8 +80,8 @@ namespace mega::mangle
 {
 void log( const char* pszMsg )
 {
-    mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Log::Write( mega::log::Log::eTrace, pszMsg ) );
+    mega::event::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::event::Log::Write( mega::event::Log::eTrace, pszMsg ) );
 }
 
 void new_bitset_( void* pData, void* pBlockStart, void* pBlockEnd )
@@ -95,51 +95,51 @@ void structure_make( const mega::Pointer& source, const mega::Pointer& target, m
 {
     VERIFY_RTE_MSG( source.isHeap(), "structure_make passed network address in source " );
     VERIFY_RTE_MSG( target.isHeap(), "structure_make passed network address in target " );
-    mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eMake ) );
+    mega::event::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::event::Structure::Write( source, target, relationID, mega::event::Structure::eMake ) );
 }
 
 void structure_break( const mega::Pointer& source, const mega::Pointer& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeap(), "structure_break passed network address in source " );
     VERIFY_RTE_MSG( target.isHeap(), "structure_break passed network address in target " );
-    mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eBreak ) );
+    mega::event::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::event::Structure::Write( source, target, relationID, mega::event::Structure::eBreak ) );
 }
 
 void structure_move( const mega::Pointer& source, const mega::Pointer& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeap(), "structure_move passed network address in source" );
     // VERIFY_RTE_MSG( target.isHeap(), "structure_move passed network address in target" );
-    mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eMove ) );
+    mega::event::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::event::Structure::Write( source, target, relationID, mega::event::Structure::eMove ) );
 }
 
 void action_start( const mega::Pointer& source )
 {
     VERIFY_RTE_MSG( source.isHeap(), "action_start passed network address " );
-    mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Event::Write( source, mega::log::Event::eStart ) );
+    mega::event::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::event::Event::Write( source, mega::event::Event::eStart ) );
 }
 
 void action_complete( const mega::Pointer& source )
 {
     VERIFY_RTE_MSG( source.isHeap(), "action_start passed network address " );
-    mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Event::Write( source, mega::log::Event::eComplete ) );
+    mega::event::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::event::Event::Write( source, mega::event::Event::eComplete ) );
 }
 
 void event_signal( const mega::Pointer& event )
 {
     VERIFY_RTE_MSG( event.isHeap(), "event_signal passed network address " );
-    mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Event::Write( event, mega::log::Event::eSignal ) );
+    mega::event::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::event::Event::Write( event, mega::event::Event::eSignal ) );
 }
 
 void transition( const mega::Pointer& t )
 {
-    mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Transition::Write( t ) );
+    mega::event::FileStorage& log = mega::Context::get()->getLog();
+    log.record( mega::event::Transition::Write( t ) );
 }
 
 /////////////////////////////////////////////////////////////

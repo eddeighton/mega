@@ -35,25 +35,29 @@ find_file( DB_COMPILER NAMES "database_compiler_driver" PATHS "${BUILD_PATH}/${C
 list(APPEND CMAKE_PREFIX_PATH "${COMMON_INSTALL_PATH}/share" )
 
 set( MEGA_DATABASE_STAGES
+
     AutomataStage
     ComponentListing
     ComponentListingView
     ConcreteStage
     ConcreteTypeAnalysis
-    # FinalStage
     HyperGraphAnalysis
-    # TypeAnalysis
-    # TypeAnalysisRollout
     InterfaceStage
-    # MetaStage
-    # OperationsLocs
-    # OperationsStage
     ParserStage
     SymbolAnalysis
     SymbolRollout
+    ClangTraitsStage
+    ClangAnalysisStage
+    
+    # TypeAnalysis
+    # TypeAnalysisRollout
+    # MetaStage
+    # OperationsLocs
+    # OperationsStage
     # UnityStage
     # UnityStageView
     # ValueSpaceStage
+    # FinalStage
 )
 
 set( DATABASE_SCHEMAS 
@@ -65,6 +69,7 @@ set( DATABASE_SCHEMAS
     #${MEGA_SRC_DIR}/schema/operations.dbs
     ${MEGA_SRC_DIR}/schema/analysis.dbs
     ${MEGA_SRC_DIR}/schema/automata.dbs
+    ${MEGA_SRC_DIR}/schema/derivation.dbs
 )
 
 MegaDatabase( 

@@ -21,7 +21,7 @@
 
 #include "service/protocol/model/daemon_leaf.hxx"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 namespace mega::service
 {

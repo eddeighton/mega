@@ -20,12 +20,13 @@
 #ifndef EG_MACROS_2_NOV_2022
 #define EG_MACROS_2_NOV_2022
 
+#ifdef MEGA_SERVICE
 #include "mega/values/native_types_io.hpp"
 #include "mega/values/runtime/maths_types_io.hpp"
-#include "mega/values/runtime/pointer_io.hpp"
 
 #include "service/protocol/common/context.hpp"
-#include "log/file_log.hpp"
+#include "event/file_log.hpp"
+#endif
 
 #include <sstream>
 
@@ -35,9 +36,13 @@
         stuff                                       \
     } while ( ( void )0, 0 )
 
+#ifdef MEGA_SERVICE
 #define LOG( __level, __msg )                                                               \
     EG_DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                     \
         std::ostringstream _os_msg; _os_msg << __FILE__ << ":" << __LINE__ << " " << __msg; \
-        mega::Context::get()->getLog().record( mega::log::Log::Write( mega::log::Log::e##__level, _os_msg.str() ) ); )
+        mega::Context::get()->getLog().record( mega::event::Log::Write( mega::event::Log::e##__level, _os_msg.str() ) ); )
+#else
+#define LOG( __level, __msg )
+#endif
 
 #endif // EG_MACROS_2_NOV_2022

@@ -25,12 +25,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -82,8 +76,6 @@ link_boost( network system )
 link_boost( network atomic )
 link_boost( network coroutine )
 link_common( network )
-link_fmt( network )
-link_spdlog( network )
 
 install( FILES ${MEGA_NETWORK_API} DESTINATION include/service/network )
 install( TARGETS network EXPORT network DESTINATION bin)

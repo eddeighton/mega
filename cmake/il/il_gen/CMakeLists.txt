@@ -22,12 +22,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -60,8 +54,6 @@ add_executable( il_gen ${IL_SOURCES} )
 link_boost( il_gen program_options )
 link_boost( il_gen filesystem )
 link_boost( il_gen serialization )
-link_fmt( il_gen )
-link_spdlog( il_gen )
 link_json( il_gen )
 link_inja( il_gen )
 link_clang_tooling( il_gen )

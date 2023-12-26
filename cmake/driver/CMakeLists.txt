@@ -25,12 +25,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -50,23 +44,24 @@ include_directories( ${MEGA_SRC_DIR} )
 set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
 set( DRIVER_SOURCES
-		${DRIVER_SOURCE_DIR}/command_archive.cpp
-		${DRIVER_SOURCE_DIR}/command_build.cpp
-		${DRIVER_SOURCE_DIR}/command_component_listing.cpp
-		${DRIVER_SOURCE_DIR}/command_defaults.cpp
-		${DRIVER_SOURCE_DIR}/command_execute_pipeline.cpp
-		${DRIVER_SOURCE_DIR}/command_function.cpp
-		${DRIVER_SOURCE_DIR}/command_log.cpp
-		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp
-		${DRIVER_SOURCE_DIR}/command_map.cpp
-		${DRIVER_SOURCE_DIR}/command_project.cpp
-		${DRIVER_SOURCE_DIR}/command_report.cpp
-		${DRIVER_SOURCE_DIR}/command_sim.cpp
-		${DRIVER_SOURCE_DIR}/command_stash.cpp
-		${DRIVER_SOURCE_DIR}/command_status.cpp
-		${DRIVER_SOURCE_DIR}/command_symbols.cpp
 		${DRIVER_SOURCE_DIR}/command_tool_chain.cpp
-		${DRIVER_SOURCE_DIR}/command_trace.cpp
+		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp
+		${DRIVER_SOURCE_DIR}/command_execute_pipeline.cpp
+		${DRIVER_SOURCE_DIR}/command_component_listing.cpp
+
+		# ${DRIVER_SOURCE_DIR}/command_archive.cpp
+		# ${DRIVER_SOURCE_DIR}/command_build.cpp
+		# ${DRIVER_SOURCE_DIR}/command_defaults.cpp
+		# ${DRIVER_SOURCE_DIR}/command_function.cpp
+		# ${DRIVER_SOURCE_DIR}/command_log.cpp
+		# ${DRIVER_SOURCE_DIR}/command_map.cpp
+		# ${DRIVER_SOURCE_DIR}/command_project.cpp
+		# ${DRIVER_SOURCE_DIR}/command_report.cpp
+		# ${DRIVER_SOURCE_DIR}/command_sim.cpp
+		# ${DRIVER_SOURCE_DIR}/command_stash.cpp
+		# ${DRIVER_SOURCE_DIR}/command_status.cpp
+		# ${DRIVER_SOURCE_DIR}/command_symbols.cpp
+		# ${DRIVER_SOURCE_DIR}/command_trace.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 
@@ -86,14 +81,15 @@ add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 target_link_libraries( mega mega_interface )
 target_link_libraries( mega mega_values )
 target_link_libraries( mega compiler_config )
-target_link_libraries( mega database )
 target_link_libraries( mega log )
-target_link_libraries( mega network )
-target_link_libraries( mega protocol )
-target_link_libraries( mega terminal )
-target_link_libraries( mega schematic )
-target_link_libraries( mega reports )
-target_link_libraries( mega database_reporters )
+target_link_libraries( mega database )
+#target_link_libraries( mega event )
+#target_link_libraries( mega network )
+#target_link_libraries( mega protocol )
+#target_link_libraries( mega terminal )
+#target_link_libraries( mega schematic )
+#target_link_libraries( mega reports )
+#target_link_libraries( mega database_reporters )
 
 set_target_properties( mega PROPERTIES FOLDER service )
 
@@ -104,10 +100,8 @@ link_boost( mega program_options )
 link_boost( mega serialization )
 link_boost( mega timer )
 link_common( mega )
-link_fmt( mega )
 link_inja( mega )
 link_json( mega )
-link_spdlog( mega )
 
 install( TARGETS mega DESTINATION bin)
 

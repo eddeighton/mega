@@ -21,7 +21,7 @@
 #include "database/FinalStage.hxx"
 
 #include "database/sources.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/string.hpp"
 #include "common/file.hpp"

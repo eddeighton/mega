@@ -26,7 +26,7 @@
 
 #include "environment/environment.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include "service/terminal.hpp"
 
 #include "mega/values/service/url.hpp"

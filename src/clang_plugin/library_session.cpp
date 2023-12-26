@@ -20,8 +20,6 @@
 #include "session.hpp"
 #include "clang_utils.hpp"
 
-#include "database/FinalStage.hxx"
-
 #include "mega/common_strings.hpp"
 
 #pragma warning( push )
@@ -43,22 +41,22 @@
 
 namespace clang
 {
-using namespace FinalStage;
-using namespace FinalStage::Interface;
+// using namespace FinalStage;
+// using namespace FinalStage::Interface;
 
 class LibrarySession : public AnalysisSession
 {
-    FinalStage::Database                            m_database;
-    std::map< std::string, Symbols::SymbolTypeID* > m_symbols;
+    // FinalStage::Database                            m_database;
+    //std::map< std::string, Symbols::SymbolTypeID* > m_symbols;
 
 public:
     LibrarySession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir,
                    const char* strSourceFile )
-        : AnalysisSession( pASTContext, pSema, strSrcDir, strBuildDir, strSourceFile )
-        , m_database( m_environment, m_sourceFile )
+        : AnalysisSession( pASTContext, pSema, strSrcDir, strBuildDir )
+        //, m_database( m_environment, m_environment.megaFilePath_fromPath( boost::filesystem::path( strSourceFile ) ) )
     {
-        Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-        m_symbols                          = pSymbolTable->get_symbol_names();
+        // Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+        // m_symbols                          = pSymbolTable->get_symbol_names();
     }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const override
@@ -68,8 +66,9 @@ public:
             return true;
         }
 
-        if( m_symbols.find( strIdentifier ) != m_symbols.end() )
-            return true;
+        THROW_TODO;
+        // if( m_symbols.find( strIdentifier ) != m_symbols.end() )
+        //     return true;
         return false;
     }
 };

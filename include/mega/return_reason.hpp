@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_August_07_return_reason
 #define GUARD_2023_August_07_return_reason
 
-#include "mega/values/clang/event.hpp"
+#include "mega/values/runtime/pointer.hpp"
 
 #include <chrono>
 #include <optional>
@@ -45,7 +45,7 @@ enum Reason
 struct ReturnReason
 {
     Reason                                                 reason;
-    std::vector< Event >                                   events;
+    std::vector< Pointer >                                 events;
     std::optional< std::chrono::steady_clock::time_point > timeout;
 
     ReturnReason()
@@ -58,13 +58,13 @@ struct ReturnReason
     {
     }
 
-    ReturnReason( Reason _reason, const Event& event )
+    ReturnReason( Reason _reason, const Pointer& event )
         : reason( _reason )
         , events( 1, event )
     {
     }
 
-    ReturnReason( Reason _reason, std::initializer_list< Event > _events )
+    ReturnReason( Reason _reason, std::initializer_list< Pointer > _events )
         : reason( _reason )
         , events( _events )
     {
@@ -77,6 +77,6 @@ struct ReturnReason
     }
 };
 
-}
+} // namespace mega
 
-#endif //GUARD_2023_August_07_return_reason
+#endif // GUARD_2023_August_07_return_reason

@@ -83,18 +83,17 @@ protected:
     const boost::filesystem::path m_srcDir, m_buildDir;
     mega::io::Directories         m_directories;
     mega::io::BuildEnvironment    m_environment;
-    const mega::io::megaFilePath  m_sourceFile;
+    // const mega::io::megaFilePath  m_sourceFile;
 
 public:
     using Ptr = std::unique_ptr< Session >;
-    AnalysisSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir,
-                     const char* strSourceFile )
+    AnalysisSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir )
         : Session( pASTContext, pSema )
         , m_srcDir( strSrcDir )
         , m_buildDir( strBuildDir )
         , m_directories{ m_srcDir, m_buildDir, "", "" }
         , m_environment( m_directories )
-        , m_sourceFile( m_environment.megaFilePath_fromPath( boost::filesystem::path( strSourceFile ) ) )
+        //, m_sourceFile( m_environment.megaFilePath_fromPath( boost::filesystem::path( strSourceFile ) ) )
     {
     }
 

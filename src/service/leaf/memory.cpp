@@ -21,7 +21,7 @@
 
 // #include "jit/program_functions.hxx"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"

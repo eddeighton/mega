@@ -20,6 +20,8 @@
 #ifndef CLANG_UTILS_19_04_2019
 #define CLANG_UTILS_19_04_2019
 
+#include "mega/values/compilation/interface/symbol_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
 #include "mega/values/compilation/operation_id.hpp"
 #include "mega/values/compilation/invocation_id.hpp"
 
@@ -34,7 +36,7 @@
 #include <optional>
 #include <iostream>
 
-// #define ENABLE_CLANG_PLUGIN_LOG 1
+#define ENABLE_CLANG_PLUGIN_LOG 1
 
 #ifdef ENABLE_CLANG_PLUGIN_LOG
 #define CLANG_PLUGIN_LOG( msg )                                                                              \
@@ -48,7 +50,7 @@ namespace clang
 {
 std::string getCanonicalTypeStr( QualType type );
 
-std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType type );
+std::optional< mega::interface::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType type );
 
 const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters );
 
@@ -57,8 +59,8 @@ bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType,
 
 bool getSymbolVariant( ASTContext* pASTContext, QualType typePath, mega::InvocationID::SymbolIDVector& typePathTypes );
 
-using SymbolID                      = mega::TypeID;
-using SymbolIDVariant               = std::vector< mega::TypeID >;
+using SymbolID                      = mega::interface::SymbolID;
+using SymbolIDVariant               = std::vector< SymbolID >;
 using SymbolIDVariantSequence       = std::vector< SymbolIDVariant >;
 using SymbolIDVariantSequenceVector = std::vector< SymbolIDVariantSequence >;
 bool getSymbolIDVariantSequenceVector( ASTContext* pASTContext, QualType typePath,
@@ -85,7 +87,7 @@ QualType getBooleanType( ASTContext* pASTContext );
 QualType getIntType( ASTContext* pASTContext );
 QualType getUIntType( ASTContext* pASTContext );
 
-QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext*& pDeclContext, const SourceLocation& loc,
+QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, const SourceLocation& loc,
                        const std::string& strTypeName );
 /*
 QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName, DeclContext*& pDeclContext,

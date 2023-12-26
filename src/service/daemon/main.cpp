@@ -20,7 +20,7 @@
 #include "daemon.hpp"
 
 #include "service/network/network.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/assert_verify.hpp"
 

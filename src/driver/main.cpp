@@ -21,7 +21,7 @@
 #include "common/file.hpp"
 #include "common/time.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include <spdlog/spdlog.h>
 

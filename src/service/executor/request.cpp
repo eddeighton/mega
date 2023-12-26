@@ -23,7 +23,7 @@
 
 #include "mega/values/service/logical_thread_id.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/requireSemicolon.hpp"
 

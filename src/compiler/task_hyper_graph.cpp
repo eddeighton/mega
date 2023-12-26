@@ -136,9 +136,9 @@ public:
             if( pUserLink->get_link()->get_owning() )
             {
                 auto pOwnershipLink = findOwnershipLink( pTargetType );
-                VERIFY_RTE_MSG(
-                    pOwnershipLink,
-                    "Failed to locate owning link target object for: " << Interface::fullTypeName( pUserLink ) );
+                VERIFY_RTE_MSG( pOwnershipLink,
+                                "Failed to locate owning link target object for: " << Interface::fullTypeName(
+                                    pUserLink ) << " with type: " << Interface::fullTypeName( pTargetType ) );
 
                 owners.insert( { pUserLink, pOwnershipLink } );
                 owned.insert( { pOwnershipLink, pUserLink } );
@@ -241,9 +241,29 @@ public:
                 database.construct< Concrete::Edge >( Concrete::Edge::Args{ edgeType, pSource, pTarget } ) );
         }
 
-        virtual bool visit( Interface::ParsedAggregate* pNode ) const
+        virtual bool visit( Interface::ParsedAggregate* pNode ) const { THROW_RTE( "Unknown parsed aggregate type" ); }
+
+        virtual bool visit( Interface::UserDimension* pNode ) const
         {
-            Concrete::Node* pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
+            auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
+            VERIFY_RTE( pConcreteParent );
+            createEdge( EdgeType::eDim, pConcreteParent, pConcrete );
+            createEdge( EdgeType::eParent, pConcrete, pConcreteParent );
+            return true;
+        }
+        
+        virtual bool visit( Interface::UserAlias* pNode ) const
+        {
+            auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
+            VERIFY_RTE( pConcreteParent );
+            createEdge( EdgeType::eDim, pConcreteParent, pConcrete );
+            createEdge( EdgeType::eParent, pConcrete, pConcreteParent );
+            return true;
+        }
+
+        virtual bool visit( Interface::UserUsing* pNode ) const 
+        { 
+            auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
             VERIFY_RTE( pConcreteParent );
             createEdge( EdgeType::eDim, pConcreteParent, pConcrete );
             createEdge( EdgeType::eParent, pConcrete, pConcreteParent );

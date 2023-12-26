@@ -23,9 +23,7 @@
 #include "environment/environment_build.hpp"
 #include "environment/environment_archive.hpp"
 
-#include "database/FinalStage.hxx"
-
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/process.hpp"
 #include "common/stash.hpp"

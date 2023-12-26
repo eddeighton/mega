@@ -19,9 +19,8 @@
 
 #include "service/terminal.hpp"
 
-#include "mega/values/runtime/pointer_io.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
 

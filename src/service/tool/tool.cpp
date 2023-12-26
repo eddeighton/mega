@@ -26,13 +26,13 @@
 
 #include "service/network/logical_thread.hpp"
 #include "service/network/logical_thread_manager.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
 
 #include "service/protocol/model/project.hxx"
 
-#include "log/file_log.hpp"
+#include "event/file_log.hpp"
 
 #include "common/requireSemicolon.hpp"
 

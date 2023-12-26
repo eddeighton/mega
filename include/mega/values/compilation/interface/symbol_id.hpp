@@ -89,7 +89,7 @@ static constexpr const char* ROOT_SYMBOL = "Root";
 
 inline std::ostream& operator<<( std::ostream& os, const SymbolID& value )
 {
-    return os << std::hex << std::setw( 8 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_S";
+    return os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_S";
 }
 
 } // namespace mega::interface

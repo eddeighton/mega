@@ -19,9 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "mega/values/compilation/relation_id.hpp"
-
-#include "mega/values/compilation/type_id_limits.hpp"
+#include "mega/values/compilation/interface/relation_id.hpp"
 
 #include <limits>
 #include <sstream>

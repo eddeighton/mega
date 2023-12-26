@@ -125,7 +125,7 @@ public:
                 auto        symbolIDOpt = symbolTable.findSymbol( token );
                 VERIFY_RTE( symbolIDOpt.has_value() );
                 auto pSymbol = database.construct< Symbols::SymbolID >(
-                    Symbols::SymbolID::Args{ token, symbolIDOpt.value(), {} } );
+                    Symbols::SymbolID::Args{ token, symbolIDOpt.value(), {}, {} } );
                 newSymbolNames.insert( { token, pSymbol } );
                 newSymbolIDs.insert( { symbolIDOpt.value(), pSymbol } );
 
@@ -220,6 +220,19 @@ public:
                                 "Duplicate interface typeID: " << interfaceTypeID );
 
                 database.construct< Interface::Node >( Interface::Node::Args{ pNode, pInterfaceTypeID } );
+            }
+        }
+
+        // record the interfaceID last symbol
+        {
+            for( const auto [ typeID, pInterfaceID ] : newInterfaceTypeIDs )
+            {
+                auto symbolIDs = pInterfaceID->get_symbol_ids();
+                if( !symbolIDs.empty() )
+                {
+                    auto pLast = symbolIDs.back();
+                    pLast->push_back_interfaceIDs( pInterfaceID );
+                }
             }
         }
 

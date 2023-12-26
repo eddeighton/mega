@@ -19,7 +19,8 @@
 
 #include "mega/values/compilation/tool_chain_hash.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
+
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
@@ -52,12 +53,8 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 ( "clang_compiler", po::value< boost::filesystem::path >( &clangCompiler ), "Clang Compiler path" )
                 ( "parser",         po::value< boost::filesystem::path >( &parser ),        "Parser Path" )
                 ( "mega_compiler",  po::value< boost::filesystem::path >( &megaCompiler ),  "Megastructure compiler path" )
-                ( "mega_executor",  po::value< boost::filesystem::path >( &megaExecutor ),  "Megastructure executor path" )
                 ( "clang_plugin",   po::value< boost::filesystem::path >( &clangPlugin ),   "Clang Plugin path" )
                 ( "database",       po::value< boost::filesystem::path >( &database ),      "Database Path" )
-
-                ( "mega_mangle",    po::value< boost::filesystem::path >( &megaMangle ),    "Mega Mangle Path" )
-                ( "leaf",           po::value< boost::filesystem::path >( &leaf ),          "Leaf Path" )
 
                 ( "output_xml",     po::value< boost::filesystem::path >( &outputFilePath ),  "Output XML File" )
                 ;
@@ -77,11 +74,8 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     VERIFY_RTE_MSG( boost::filesystem::exists( clangCompiler ), "File not found clangCompiler at : " << clangCompiler.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( parser ), "File not found parser at : " << parser.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( megaCompiler ), "File not found megaCompiler at : " << megaCompiler.string() );
-    VERIFY_RTE_MSG( boost::filesystem::exists( megaExecutor ), "File not found megaExecutor at : " << megaExecutor.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( clangPlugin ), "File not found clangPlugin at : " << clangPlugin.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( database ), "File not found database at : " << database.string() );
-    VERIFY_RTE_MSG( boost::filesystem::exists( megaMangle ), "File not found megaMangle at : " << megaMangle.string() );
-    VERIFY_RTE_MSG( boost::filesystem::exists( leaf ), "File not found leaf at : " << leaf.string() );
     // clang-format on
 
     {
@@ -90,8 +84,8 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             const std::string strClangVersion   = mega::utilities::ToolChain::getClangVersion( clangCompiler );
             const mega::U64   szDatabaseVersion = mega::utilities::ToolChain::getDatabaseVersion( database );
 
-            const mega::utilities::ToolChain toolChain( strClangVersion, szDatabaseVersion, parser, megaCompiler, megaExecutor,
-                                                        clangCompiler, clangPlugin, database, megaMangle, leaf );
+            const mega::utilities::ToolChain toolChain(
+                strClangVersion, szDatabaseVersion, parser, megaCompiler, clangCompiler, clangPlugin, database );
 
             boost::archive::xml_oarchive oa( os );
             oa&                          boost::serialization::make_nvp( "toolchain", toolChain );

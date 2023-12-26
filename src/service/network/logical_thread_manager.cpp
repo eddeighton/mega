@@ -19,7 +19,7 @@
 
 #include "service/network/logical_thread_manager.hpp"
 #include "service/network/network.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
 #include "service/protocol/model/messages.hxx"

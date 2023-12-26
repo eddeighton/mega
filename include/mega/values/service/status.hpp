@@ -25,7 +25,7 @@
 #include "mega/values/service/logical_thread_id.hpp"
 #include "service/protocol/common/sender_ref.hpp"
 
-#include "log/index_record.hpp"
+#include "event/index_record.hpp"
 
 #include <utility>
 #include <vector>

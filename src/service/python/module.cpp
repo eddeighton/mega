@@ -25,7 +25,7 @@
 #include "pointer.hpp"
 #include "cast.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "service/protocol/common/type_erase.hpp"
 #include "runtime/function_provider.hpp"

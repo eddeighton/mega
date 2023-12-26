@@ -25,7 +25,7 @@
 #include "job.hpp"
 
 #include "service/network/network.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/memory.hxx"

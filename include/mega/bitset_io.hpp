@@ -22,7 +22,6 @@
 #define GUARD_2023_October_12_bitset
 
 #include "mega/values/native_types.hpp"
-#include "mega/mangle/traits.hpp"
 
 #include <boost/dynamic_bitset/serialization.hpp>
 

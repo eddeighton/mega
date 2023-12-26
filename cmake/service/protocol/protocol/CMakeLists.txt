@@ -25,12 +25,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -172,8 +166,6 @@ link_boost( protocol iostreams )
 link_boost( protocol serialization )
 link_boost( protocol system )
 link_common( protocol )
-link_fmt( protocol )
-link_spdlog( protocol )
 
 install( FILES ${MEGA_PROTOCOL_COMMON_HEADERS} DESTINATION include/service/protocol/common )
 install( FILES ${MEGA_TYPES_HEADERS} DESTINATION include/service/protocol/types )

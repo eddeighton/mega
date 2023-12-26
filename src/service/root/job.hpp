@@ -22,7 +22,7 @@
 
 #include "request.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "service/protocol/model/job.hxx"
 

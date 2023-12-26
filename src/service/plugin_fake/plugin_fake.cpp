@@ -25,7 +25,7 @@
 
 #include "mega/values/native_types.hpp"
 #include "service/network/network.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include <spdlog/async.h>
 

@@ -54,7 +54,6 @@
 #include "database/sources.hpp"
 
 #include "mega/common_strings.hpp"
-#include "mega/mangle/traits.hpp"
 
 #include "common/file.hpp"
 

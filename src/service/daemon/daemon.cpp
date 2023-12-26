@@ -26,7 +26,7 @@
 #include "service/network/logical_thread.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/asio/ip/host_name.hpp>

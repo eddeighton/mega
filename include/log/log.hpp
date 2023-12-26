@@ -21,13 +21,10 @@
 #define LOG_28_MAY_2022
 
 #include "mega/values/compilation/invocation_id.hpp"
-#include "mega/values/compilation/type_id.hpp"
-#include "mega/values/compilation/sub_type_instance.hpp"
-#include "mega/values/compilation/type_instance.hpp"
-
+#include "mega/values/compilation/interface/type_id.hpp"
+#include "mega/values/compilation/concrete/sub_object_id_instance.hpp"
+#include "mega/values/compilation/concrete/type_id_instance.hpp"
 #include "mega/values/runtime/pointer.hpp"
-#include "mega/values/runtime/pointer_io.hpp"
-
 #include "mega/values/service/logical_thread_id.hpp"
 #include "mega/values/service/program.hpp"
 
@@ -135,6 +132,7 @@ inline void logLinesSuccessFail( const std::string strMsg, bool bSuccess, const 
 
 } // namespace mega::network
 
+/*
 namespace fmt
 {
 template <>
@@ -188,7 +186,7 @@ struct formatter< mega::service::Program >
 };
 
 template <>
-struct formatter< mega::TypeID >
+struct formatter< mega::interface::TypeID >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
@@ -266,5 +264,5 @@ struct formatter< mega::InvocationID >
 };
 
 } // namespace fmt
-
+*/
 #endif // LOG_28_MAY_2022

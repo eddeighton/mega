@@ -22,14 +22,12 @@
 #include <gtest/gtest-param-test.h>
 
 #include "mega/values/native_types.hpp"
-#include "mega/values/runtime/pointer_limits.hpp"
-#include "mega/values/compilation/relation_id.hpp"
-#include "mega/values/compilation/type_id_limits.hpp"
+#include "mega/values/compilation/interface/relation_id.hpp"
 
-#include "log/filename.hpp"
-#include "log/records.hxx"
-#include "log/file_log.hpp"
-#include "log/memory_log.hpp"
+#include "event/filename.hpp"
+#include "event/records.hxx"
+#include "event/file_log.hpp"
+#include "event/memory_log.hpp"
 
 #include <boost/filesystem/operations.hpp>
 
@@ -41,7 +39,7 @@ struct LogFilenameTestData
 {
     Path                   root;
     std::string            name;
-    mega::log::BufferIndex index;
+    mega::event::BufferIndex index;
     Path                   expected;
 };
 
@@ -54,10 +52,10 @@ protected:
 TEST_P( FileNamesAccept, AcceptedFileNames )
 {
     const LogFilenameTestData data = GetParam();
-    ASSERT_EQ( mega::log::toFilePath( data.root, data.name, data.index ), data.expected );
+    ASSERT_EQ( mega::event::toFilePath( data.root, data.name, data.index ), data.expected );
     std::string            strFileType;
-    mega::log::BufferIndex index;
-    ASSERT_TRUE( mega::log::fromFilePath( data.expected, strFileType, index ) );
+    mega::event::BufferIndex index;
+    ASSERT_TRUE( mega::event::fromFilePath( data.expected, strFileType, index ) );
     ASSERT_EQ( strFileType, data.name );
     ASSERT_EQ( data.index, index );
 }
@@ -80,8 +78,8 @@ class FileNamesReject : public ::testing::TestWithParam< Path >
 TEST_P( FileNamesReject, RejectedFileNames )
 {
     std::string            strFileType;
-    mega::log::BufferIndex index;
-    ASSERT_FALSE( mega::log::fromFilePath( GetParam(), strFileType, index ) );
+    mega::event::BufferIndex index;
+    ASSERT_FALSE( mega::event::fromFilePath( GetParam(), strFileType, index ) );
 }
 
 // clang-format off
@@ -99,7 +97,7 @@ INSTANTIATE_TEST_SUITE_P( TestFileNames, FileNamesReject,
 
 TEST( MemoryLogTests, Basic )
 {
-    using namespace mega::log;
+    using namespace mega::event;
 
     MemoryStorage log;
 
@@ -153,12 +151,12 @@ protected:
 TEST_F( BasicLogTest, Cycles )
 {
     const boost::filesystem::path logPath = m_folder / "basic";
-    mega::log::FileStorage        log( logPath, false );
+    mega::event::FileStorage        log( logPath, false );
 
-    using namespace mega::log;
+    using namespace mega::event;
 
     // fill first log file
-    for( int i = 0; i < mega::log::FileStorage::IndexType::RecordsPerFile * 3; ++i )
+    for( int i = 0; i < mega::event::FileStorage::IndexType::RecordsPerFile * 3; ++i )
     {
         ASSERT_EQ( log.getTimeStamp(), i );
         ASSERT_EQ( log.get( TrackID::eLog ), Offset{} );
@@ -168,7 +166,7 @@ TEST_F( BasicLogTest, Cycles )
 
 TEST_F( BasicLogTest, LogMsg )
 {
-    using namespace mega::log;
+    using namespace mega::event;
 
     // clang-format off
     std::vector< Log::Type > types = 
@@ -211,7 +209,7 @@ TEST_F( BasicLogTest, LogMsg )
 
 TEST_F( BasicLogTest, StructureMsg )
 {
-    using namespace mega::log;
+    using namespace mega::event;
 
     // clang-format off
     std::vector< Structure::Type > types = 
@@ -270,7 +268,7 @@ TEST_F( BasicLogTest, StructureMsg )
 
 TEST_F( BasicLogTest, MemoryMsg )
 {
-    using namespace mega::log;
+    using namespace mega::event;
 
     const boost::filesystem::path logPath = m_folder / "MemoryMsg";
     FileStorage                   log( logPath, false );
@@ -287,7 +285,7 @@ struct MemoryReadHeader
 
 TEST_F( BasicLogTest, Range )
 {
-    using namespace mega::log;
+    using namespace mega::event;
 
     const boost::filesystem::path logPath = m_folder / "Range";
     FileStorage                   log( logPath, false );
@@ -331,7 +329,7 @@ TEST_F( BasicLogTest, Range )
 
 TEST_F( BasicLogTest, Load )
 {
-    using namespace mega::log;
+    using namespace mega::event;
 
     const boost::filesystem::path logPath = m_folder / "Timestamp";
 
@@ -440,7 +438,7 @@ TEST_F( BasicLogTest, Load )
 /*
 TEST_F( BasicLogTest, LogMsgMany_ )
 {
-    using namespace mega::log;
+    using namespace mega::event;
 
     std::vector< LogMsg > testMsgs;
     const int             totalMsgs = 100000;
@@ -465,18 +463,18 @@ TEST_F( BasicLogTest, LogMsgMany_ )
 
     int               iCounter     = 0;
     const int         msgsPerCycle = 1000;
-    mega::log::Offset lastOffset;
+    mega::event::Offset lastOffset;
     for ( const auto msg : testMsgs )
     {
         if ( ( iCounter != 0 ) && ( iCounter % msgsPerCycle == 0 ) )
         {
             const mega::TimeStamp   lastCycle         = log.getTimeStamp();
-            const mega::log::Offset oldOffset         = log.get( mega::log::TrackID::Log, lastCycle );
-            const mega::log::Offset expectedNewOffset = log.get( mega::log::TrackID::Log );
+            const mega::event::Offset oldOffset         = log.get( mega::event::TrackID::Log, lastCycle );
+            const mega::event::Offset expectedNewOffset = log.get( mega::event::TrackID::Log );
 
             log.cycle();
             const mega::TimeStamp   newCycle  = log.getTimeStamp();
-            const mega::log::Offset newOffset = log.get( mega::log::TrackID::Log, newCycle );
+            const mega::event::Offset newOffset = log.get( mega::event::TrackID::Log, newCycle );
 
             ASSERT_EQ( newOffset, expectedNewOffset )
                 << "iCounter:" << iCounter << " lastCycle:" << lastCycle << " newCycle:" << newCycle

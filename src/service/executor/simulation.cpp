@@ -268,7 +268,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                         //SPDLOG_TRACE( "Generating completion event: {}", actionContext );
                                         // generate completion event
                                         m_pLog->record(
-                                            mega::log::Event::Write( actionContext, mega::log::Event::eComplete ) );
+                                            mega::event::Event::Write( actionContext, mega::event::Event::eComplete ) );
                                     }
                                     break;
                                     default:
@@ -490,7 +490,7 @@ Pointer Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_
     QueueStackDepth queueMsgs( m_queueStack );
     Pointer       allocated = m_pMemoryManager->New( objectTypeID );
     getLog().record(
-        mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+        mega::event::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::event::Structure::eConstruct ) );
     return allocated.getHeaderAddress();*/
 }
 

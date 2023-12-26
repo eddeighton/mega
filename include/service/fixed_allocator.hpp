@@ -30,7 +30,7 @@
 #include "mega/memory.hpp"
 
 #include "service/protocol/common/sender_ref.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/assert_verify.hpp"
 

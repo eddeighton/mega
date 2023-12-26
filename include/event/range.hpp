@@ -22,7 +22,7 @@
 #define GUARD_2023_March_21_range
 
 #include "mega/values/native_types.hpp"
-namespace mega::log
+namespace mega::event
 {
 
 struct TrackRange
@@ -66,6 +66,6 @@ struct Range
     }
 };
 
-} // namespace mega::log
+} // namespace mega::event
 
 #endif // GUARD_2023_March_21_range

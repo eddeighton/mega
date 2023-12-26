@@ -23,9 +23,8 @@
 
 #include "mega/values/native_types.hpp"
 #include "mega/values/runtime/pointer.hpp"
-#include "mega/values/runtime/pointer_io.hpp"
 
-#include "log/range.hpp"
+#include "event/range.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -52,7 +51,7 @@ void update()
 {
     while( true )
     {
-        const mega::log::Range* pRange = reinterpret_cast< const mega::log::Range* >( mp_downstream() );
+        const mega::event::Range* pRange = reinterpret_cast< const mega::event::Range* >( mp_downstream() );
         if( !pRange )
         {
             break;

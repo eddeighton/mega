@@ -22,12 +22,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -117,8 +111,6 @@ link_boost( megastructure timer )
 link_boost( megastructure filesystem )
 link_boost( megastructure iostreams )
 link_boost( megastructure serialization )
-link_fmt( megastructure )
-link_spdlog( megastructure )
 link_json( megastructure )
 link_inja( megastructure )
 link_pybind11( megastructure )

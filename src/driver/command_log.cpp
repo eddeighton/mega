@@ -19,9 +19,9 @@
 
 #include "service/terminal.hpp"
 
-#include "log/file_log.hpp"
+#include "event/file_log.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
@@ -64,11 +64,11 @@ struct Options
     }
 };
 
-void printLog( mega::log::FileStorage& log, const Options& options, mega::TimeStamp timestamp )
+void printLog( mega::event::FileStorage& log, const Options& options, mega::TimeStamp timestamp )
 {
     if( options.bShowLogRecords )
     {
-        using namespace mega::log::Log;
+        using namespace mega::event::Log;
         for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
         {
             const Read&        logMsg = *i;
@@ -99,7 +99,7 @@ void printLog( mega::log::FileStorage& log, const Options& options, mega::TimeSt
     }
     if( options.bShowStructureRecords )
     {
-        using namespace mega::log::Structure;
+        using namespace mega::event::Structure;
         for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
         {
             const Read&        record = *i;
@@ -111,7 +111,7 @@ void printLog( mega::log::FileStorage& log, const Options& options, mega::TimeSt
     }
     if( options.bShowEvents )
     {
-        using namespace mega::log::Event;
+        using namespace mega::event::Event;
         for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
         {
             const Read&        eventRecord = *i;
@@ -123,7 +123,7 @@ void printLog( mega::log::FileStorage& log, const Options& options, mega::TimeSt
     }
     if( options.bShowTransitions )
     {
-        using namespace mega::log::Transition;
+        using namespace mega::event::Transition;
         for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
         {
             const Read&        transitionRecord = *i;
@@ -134,7 +134,7 @@ void printLog( mega::log::FileStorage& log, const Options& options, mega::TimeSt
     }
     if( options.bShowMemoryRecords )
     {
-        using namespace mega::log::Memory;
+        using namespace mega::event::Memory;
         for( auto i = log.begin< Read >( timestamp ), iEnd = log.end< Read >(); i != iEnd; ++i )
         {
             const Read& memoryRecord = *i;
@@ -228,7 +228,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
                     void operator()() const
                     {
-                        mega::log::FileStorage log( logFolderPath, true );
+                        mega::event::FileStorage log( logFolderPath, true );
                         printLog( log, options, timestamp );
                         timestamp = log.getTimeStamp();
 
@@ -243,7 +243,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             }
             else
             {
-                mega::log::FileStorage log( logFolderPath, true );
+                mega::event::FileStorage log( logFolderPath, true );
                 printLog( log, options, 0 );
             }
         }

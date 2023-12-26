@@ -54,7 +54,7 @@
                     "name": "Target"
                 },
                 {
-                    "type": "mega::RelationID::ValueType",
+                    "type": "mega::interface::RelationID::ValueType",
                     "name": "Relation"
                 }
             ],

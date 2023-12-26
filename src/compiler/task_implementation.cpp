@@ -23,8 +23,6 @@
 
 #include "compiler/clang_compilation.hpp"
 
-#include "mega/mangle/traits.hpp"
-
 #include <common/file.hpp>
 #include <common/string.hpp>
 

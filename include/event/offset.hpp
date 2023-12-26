@@ -22,10 +22,11 @@
 #define GUARD_2022_October_10_offset
 
 #include "mega/values/native_types.hpp"
+
 #include <limits>
 #include <functional>
 
-namespace mega::log
+namespace mega::event
 {
 
 static const U64 LogFileSize        = 1 << 26;
@@ -129,6 +130,6 @@ private:
     InterBufferOffset m_offset    = 0U;
 };
 
-} // namespace mega::log
+} // namespace mega::event
 
 #endif // GUARD_2022_October_10_offset

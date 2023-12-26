@@ -19,7 +19,6 @@
 
 #include "service/network/status_printer.hpp"
 
-#include "mega/values/runtime/pointer_io.hpp"
 #include "mega/values/service/logical_thread_id.hpp"
 
 namespace mega::utilities

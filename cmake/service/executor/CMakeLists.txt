@@ -25,12 +25,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get fmt
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
-
-#get spdlog
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -95,8 +89,6 @@ link_boost( executorLib system )
 link_boost( executorLib coroutine )
 link_boost( executorLib serialization )
 link_common( executorLib )
-link_fmt( executorLib )
-link_spdlog( executorLib )
 
 target_link_libraries( executorLib compiler_config )
 target_link_libraries( executorLib protocol )
@@ -140,8 +132,6 @@ link_boost( executor timer )
 link_boost( executor filesystem )
 link_boost( executor iostreams )
 link_boost( executor serialization )
-link_fmt( executor )
-link_spdlog( executor )
 link_json( executor )
 link_inja( executor )
 link_common( executor )

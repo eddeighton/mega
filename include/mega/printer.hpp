@@ -23,7 +23,6 @@
 
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
-#include "mega/values/runtime/pointer_io.hpp"
 #include "mega/values/runtime/any.hpp"
 #include "mega/values/runtime/any_io.hpp"
 

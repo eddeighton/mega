@@ -226,10 +226,29 @@ public:
                 pAggregateParent->push_back_children( pParsedAggregate );
 
                 // refine the aggregate as needed
-                if( auto pParserLink = db_cast< Parser::Link >( pAggregate ) )
+                if( auto pParserDimension = db_cast< Parser::Dimension >( pAggregate ) )
+                {
+                    database.construct< Interface::UserDimension >(
+                        Interface::UserDimension::Args{ pParsedAggregate, pParserDimension } );
+                }
+                else if( auto pParserLink = db_cast< Parser::Link >( pAggregate ) )
                 {
                     database.construct< Interface::UserLink >(
                         Interface::UserLink::Args{ pParsedAggregate, pParserLink } );
+                }
+                else if( auto pParserAlias = db_cast< Parser::Alias >( pAggregate ) )
+                {
+                    database.construct< Interface::UserAlias >(
+                        Interface::UserAlias::Args{ pParsedAggregate, pParserAlias } );
+                }
+                else if( auto pParserUsing = db_cast< Parser::Using >( pAggregate ) )
+                {
+                    database.construct< Interface::UserUsing >(
+                        Interface::UserUsing::Args{ pParsedAggregate, pParserUsing } );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown parsed aggregate type" );
                 }
             }
         }
@@ -247,7 +266,10 @@ public:
         if( bRefined )
         {
             p = db_cast< InterfaceType >( pIContext );
-            VERIFY_PARSER( p, "Conflicting container types defined", pContainer );
+            VERIFY_PARSER( p,
+                           "Conflicting container types defined of: " << Interface::getKind( pIContext ) << " and: "
+                                                                      << Interface::getKind< InterfaceType >(),
+                           pContainer );
         }
         else
         {
@@ -265,7 +287,10 @@ public:
         if( bRefined )
         {
             p = db_cast< InterfaceType >( pIContext );
-            VERIFY_PARSER( p, "Conflicting container types defined", pContainer );
+            VERIFY_PARSER( p,
+                           "Conflicting container types defined of: " << Interface::getKind( pIContext ) << " and: "
+                                                                      << Interface::getKind< InterfaceType >(),
+                           pContainer );
         }
         else
         {
@@ -439,7 +464,10 @@ public:
                     if( bRefined )
                     {
                         p = db_cast< Interface::Action >( pIContext );
-                        VERIFY_PARSER( p, "Conflicting container types defined", pContainer );
+                        VERIFY_PARSER( p,
+                                       "Conflicting container types defined of: " << Interface::getKind(
+                                           pIContext ) << " and: " << Interface::getKind< Interface::Action >(),
+                                       pContainer );
                     }
                     else
                     {
@@ -474,7 +502,10 @@ public:
                     if( bRefined )
                     {
                         p = db_cast< Interface::Component >( pIContext );
-                        VERIFY_PARSER( p, "Conflicting container types defined", pContainer );
+                        VERIFY_PARSER( p,
+                                       "Conflicting container types defined of: " << Interface::getKind(
+                                           pIContext ) << " and: " << Interface::getKind< Interface::Component >(),
+                                       pContainer );
                     }
                     else
                     {
@@ -641,7 +672,8 @@ public:
                 // create ownership link
                 {
                     auto iFind = reservedSymbols.find( EG_OWNER );
-                    VERIFY_RTE_MSG( iFind != reservedSymbols.end(), "Failed to locate reserved symbol for: " << EG_OWNER );
+                    VERIFY_RTE_MSG(
+                        iFind != reservedSymbols.end(), "Failed to locate reserved symbol for: " << EG_OWNER );
 
                     VERIFY_RTE( pObject->get_component_opt().has_value() );
                     // clang-format off
@@ -698,7 +730,6 @@ public:
                     pObject->set_activation_bitset( pActivationBitset );
                     pObject->push_back_children( pActivationBitset );
                 }
-
             }
             else if( auto pAction = db_cast< Action >( pIContext ) )
             {

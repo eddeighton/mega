@@ -30,11 +30,8 @@
 
 #include "mega/values/clang/result_type.hpp"
 #include "mega/values/clang/type_path.hpp" // has array
-#include "mega/values/clang/variant.hpp"
-#include "mega/values/clang/event.hpp"
 #include "mega/values/clang/operation_id_types.hpp" 
-
-#include "mega/mangle/traits.hpp"
+#include "mega/values/clang/typed_pointer.hpp"
 
 #include "mega/clock.hpp"
 #include "mega/iterators.hpp" // has array and vector and defines __mega_vector std::vector type alias

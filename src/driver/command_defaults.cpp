@@ -21,13 +21,12 @@
 #include "database/FinalStage.hxx"
 
 #include "mega/defaults.hpp"
-#include "mega/values/runtime/pointer_io.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "mega/values/service/project.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 

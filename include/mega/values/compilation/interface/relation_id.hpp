@@ -115,7 +115,7 @@ static_assert( TEST_RELATION_ID.getLower().getSubObjectID() == 3_ISO );
 inline std::ostream& operator<<( std::ostream& os, const RelationID& relationID )
 {
     // this must work within a filename - used for relation code gen
-    return os << std::hex << std::setw( 16 ) << std::setfill( '0' ) << relationID.getValue() << std::dec << "_R";
+    return os << "0x" << std::hex << std::setw( 16 ) << std::setfill( '0' ) << relationID.getValue() << std::dec << "_R";
 }
 } // namespace mega::interface
 

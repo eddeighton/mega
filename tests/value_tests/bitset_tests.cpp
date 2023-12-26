@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mega/mangle/traits.hpp"
 #include "mega/bitset_io.hpp"
 
 #include <gtest/gtest.h>

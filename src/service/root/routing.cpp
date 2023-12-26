@@ -19,11 +19,10 @@
 
 #include "request.hpp"
 
-#include "mega/values/runtime/pointer_io.hpp"
 
 #include "root.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/unreachable.hpp"
 

@@ -48,7 +48,6 @@ target_precompile_headers( frontend REUSE_FROM mega_pch )
 
 source_group( src FILES ${IL_FRONTEND_HEADERS} ${IL_FRONTEND_SOURCES} )
 
-link_spdlog( frontend )
 link_common( frontend )
 
 install( FILES ${IL_FRONTEND_HEADERS} DESTINATION include/il/frontend )

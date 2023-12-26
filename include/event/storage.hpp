@@ -21,12 +21,12 @@
 #ifndef GUARD_2023_July_31_storage
 #define GUARD_2023_July_31_storage
 
-#include "log/range.hpp"
-#include "log/iterator.hpp"
+#include "event/range.hpp"
+#include "event/iterator.hpp"
 
 #include <array>
 
-namespace mega::log
+namespace mega::event
 {
 
 template < class BufferFactory >
@@ -199,6 +199,6 @@ private:
     TrackArray m_tracks;
 };
 
-} // namespace mega::log
+} // namespace mega::event
 
 #endif // GUARD_2023_July_31_storage

@@ -21,7 +21,6 @@
 #ifndef GUARD_2022_October_14_mpo_context
 #define GUARD_2022_October_14_mpo_context
 
-#include "mega/mangle/traits.hpp"
 #include "mega/values/runtime/pointer.hpp"
 
 #include "environment/mpo_database.hpp"
@@ -31,7 +30,7 @@
 #include "service/memory_manager.hpp"
 #include "service/lock_tracker.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "service/protocol/common/context.hpp"
 #include "mega/values/service/logical_thread_id.hpp"
@@ -45,7 +44,7 @@
 
 #include "service/protocol/common/transaction.hpp"
 
-#include "log/file_log.hpp"
+#include "event/file_log.hpp"
 
 #include <boost/filesystem.hpp>
 

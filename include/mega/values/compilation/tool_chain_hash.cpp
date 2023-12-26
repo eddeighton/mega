@@ -57,41 +57,6 @@ ToolChain::ToolChain( const std::string& strClangCompilerVersion,
 {
 }
 
-ToolChain::ToolChain( const std::string& strClangCompilerVersion,
-                      mega::U64          szDatabaseVersion,
-
-                      const boost::filesystem::path& parser,
-                      const boost::filesystem::path& path_megaCompiler,
-                      const boost::filesystem::path& path_megaExecutor,
-                      const boost::filesystem::path& path_clangCompiler,
-                      const boost::filesystem::path& path_clangPlugin,
-                      const boost::filesystem::path& database,
-                      const boost::filesystem::path& megaMangle,
-                      const boost::filesystem::path& leaf )
-
-    : parserPath( parser )
-    , megaCompilerPath( path_megaCompiler )
-    , megaExecutorPath( path_megaExecutor )
-    , clangCompilerPath( path_clangCompiler )
-    , clangPluginPath( path_clangPlugin )
-    , databasePath( database )
-
-    , megaManglePath( megaMangle )
-    , leafPath( leaf )
-
-    , parserHash( parser )
-    , megaCompilerHash( path_megaCompiler )
-    , clangPluginHash( path_clangPlugin )
-
-    , strClangCompilerVersion( strClangCompilerVersion )
-
-    , databaseVersion( szDatabaseVersion )
-    , clangCompilerHash( strClangCompilerVersion )
-
-    , toolChainHash( parserHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseVersion )
-{
-}
-
 namespace
 {
 std::string runCmd( const std::string& strCmd )

@@ -18,8 +18,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "log/file_log.hpp"
-#include "log/filename.hpp"
+#include "event/file_log.hpp"
+#include "event/filename.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -30,7 +30,7 @@
 #include <optional>
 #include <map>
 
-namespace mega::log::impl
+namespace mega::event::impl
 {
 
 FileBuffer::FileBuffer( FileBufferFactory& bufferFactory, TrackID trackID, BufferIndex fileIndex )
@@ -106,7 +106,7 @@ void FileBufferFactory::loadIterator()
 
         BufferType::Ptr pBuffer = std::make_unique< BufferType >( *this, i->second, i->first );
 
-        m_timestamp = IndexType::RecordsPerFile * i->first.get();
+        m_timestamp = TimeStamp{ static_cast< TimeStamp::ValueType >( IndexType::RecordsPerFile * i->first.get() ) };
         bool bFirst = true;
         for( InterBufferOffset offset = 0; offset != InterBufferOffset{ LogFileSize };
                 offset += IndexType::RecordSize )
@@ -123,7 +123,7 @@ void FileBufferFactory::loadIterator()
             }
             else
             {
-                ++m_timestamp;
+                m_timestamp = TimeStamp{ m_timestamp.getValue() + 1 };
             }
             m_iterator = *pRecord;
         }
@@ -149,4 +149,4 @@ boost::filesystem::path FileBufferFactory::constructLogFile( TrackID trackID, Bu
     }
     return filePath;
 }
-} // namespace mega::log::impl
+} // namespace mega::event::impl

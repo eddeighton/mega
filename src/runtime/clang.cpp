@@ -22,7 +22,7 @@
 
 #include "database/FinalStage.hxx"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/process.hpp"
 

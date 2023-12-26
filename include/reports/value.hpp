@@ -46,7 +46,6 @@
 #include "mega/values/compilation/icontext_flags.hpp"
 
 #include "mega/values/runtime/pointer.hpp"
-#include "mega/values/runtime/pointer_io.hpp"
 #include "mega/values/runtime/mpo.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"

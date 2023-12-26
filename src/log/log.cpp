@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "common/processID.hpp"
 #include "common/assert_verify.hpp"

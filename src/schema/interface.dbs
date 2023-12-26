@@ -149,6 +149,21 @@ namespace Interface
         ref< Parser::Aggregate > aggregate;
     }
 
+    object UserDimension : ParsedAggregate -> InterfaceStage::Tree
+    {
+        ref< Parser::Dimension > dimension;
+    }
+
+    object UserAlias : ParsedAggregate -> InterfaceStage::Tree
+    {
+        ref< Parser::Alias > alias;
+    }
+
+    object UserUsing : ParsedAggregate -> InterfaceStage::Tree
+    {
+        ref< Parser::Using > cpp_using;
+    }
+
     object UserLink : ParsedAggregate -> InterfaceStage::Tree
     {
         ref< Parser::Link > link;

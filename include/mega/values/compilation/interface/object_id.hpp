@@ -90,7 +90,7 @@ static constexpr ObjectID ROOT_OBJECT_ID = 0x0001_IO;
 
 inline std::ostream& operator<<( std::ostream& os, const ObjectID& value )
 {
-    return os << std::hex << std::setw( 4 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_IO";
+    return os << "0x" << std::hex << std::setw( 4 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_IO";
 }
 
 inline std::istream& operator>>( std::istream& is, ObjectID& typeID )

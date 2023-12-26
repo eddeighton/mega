@@ -21,8 +21,8 @@
 #ifndef GUARD_2022_October_01_index
 #define GUARD_2022_October_01_index
 
-#include "log/offset.hpp"
-#include "log/records.hxx"
+#include "event/offset.hpp"
+#include "event/records.hxx"
 
 #include <utility>
 #include <vector>
@@ -30,7 +30,7 @@
 #include <string>
 #include <array>
 
-namespace mega::log
+namespace mega::event
 {
 
 class IndexRecord
@@ -52,7 +52,7 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int )
     {
-        for( auto i = 0; i != log::toInt( log::TrackID::TOTAL ); ++i )
+        for( auto i = 0; i != toInt( TrackID::TOTAL ); ++i )
         {
             archive& m_offsets[ i ];
         }
@@ -62,6 +62,6 @@ private:
     std::array< Offset, toInt( TrackID::TOTAL ) > m_offsets;
 };
 
-} // namespace mega::log
+} // namespace mega::event
 
 #endif // GUARD_2022_October_01_index

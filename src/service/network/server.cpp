@@ -18,7 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "service/network/server.hpp"
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"

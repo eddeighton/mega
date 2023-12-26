@@ -207,7 +207,7 @@ common::Command Compilation::generateCompilationCMD( Compilation::CompilerCacheO
     }
     else
     {
-        THROW_RTE( "Missing compiler output" );
+        osCmd << " -Xclang -fsyntax-only ";
     }
 
     return { osCmd.str(), environmentVars };

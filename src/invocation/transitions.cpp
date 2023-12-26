@@ -57,14 +57,14 @@ namespace
 {
 struct InvocationPolicy : public InvocationPolicyBase
 {
-    OrPtrVector expandLink( OrPtr pOr ) const
+    std::vector< Derivation::Or* > expandLink( Derivation::Or* pOr ) const
     {
-        OrPtrVector result;
+        std::vector< Derivation::Or* > result;
         result.push_back( pOr );
         return result;
     }
 
-    GraphVertex* commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const
+    Concrete::Node* commonRootDerivation( Concrete::Node* pSource, Concrete::Node* pTarget, std::vector< Concrete::Edge* >& edges ) const
     {
         return CommonAncestor::commonRootDerivation( pSource, pTarget, edges, true );
     }

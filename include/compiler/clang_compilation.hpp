@@ -70,9 +70,9 @@ public:
     common::Command generateCompilationCMD( CompilerCacheOptions cacheOptions = eCache_none ) const;
 
     template < typename TComponentType >
-    static inline Compilation
-    make_includePCH_compilation( const io::BuildEnvironment& environment, const utilities::ToolChain& toolChain,
-                                 TComponentType* pComponent )
+    static inline Compilation make_includePCH_compilation( const io::BuildEnvironment& environment,
+                                                           const utilities::ToolChain& toolChain,
+                                                           TComponentType*             pComponent )
     {
         Compilation compilation;
         compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
@@ -87,25 +87,24 @@ public:
 
         return compilation;
     }
-/*
+
     template < typename TComponentType >
-    static inline Compilation make_interfacePCH_compilation( const io::BuildEnvironment& environment,
-                                                             const utilities::ToolChain& toolChain,
-                                                             TComponentType*             pComponent,
-                                                             const io::megaFilePath&     sourceFile
+    static inline Compilation make_clang_traits_analysis_compilation( const io::BuildEnvironment&           environment,
+                                                                      const utilities::ToolChain&           toolChain,
+                                                                      TComponentType*                       pComponent
 
     )
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode{ CompilationMode::eInterface };
+        compilation.compilationMode = CompilationMode{ CompilationMode::eTraits };
 
         compilation.compiler_command = toolChain.clangCompilerPath.string();
         compilation.compiler_plugin  = toolChain.clangPluginPath;
 
         compilation.srcDir     = environment.srcDir();
         compilation.buildDir   = environment.buildDir();
-        compilation.sourceFile = environment.FilePath( sourceFile );
+        compilation.sourceFile = environment.FilePath( environment.project_manifest() );
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -113,238 +112,271 @@ public:
 
         compilation.inputPCH = { environment.FilePath( environment.IncludePCH() ) };
 
-        compilation.inputFile = environment.FilePath( environment.Interface( sourceFile ) );
-        compilation.outputPCH = environment.FilePath( environment.InterfacePCH( sourceFile ) );
+        compilation.inputFile = environment.FilePath( environment.ClangTraits() );
 
         return compilation;
     }
+    /*
+        template < typename TComponentType >
+        static inline Compilation make_interfacePCH_compilation( const io::BuildEnvironment& environment,
+                                                                 const utilities::ToolChain& toolChain,
+                                                                 TComponentType*             pComponent,
+                                                                 const io::megaFilePath&     sourceFile
 
-    template < typename TComponentType >
-    static inline Compilation make_operationsPCH_compilation( const io::BuildEnvironment& environment,
-                                                              const utilities::ToolChain& toolChain,
-                                                              TComponentType*             pComponent,
-                                                              const io::megaFilePath&     sourceFile
+        )
+        {
+            Compilation compilation;
 
-    )
-    {
-        Compilation compilation;
+            compilation.compilationMode = CompilationMode{ CompilationMode::eInterface };
 
-        compilation.compilationMode = CompilationMode{ CompilationMode::eOperations };
+            compilation.compiler_command = toolChain.clangCompilerPath.string();
+            compilation.compiler_plugin  = toolChain.clangPluginPath;
 
-        compilation.compiler_command = toolChain.clangCompilerPath.string();
-        compilation.compiler_plugin  = toolChain.clangPluginPath;
+            compilation.srcDir     = environment.srcDir();
+            compilation.buildDir   = environment.buildDir();
+            compilation.sourceFile = environment.FilePath( sourceFile );
 
-        compilation.srcDir     = environment.srcDir();
-        compilation.buildDir   = environment.buildDir();
-        compilation.sourceFile = environment.FilePath( sourceFile );
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
 
-        compilation.flags       = pComponent->get_cpp_flags();
-        compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_include_directories();
+            compilation.inputPCH = { environment.FilePath( environment.IncludePCH() ) };
 
-        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
-                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ) };
+            compilation.inputFile = environment.FilePath( environment.Interface( sourceFile ) );
+            compilation.outputPCH = environment.FilePath( environment.InterfacePCH( sourceFile ) );
 
-        compilation.inputFile = environment.FilePath( environment.Operations( sourceFile ) );
-        compilation.outputPCH = environment.FilePath( environment.OperationsPCH( sourceFile ) );
+            return compilation;
+        }
 
-        return compilation;
-    }
-
-    template < typename TComponentType >
-    static inline Compilation make_implementationObj_compilation( const io::BuildEnvironment& environment,
+        template < typename TComponentType >
+        static inline Compilation make_operationsPCH_compilation( const io::BuildEnvironment& environment,
                                                                   const utilities::ToolChain& toolChain,
                                                                   TComponentType*             pComponent,
                                                                   const io::megaFilePath&     sourceFile
 
-    )
-    {
-        Compilation compilation;
+        )
+        {
+            Compilation compilation;
 
-        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = toolChain.clangCompilerPath.string();
+            compilation.compilationMode = CompilationMode{ CompilationMode::eOperations };
 
-        compilation.flags       = pComponent->get_cpp_flags();
-        compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_include_directories();
+            compilation.compiler_command = toolChain.clangCompilerPath.string();
+            compilation.compiler_plugin  = toolChain.clangPluginPath;
 
-        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
-                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ),
-                                 environment.FilePath( environment.OperationsPCH( sourceFile ) ) };
+            compilation.srcDir     = environment.srcDir();
+            compilation.buildDir   = environment.buildDir();
+            compilation.sourceFile = environment.FilePath( sourceFile );
 
-        compilation.inputFile    = environment.FilePath( environment.Implementation( sourceFile ) );
-        compilation.outputObject = environment.FilePath( environment.ImplementationObj( sourceFile ) );
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
 
-        return compilation;
-    }
+            compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
+                                     environment.FilePath( environment.InterfacePCH( sourceFile ) ) };
 
-    template < typename TComponentType >
-    static inline Compilation make_cpp_includePCH_compilation( const io::BuildEnvironment& environment,
+            compilation.inputFile = environment.FilePath( environment.Operations( sourceFile ) );
+            compilation.outputPCH = environment.FilePath( environment.OperationsPCH( sourceFile ) );
+
+            return compilation;
+        }
+
+        template < typename TComponentType >
+        static inline Compilation make_implementationObj_compilation( const io::BuildEnvironment& environment,
+                                                                      const utilities::ToolChain& toolChain,
+                                                                      TComponentType*             pComponent,
+                                                                      const io::megaFilePath&     sourceFile
+
+        )
+        {
+            Compilation compilation;
+
+            compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
+            compilation.compiler_command = toolChain.clangCompilerPath.string();
+
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
+
+            compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
+                                     environment.FilePath( environment.InterfacePCH( sourceFile ) ),
+                                     environment.FilePath( environment.OperationsPCH( sourceFile ) ) };
+
+            compilation.inputFile    = environment.FilePath( environment.Implementation( sourceFile ) );
+            compilation.outputObject = environment.FilePath( environment.ImplementationObj( sourceFile ) );
+
+            return compilation;
+        }
+
+        template < typename TComponentType >
+        static inline Compilation make_cpp_includePCH_compilation( const io::BuildEnvironment& environment,
+                                                                   const utilities::ToolChain& toolChain,
+                                                                   TComponentType*             pComponent )
+        {
+            Compilation compilation;
+            compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
+            compilation.compiler_command = toolChain.clangCompilerPath.string();
+
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
+
+            compilation.inputFile
+                = environment.FilePath( environment.Include( pComponent->get_build_dir(), pComponent->get_name() ) );
+            compilation.outputPCH
+                = environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) );
+
+            return compilation;
+        }
+
+        template < typename TComponentType >
+        static inline Compilation make_cpp_interfacePCH_compilation( const io::BuildEnvironment& environment,
+                                                                     const utilities::ToolChain& toolChain,
+                                                                     TComponentType*             pComponent
+
+        )
+        {
+            Compilation compilation;
+
+            compilation.compilationMode = CompilationMode{ CompilationMode::eLibrary };
+
+            compilation.compiler_command = toolChain.clangCompilerPath.string();
+            compilation.compiler_plugin  = toolChain.clangPluginPath;
+
+            compilation.srcDir   = environment.srcDir();
+            compilation.buildDir = environment.buildDir();
+
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
+
+            compilation.inputPCH
+                = { environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() )
+       ) };
+
+            compilation.inputFile
+                = environment.FilePath( environment.Interface( pComponent->get_build_dir(), pComponent->get_name() ) );
+            compilation.outputPCH
+                = environment.FilePath( environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() )
+       );
+
+            return compilation;
+        }
+
+        template < typename TComponentType >
+        static inline Compilation make_cpp_pch_compilation( const io::BuildEnvironment& environment,
+                                                            const utilities::ToolChain& toolChain,
+                                                            TComponentType*             pComponent,
+                                                            const io::cppFilePath&      sourceFile
+
+        )
+        {
+            Compilation compilation;
+
+            compilation.compilationMode = CompilationMode{ CompilationMode::eCPP };
+
+            compilation.compiler_command = toolChain.clangCompilerPath.string();
+            compilation.compiler_plugin  = toolChain.clangPluginPath;
+
+            compilation.srcDir     = environment.srcDir();
+            compilation.buildDir   = environment.buildDir();
+            compilation.sourceFile = environment.FilePath( sourceFile );
+
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
+
+            // since compiling copied cpp -> hpp in build folder ensure cpp directory in include dirs
+            compilation.includeDirs.push_back( environment.FilePath( sourceFile ).parent_path() );
+
+            compilation.inputPCH = {
+                environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
+                environment.FilePath( environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() ) )
+       };
+
+            compilation.inputFile = environment.FilePath( environment.CPPTempHpp( sourceFile ) );
+            compilation.outputPCH = environment.FilePath( environment.CPPOperationsPCH( sourceFile ) );
+
+            return compilation;
+        }
+
+        template < typename TComponentType >
+        static inline Compilation make_cpp_obj_compilation( const io::BuildEnvironment& environment,
+                                                            const utilities::ToolChain& toolChain,
+                                                            TComponentType*             pComponent,
+                                                            const io::cppFilePath&      sourceFile
+
+        )
+        {
+            Compilation compilation;
+
+            compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
+            compilation.compiler_command = toolChain.clangCompilerPath.string();
+
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
+
+            compilation.inputPCH
+                = { environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() )
+       ), environment.FilePath( environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
+                    environment.FilePath( environment.CPPOperationsPCH( sourceFile ) ) };
+
+            compilation.inputFile    = environment.FilePath( environment.CPPImplementation( sourceFile ) );
+            compilation.outputObject = environment.FilePath( environment.CPPObj( sourceFile ) );
+
+            return compilation;
+        }
+
+        template < typename TComponentType >
+        static inline Compilation make_python_obj_compilation( const io::BuildEnvironment& environment,
                                                                const utilities::ToolChain& toolChain,
-                                                               TComponentType*             pComponent )
-    {
-        Compilation compilation;
-        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = toolChain.clangCompilerPath.string();
+                                                               TComponentType*             pComponent,
+                                                               const io::megaFilePath&     sourceFile
 
-        compilation.flags       = pComponent->get_cpp_flags();
-        compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_include_directories();
+        )
+        {
+            Compilation compilation;
 
-        compilation.inputFile
-            = environment.FilePath( environment.Include( pComponent->get_build_dir(), pComponent->get_name() ) );
-        compilation.outputPCH
-            = environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) );
+            compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
+            compilation.compiler_command = toolChain.clangCompilerPath.string();
 
-        return compilation;
-    }
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
 
-    template < typename TComponentType >
-    static inline Compilation make_cpp_interfacePCH_compilation( const io::BuildEnvironment& environment,
-                                                                 const utilities::ToolChain& toolChain,
-                                                                 TComponentType*             pComponent
+            compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
+                                     environment.FilePath( environment.InterfacePCH( sourceFile ) ) };
 
-    )
-    {
-        Compilation compilation;
+            compilation.inputFile    = environment.FilePath( environment.PythonWrapper( sourceFile ) );
+            compilation.outputObject = environment.FilePath( environment.PythonObj( sourceFile ) );
 
-        compilation.compilationMode = CompilationMode{ CompilationMode::eLibrary };
+            return compilation;
+        }
 
-        compilation.compiler_command = toolChain.clangCompilerPath.string();
-        compilation.compiler_plugin  = toolChain.clangPluginPath;
+        template < typename TComponentType >
+        static inline Compilation make_initialiser_obj_compilation( const io::BuildEnvironment& environment,
+                                                                    const utilities::ToolChain& toolChain,
+                                                                    TComponentType*             pComponent,
+                                                                    const io::megaFilePath&     sourceFile
 
-        compilation.srcDir   = environment.srcDir();
-        compilation.buildDir = environment.buildDir();
+        )
+        {
+            Compilation compilation;
 
-        compilation.flags       = pComponent->get_cpp_flags();
-        compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_include_directories();
+            compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
+            compilation.compiler_command = toolChain.clangCompilerPath.string();
 
-        compilation.inputPCH
-            = { environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) ) };
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
 
-        compilation.inputFile
-            = environment.FilePath( environment.Interface( pComponent->get_build_dir(), pComponent->get_name() ) );
-        compilation.outputPCH
-            = environment.FilePath( environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() ) );
+            compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ) };
 
-        return compilation;
-    }
+            compilation.inputFile    = environment.FilePath( environment.Initialiser( sourceFile ) );
+            compilation.outputObject = environment.FilePath( environment.InitialiserObj( sourceFile ) );
 
-    template < typename TComponentType >
-    static inline Compilation make_cpp_pch_compilation( const io::BuildEnvironment& environment,
-                                                        const utilities::ToolChain& toolChain,
-                                                        TComponentType*             pComponent,
-                                                        const io::cppFilePath&      sourceFile
-
-    )
-    {
-        Compilation compilation;
-
-        compilation.compilationMode = CompilationMode{ CompilationMode::eCPP };
-
-        compilation.compiler_command = toolChain.clangCompilerPath.string();
-        compilation.compiler_plugin  = toolChain.clangPluginPath;
-
-        compilation.srcDir     = environment.srcDir();
-        compilation.buildDir   = environment.buildDir();
-        compilation.sourceFile = environment.FilePath( sourceFile );
-
-        compilation.flags       = pComponent->get_cpp_flags();
-        compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_include_directories();
-
-        // since compiling copied cpp -> hpp in build folder ensure cpp directory in include dirs
-        compilation.includeDirs.push_back( environment.FilePath( sourceFile ).parent_path() );
-
-        compilation.inputPCH = {
-            environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
-            environment.FilePath( environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() ) ) };
-
-        compilation.inputFile = environment.FilePath( environment.CPPTempHpp( sourceFile ) );
-        compilation.outputPCH = environment.FilePath( environment.CPPOperationsPCH( sourceFile ) );
-
-        return compilation;
-    }
-
-    template < typename TComponentType >
-    static inline Compilation make_cpp_obj_compilation( const io::BuildEnvironment& environment,
-                                                        const utilities::ToolChain& toolChain,
-                                                        TComponentType*             pComponent,
-                                                        const io::cppFilePath&      sourceFile
-
-    )
-    {
-        Compilation compilation;
-
-        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = toolChain.clangCompilerPath.string();
-
-        compilation.flags       = pComponent->get_cpp_flags();
-        compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_include_directories();
-
-        compilation.inputPCH
-            = { environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
-                environment.FilePath( environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
-                environment.FilePath( environment.CPPOperationsPCH( sourceFile ) ) };
-
-        compilation.inputFile    = environment.FilePath( environment.CPPImplementation( sourceFile ) );
-        compilation.outputObject = environment.FilePath( environment.CPPObj( sourceFile ) );
-
-        return compilation;
-    }
-
-    template < typename TComponentType >
-    static inline Compilation make_python_obj_compilation( const io::BuildEnvironment& environment,
-                                                           const utilities::ToolChain& toolChain,
-                                                           TComponentType*             pComponent,
-                                                           const io::megaFilePath&     sourceFile
-
-    )
-    {
-        Compilation compilation;
-
-        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = toolChain.clangCompilerPath.string();
-
-        compilation.flags       = pComponent->get_cpp_flags();
-        compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_include_directories();
-
-        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
-                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ) };
-
-        compilation.inputFile    = environment.FilePath( environment.PythonWrapper( sourceFile ) );
-        compilation.outputObject = environment.FilePath( environment.PythonObj( sourceFile ) );
-
-        return compilation;
-    }
-
-    template < typename TComponentType >
-    static inline Compilation make_initialiser_obj_compilation( const io::BuildEnvironment& environment,
-                                                                const utilities::ToolChain& toolChain,
-                                                                TComponentType*             pComponent,
-                                                                const io::megaFilePath&     sourceFile
-
-    )
-    {
-        Compilation compilation;
-
-        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
-        compilation.compiler_command = toolChain.clangCompilerPath.string();
-
-        compilation.flags       = pComponent->get_cpp_flags();
-        compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_include_directories();
-
-        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ) };
-
-        compilation.inputFile    = environment.FilePath( environment.Initialiser( sourceFile ) );
-        compilation.outputObject = environment.FilePath( environment.InitialiserObj( sourceFile ) );
-
-        return compilation;
-    }*/
+            return compilation;
+        }*/
 };
 
 } // namespace mega

@@ -29,7 +29,7 @@ namespace mega
 namespace
 {
 constexpr std::array< std::string, CompilationMode::TOTAL_COMPILATION_MODES > g_pszModes
-    = { "Normal", "Interface", "Library", "Operations", "CPP" };
+    = { "Normal", "Traits", "Interface", "Library", "Operations", "CPP" };
 } // namespace
 
 const char* CompilationMode::str() const
@@ -39,6 +39,7 @@ const char* CompilationMode::str() const
     switch( m_value )
     {
         case eNormal:
+        case eTraits:
         case eInterface:
         case eLibrary:
         case eOperations:

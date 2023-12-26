@@ -23,7 +23,7 @@
 
 #include "environment/environment.hpp"
 
-#include "service/network/log.hpp"
+#include "log/log.hpp"
 
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
