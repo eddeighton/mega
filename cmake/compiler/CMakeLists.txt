@@ -131,6 +131,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
     ${MEGA_SRC_DIR}/compiler/task_clang_traits.cpp
     ${MEGA_SRC_DIR}/compiler/task_clang_analysis.cpp
+    ${MEGA_SRC_DIR}/compiler/task_cpp_decl.cpp
 
     # ${MEGA_SRC_DIR}/compiler/task_alias.cpp
     # ${MEGA_SRC_DIR}/compiler/task_complete.cpp
@@ -150,7 +151,6 @@ set( COMPILER_SOURCE
     ${COMPILER_TASKS}
     ${MEGA_SRC_DIR}/compiler/compiler.cpp
 
-    ${MEGA_SRC_DIR}/compiler/glob.cpp
     ${MEGA_SRC_DIR}/compiler/clang_compilation.cpp
 
     ## ensure the version is baked into the shared object

@@ -192,6 +192,21 @@ stage ClangAnalysisStage
     global accessor array< ref< Components::Component > >;
     global accessor ref< Symbols::SymbolTable >;
 }
+
+stage ClangCompilationStage
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+
+    dependency ClangAnalysisStage;
+
+    file Compilation;
+
+    global accessor ref< Interface::Root >;
+    global accessor array< ref< Components::Component > >;
+    global accessor ref< Symbols::SymbolTable >;
+}
 /*
 stage MetaStage
 {

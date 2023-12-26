@@ -19,7 +19,7 @@
 
 #include "base_task.hpp"
 
-#include "database/ClangTraitsStage.hxx"
+#include "database/ClangCompilationStage.hxx"
 
 #include "compiler/clang_compilation.hpp"
 
@@ -37,30 +37,25 @@
 
 #include <memory>
 
-namespace ClangTraitsStage
+namespace ClangCompilationStage
 {
 #include "compiler/interface_printer.hpp"
 #include "compiler/interface_visitor.hpp"
 #include "compiler/common_ancestor.hpp"
 
-namespace ClangTraits
-{
-#include "compiler/derivation.hpp"
-}
-
-} // namespace ClangTraitsStage
+} // namespace ClangCompilationStage
 
 namespace mega::compiler
 {
 
-using namespace ClangTraitsStage;
+using namespace ClangCompilationStage;
 
-class Task_Clang_Traits_Gen : public BaseTask
+class Task_CPP_Decl : public BaseTask
 {
     const mega::io::manifestFilePath m_manifestFilePath;
 
 public:
-    Task_Clang_Traits_Gen( const TaskArguments& taskArguments )
+    Task_CPP_Decl( const TaskArguments& taskArguments )
         : BaseTask( taskArguments )
         , m_manifestFilePath( m_environment.project_manifest() )
     {
@@ -115,84 +110,16 @@ public:
             generateCPPType( Interface::Node* pNode, std::vector< Parser::Type::Fragment* > fragments ) const
             {
                 std::ostringstream os;
-
-                for( auto pFragment : fragments )
-                {
-                    if( auto pPath = db_cast< Parser::Type::Absolute >( pFragment ) )
-                    {
-                        os << "TypedPtr< " << pPath->get_type()->get_interface_id()->get_type_id() << " >";
-                    }
-                    else if( auto pPath = db_cast< Parser::Type::Deriving >( pFragment ) )
-                    {
-                        ClangTraits::InterObjectDerivationPolicy       policy{ database };
-                        ClangTraits::InterObjectDerivationPolicy::Spec spec{ pNode->get_inheritors(), pPath, true };
-                        std::vector< ClangTraits::Derivation::Or* >    frontier;
-                        auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
-
-                        os << "TypedPtr< ";
-                        bool bFirst = true;
-                        for( auto pOr : frontier )
-                        {
-                            if( bFirst )
-                            {
-                                bFirst = false;
-                            }
-                            else
-                            {
-                                os << ", ";
-                            }
-                            os << pOr->get_vertex()->get_node()->get_interface_id()->get_type_id();
-                        }
-                        os << " >";
-                    }
-                    else if( auto pOpaque = db_cast< Parser::Type::CPPOpaque >( pFragment ) )
-                    {
-                        os << pOpaque->get_str();
-                    }
-                    else
-                    {
-                        THROW_RTE( "Unknown fragment type" );
-                    }
-                }
-
                 return os.str();
             }
 
             virtual ~Visitor() = default;
-            virtual bool visit( Interface::UserDimension* pNode ) const
-            {
-                auto pDataType = pNode->get_dimension()->get_data_type();
-                printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
-                               << generateCPPType( pNode, pDataType->get_cpp_fragments()->get_elements() ) << ";";
-                return true;
-            }
-            virtual bool visit( Interface::UserAlias* pNode ) const
-            {
-                auto pPath = pNode->get_alias()->get_alias_type()->get_type_path();
-                if( auto pDeriving = db_cast< Parser::Type::Deriving >( pPath ) )
-                {
-                    ClangTraits::InterObjectDerivationPolicy       policy{ database };
-                    ClangTraits::InterObjectDerivationPolicy::Spec spec{ pNode->get_inheritors(), pDeriving, true };
-                    std::vector< ClangTraits::Derivation::Or* >    frontier;
-                    auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
-                }
-                else if( auto pAbsolute = db_cast< Parser::Type::Absolute >( pPath ) )
-                {
-                    auto pType = pAbsolute->get_type();
-                }
-                else
-                {
-                    THROW_RTE( "Unknown type path type" );
-                }
-                return true;
-            }
+            virtual bool visit( Interface::UserDimension* pNode ) const { return false; }
+            virtual bool visit( Interface::UserAlias* pNode ) const { return false; }
             virtual bool visit( Interface::UserUsing* pNode ) const
             {
                 auto pUsingType = pNode->get_cpp_using()->get_using_type();
-                printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
-                               << generateCPPType( pNode, pUsingType->get_cpp_fragments()->get_elements() ) << ";";
-
-                               
+                printer.line() << "using " << pNode->get_symbol()->get_token() << " = int;";
                 return true;
             }
             virtual bool visit( Interface::UserLink* pNode ) const { return false; }
@@ -209,16 +136,7 @@ public:
             virtual bool visit( Interface::Interupt* pNode ) const { return false; }
             virtual bool visit( Interface::Requirement* pNode ) const { return false; }
             virtual bool visit( Interface::Decider* pNode ) const { return false; }
-            virtual bool visit( Interface::Function* pNode ) const
-            {
-                printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
-                               << generateCPPType(
-                                      pNode, pNode->get_return_type()->get_cpp_fragments()->get_elements() )
-                               << "(*)("
-                               << generateCPPType( pNode, pNode->get_arguments()->get_cpp_fragments()->get_elements() )
-                               << ");";
-                return true;
-            }
+            virtual bool visit( Interface::Function* pNode ) const { return false; }
             virtual bool visit( Interface::Action* pNode ) const { return false; }
             virtual bool visit( Interface::Component* pNode ) const { return false; }
             virtual bool visit( Interface::State* pNode ) const { return false; }
@@ -251,9 +169,9 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        const mega::io::GeneratedHPPSourceFilePath traitsHeader = m_environment.ClangTraits();
+        const mega::io::GeneratedHPPSourceFilePath cppDeclsHeader = m_environment.CPPDecls();
         const mega::io::CompilationFilePath traitsDBFile = m_environment.ClangTraitsStage_Traits( m_manifestFilePath );
-        start( taskProgress, "Task_Clang_Traits_Gen", m_manifestFilePath.path(), traitsHeader.path() );
+        start( taskProgress, "Task_CPP_Decl", m_manifestFilePath.path(), cppDeclsHeader.path() );
 
         task::DeterminantHash determinant(
             m_toolChain.toolChainHash,
@@ -268,10 +186,9 @@ public:
             determinant ^= m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
         }
 
-        if( m_environment.restore( traitsHeader, determinant ) && m_environment.restore( traitsDBFile, determinant ) )
+        if( m_environment.restore( cppDeclsHeader, determinant ) )
         {
-            m_environment.setBuildHashCode( traitsHeader );
-            m_environment.setBuildHashCode( traitsDBFile );
+            m_environment.setBuildHashCode( cppDeclsHeader );
             cached( taskProgress );
             return;
         }
@@ -290,30 +207,25 @@ public:
             {
                 recurse( database, pNode, printer );
             }
-
-            auto fileHashCode = database.save_Traits_to_temp();
-            m_environment.setBuildHashCode( traitsDBFile, fileHashCode );
-            m_environment.temp_to_real( traitsDBFile );
-            m_environment.stash( traitsDBFile, determinant );
         }
 
-        if( boost::filesystem::updateFileIfChanged( m_environment.FilePath( traitsHeader ), osInterface.str() ) )
+        if( boost::filesystem::updateFileIfChanged( m_environment.FilePath( cppDeclsHeader ), osInterface.str() ) )
         {
-            m_environment.setBuildHashCode( traitsHeader );
-            m_environment.stash( traitsHeader, determinant );
+            m_environment.setBuildHashCode( cppDeclsHeader );
+            m_environment.stash( cppDeclsHeader, determinant );
             succeeded( taskProgress );
         }
         else
         {
-            m_environment.setBuildHashCode( traitsHeader );
+            m_environment.setBuildHashCode( cppDeclsHeader );
             cached( taskProgress );
         }
     }
 };
 
-BaseTask::Ptr create_Task_Clang_Traits_Gen( const TaskArguments& taskArguments )
+BaseTask::Ptr create_Task_CPP_Decl( const TaskArguments& taskArguments )
 {
-    return std::make_unique< Task_Clang_Traits_Gen >( taskArguments );
+    return std::make_unique< Task_CPP_Decl >( taskArguments );
 }
 
 } // namespace mega::compiler

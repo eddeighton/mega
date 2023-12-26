@@ -158,17 +158,17 @@ GeneratedHPPSourceFilePath BuildEnvironment::ClangTraits() const
     return { os.str() };
 }
 
-GeneratedHPPSourceFilePath BuildEnvironment::CPPAlias() const
+GeneratedHPPSourceFilePath BuildEnvironment::CPPDecls() const
 {
     std::ostringstream os;
-    os << "Alias" << GeneratedHPPSourceFilePath::extension().string();
+    os << "CPPDecls" << GeneratedHPPSourceFilePath::extension().string();
     return { os.str() };
 }
 
-PrecompiledHeaderFile BuildEnvironment::CPPAliasPCH() const
+PrecompiledHeaderFile BuildEnvironment::CPPDeclsPCH() const
 {
     std::ostringstream os;
-    os << "Alias" << PrecompiledHeaderFile::extension().string();
+    os << "CPPDecls" << PrecompiledHeaderFile::extension().string();
     return { os.str() };
 }
 

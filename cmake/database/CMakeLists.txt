@@ -48,6 +48,7 @@ set( MEGA_DATABASE_STAGES
     SymbolRollout
     ClangTraitsStage
     ClangAnalysisStage
+    ClangCompilationStage
     
     # TypeAnalysis
     # TypeAnalysisRollout
