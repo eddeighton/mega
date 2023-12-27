@@ -39,37 +39,12 @@ TASK_PROJECT(Clang_Traits_Gen)
 TASK_PROJECT(Clang_Traits_Analysis)
 TASK_PROJECT(CPP_Decl)
 
-
-
-TASK_SRC(Operations,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(OperationsPCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(OperationsLocs,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(ValueSpace,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-
-TASK_SRC(Implementation,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(ImplementationObj,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-
-TASK_SRC(Initialiser,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(InitialiserObject,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-
-TASK_SRC(PythonWrapper,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK_SRC(PythonObject,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK_SRC(CPP_Source,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
+TASK_SRC(CPP_Compile,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
+TASK_SRC(CPP_Impl,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
+TASK_SRC(CPP_Obj,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
 
 TASK_PROJECT(UnityReflection)
 TASK_PROJECT(UnityAnalysis)
 TASK_PROJECT(Unity)
 TASK_PROJECT(UnityDatabase)
-
-// Component name based tasks
-TASK_SRC(CPPInclude,std::get< std::string >( task.sourceFilePath ),const std::string&)
-TASK_SRC(CPPIncludePCH,std::get< std::string >( task.sourceFilePath ),const std::string&)
-TASK_SRC(CPPInterfaceGeneration,std::get< std::string >( task.sourceFilePath ),const std::string&)
-TASK_SRC(CPPInterfaceAnalysis,std::get< std::string >( task.sourceFilePath ),const std::string&)
-
-TASK_SRC(CPPOperationsPCH,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
-TASK_SRC(CPPImplementation,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
-TASK_SRC(CPPObj,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
-
-TASK_SRC(InterfaceComponent,std::get< std::string >( task.sourceFilePath ),const std::string&)
-TASK_SRC(LibraryComponent,std::get< std::string >( task.sourceFilePath ),const std::string&)
-TASK_PROJECT(Complete)

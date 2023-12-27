@@ -95,15 +95,16 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
             const mega::CompilationMode compilationMode = mega::CompilationMode::fromStr( strMode );
             switch( compilationMode.get() )
             {
+                case mega::CompilationMode::ePreprocess:
+                    g_bMegaEnabled = true;
+                    break;
                 case mega::CompilationMode::eTraits:
                     g_bMegaEnabled = true;
                     g_pSession     = clang::make_traits_session(
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir );
                     break;
-                case mega::CompilationMode::eInterface:
-                    g_bMegaEnabled = true;
-                    //g_pSession     = clang::make_interface_session(
-                    //    g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
+                case mega::CompilationMode::eDecls:
+                    g_bMegaEnabled = false;
                     break;
                 case mega::CompilationMode::eLibrary:
                     g_bMegaEnabled = true;

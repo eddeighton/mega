@@ -170,8 +170,9 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::GeneratedHPPSourceFilePath cppDeclsHeader = m_environment.CPPDecls();
-        const mega::io::CompilationFilePath traitsDBFile = m_environment.ClangTraitsStage_Traits( m_manifestFilePath );
-        start( taskProgress, "Task_CPP_Decl", m_manifestFilePath.path(), cppDeclsHeader.path() );
+        const mega::io::PrecompiledHeaderFile      cppDeclsPCH    = m_environment.CPPDeclsPCH();
+
+        start( taskProgress, "Task_CPP_Decl", m_manifestFilePath.path(), cppDeclsPCH.path() );
 
         task::DeterminantHash determinant(
             m_toolChain.toolChainHash,
@@ -186,17 +187,18 @@ public:
             determinant ^= m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
         }
 
-        if( m_environment.restore( cppDeclsHeader, determinant ) )
+        if( m_environment.restore( cppDeclsHeader, determinant ) && m_environment.restore( cppDeclsPCH, determinant ) )
         {
             m_environment.setBuildHashCode( cppDeclsHeader );
+            m_environment.setBuildHashCode( cppDeclsPCH );
             cached( taskProgress );
             return;
         }
 
+        Database database( m_environment, m_manifestFilePath );
+
         std::ostringstream osInterface;
         {
-            Database database( m_environment, m_manifestFilePath );
-
             osInterface << "using namespace mega;\n";
             osInterface << "using namespace mega::interface;\n";
 
@@ -213,12 +215,36 @@ public:
         {
             m_environment.setBuildHashCode( cppDeclsHeader );
             m_environment.stash( cppDeclsHeader, determinant );
-            succeeded( taskProgress );
         }
         else
         {
             m_environment.setBuildHashCode( cppDeclsHeader );
-            cached( taskProgress );
+        }
+
+        Components::Component* pInterfaceComponent = nullptr;
+        {
+            for( auto pComponent : database.many< Components::Component >( m_environment.project_manifest() ) )
+            {
+                if( pComponent->get_type() == mega::ComponentType::eInterface )
+                {
+                    VERIFY_RTE_MSG( !pInterfaceComponent, "Multiple interface components found" );
+                    pInterfaceComponent = pComponent;
+                }
+            }
+        }
+
+        const mega::Compilation compilationCMD
+            = mega::Compilation::make_cpp_decls_pch( m_environment, m_toolChain, pInterfaceComponent );
+
+        if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
+        {
+            m_environment.setBuildHashCode( cppDeclsPCH );
+            m_environment.stash( cppDeclsPCH, determinant );
+            succeeded( taskProgress );
+        }
+        else
+        {
+            failed( taskProgress );
         }
     }
 };

@@ -36,7 +36,7 @@
 #include <optional>
 #include <iostream>
 
-#define ENABLE_CLANG_PLUGIN_LOG 1
+// #define ENABLE_CLANG_PLUGIN_LOG 1
 
 #ifdef ENABLE_CLANG_PLUGIN_LOG
 #define CLANG_PLUGIN_LOG( msg )                                                                              \

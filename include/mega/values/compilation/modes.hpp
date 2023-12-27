@@ -30,8 +30,9 @@ public:
     enum Value
     {
         eNormal,
+        ePreprocess,
         eTraits,
-        eInterface,
+        eDecls,
         eLibrary,
         eOperations,
         eCPP,

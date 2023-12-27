@@ -195,13 +195,21 @@ common::Command Compilation::generateCompilationCMD( Compilation::CompilerCacheO
     osCmd << "-Xclang -no-round-trip-args ";
 
     // output
-    if( outputPCH.has_value() )
+    if( outputPPH.has_value() )
     {
+        VERIFY_RTE( !outputObject.has_value() );
+        VERIFY_RTE( !outputPCH.has_value() );
+        osCmd << " -E -o " << outputPPH.value().string() << " ";
+    }
+    else if( outputPCH.has_value() )
+    {
+        VERIFY_RTE( !outputPPH.has_value() );
         VERIFY_RTE( !outputObject.has_value() );
         osCmd << g_PCH_Out_Flags << " -Xclang -emit-pch -o " << outputPCH.value().string() << " ";
     }
     else if( outputObject.has_value() )
     {
+        VERIFY_RTE( !outputPPH.has_value() );
         VERIFY_RTE( !outputPCH.has_value() );
         osCmd << " -c -o " << outputObject.value().string() << " ";
     }

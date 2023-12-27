@@ -89,38 +89,10 @@ public:
     GeneratedHPPSourceFilePath CPPDecls() const;
     PrecompiledHeaderFile      CPPDeclsPCH() const;
 
-    /*
-    GeneratedHPPSourceFilePath Interface( const megaFilePath& source ) const;
-    PrecompiledHeaderFile      InterfacePCH( const megaFilePath& source ) const;
-    GeneratedHPPSourceFilePath Operations( const megaFilePath& source ) const;
-    PrecompiledHeaderFile      OperationsPCH( const megaFilePath& source ) const;
-    GeneratedCPPSourceFilePath Implementation( const megaFilePath& source ) const;
-    ObjectFilePath             ImplementationObj( const megaFilePath& source ) const;
-
-    // python wrapper file paths
-    GeneratedCPPSourceFilePath PythonWrapper( const megaFilePath& source ) const;
-    ObjectFilePath             PythonObj( const megaFilePath& source ) const;
-
-    // initialiser file paths
-    GeneratedCPPSourceFilePath Initialiser( const megaFilePath& source ) const;
-    ObjectFilePath             InitialiserObj( const megaFilePath& source ) const;
-
-    // library cpp file paths
-    GeneratedHPPSourceFilePath Include( const boost::filesystem::path& componentBuildDir,
-                                        const std::string&             strComponentName ) const;
-    PrecompiledHeaderFile      IncludePCH( const boost::filesystem::path& componentBuildDir,
-                                           const std::string&             strComponentName ) const;
-    GeneratedHPPSourceFilePath Interface( const boost::filesystem::path& componentBuildDir,
-                                          const std::string&             strComponentName ) const;
-    PrecompiledHeaderFile      InterfacePCH( const boost::filesystem::path& componentBuildDir,
-                                             const std::string&             strComponentName ) const;
-    GeneratedHPPSourceFilePath CPPTempHpp( const cppFilePath& source ) const;
-    PrecompiledHeaderFile      CPPOperationsPCH( const cppFilePath& source ) const;
-    GeneratedCPPSourceFilePath CPPImplementation( const cppFilePath& source ) const;
+    GeneratedHPPSourceFilePath CPPSource( const cppFilePath& source ) const;
+    PrecompiledHeaderFile      CPPPCH( const cppFilePath& source ) const;
+    GeneratedCPPSourceFilePath CPPImpl( const cppFilePath& source ) const;
     ObjectFilePath             CPPObj( const cppFilePath& source ) const;
-
-    // schematic file paths
-    MapFilePath Map( const schFilePath& schematic ) const;*/
 
     // note lowercase file type function names are used in generated code based on file type
     ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const;

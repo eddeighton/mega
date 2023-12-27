@@ -49,16 +49,8 @@ set( MEGA_DATABASE_STAGES
     ClangTraitsStage
     ClangAnalysisStage
     ClangCompilationStage
-    
-    # TypeAnalysis
-    # TypeAnalysisRollout
-    # MetaStage
-    # OperationsLocs
-    # OperationsStage
-    # UnityStage
-    # UnityStageView
-    # ValueSpaceStage
-    # FinalStage
+    CPPSourceStage
+    ObjectStage
 )
 
 set( DATABASE_SCHEMAS 

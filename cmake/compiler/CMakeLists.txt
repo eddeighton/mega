@@ -131,7 +131,12 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
     ${MEGA_SRC_DIR}/compiler/task_clang_traits.cpp
     ${MEGA_SRC_DIR}/compiler/task_clang_analysis.cpp
+
     ${MEGA_SRC_DIR}/compiler/task_cpp_decl.cpp
+    ${MEGA_SRC_DIR}/compiler/task_cpp_source.cpp
+    ${MEGA_SRC_DIR}/compiler/task_cpp_compile.cpp
+    ${MEGA_SRC_DIR}/compiler/task_cpp_impl.cpp
+    ${MEGA_SRC_DIR}/compiler/task_cpp_obj.cpp
 
     # ${MEGA_SRC_DIR}/compiler/task_alias.cpp
     # ${MEGA_SRC_DIR}/compiler/task_complete.cpp
@@ -180,6 +185,7 @@ target_include_directories( compiler PUBLIC ${MEGA_API_DIR} )
 link_boost( compiler system )
 link_boost( compiler filesystem )
 link_boost( compiler serialization )
+link_boost( compiler wave )
 link_json( compiler )
 link_inja( compiler )
 link_common( compiler )

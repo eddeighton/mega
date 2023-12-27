@@ -275,9 +275,10 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc automata = encode( Task{ eTask_Automata } );
     dependencies.add( automata, { hyperGraph } );
 
-    const TskDesc includes   = encode( Task{ eTask_Include } );
-    const TskDesc includePCH = encode( Task{ eTask_IncludePCH } );
+    const TskDesc includes = encode( Task{ eTask_Include } );
     dependencies.add( includes, parserTasks );
+
+    const TskDesc includePCH = encode( Task{ eTask_IncludePCH } );
     dependencies.add( includePCH, { includes } );
 
     const TskDesc clang_Traits_Gen = encode( Task{ eTask_Clang_Traits_Gen } );
@@ -289,6 +290,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc CPP_Decl = encode( Task{ eTask_CPP_Decl } );
     dependencies.add( CPP_Decl, { clang_Traits_Analysis } );
 
+    std::vector< TskDesc > cppObjects;
     for( const auto& componentInfo : config.componentInfos )
     {
         if( componentInfo.getComponentType().get() == mega::ComponentType::eLibrary )
@@ -297,9 +299,17 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
             {
                 auto cppSourceFile = m_pConfig->m_environment.cppFilePath_fromPath( filePath );
 
-                // const TskDesc implementation    = encode( Task{ eTask_Implementation, cppSourceFile } );
-                // const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, cppSourceFile } );
-                // const TskDesc initialiserObj    = encode( Task{ eTask_InitialiserObject, cppSourceFile } );
+                const TskDesc cppSource  = encode( Task{ eTask_CPP_Source, cppSourceFile } );
+                const TskDesc cppCompile = encode( Task{ eTask_CPP_Compile, cppSourceFile } );
+                const TskDesc cppImpl    = encode( Task{ eTask_CPP_Impl, cppSourceFile } );
+                const TskDesc cppObj     = encode( Task{ eTask_CPP_Obj, cppSourceFile } );
+
+                dependencies.add( cppSource, { CPP_Decl } );
+                dependencies.add( cppCompile, { cppSource } );
+                dependencies.add( cppImpl, { cppCompile } );
+                dependencies.add( cppObj, { cppImpl } );
+
+                cppObjects.push_back( cppObj );
             }
         }
     }
