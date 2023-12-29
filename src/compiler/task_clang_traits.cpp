@@ -130,18 +130,25 @@ public:
                         auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
 
                         os << "TypedPtr< ";
-                        bool bFirst = true;
+                        bool                                bFirst = true;
+                        std::set< mega::interface::TypeID > uniqueInterfaceTypeIDs;
                         for( auto pOr : frontier )
                         {
-                            if( bFirst )
+                            const auto interfaceTypeID
+                                = pOr->get_vertex()->get_node()->get_interface_id()->get_type_id();
+                            if( !uniqueInterfaceTypeIDs.contains( interfaceTypeID ) )
                             {
-                                bFirst = false;
+                                if( bFirst )
+                                {
+                                    bFirst = false;
+                                }
+                                else
+                                {
+                                    os << ", ";
+                                }
+                                os << interfaceTypeID;
+                                uniqueInterfaceTypeIDs.insert( interfaceTypeID );
                             }
-                            else
-                            {
-                                os << ", ";
-                            }
-                            os << pOr->get_vertex()->get_node()->get_interface_id()->get_type_id();
                         }
                         os << " >";
                     }
@@ -192,7 +199,6 @@ public:
                 printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
                                << generateCPPType( pNode, pUsingType->get_cpp_fragments()->get_elements() ) << ";";
 
-                               
                 return true;
             }
             virtual bool visit( Interface::UserLink* pNode ) const { return false; }

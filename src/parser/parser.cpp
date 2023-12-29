@@ -492,7 +492,7 @@ public:
         auto startLoc = Tok.getLocation();
 
         Type::CPP* pCPP = nullptr;
-        if( Tok.is( clang::tok::colon ) )
+        if( Tok.is( clang::tok::arrow ) )
         {
             ConsumeAnyToken();
             pCPP = parse_cpp_declaration();

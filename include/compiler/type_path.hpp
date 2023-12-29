@@ -26,10 +26,23 @@ namespace Interface
 
 using SymbolIDSequenceMap = std::map< ::mega::interface::SymbolIDSequence, Symbols::InterfaceTypeID* >;
 
+static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, const  mega::interface::SymbolIDSequence& symbolIDSeq )
+{
+    auto iFind = idMap.find( symbolIDSeq );
+    if( iFind != idMap.end() )
+    {
+        return iFind->second->get_node();
+    }
+    else
+    {
+        THROW_RTE( "Failed to locate absolute type: " << symbolIDSeq );
+    }
+    return {};
+}
+
 static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, Parser::Type::Absolute* pAbsolutePath )
 {
     mega::interface::SymbolIDSequence symbolIDSeq;
-
     for( auto pVar : pAbsolutePath->get_variants() )
     {
         auto symbols = pVar->get_symbols();
@@ -38,32 +51,7 @@ static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, Parser::Type:
         auto pSymbolID = pSymbol->get_id();
         symbolIDSeq.push_back( pSymbolID->get_id() );
     }
-
-    auto iFind = idMap.find( symbolIDSeq );
-    if( iFind != idMap.end() )
-    {
-        return iFind->second->get_node();
-    }
-    else
-    {
-        std::ostringstream os;
-
-        bool bFirst = true;
-        for( auto pVar : pAbsolutePath->get_variants() )
-        {
-            if( bFirst )
-            {
-                bFirst = false;
-            }
-            else
-            {
-                os << '.';
-            }
-            os << pVar->get_symbols().front()->get_token();
-        }
-        THROW_RTE( "Failed to locate absolute type: " << os.str() );
-    }
-    return {};
+    return resolve( idMap, symbolIDSeq );
 }
 
 } // namespace Interface

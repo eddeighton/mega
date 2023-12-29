@@ -22,6 +22,7 @@
 #include "database/CPPSourceStage.hxx"
 
 #include "mega/common_strings.hpp"
+#include "mega/make_unique_without_reorder.hpp"
 
 #include "common/file.hpp"
 
@@ -32,32 +33,50 @@
 #include <memory>
 #include <iostream>
 
+namespace CPPSourceStage
+{
+#include "compiler/type_path.hpp"
+#include "compiler/common_ancestor.hpp"
+
+namespace FunctionBody
+{
+#include "compiler/derivation.hpp"
+}
+
+} // namespace CPPSourceStage
+
 using namespace CPPSourceStage;
+
+struct SymbolInfo
+{
+    using SymbolNameMap       = std::map< std::string, Symbols::SymbolID* >;
+    using SymbolIDSequenceMap = std::map< ::mega::interface::SymbolIDSequence, Symbols::InterfaceTypeID* >;
+
+    SymbolNameMap       symbolNameMap;
+    SymbolIDSequenceMap symbolSequenceMap;
+};
 
 namespace mega::compiler
 {
 
-struct trace_include_files : public boost::wave::context_policies::default_preprocessing_hooks
+struct IncludeFileReplacements : public boost::wave::context_policies::default_preprocessing_hooks
 {
-    trace_include_files( std::ostream& os, std::set< std::string >& files_ )
+    IncludeFileReplacements( std::ostream& os )
         : os( os )
-        , files( files_ )
-        , include_depth( 0 )
     {
     }
+
     template < typename ContextT >
     bool locate_include_file( ContextT& ctx, std::string& file_path, bool is_system, char const* current_name,
                               std::string& dir_path, std::string& native_name )
     {
-        // return false;
-
         if( !ctx.find_include_file( file_path, dir_path, is_system, current_name ) )
+        {
             return false; // could not locate file
+        }
 
-        namespace fs = boost::filesystem;
-
-        fs::path native_path( boost::wave::util::create_path( file_path ) );
-        if( !fs::exists( native_path ) )
+        boost::filesystem::path native_path( boost::wave::util::create_path( file_path ) );
+        if( !boost::filesystem::exists( native_path ) )
         {
             BOOST_WAVE_THROW_CTX(
                 ctx, boost::wave::preprocess_exception, bad_include_file, file_path.c_str(), ctx.get_main_pos() );
@@ -66,48 +85,635 @@ struct trace_include_files : public boost::wave::context_policies::default_prepr
 
         // return the unique full file system path of the located file
         native_name = boost::wave::util::native_file_string( native_path );
-
         return true; // include file has been located successfully
     }
 
     template < typename ContextT >
-    bool found_include_directive( ContextT const& ctx, std::string const& filename, bool include_next )
+    bool found_include_directive( const ContextT& ctx, const std::string& filename, bool include_next )
     {
-        os << "#include " << filename << "\n";
-        return true; // ok to include this file
-    }
-
-    template < typename ContextT >
-    void opened_include_file( ContextT const& ctx, std::string const& relname, std::string const& filename,
-                              bool is_system_include )
-    {
-        std::set< std::string >::iterator it = files.find( filename );
-        if( it == files.end() )
+        // if system include then DO NOT expand
+        if( !filename.empty() && filename.front() == '<' )
         {
-            // print indented filename
-            for( std::size_t i = 0; i < include_depth; ++i )
-                std::cout << " ";
-            std::cout << filename << std::endl;
-
-            files.insert( filename );
+            os << "#include " << filename << "\n";
+            return true; // return true to AVOID expanding the include
         }
-        ++include_depth;
+        else
+        {
+            return false;
+        }
     }
 
-    template < typename ContextT >
-    void returning_from_include_file( ContextT const& ctx )
-    {
-        --include_depth;
-    }
-
-    std::ostream&            os;
-    std::set< std::string >& files;
-    std::size_t              include_depth;
+    std::ostream& os;
 };
+
+static void printLineDirective( const boost::wave::util::file_position_type& current_position, std::ostream& os )
+{
+    os << "\n#line " << current_position.get_line() << " \"" << current_position.get_file() << "\"\n";
+}
 
 class Task_CPP_Source : public BaseTask
 {
     const mega::io::cppFilePath& m_sourceFilePath;
+
+    using token_type        = boost::wave::cpplexer::lex_token<>;
+    using lex_iterator_type = boost::wave::cpplexer::lex_iterator< token_type >;
+    using context_type
+        = boost::wave::context< std::string::iterator, lex_iterator_type,
+                                boost::wave::iteration_context_policies::load_file_to_string, IncludeFileReplacements >;
+
+    class Namespacing
+    {
+        using NamespaceList = std::pair< int, std::vector< std::string > >;
+
+        std::vector< NamespaceList > m_namespaceStack;
+        int                          m_iBraceCount            = 0;
+        bool                         m_bSpecifyingNameSpace   = false;
+        bool                         m_bPreviousTokenWasUsing = false;
+
+        const SymbolInfo& m_symbolInfo;
+        std::ostream&     m_os;
+
+    public:
+        Namespacing( const SymbolInfo& symbolInfo, std::ostream& os )
+            : m_symbolInfo( symbolInfo )
+            , m_os( os )
+        {
+            m_namespaceStack.push_back( { -1, {} } );
+        }
+
+        std::vector< Symbols::SymbolID* > collectSymbolSequence() const
+        {
+            std::vector< Symbols::SymbolID* > symbols;
+
+            for( const auto& ns : m_namespaceStack )
+            {
+                VERIFY_RTE_MSG(
+                    ( ns.first == -1 ) || ( !ns.second.empty() ), "Invalid anonymous namespace in namespace stack" );
+                for( const auto& n : ns.second )
+                {
+                    auto iFind = m_symbolInfo.symbolNameMap.find( n );
+                    VERIFY_RTE_MSG( iFind != m_symbolInfo.symbolNameMap.end(), "Failed to locate symbol: " << n );
+                    symbols.push_back( iFind->second );
+                }
+            }
+
+            return symbols;
+        }
+
+        void onToken( const token_type::string_type& strToken )
+        {
+            if( strToken == "{" )
+            {
+                ++m_iBraceCount;
+            }
+            else if( strToken == "}" )
+            {
+                --m_iBraceCount;
+                if( m_namespaceStack.back().first == m_iBraceCount )
+                {
+                    m_namespaceStack.pop_back();
+                }
+                VERIFY_RTE( !m_namespaceStack.empty() );
+            }
+
+            // track namespaces
+            if( !m_bPreviousTokenWasUsing && strToken == "namespace" )
+            {
+                m_bSpecifyingNameSpace = true;
+                m_namespaceStack.push_back( { m_iBraceCount, {} } );
+            }
+            else if( m_bSpecifyingNameSpace )
+            {
+                if( strToken == "{" )
+                {
+                    m_bSpecifyingNameSpace = false;
+
+                    /*m_os << "// namespace is: ";
+                    bool bFirst = true;
+                    for( const auto& ns : m_namespaceStack )
+                    {
+                        for( const auto& n : ns.second )
+                        {
+                            if( bFirst )
+                            {
+                                bFirst = false;
+                            }
+                            else
+                            {
+                                m_os << "::";
+                            }
+                            m_os << n;
+                        }
+                    }
+                    m_os << "\n";*/
+                }
+                else if( ( strToken == "::" ) || ( strToken == ":" ) )
+                {
+                }
+                else
+                {
+                    m_namespaceStack.back().second.push_back( strToken.c_str() );
+                }
+            }
+
+            if( strToken == "using" )
+            {
+                m_bPreviousTokenWasUsing = true;
+            }
+            else
+            {
+                m_bPreviousTokenWasUsing = false;
+            }
+        }
+    };
+
+    class Replacement
+    {
+    protected:
+        Database&         m_database;
+        const SymbolInfo& m_symbolInfo;
+        Namespacing&      m_namespacing;
+
+    public:
+        enum TokenAction
+        {
+            eMaybe,
+            eConsumed,
+            eRejected
+        };
+
+        Replacement( Database& database, const SymbolInfo& symbolInfo, Namespacing& namespacing )
+            : m_database( database )
+            , m_symbolInfo( symbolInfo )
+            , m_namespacing( namespacing )
+        {
+        }
+        virtual ~Replacement()                                                                = default;
+        virtual TokenAction onToken( const token_type::string_type& strToken, bool bIsSpace ) = 0;
+        virtual std::string result()                                                          = 0;
+        virtual bool        addLineDirective() const                                          = 0;
+    };
+
+    class TypeReplacement : public Replacement
+    {
+    protected:
+        int                               m_state = 0;
+        std::vector< Symbols::SymbolID* > m_symbols;
+
+    public:
+        TypeReplacement( Database& database, const SymbolInfo& symbolInfo, Namespacing& namespacing )
+            : Replacement( database, symbolInfo, namespacing )
+        {
+        }
+        virtual ~TypeReplacement() = default;
+
+        TokenAction onToken( const token_type::string_type& strToken, bool bIsSpace ) override
+        {
+            if( bIsSpace )
+            {
+                // consume ALL whitespace IF next token is part of type
+                return eMaybe;
+            }
+            switch( m_state )
+            {
+                default:
+                case 0:
+                {
+                    auto iFind = m_symbolInfo.symbolNameMap.find( strToken.c_str() );
+                    VERIFY_RTE_MSG(
+                        iFind != m_symbolInfo.symbolNameMap.end(), "Failed to locate symbol: " << strToken );
+                    m_symbols.push_back( iFind->second );
+                    m_state = 1;
+                    return eConsumed;
+                }
+                break;
+                case 1:
+                {
+                    if( strToken == "." )
+                    {
+                        m_state = 0;
+                        return eConsumed;
+                    }
+                    else
+                    {
+                        return eRejected;
+                    }
+                }
+                break;
+            }
+        }
+        bool addLineDirective() const override { return false; }
+    };
+
+    class DerivationReplacement : public TypeReplacement
+    {
+        Interface::Node* m_pInterfaceContext = nullptr;
+
+    public:
+        DerivationReplacement( Database& database, const SymbolInfo& symbolInfo, Namespacing& namespacing,
+                               Interface::Node* pInterfaceNode )
+            : TypeReplacement( database, symbolInfo, namespacing )
+            , m_pInterfaceContext( pInterfaceNode )
+        {
+        }
+
+        std::string result() override
+        {
+            std::ostringstream os;
+
+            FunctionBody::InterObjectDerivationPolicy       policy{ m_database };
+            FunctionBody::InterObjectDerivationPolicy::Spec spec{
+                m_pInterfaceContext->get_inheritors(), m_symbols, true };
+            std::vector< FunctionBody::Derivation::Or* > frontier;
+            auto pRoot = FunctionBody::solveContextFree( spec, policy, frontier );
+
+            os << "TypedPtr< ";
+            bool                                bFirst = true;
+            std::set< mega::interface::TypeID > uniqueInterfaceTypeIDs;
+            for( auto pOr : frontier )
+            {
+                const auto interfaceTypeID = pOr->get_vertex()->get_node()->get_interface_id()->get_type_id();
+                if( !uniqueInterfaceTypeIDs.contains( interfaceTypeID ) )
+                {
+                    if( bFirst )
+                    {
+                        bFirst = false;
+                    }
+                    else
+                    {
+                        os << ", ";
+                    }
+                    os << interfaceTypeID;
+                    uniqueInterfaceTypeIDs.insert( interfaceTypeID );
+                }
+            }
+            os << " >";
+
+            return os.str();
+        }
+    };
+
+    class AbsoluteReplacement : public TypeReplacement
+    {
+    public:
+        AbsoluteReplacement( Database& database, const SymbolInfo& symbolInfo, Namespacing& namespacing )
+            : TypeReplacement( database, symbolInfo, namespacing )
+        {
+        }
+
+        std::string result() override
+        {
+            mega::interface::SymbolIDSequence symbolIDSeq;
+            for( auto pSymbolID : m_symbols )
+            {
+                symbolIDSeq.push_back( pSymbolID->get_id() );
+            }
+            auto pInterfaceNode = Interface::resolve( m_symbolInfo.symbolSequenceMap, symbolIDSeq );
+
+            std::ostringstream os;
+            os << "TypedPtr< " << pInterfaceNode->get_interface_id()->get_type_id() << " >";
+            return os.str();
+        }
+    };
+
+    class FunctionReplacement : public Replacement
+    {
+    public:
+        enum FunctionType
+        {
+            eFunction,
+            eAction,
+            eInterupt,
+            eRequirement,
+            eDecider
+        };
+
+    protected:
+        FunctionType m_functionType;
+
+        enum State
+        {
+            eName,
+            eArgs,
+            eArrow,
+            eReturn,
+            eBody
+        } m_state
+            = eName;
+
+        std::vector< Symbols::SymbolID* > m_symbols;
+        Interface::Node*                  m_pInterfaceNode = nullptr;
+        int                               m_parenCount     = 0;
+        std::ostringstream                m_osLineStart;
+        std::ostringstream                m_osArgs;
+        int                               m_braceCount = 0;
+        std::ostringstream                m_osReturn;
+        std::ostringstream                m_osBody;
+        std::unique_ptr< Replacement >    m_pReplacement;
+        std::optional< std::string >      m_maybeConsumed;
+
+        void calculateInterfaceType()
+        {
+            mega::interface::SymbolIDSequence symbolIDSeq;
+            for( auto pSymbolID : m_symbols )
+            {
+                symbolIDSeq.push_back( pSymbolID->get_id() );
+            }
+            m_pInterfaceNode = Interface::resolve( m_symbolInfo.symbolSequenceMap, symbolIDSeq );
+            VERIFY_RTE_MSG( m_pInterfaceNode, "Failed to resolve interface node type" );
+        }
+
+    public:
+        FunctionReplacement( Database& database, const SymbolInfo& symbolInfo, Namespacing& namespacing,
+                             FunctionType functionType, const boost::wave::util::file_position_type& current_position )
+            : Replacement( database, symbolInfo, namespacing )
+            , m_functionType( functionType )
+        {
+            printLineDirective( current_position, m_osLineStart );
+
+            // determine the interface type of the function
+            m_symbols = m_namespacing.collectSymbolSequence();
+        }
+        bool addLineDirective() const override { return true; }
+
+        TokenAction onToken( const token_type::string_type& strToken, bool bIsSpace ) override
+        {
+            if( m_pReplacement )
+            {
+                switch( m_pReplacement->onToken( strToken, bIsSpace ) )
+                {
+                    case eMaybe:
+                    {
+                        m_maybeConsumed = strToken.c_str();
+                        return eConsumed;
+                    }
+                    break;
+                    case eConsumed:
+                    {
+                        m_maybeConsumed.reset();
+                        return eConsumed;
+                    }
+                    break;
+                    case eRejected:
+                    {
+                        m_osArgs << m_pReplacement->result();
+                        m_pReplacement.reset();
+                        if( m_maybeConsumed.has_value() )
+                        {
+                            m_osArgs << m_maybeConsumed.value();
+                            m_maybeConsumed.reset();
+                        }
+                    }
+                    break;
+                }
+            }
+
+            switch( m_state )
+            {
+                case eName:
+                {
+                    if( bIsSpace )
+                    {
+                        // ignor
+                        return eConsumed;
+                    }
+                    else if( strToken == "::" || strToken == ":" )
+                    {
+                        return eConsumed;
+                    }
+                    else if( strToken == "{" )
+                    {
+                        // determine function interface type
+                        calculateInterfaceType();
+
+                        m_braceCount = 1;
+                        m_state      = eBody;
+                        return eConsumed;
+                    }
+                    else if( strToken == "(" )
+                    {
+                        // determine function interface type
+                        calculateInterfaceType();
+
+                        m_parenCount = 1;
+                        m_state      = eArgs;
+                        return eConsumed;
+                    }
+                    else
+                    {
+                        auto iFind = m_symbolInfo.symbolNameMap.find( strToken.c_str() );
+                        VERIFY_RTE_MSG(
+                            iFind != m_symbolInfo.symbolNameMap.end(), "Failed to locate symbol: " << strToken );
+                        m_symbols.push_back( iFind->second );
+                        return eConsumed;
+                    }
+                }
+                break;
+                case eArgs:
+                {
+                    if( bIsSpace )
+                    {
+                        m_osArgs << strToken;
+                        return eConsumed;
+                    }
+                    else if( strToken == "(" )
+                    {
+                        ++m_parenCount;
+                        m_osArgs << strToken;
+                        return eConsumed;
+                    }
+                    else if( strToken == ")" )
+                    {
+                        --m_parenCount;
+                        if( m_parenCount == 0 )
+                        {
+                            m_state = eArrow;
+                        }
+                        else
+                        {
+                            m_osArgs << strToken;
+                        }
+                        return eConsumed;
+                    }
+                    else if( strToken == "^" )
+                    {
+                        m_pReplacement
+                            = std::make_unique< AbsoluteReplacement >( m_database, m_symbolInfo, m_namespacing );
+                        return eConsumed;
+                    }
+                    else if( strToken == "@" )
+                    {
+                        m_pReplacement = std::make_unique< DerivationReplacement >(
+                            m_database, m_symbolInfo, m_namespacing, m_pInterfaceNode );
+                        return eConsumed;
+                    }
+                    else
+                    {
+                        m_osArgs << strToken;
+                        return eConsumed;
+                    }
+                }
+                break;
+                case eArrow:
+                {
+                    if( bIsSpace )
+                    {
+                        // ignor
+                        return eConsumed;
+                    }
+                    else if( strToken == "->" )
+                    {
+                        m_state = eReturn;
+                        return eConsumed;
+                    }
+                    else if( strToken == "{" )
+                    {
+                        m_braceCount = 1;
+                        m_state      = eBody;
+                        return eConsumed;
+                    }
+                    else
+                    {
+                        THROW_RTE( "Unexpected token while parsing function" );
+                    }
+                }
+                break;
+                case eReturn:
+                {
+                    if( bIsSpace )
+                    {
+                        // ignor
+                        return eConsumed;
+                    }
+                    else if( strToken == "{" )
+                    {
+                        m_braceCount = 1;
+                        m_state      = eBody;
+                        return eConsumed;
+                    }
+                    else if( strToken == "^" )
+                    {
+                        m_pReplacement
+                            = std::make_unique< AbsoluteReplacement >( m_database, m_symbolInfo, m_namespacing );
+                        return eConsumed;
+                    }
+                    else if( strToken == "@" )
+                    {
+                        m_pReplacement = std::make_unique< DerivationReplacement >(
+                            m_database, m_symbolInfo, m_namespacing, m_pInterfaceNode );
+                        return eConsumed;
+                    }
+                    else
+                    {
+                        m_osReturn << strToken;
+                        return eConsumed;
+                    }
+                }
+                break;
+                case eBody:
+                {
+                    if( bIsSpace )
+                    {
+                        m_osBody << strToken;
+                        return eConsumed;
+                    }
+                    else if( strToken == "{" )
+                    {
+                        ++m_braceCount;
+                        m_osBody << strToken;
+                        return eConsumed;
+                    }
+                    else if( strToken == "}" )
+                    {
+                        --m_braceCount;
+                        if( m_braceCount == 0 )
+                        {
+                            return eRejected;
+                        }
+                        else
+                        {
+                            m_osBody << strToken;
+                            return eConsumed;
+                        }
+                    }
+                    else if( strToken == "^" )
+                    {
+                        m_pReplacement
+                            = std::make_unique< AbsoluteReplacement >( m_database, m_symbolInfo, m_namespacing );
+                        return eConsumed;
+                    }
+                    else if( strToken == "@" )
+                    {
+                        m_pReplacement = std::make_unique< DerivationReplacement >(
+                            m_database, m_symbolInfo, m_namespacing, m_pInterfaceNode );
+                        return eConsumed;
+                    }
+                    else
+                    {
+                        m_osBody << strToken;
+                        return eConsumed;
+                    }
+                }
+                break;
+            }
+            THROW_RTE( "Unexpected error while parsing function" );
+        }
+
+        std::string result() override
+        {
+            std::ostringstream os;
+
+            VERIFY_RTE( !m_symbols.empty() );
+
+            os << "namespace ";
+            bool bFirst = true;
+            for( const auto& pSymbolID : m_symbols )
+            {
+                if( bFirst )
+                {
+                    bFirst = false;
+                }
+                else
+                {
+                    os << "::";
+                }
+                os << pSymbolID->get_token();
+            }
+            os << "\n";
+            os << "{\n";
+            os << "namespace\n";
+            os << "{\n";
+            os << "struct Impl : mega::Pointer\n";
+            os << "{\n";
+
+            os << m_osLineStart.str();
+
+            switch( m_functionType )
+            {
+                case eFunction:
+                    os << m_osReturn.str();
+                    break;
+                case eAction:
+                    os << "mega::ActionCoroutine";
+                    break;
+                case eInterupt:
+                case eRequirement:
+                    os << "void";
+                    break;
+                case eDecider:
+                    os << "int";
+                    break;
+            }
+            os << " operator()( " << m_osArgs.str() << ") const\n";
+            os << "{";
+            os << m_osBody.str();
+            os << "}\n";
+            os << "};\n";
+            os << "}\n";
+
+            return os.str();
+        }
+    };
 
 public:
     Task_CPP_Source( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
@@ -137,6 +743,11 @@ public:
 
         Database database( m_environment, m_sourceFilePath );
 
+        auto pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+        VERIFY_RTE( pSymbolTable );
+
+        SymbolInfo symbolInfo{ pSymbolTable->get_symbol_names(), pSymbolTable->get_interface_symbol_id_sequences() };
+
         Components::Component* pInterfaceComponent = nullptr;
         {
             for( auto pComponent : database.many< Components::Component >( m_environment.project_manifest() ) )
@@ -148,6 +759,7 @@ public:
                 }
             }
         }
+        VERIFY_RTE( pInterfaceComponent );
 
         std::string strFileContents;
         boost::filesystem::loadAsciiFile( srcFilePath, strFileContents );
@@ -159,59 +771,124 @@ public:
 
             try
             {
-                //  This token type is one of the central types used throughout the library.
-                //  It is a template parameter to some of the public classes and instances
-                //  of this type are returned from the iterators.
-                typedef boost::wave::cpplexer::lex_token<> token_type;
+                IncludeFileReplacements includeFilesReplacements( osSourceFile );
 
-                //  The template boost::wave::cpplexer::lex_iterator<> is the lexer type to
-                //  to use as the token source for the preprocessing engine. It is
-                //  parametrized with the token type.
-                typedef boost::wave::cpplexer::lex_iterator< token_type > lex_iterator_type;
-
-                //  This is the resulting context type. The first template parameter should
-                //  match the iterator type used during construction of the context
-                //  instance (see below). It is the type of the underlying input stream.
-                typedef boost::wave::context< std::string::iterator, lex_iterator_type,
-                                              boost::wave::iteration_context_policies::load_file_to_string,
-                                              trace_include_files >
-                    context_type;
-
-                //  The preprocessor iterator shouldn't be constructed directly. It is
-                //  generated through a wave::context<> object. This wave:context<> object
-                //  is additionally used to initialize and define different parameters of
-                //  the actual preprocessing (not done here).
-                //
-                //  The preprocessing of the input stream is done on the fly behind the
-                //  scenes during iteration over the range of context_type::iterator_type
-                //  instances.
-
-                std::set< std::string > files;
-                trace_include_files     trace( osSourceFile, files );
-
-                context_type ctx( strFileContents.begin(), strFileContents.end(), srcFilePath.string().c_str(), trace );
-
-                for( const auto& includeDir : pInterfaceComponent->get_include_directories() )
+                context_type ctx( strFileContents.begin(), strFileContents.end(), srcFilePath.string().c_str(),
+                                  includeFilesReplacements );
                 {
-                    ctx.add_include_path( includeDir.string().c_str() );
+                    for( const auto& includeDir : pInterfaceComponent->get_include_directories() )
+                    {
+                        ctx.add_include_path( includeDir.string().c_str() );
+                    }
+                    ctx.add_macro_definition( "MEGA_CLANG_COMPILATION" );
                 }
 
-                //  Get the preprocessor iterators and use them to generate the token
-                //  sequence.
                 context_type::iterator_type first = ctx.begin();
                 context_type::iterator_type last  = ctx.end();
 
-                //  The input stream is preprocessed for you while iterating over the range
-                //  [first, last). The dereferenced iterator returns tokens holding
-                //  information about the preprocessed input stream, such as token type,
-                //  token value, and position.
+                Namespacing namespacing( symbolInfo, osSourceFile );
+
+                std::unique_ptr< Replacement > pReplacement;
+
+                std::optional< std::string > maybeRejectedToken;
                 while( first != last )
                 {
                     current_position = ( *first ).get_position();
-                    osSourceFile << ( *first ).get_value();
+
+                    const auto& strToken = ( *first ).get_value();
+                    const bool  bIsSpace = ( strToken.size() == 1 ) && ( std::isspace( *strToken.c_str() ) );
+
+                    if( !bIsSpace )
+                    {
+                        namespacing.onToken( strToken );
+                    }
+
+                    bool bConsumed = false;
+                    if( pReplacement )
+                    {
+                        switch( pReplacement->onToken( strToken, bIsSpace ) )
+                        {
+                            case Replacement::eRejected:
+                            {
+                                osSourceFile << pReplacement->result();
+                                if( pReplacement->addLineDirective() )
+                                {
+                                    printLineDirective( current_position, osSourceFile );
+                                }
+
+                                pReplacement.reset();
+
+                                if( maybeRejectedToken.has_value() )
+                                {
+                                    osSourceFile << maybeRejectedToken.value();
+                                    maybeRejectedToken.reset();
+                                }
+                            }
+                            break;
+                            case Replacement::eConsumed:
+                            {
+                                maybeRejectedToken.reset();
+                                bConsumed = true;
+                            }
+                            break;
+                            case Replacement::eMaybe:
+                            {
+                                maybeRejectedToken = strToken.c_str();
+                                bConsumed          = true;
+                            }
+                            break;
+                            default:
+                            {
+                                THROW_RTE( "Unknown token action type" );
+                            }
+                            break;
+                        }
+                    }
+
+                    if( !bConsumed )
+                    {
+                        if( strToken == "^" )
+                        {
+                            pReplacement = std::make_unique< AbsoluteReplacement >( database, symbolInfo, namespacing );
+                        }
+                        else if( strToken == "@" )
+                        {
+                            THROW_RTE( "Invalid use of derivation at global scope" );
+                        }
+                        else if( strToken == "function" )
+                        {
+                            pReplacement = std::make_unique< FunctionReplacement >(
+                                database, symbolInfo, namespacing, FunctionReplacement::eFunction, current_position );
+                        }
+                        else if( strToken == "action" )
+                        {
+                            pReplacement = std::make_unique< FunctionReplacement >(
+                                database, symbolInfo, namespacing, FunctionReplacement::eAction, current_position );
+                        }
+                        else if( strToken == "interupt" )
+                        {
+                            pReplacement = std::make_unique< FunctionReplacement >(
+                                database, symbolInfo, namespacing, FunctionReplacement::eInterupt, current_position );
+                        }
+                        else if( strToken == "requirement" )
+                        {
+                            pReplacement = std::make_unique< FunctionReplacement >( database, symbolInfo, namespacing,
+                                                                                    FunctionReplacement::eRequirement,
+                                                                                    current_position );
+                        }
+                        else if( strToken == "decider" )
+                        {
+                            pReplacement = std::make_unique< FunctionReplacement >(
+                                database, symbolInfo, namespacing, FunctionReplacement::eDecider, current_position );
+                        }
+                        else
+                        {
+                            osSourceFile << strToken;
+                        }
+                    }
+
                     ++first;
                 }
-                //]
             }
             catch( boost::wave::cpp_exception const& e )
             {
@@ -223,12 +900,6 @@ public:
                 // use last recognized token to retrieve the error position
                 THROW_RTE( current_position.get_file() << ":" << current_position.get_line() << " "
                                                        << "exception caught: " << e.what() );
-            }
-            catch( ... )
-            {
-                // use last recognized token to retrieve the error position
-                THROW_RTE( current_position.get_file() << ":" << current_position.get_line() << " "
-                                                       << "unexpected exception caught." );
             }
         }
 

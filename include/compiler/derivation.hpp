@@ -63,6 +63,37 @@ struct DerivationPolicyBase
             }
             path = mega::make_unique_without_reorder( path );
         }
+
+        Spec( GraphVertexVector context, const std::vector< Symbols::SymbolID* >& symbolPath,
+              bool bIncludeLinks = false )
+            : context( std::move( context ) )
+        {
+            for( auto pSymbolID : symbolPath )
+            {
+                DerivationPolicyBase::GraphVertexVector pathElement;
+
+                for( auto pInterfaceID : pSymbolID->get_interfaceIDs() )
+                {
+                    Interface::Node* pNode = pInterfaceID->get_node();
+                    if( !bIncludeLinks )
+                    {
+                        if( db_cast< Interface::UserLink >( pNode ) )
+                        {
+                            continue;
+                        }
+                    }
+                    for( auto pConcrete : pNode->get_inheritors() )
+                    {
+                        pathElement.push_back( pConcrete );
+                    }
+                }
+                pathElement = mega::make_unique_without_reorder( pathElement );
+                VERIFY_RTE_MSG( !pathElement.empty(), "Symbol path contains invalid symbols" );
+                path.push_back( pathElement );
+            }
+
+            path = mega::make_unique_without_reorder( path );
+        }
     };
 
     Derivation::Edge* makeEdge( Derivation::Node* pFrom, Derivation::Step* pNext,

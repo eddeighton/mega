@@ -69,7 +69,7 @@ namespace FunctionBody
 {
     namespace Derivation
     {
-        object Edge -> ClangTraitsStage::Traits
+        object Edge -> CPPSourceStage::Source
         {
             ref< Node >                      from;
             ref< Step >                      next;
@@ -79,35 +79,35 @@ namespace FunctionBody
             array< ref< Concrete::Edge > >   edges;
         }
 
-        object Node -> ClangTraitsStage::Traits
+        object Node -> CPPSourceStage::Source
         {
             array< ref< Edge > > edges;
         }
 
-        object Step : Node -> ClangTraitsStage::Traits
+        object Step : Node -> CPPSourceStage::Source
         {
             ref< Concrete::Node >  vertex;
         }
 
-        object Or : Step -> ClangTraitsStage::Traits
+        object Or : Step -> CPPSourceStage::Source
         {
         }
 
-        object And : Step -> ClangTraitsStage::Traits
+        object And : Step -> CPPSourceStage::Source
         {
         }
 
-        object Select : Or -> ClangTraitsStage::Traits
+        object Select : Or -> CPPSourceStage::Source
         {
             ref< Concrete::Node > selection;
         }
 
-        object Root : Node -> ClangTraitsStage::Traits
+        object Root : Node -> CPPSourceStage::Source
         {
             array< ref< Concrete::Node > > context;
         }
 
-        object Dispatch : Step -> ClangTraitsStage::Traits
+        object Dispatch : Step -> CPPSourceStage::Source
         {
         }
     }
@@ -117,7 +117,7 @@ namespace Invocation
 {
     namespace Derivation
     {
-        object Edge -> ClangTraitsStage::Traits
+        object Edge -> ObjectStage::Obj
         {
             ref< Node >                      from;
             ref< Step >                      next;
@@ -127,35 +127,35 @@ namespace Invocation
             array< ref< Concrete::Edge > >   edges;
         }
 
-        object Node -> ClangTraitsStage::Traits
+        object Node -> ObjectStage::Obj
         {
             array< ref< Edge > > edges;
         }
 
-        object Step : Node -> ClangTraitsStage::Traits
+        object Step : Node -> ObjectStage::Obj
         {
             ref< Concrete::Node >  vertex;
         }
 
-        object Or : Step -> ClangTraitsStage::Traits
+        object Or : Step -> ObjectStage::Obj
         {
         }
 
-        object And : Step -> ClangTraitsStage::Traits
+        object And : Step -> ObjectStage::Obj
         {
         }
 
-        object Select : Or -> ClangTraitsStage::Traits
+        object Select : Or -> ObjectStage::Obj
         {
             ref< Concrete::Node > selection;
         }
 
-        object Root : Node -> ClangTraitsStage::Traits
+        object Root : Node -> ObjectStage::Obj
         {
             array< ref< Concrete::Node > > context;
         }
 
-        object Dispatch : Step -> ClangTraitsStage::Traits
+        object Dispatch : Step -> ObjectStage::Obj
         {
         }
     }
