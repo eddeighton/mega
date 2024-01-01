@@ -91,7 +91,7 @@ set( MEGA_VALUES_COMPILATION_HEADERS
     ${MEGA_VALUES_COMPILATION_DIR}/operation_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/operator_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/ownership.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/size_alignment.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/size_alignment.hpp   
     ${MEGA_VALUES_COMPILATION_DIR}/source_location.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/symbol_table.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/tool_chain_hash.hpp
@@ -102,7 +102,6 @@ set( MEGA_VALUES_COMPILATION_SRC
     ${MEGA_VALUES_COMPILATION_DIR}/anon_symbols.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/hyper_graph.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/icontext_flags.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/invocation_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/megastructure_installation.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/modes.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/operation_id.cpp
@@ -116,8 +115,8 @@ set( MEGA_VALUES_CLANG_DIR ${MEGA_VALUES_DIR}/clang )
 set( MEGA_VALUES_CLANG_HEADERS
     ${MEGA_VALUES_CLANG_DIR}/operation_id_types.hpp
     ${MEGA_VALUES_CLANG_DIR}/result_type.hpp
-    ${MEGA_VALUES_CLANG_DIR}/type_path.hpp
-    ${MEGA_VALUES_CLANG_DIR}/typed_pointer.hpp
+    ${MEGA_VALUES_CLANG_DIR}/symbol_path.hpp
+    ${MEGA_VALUES_CLANG_DIR}/mega_pointer.hpp
 )
 # NOTE: MEGA_VALUES_CLANG_HEADERS NOTE added to lib
 

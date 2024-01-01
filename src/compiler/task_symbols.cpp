@@ -38,7 +38,7 @@ namespace SymbolRollout
 {
 #include "compiler/interface_printer.hpp"
 #include "compiler/interface_typeid_sequence.hpp"
-#include "compiler/type_path.hpp"
+#include "compiler/symbol_path.hpp"
 } // namespace SymbolRollout
 
 #include <map>

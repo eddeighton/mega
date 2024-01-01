@@ -35,7 +35,7 @@
 
 namespace CPPSourceStage
 {
-#include "compiler/type_path.hpp"
+#include "compiler/symbol_path.hpp"
 #include "compiler/common_ancestor.hpp"
 
 namespace FunctionBody
@@ -187,25 +187,6 @@ class Task_CPP_Source : public BaseTask
                 if( strToken == "{" )
                 {
                     m_bSpecifyingNameSpace = false;
-
-                    /*m_os << "// namespace is: ";
-                    bool bFirst = true;
-                    for( const auto& ns : m_namespaceStack )
-                    {
-                        for( const auto& n : ns.second )
-                        {
-                            if( bFirst )
-                            {
-                                bFirst = false;
-                            }
-                            else
-                            {
-                                m_os << "::";
-                            }
-                            m_os << n;
-                        }
-                    }
-                    m_os << "\n";*/
                 }
                 else if( ( strToken == "::" ) || ( strToken == ":" ) )
                 {
@@ -319,35 +300,37 @@ class Task_CPP_Source : public BaseTask
 
         std::string result() override
         {
-            std::ostringstream os;
-
             FunctionBody::InterObjectDerivationPolicy       policy{ m_database };
             FunctionBody::InterObjectDerivationPolicy::Spec spec{
                 m_pInterfaceContext->get_inheritors(), m_symbols, true };
             std::vector< FunctionBody::Derivation::Or* > frontier;
             auto pRoot = FunctionBody::solveContextFree( spec, policy, frontier );
 
-            os << "TypedPtr< ";
-            bool                                bFirst = true;
-            std::set< mega::interface::TypeID > uniqueInterfaceTypeIDs;
-            for( auto pOr : frontier )
+            std::ostringstream os;
             {
-                const auto interfaceTypeID = pOr->get_vertex()->get_node()->get_interface_id()->get_type_id();
-                if( !uniqueInterfaceTypeIDs.contains( interfaceTypeID ) )
+                os << MEGA_POINTER << "< ";
+                bool                                bFirst = true;
+                std::set< mega::interface::TypeID > uniqueInterfaceTypeIDs;
+                for( auto pOr : frontier )
                 {
-                    if( bFirst )
+                    const auto interfaceTypeID = pOr->get_vertex()->get_node()->get_interface_id()->get_type_id();
+                    if( !uniqueInterfaceTypeIDs.contains( interfaceTypeID ) )
                     {
-                        bFirst = false;
+                        if( bFirst )
+                        {
+                            bFirst = false;
+                        }
+                        else
+                        {
+                            os << ", ";
+                        }
+                        os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
+                            << interfaceTypeID.getValue() << std::dec;
+                        uniqueInterfaceTypeIDs.insert( interfaceTypeID );
                     }
-                    else
-                    {
-                        os << ", ";
-                    }
-                    os << interfaceTypeID;
-                    uniqueInterfaceTypeIDs.insert( interfaceTypeID );
                 }
+                os << " >";
             }
-            os << " >";
 
             return os.str();
         }
@@ -371,7 +354,9 @@ class Task_CPP_Source : public BaseTask
             auto pInterfaceNode = Interface::resolve( m_symbolInfo.symbolSequenceMap, symbolIDSeq );
 
             std::ostringstream os;
-            os << "TypedPtr< " << pInterfaceNode->get_interface_id()->get_type_id() << " >";
+            os << MEGA_POINTER << "< "
+                << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
+                << pInterfaceNode->get_interface_id()->get_type_id().getValue() << std::dec << " > ";
             return os.str();
         }
     };
@@ -430,7 +415,6 @@ class Task_CPP_Source : public BaseTask
             , m_functionType( functionType )
         {
             printLineDirective( current_position, m_osLineStart );
-
             // determine the interface type of the function
             m_symbols = m_namespacing.collectSymbolSequence();
         }
@@ -683,7 +667,7 @@ class Task_CPP_Source : public BaseTask
             os << "{\n";
             os << "namespace\n";
             os << "{\n";
-            os << "struct Impl : mega::Pointer\n";
+            os << "struct Impl : __mega_ptr< 0x00010000 >\n";
             os << "{\n";
 
             os << m_osLineStart.str();

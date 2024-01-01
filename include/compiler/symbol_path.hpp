@@ -18,8 +18,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_December_19_type_path
-#define GUARD_2023_December_19_type_path
+#ifndef GUARD_2023_December_19_symbol_path
+#define GUARD_2023_December_19_symbol_path
 
 namespace Interface
 {
@@ -56,4 +56,4 @@ static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, Parser::Type:
 
 } // namespace Interface
 
-#endif // GUARD_2023_December_19_type_path
+#endif // GUARD_2023_December_19_symbol_path

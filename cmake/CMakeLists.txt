@@ -105,13 +105,14 @@ add_subdirectory(parser)
 
 add_subdirectory(pipeline)
 
+add_subdirectory(invocation)
+
 add_subdirectory(compiler)
 
-# add_subdirectory(invocation)
 add_subdirectory(clang_plugin)
 
-# 
 add_subdirectory(reports)
+
 add_subdirectory(database_reporters)
 
 add_subdirectory(event)

@@ -20,7 +20,7 @@
 
 #include "invocation/invocation.hpp"
 
-#include "database/OperationsStage.hxx"
+#include "database/ObjectStage.hxx"
 
 #include "compiler/derivation.hpp"
 
@@ -35,7 +35,7 @@
 #include <optional>
 #include <unordered_set>
 
-namespace OperationsStage
+namespace ObjectStage
 {
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"

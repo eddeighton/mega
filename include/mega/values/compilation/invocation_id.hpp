@@ -21,12 +21,13 @@
 #define INVOCATION_ID_12_AUG_2022
 
 #include "mega/values/compilation/interface/symbol_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
 #include "mega/values/compilation/operation_id.hpp"
 
 #include "common/assert_verify.hpp"
+#include "common/serialisation.hpp"
 
 #include <utility>
-#include <vector>
 #include <array>
 #include <ostream>
 
@@ -36,58 +37,84 @@ namespace mega
 class InvocationID
 {
 public:
-    using SymbolIDVector = std::vector< mega::interface::SymbolID >;
+    static constexpr auto MAX_ELEMENTS = 8U;
 
-    SymbolIDVector    m_context;
-    SymbolIDVector    m_type_path;
-    mega::OperationID m_operation = mega::HIGHEST_OPERATION_TYPE;
+    using TypeIDArray   = std::array< interface::TypeID, MAX_ELEMENTS >;
+    using SymbolIDArray = std::array< interface::SymbolID, MAX_ELEMENTS >;
 
-    // inline bool operator==( const InvocationID& cmp ) const
-    // {
-    //     return ( m_context == cmp.m_context ) && ( m_type_path == cmp.m_type_path )
-    //            && ( m_operation == cmp.m_operation );
-    // }
-    // inline bool operator<( const InvocationID& cmp ) const
-    // {
-    //     return ( m_context != cmp.m_context )       ? ( m_context < cmp.m_context )
-    //            : ( m_type_path != cmp.m_type_path ) ? ( m_type_path < cmp.m_type_path )
-    //                                                 : ( m_operation < cmp.m_operation );
-    // }
+    TypeIDArray   m_context;
+    SymbolIDArray m_symbols;
+    OperationID   m_operation = HIGHEST_OPERATION_TYPE;
 
-    // InvocationID() = default;
-    // InvocationID( SymbolIDVector context, SymbolIDVector typePath, mega::OperationID operationID )
-    //     : m_context( std::move( context ) )
-    //     , m_type_path( std::move( typePath ) )
-    //     , m_operation( operationID )
-    // {
-    //     ASSERT( static_cast< int >( m_operation ) < mega::HIGHEST_OPERATION_TYPE );
-    // }
-    // template < mega::U64 Size >
-    // constexpr InvocationID( mega::TypeID context, const std::array< mega::TypeID, Size >& typePath,
-    //                         mega::TypeID operation )
-    //     : m_context{ context }
-    //     , m_type_path( typePath.begin(), typePath.end() )
-    //     , m_operation( static_cast< mega::OperationID >( operation.getSymbolID() ) )
-    // {
-    // }
-    // template < mega::U64 ContextSize, mega::U64 TypePathSize >
-    // constexpr InvocationID( const std::array< mega::TypeID, ContextSize >&  context,
-    //                         const std::array< mega::TypeID, TypePathSize >& typePath, mega::TypeID operation )
-    //     : m_context( context.begin(), context.end() )
-    //     , m_type_path( typePath.begin(), typePath.end() )
-    //     , m_operation( static_cast< mega::OperationID >( operation.getSymbolID() ) )
-    // {
-    // }
-    // template < class Archive >
-    // inline void serialize( Archive& archive, const unsigned int version )
-    // {
-    //     archive& m_context;
-    //     archive& m_type_path;
-    //     archive& m_operation;
-    // }
+    constexpr inline InvocationID() = default;
+
+    constexpr inline explicit InvocationID( interface::TypeID context, SymbolIDArray symbols, OperationID operationID )
+        : m_context( { context } )
+        , m_symbols( std::move( symbols ) )
+        , m_operation( operationID )
+    {
+    }
+
+    constexpr inline explicit InvocationID( TypeIDArray context, SymbolIDArray symbols, OperationID operationID )
+        : m_context( std::move( context ) )
+        , m_symbols( std::move( symbols ) )
+        , m_operation( operationID )
+    {
+    }
+
+    constexpr inline bool operator==( const InvocationID& cmp ) const
+    {
+        return ( m_context == cmp.m_context ) && ( m_symbols == cmp.m_symbols ) && ( m_operation == cmp.m_operation );
+    }
+    constexpr inline bool operator<( const InvocationID& cmp ) const
+    {
+        return ( m_context != cmp.m_context )   ? ( m_context < cmp.m_context )
+               : ( m_symbols != cmp.m_symbols ) ? ( m_symbols < cmp.m_symbols )
+                                                : ( m_operation < cmp.m_operation );
+    }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            archive& boost::serialization::make_nvp( "context", m_context );
+            archive& boost::serialization::make_nvp( "symbols", m_symbols );
+            archive& boost::serialization::make_nvp( "operation", m_operation );
+        }
+        else
+        {
+            archive& m_context;
+            archive& m_symbols;
+            archive& m_operation;
+        }
+    }
 };
 
-// std::ostream& operator<<( std::ostream& os, const mega::InvocationID& invocationID );
+inline std::ostream& operator<<( std::ostream& os, const mega::InvocationID& invocationID )
+{
+    for( const auto& context : invocationID.m_context )
+    {
+        if( !context.valid() )
+        {
+            break;
+        }
+        os << context;
+    }
+
+    for( const auto& symbol : invocationID.m_symbols )
+    {
+        if( symbol == interface::NULL_SYMBOL_ID )
+        {
+            break;
+        }
+        os << symbol;
+    }
+
+    os << getOperationString( invocationID.m_operation );
+
+    return os;
+}
 
 } // namespace mega
 

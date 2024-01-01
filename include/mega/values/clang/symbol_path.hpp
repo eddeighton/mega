@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,20 +18,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-#ifndef EG_TYPE_PATH
-#define EG_TYPE_PATH
+#ifndef GUARD_2023_December_29_symbol_path
+#define GUARD_2023_December_29_symbol_path
 
 #include "mega/values/compilation/operation_id.hpp"
+#include "mega/values/compilation/interface/symbol_id.hpp"
 
-#include <array>
 
-template< typename... Ts >
-struct [[clang::eg_type( mega::id_TypePath )]] __eg_type_path
+template< mega::interface::SymbolID::ValueType... symbols >
+struct [[clang::eg_type( mega::id_MegaSymbolPath )]] __mega_symbol_path
 {
-    
+
 };
 
-#endif //EG_TYPE_PATH
+#endif //GUARD_2023_December_29_symbol_path

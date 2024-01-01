@@ -22,12 +22,12 @@
 #ifndef EG_OPERATION_TYPES
 #define EG_OPERATION_TYPES
 
-#include "mega/values/compilation/interface/type_id.hpp"
+#include "mega/values/compilation/interface/symbol_id.hpp"
 #include "mega/values/compilation/operation_id.hpp"
 
 struct [[clang::eg_type( mega::id_Imp_NoParams )]] __eg_ImpNoParams
 {
-    enum : mega::interface::TypeID::ValueType
+    enum : mega::interface::SymbolID::ValueType
     {
         ID = mega::id_Imp_NoParams
     };
@@ -35,7 +35,7 @@ struct [[clang::eg_type( mega::id_Imp_NoParams )]] __eg_ImpNoParams
 
 struct [[clang::eg_type( mega::id_Imp_Params )]] __eg_ImpParams
 {
-    enum : mega::interface::TypeID::ValueType
+    enum : mega::interface::SymbolID::ValueType
     {
         ID = mega::id_Imp_Params
     };
@@ -43,7 +43,7 @@ struct [[clang::eg_type( mega::id_Imp_Params )]] __eg_ImpParams
 
 struct [[clang::eg_type( mega::id_Move )]] MOVE
 {
-    enum : mega::interface::TypeID::ValueType
+    enum : mega::interface::SymbolID::ValueType
     {
         ID = mega::id_Move
     };
@@ -51,7 +51,7 @@ struct [[clang::eg_type( mega::id_Move )]] MOVE
 
 struct [[clang::eg_type( mega::id_Get )]] GET
 {
-    enum : mega::interface::TypeID::ValueType
+    enum : mega::interface::SymbolID::ValueType
     {
         ID = mega::id_Get
     };
@@ -59,7 +59,7 @@ struct [[clang::eg_type( mega::id_Get )]] GET
 
 struct [[clang::eg_type( mega::id_Range )]] RANGE
 {
-    enum : mega::interface::TypeID::ValueType
+    enum : mega::interface::SymbolID::ValueType
     {
         ID = mega::id_Range
     };
@@ -67,7 +67,7 @@ struct [[clang::eg_type( mega::id_Range )]] RANGE
 
 struct [[clang::eg_type( mega::id_Remove )]] REMOVE
 {
-    enum : mega::interface::TypeID::ValueType
+    enum : mega::interface::SymbolID::ValueType
     {
         ID = mega::id_Remove
     };
@@ -75,7 +75,7 @@ struct [[clang::eg_type( mega::id_Remove )]] REMOVE
 
 struct [[clang::eg_type( mega::id_Clear )]] CLEAR
 {
-    enum : mega::interface::TypeID::ValueType
+    enum : mega::interface::SymbolID::ValueType
     {
         ID = mega::id_Clear
     };

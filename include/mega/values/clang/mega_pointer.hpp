@@ -21,6 +21,7 @@
 #ifndef GUARD_2023_December_26_typed_pointer
 #define GUARD_2023_December_26_typed_pointer
 
+#include "mega/values/compilation/operation_id.hpp"
 #include "mega/values/compilation/interface/type_id.hpp"
 #include "mega/values/compilation/interface/symbol_id.hpp"
 
@@ -28,14 +29,23 @@
 
 #include "mega/values/clang/result_type.hpp"
 
-template< mega::interface::TypeID... ContextID >
-class TypedPtr : public mega::Pointer
+template< mega::interface::TypeID::ValueType... InterfaceTypeID >
+class [[clang::eg_type( mega::id_MegaPointer )]] __mega_ptr;
+
+template< typename ContextType, typename TypePath, typename Operation, typename... Args >
+void invoke_impl_void( ContextType, Args... args );
+
+template< typename ContextType, typename TypePath, typename Operation, typename... Args >
+typename mega::result_type< ContextType, TypePath, Operation >::Type invoke_impl( ContextType, Args... );
+
+template< mega::interface::TypeID::ValueType... InterfaceTypeID >
+class [[clang::eg_type( mega::id_MegaPointer )]] __mega_ptr : public mega::Pointer
 {
-public:
+public: 
     template< typename TypePath, typename Operation, typename... Args >
-    inline typename mega::result_type< TypedPtr< ContextID... >, TypePath, Operation >::Type invoke( Args... args ) const
+    inline typename mega::result_type< __mega_ptr< InterfaceTypeID... >, TypePath, Operation >::Type __mega_invoke( Args... args ) const
     {
-        using ThisType = TypedPtr< ContextID... >;
+        using ThisType = __mega_ptr< InterfaceTypeID... >;
         using ResultType = typename mega::result_type< ThisType, TypePath, Operation >::Type;
         
         if constexpr ( std::is_same< ResultType, void >::value )
@@ -45,7 +55,7 @@ public:
 
         if constexpr ( !std::is_same< ResultType, void >::value )
         {
-            return invoke_impl< ResultType,ThisType, TypePath, Operation, Args... >( const_cast< ThisType& >( *this ), args... );
+            return invoke_impl< ResultType, ThisType, TypePath, Operation, Args... >( const_cast< ThisType& >( *this ), args... );
         }
     }
 };

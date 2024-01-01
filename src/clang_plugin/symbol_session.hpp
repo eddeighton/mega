@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,50 +18,46 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef MODES_10_MAY_2022
-#define MODES_10_MAY_2022
+#ifndef GUARD_2023_December_30_symbol_resolving_session
+#define GUARD_2023_December_30_symbol_resolving_session
 
-#include <ostream>
+#include "session.hpp"
 
-namespace mega
+namespace clang
 {
-class CompilationMode
+
+class SymbolSession : public Session
 {
+protected:
+    const boost::filesystem::path m_srcDir, m_buildDir;
+    mega::io::Directories         m_directories;
+    mega::io::BuildEnvironment    m_environment;
+
 public:
-    enum Value
-    {
-        eNormal,
-        eTraits,
-        eInvocations,
-        TOTAL_COMPILATION_MODES
-    };
-
-    const char*            str() const;
-    static CompilationMode fromStr( const char* psz );
-
-    CompilationMode()
-        : m_value( TOTAL_COMPILATION_MODES )
-    {
-    }
-    explicit CompilationMode( Value value )
-        : m_value( value )
+    using Ptr = std::unique_ptr< Session >;
+    SymbolSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir )
+        : Session( pASTContext, pSema )
+        , m_srcDir( strSrcDir )
+        , m_buildDir( strBuildDir )
+        , m_directories{ m_srcDir, m_buildDir, "", "" }
+        , m_environment( m_directories )
     {
     }
 
-    Value get() const { return m_value; }
-    void  set( Value value ) { m_value = value; }
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    virtual unsigned int getSymbolID( const std::string& strIdentifier ) const override
     {
-        archive& m_value;
+        const auto result = mega::getOperationName( strIdentifier );
+        if( result == mega::HIGHEST_OPERATION_TYPE )
+        {
+            return 0;
+        }
+        else
+        {
+            return result;
+        }
     }
-
-private:
-    Value m_value;
 };
-std::ostream& operator<<( std::ostream& os, mega::CompilationMode compilationMode );
 
-} // namespace mega
+}
 
-#endif // MODES_10_MAY_2022
+#endif //GUARD_2023_December_30_symbol_resolving_session

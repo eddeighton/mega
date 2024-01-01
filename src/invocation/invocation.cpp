@@ -19,9 +19,7 @@
 
 #include "invocation/invocation.hpp"
 
-#include "database/OperationsStage.hxx"
-
-#include "compiler/derivation.hpp"
+#include "database/ObjectStage.hxx"
 
 #include "mega/values/compilation/operation_id.hpp"
 #include "mega/values/compilation/hyper_graph.hpp"
@@ -34,244 +32,89 @@
 #include <optional>
 #include <unordered_set>
 
-namespace OperationsStage
+namespace ObjectStage
 {
 #include "compiler/interface_printer.hpp"
 #include "compiler/concrete_printer.hpp"
 #include "compiler/common_ancestor.hpp"
-#include "compiler/invocation_policy.hpp"
-#include "compiler/derivation_compiler.hpp"
-namespace Derivation
+
+namespace Invocation
 {
+#include "compiler/derivation.hpp"
 #include "compiler/derivation_printer.hpp"
 #include "compiler/disambiguate.hpp"
-} // namespace Derivation
-} // namespace OperationsStage
+} // namespace Invocation
 
-using namespace OperationsStage;
-using namespace OperationsStage::Operations;
+} // namespace ObjectStage
+
+using namespace ObjectStage;
+using namespace ObjectStage::Invocation;
 
 namespace mega::invocation
 {
-SymbolTables::SymbolTables( Symbols::SymbolTable* pSymbolTable )
-    : symbolIDMap( pSymbolTable->get_symbol_type_ids() )
-    , interfaceIDMap( pSymbolTable->get_interface_type_ids() )
-{
-}
 
 namespace
 {
-struct InvocationPolicy : public InvocationPolicyBase
-{
-    OrPtrVector expandLink( OrPtr pOr ) const
-    {
-        OrPtrVector result;
 
-        if( auto pLink = db_cast< Concrete::Dimensions::Link >( pOr->get_vertex() ) )
-        {
-            GraphEdgeVector edges;
-            for( auto pEdge : pLink->get_out_edges() )
-            {
-                switch( pEdge->get_type().get() )
-                {
-                    case EdgeType::eMonoSingularMandatory:
-                    case EdgeType::ePolySingularMandatory:
-                    case EdgeType::eMonoNonSingularMandatory:
-                    case EdgeType::ePolyNonSingularMandatory:
-                    case EdgeType::eMonoSingularOptional:
-                    case EdgeType::ePolySingularOptional:
-                    case EdgeType::eMonoNonSingularOptional:
-                    case EdgeType::ePolyNonSingularOptional:
-                    case EdgeType::ePolyParent:
-                    {
-                        edges.push_back( pEdge );
-                    }
-                    break;
-                    case EdgeType::eParent:
-                    case EdgeType::eChildSingular:
-                    case EdgeType::eChildNonSingular:
-                    case EdgeType::eDim:
-                    case EdgeType::eLink:
-                    case EdgeType::TOTAL_EDGE_TYPES:
-                        break;
-                }
-            }
-            VERIFY_RTE( !edges.empty() );
-
-            auto pAnd = m_database.construct< Derivation::And >(
-                Derivation::And::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pLink } } );
-
-            auto pOrToAndEdge
-                = m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pOr, pAnd, false, false, 0, {} } );
-
-            pOr->push_back_edges( pOrToAndEdge );
-
-            for( auto pGraphEdge : edges )
-            {
-                // determine the parent context of the link target
-                GraphVertex* pParentVertex = nullptr;
-                GraphEdge*   pParentEdge   = nullptr;
-                {
-                    auto pLinkTarget = pGraphEdge->get_target();
-                    for( auto pLinkGraphEdge : pLinkTarget->get_out_edges() )
-                    {
-                        if( pLinkGraphEdge->get_type().get() == EdgeType::eParent )
-                        {
-                            VERIFY_RTE( !pParentVertex );
-                            pParentEdge   = pLinkGraphEdge;
-                            pParentVertex = pLinkGraphEdge->get_target();
-                        }
-                    }
-                }
-                VERIFY_RTE( pParentEdge );
-                VERIFY_RTE( pParentVertex );
-
-                auto pLinkTargetOr = m_database.construct< Derivation::Or >(
-                    Derivation::Or::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pParentVertex } } );
-
-                auto pDerivationEdge = m_database.construct< Derivation::Edge >(
-                    Derivation::Edge::Args{ pAnd, pLinkTargetOr, false, false, 0, { pGraphEdge, pParentEdge } } );
-
-                pAnd->push_back_edges( pDerivationEdge );
-
-                result.push_back( pLinkTargetOr );
-            }
-        }
-        else
-        {
-            result.push_back( pOr );
-        }
-
-        return result;
-    }
-
-    GraphVertex* commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const
-    {
-        return CommonAncestor::commonRootDerivation( pSource, pTarget, edges );
-    }
-
-    InvocationPolicy( Database& database )
-        : InvocationPolicyBase( database )
-    {
-    }
-};
+using InvocationPolicy = ObjectStage::Invocation::InterObjectDerivationPolicy;
 
 void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationID& id,
-                       std::vector< Concrete::Graph::Vertex* >& contextTypes, InvocationPolicy::Spec& spec )
+                       std::vector< Concrete::Node* >& contextTypes, InvocationPolicy::Spec& spec )
 {
     std::optional< mega::OperationID > operationIDOpt;
 
-    for( auto& symbolID : id.m_context )
+    for( const interface::TypeID& interfaceTypeID : id.m_context )
     {
-        if( isOperationType( symbolID ) )
+        if( interfaceTypeID.valid() )
         {
-            VERIFY_RTE_MSG( !operationIDOpt.has_value(), "Operation ID defined twice" );
-            operationIDOpt = static_cast< mega::OperationID >( symbolID.getSymbolID() );
-        }
-        else if( symbolID.isSymbolID() )
-        {
-            auto iFind = symbolTables.symbolIDMap.find( symbolID );
-            VERIFY_RTE( iFind != symbolTables.symbolIDMap.end() );
-            auto pSymbol = iFind->second;
-            for( auto pContext : pSymbol->get_contexts() )
+            auto iFind = symbolTables.interfaceIDMap.find( interfaceTypeID );
+            VERIFY_RTE( iFind != symbolTables.interfaceIDMap.end() );
+            for( auto pConcrete : iFind->second->get_node()->get_inheritors() )
             {
-                for( auto pConcrete : pContext->get_concrete() )
+                if( std::find( contextTypes.begin(), contextTypes.end(), pConcrete ) == contextTypes.end() )
                 {
-                    if( std::find( contextTypes.begin(), contextTypes.end(), pConcrete ) == contextTypes.end() )
-                    {
-                        contextTypes.push_back( pConcrete );
-                        spec.context.push_back( pConcrete );
-                    }
+                    contextTypes.push_back( pConcrete );
+                    spec.context.push_back( pConcrete );
                 }
             }
         }
         else
         {
-            auto iFind = symbolTables.interfaceIDMap.find( symbolID );
-            VERIFY_RTE( iFind != symbolTables.interfaceIDMap.end() );
-            auto pSymbol = iFind->second;
-            VERIFY_RTE( pSymbol->get_context().has_value() );
-            if( auto pInterfaceContext = pSymbol->get_context().value() )
-            {
-                for( auto pConcrete : pInterfaceContext->get_concrete() )
-                {
-                    if( std::find( contextTypes.begin(), contextTypes.end(), pConcrete ) == contextTypes.end() )
-                    {
-                        contextTypes.push_back( pConcrete );
-                        spec.context.push_back( pConcrete );
-                    }
-                }
-            }
+            break;
         }
     }
+    VERIFY_RTE_MSG( !contextTypes.empty(), "Invocation has no context" );
 
-    for( auto& symbolID : id.m_type_path )
+    for( const interface::SymbolID& symbolID : id.m_symbols )
     {
-        std::vector< Concrete::Graph::Vertex* > pathElement;
-
-        std::optional< TypeID > actualSymbolID;
+        std::vector< Concrete::Node* > pathElement;
         {
             if( isOperationType( symbolID ) )
             {
                 VERIFY_RTE_MSG( !operationIDOpt.has_value(), "Operation ID defined twice" );
-                operationIDOpt = static_cast< mega::OperationID >( symbolID.getSymbolID() );
+                operationIDOpt = static_cast< mega::OperationID >( symbolID.getValue() );
             }
-            else if( symbolID.isContextID() )
+            else
             {
-                // NOTE: Always convert any interface type id BACK to its symbol ID
-                auto iFind = symbolTables.interfaceIDMap.find( symbolID );
-                VERIFY_RTE( iFind != symbolTables.interfaceIDMap.end() );
-                auto pInterfaceSymbol = iFind->second;
+                auto iFind = symbolTables.symbolIDMap.find( symbolID );
+                VERIFY_RTE( iFind != symbolTables.symbolIDMap.end() );
+                auto pSymbol = iFind->second;
 
-                const auto& typeIDSequence = pInterfaceSymbol->get_symbol_ids();
-                VERIFY_RTE( !typeIDSequence.empty() );
-                actualSymbolID = typeIDSequence.back();
-            }
-            else if( symbolID.isSymbolID() )
-            {
-                actualSymbolID = symbolID;
+                for( auto pInterfaceID : pSymbol->get_interfaceIDs() )
+                {
+                    for( auto pConcrete : pInterfaceID->get_node()->get_inheritors() )
+                    {
+                        if( std::find( pathElement.begin(), pathElement.end(), pConcrete ) == pathElement.end() )
+                        {
+                            pathElement.push_back( pConcrete );
+                        }
+                    }
+                }
             }
         }
-
-        if( actualSymbolID.has_value() )
+        if( !pathElement.empty() )
         {
-            auto iFind = symbolTables.symbolIDMap.find( actualSymbolID.value() );
-            VERIFY_RTE( iFind != symbolTables.symbolIDMap.end() );
-            auto pSymbol = iFind->second;
-            for( auto pContext : pSymbol->get_contexts() )
-            {
-                for( auto pConcrete : pContext->get_concrete() )
-                {
-                    if( std::find( pathElement.begin(), pathElement.end(), pConcrete ) == pathElement.end() )
-                    {
-                        pathElement.push_back( pConcrete );
-                    }
-                }
-            }
-            for( auto pDimension : pSymbol->get_dimensions() )
-            {
-                for( auto pConcrete : pDimension->get_concrete() )
-                {
-                    if( std::find( pathElement.begin(), pathElement.end(), pConcrete ) == pathElement.end() )
-                    {
-                        pathElement.push_back( pConcrete );
-                    }
-                }
-            }
-            for( auto pLink : pSymbol->get_links() )
-            {
-                for( auto pConcrete : pLink->get_concrete() )
-                {
-                    if( std::find( pathElement.begin(), pathElement.end(), pConcrete ) == pathElement.end() )
-                    {
-                        pathElement.push_back( pConcrete );
-                    }
-                }
-            }
-            if( !pathElement.empty() )
-            {
-                spec.path.emplace_back( std::move( pathElement ) );
-            }
+            spec.path.emplace_back( std::move( pathElement ) );
         }
     }
 
@@ -281,8 +124,8 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
 
 class OperationBuilder
 {
-    Database&   m_database;
-    Invocation* m_pInvocation;
+    Database&              m_database;
+    Functions::Invocation* m_pInvocation;
 
     enum TargetType
     {
@@ -299,19 +142,19 @@ class OperationBuilder
         = eUNSET;
 
     // clang-format off
-    std::vector< Concrete::Object*              > objects;
-    std::vector< Concrete::Component*           > components;
-    std::vector< Concrete::State*               > states;
-    std::vector< Concrete::Decider*             > deciders;
-    std::vector< Concrete::Function*            > functions;
-    std::vector< Concrete::Namespace*           > namespaces;
-    std::vector< Concrete::Event*               > events;
-    std::vector< Concrete::Interupt*            > interupts;
-    std::vector< Concrete::Dimensions::User*    > userDimensions;
-    std::vector< Concrete::Dimensions::Link*    > linkDimensions;
+    // std::vector< Concrete::Object*              > objects;
+    // std::vector< Concrete::Component*           > components;
+    // std::vector< Concrete::State*               > states;
+    // std::vector< Concrete::Decider*             > deciders;
+    // std::vector< Concrete::Function*            > functions;
+    // std::vector< Concrete::Namespace*           > namespaces;
+    // std::vector< Concrete::Event*               > events;
+    // std::vector< Concrete::Interupt*            > interupts;
+    // std::vector< Concrete::Dimensions::User*    > userDimensions;
+    // std::vector< Concrete::Dimensions::Link*    > linkDimensions;
     // clang-format on
 
-    void findOperationVertices( Derivation::Node* pNode, std::vector< Concrete::Graph::Vertex* >& vertices )
+    void findOperationVertices( Derivation::Node* pNode, std::vector< Concrete::Node* >& vertices )
     {
         auto edges = pNode->get_edges();
         if( edges.empty() )
@@ -330,15 +173,15 @@ class OperationBuilder
                 }
             }
         }
-
     }
 
     void classifyOperations()
     {
-        std::vector< Concrete::Graph::Vertex* > operationContexts;
+        std::vector< Concrete::Node* > operationContexts;
         findOperationVertices( m_pInvocation->get_derivation(), operationContexts );
 
-        for( auto pVert : operationContexts )
+        THROW_TODO;
+        /*for( auto pVert : operationContexts )
         {
             if( auto p = db_cast< Concrete::Object >( pVert ) )
             {
@@ -404,22 +247,23 @@ class OperationBuilder
                                 "Conflicting target types for invocation: " << m_pInvocation->get_id() );
                 m_targetType = eLinkDimensions;
             }
-        }
+        }*/
 
-        VERIFY_RTE_MSG( namespaces.empty(), "Invalid invocation on namespace: " << m_pInvocation->get_id() );
-        VERIFY_RTE_MSG( interupts.empty(), "Invalid invocation on interupt: " << m_pInvocation->get_id() );
+        // VERIFY_RTE_MSG( namespaces.empty(), "Invalid invocation on namespace: " << m_pInvocation->get_id() );
+        // VERIFY_RTE_MSG( interupts.empty(), "Invalid invocation on interupt: " << m_pInvocation->get_id() );
         VERIFY_RTE_MSG( m_targetType != eUNSET, "No targe type for invocation: " << m_pInvocation->get_id() );
 
         std::set< std::string > dimensionTypes;
-        for( auto pDim : userDimensions )
-        {
-            dimensionTypes.insert( pDim->get_interface_dimension()->get_canonical_type() );
-        }
+        // for( auto pDim : userDimensions )
+        // {
+        //     dimensionTypes.insert( pDim->get_interface_dimension()->get_canonical_type() );
+        // }
     }
 
     void buildNoParams()
     {
-        switch( m_targetType )
+        THROW_TODO;
+        /*switch( m_targetType )
         {
             case eObjects:
                 THROW_RTE( "Implicit invocation cannot be on object context" );
@@ -590,12 +434,13 @@ class OperationBuilder
             default:
                 UNREACHABLE;
                 break;
-        }
+        }*/
     }
 
     void buildParams()
     {
-        switch( m_targetType )
+        THROW_TODO;
+        /*switch( m_targetType )
         {
             case eObjects:
                 THROW_RTE( "Implicit invocation cannot be on object context" );
@@ -692,12 +537,13 @@ class OperationBuilder
             default:
                 UNREACHABLE;
                 break;
-        }
+        }*/
     }
 
     void buildGet()
     {
-        switch( m_targetType )
+        THROW_TODO;
+        /*switch( m_targetType )
         {
             case eObjects:
             {
@@ -804,12 +650,13 @@ class OperationBuilder
             default:
                 UNREACHABLE;
                 break;
-        }
+        }*/
     }
 
     void buildRemove()
     {
-        switch( m_targetType )
+        THROW_TODO;
+        /*switch( m_targetType )
         {
             case eObjects:
                 THROW_RTE( "Cannot remove an object" );
@@ -835,20 +682,20 @@ class OperationBuilder
             case eLinkDimensions:
             {
                 // parameter type
-                /*ReturnTypes::Context* pParameterType = nullptr;
-                {
-                    std::vector< Interface::DimensionTrait* > contexts;
-                    std::set< std::string >                   types;
-                    for( auto pConcrete : linkDimensions )
-                    {
-                        auto pDimensionTrait = pConcrete->get_interface_dimension();
-                        contexts.push_back( pDimensionTrait );
-                        types.insert( pDimensionTrait->get_canonical_type() );
-                    }
-                    contexts               = make_unique_without_reorder( contexts );
-                    pParameterType         = m_database.construct< ReturnTypes::Context >(
-                        ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } );
-                }*/
+                // ReturnTypes::Context* pParameterType = nullptr;
+                // {
+                //     std::vector< Interface::DimensionTrait* > contexts;
+                //     std::set< std::string >                   types;
+                //     for( auto pConcrete : linkDimensions )
+                //     {
+                //         auto pDimensionTrait = pConcrete->get_interface_dimension();
+                //         contexts.push_back( pDimensionTrait );
+                //         types.insert( pDimensionTrait->get_canonical_type() );
+                //     }
+                //     contexts               = make_unique_without_reorder( contexts );
+                //     pParameterType         = m_database.construct< ReturnTypes::Context >(
+                //         ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } );
+                // }
                 // return the context of the write
                 {
                     std::vector< Interface::IContext* > contexts;
@@ -869,12 +716,13 @@ class OperationBuilder
             default:
                 UNREACHABLE;
                 break;
-        }
+        }*/
     }
 
     void buildClear()
     {
-        switch( m_targetType )
+        THROW_TODO;
+        /*switch( m_targetType )
         {
             case eObjects:
                 THROW_RTE( "Cannot clear an object" );
@@ -919,7 +767,7 @@ class OperationBuilder
             default:
                 UNREACHABLE;
                 break;
-        }
+        }*/
     }
 
     void buildMove()
@@ -967,7 +815,7 @@ class OperationBuilder
     }
 
 public:
-    OperationBuilder( Database& database, Operations::Invocation* pInvocation )
+    OperationBuilder( Database& database, Functions::Invocation* pInvocation )
         : m_database( database )
         , m_pInvocation( pInvocation )
     {
@@ -1031,31 +879,31 @@ public:
 
 } // namespace
 
-Operations::Invocation* compileInvocation( Database& database, const SymbolTables& symbolTables,
-                                           const mega::InvocationID& id )
+Functions::Invocation* compileInvocation( Database& database, const SymbolTables& symbolTables,
+                                          const mega::InvocationID& id )
 {
     // determine the derivation of the invocationID
-    std::vector< Concrete::Graph::Vertex* > contextTypes;
-    InvocationPolicy::Spec                  derivationSpec;
+    std::vector< Concrete::Node* > contextTypes;
+    InvocationPolicy::Spec         derivationSpec;
     fromInvocationID( symbolTables, id, contextTypes, derivationSpec );
 
     // solve the context free derivation
-    InvocationPolicy              policy( database );
-    InvocationPolicy::OrPtrVector finalFrontier;
-    InvocationPolicy::RootPtr     pRoot = DerivationSolver::solveContextFree( derivationSpec, policy, finalFrontier );
+    InvocationPolicy               policy( database );
+    std::vector< Derivation::Or* > finalFrontier;
+    Derivation::Root*              pRoot = solveContextFree( derivationSpec, policy, finalFrontier );
 
-    Derivation::precedence( pRoot );
+    precedence( pRoot );
 
-    Operations::Invocation* pInvocation = nullptr;
+    Functions::Invocation* pInvocation = nullptr;
     try
     {
-        const Derivation::Disambiguation result = Derivation::disambiguate( pRoot, finalFrontier );
-        if( result != Derivation::eSuccess )
+        const Disambiguation result = disambiguate( pRoot, finalFrontier );
+        if( result != eSuccess )
         {
             std::ostringstream os;
-            if( result == Derivation::eAmbiguous )
+            if( result == eAmbiguous )
                 os << "Derivation disambiguation was ambiguous for: " << id << "\n";
-            else if( result == Derivation::eFailure )
+            else if( result == eFailure )
                 os << "Derivation disambiguation failed for: " << id << "\n";
             else
                 THROW_RTE( "Unknown derivation failure type" );
@@ -1090,7 +938,7 @@ Operations::Invocation* compileInvocation( Database& database, const SymbolTable
         }*/
 
         {
-            pInvocation = database.construct< Operations::Invocation >( Operations::Invocation::Args{ pRoot, id } );
+            pInvocation = database.construct< Functions::Invocation >( Functions::Invocation::Args{ pRoot, id } );
         }
 
         {

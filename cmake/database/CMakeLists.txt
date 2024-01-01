@@ -59,10 +59,10 @@ set( DATABASE_SCHEMAS
     ${MEGA_SRC_DIR}/schema/parser.dbs
     ${MEGA_SRC_DIR}/schema/interface.dbs
     ${MEGA_SRC_DIR}/schema/concrete.dbs
-    #${MEGA_SRC_DIR}/schema/operations.dbs
     ${MEGA_SRC_DIR}/schema/analysis.dbs
     ${MEGA_SRC_DIR}/schema/automata.dbs
     ${MEGA_SRC_DIR}/schema/derivation.dbs
+    ${MEGA_SRC_DIR}/schema/functions.dbs
 )
 
 MegaDatabase( 

@@ -127,14 +127,10 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode{ CompilationMode::eDecls };
+        compilation.compilationMode = CompilationMode{ CompilationMode::eNormal };
 
         compilation.compiler_command = toolChain.clangCompilerPath.string();
         compilation.compiler_plugin  = toolChain.clangPluginPath;
-
-        compilation.srcDir     = environment.srcDir();
-        compilation.buildDir   = environment.buildDir();
-        compilation.sourceFile = environment.FilePath( environment.project_manifest() );
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -158,7 +154,7 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode{ CompilationMode::eCPP };
+        compilation.compilationMode = CompilationMode{ CompilationMode::eInvocations };
 
         compilation.compiler_command = toolChain.clangCompilerPath.string();
         compilation.compiler_plugin  = toolChain.clangPluginPath;

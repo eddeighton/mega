@@ -25,7 +25,6 @@
 #include "common/serialisation.hpp"
 
 #include <boost/filesystem/path.hpp>
-#include <boost/serialization/nvp.hpp>
 
 #include <ostream>
 

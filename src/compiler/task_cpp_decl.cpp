@@ -106,13 +106,6 @@ public:
             {
             }
 
-            std::string
-            generateCPPType( Interface::Node* pNode, std::vector< Parser::Type::Fragment* > fragments ) const
-            {
-                std::ostringstream os;
-                return os.str();
-            }
-
             virtual ~Visitor() = default;
             virtual bool visit( Interface::UserDimension* pNode ) const { return false; }
             virtual bool visit( Interface::UserAlias* pNode ) const { return false; }

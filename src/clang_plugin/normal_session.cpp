@@ -17,22 +17,32 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "session.hpp"
 
+#pragma warning( push )
+#include "common/clang_warnings.hpp"
 
+#include "llvm/Support/Casting.h"
 
-#ifndef EG_RESULT_TYPE
-#define EG_RESULT_TYPE
+#include "clang/AST/Type.h"
+#include "clang/Basic/DiagnosticParse.h"
 
-template< typename Context, typename TypePath, typename Operation >
-struct __mega_invocation{};
+#pragma warning( pop )
 
-namespace mega
+namespace clang
 {
-    template< typename Context, typename TypePath, typename Operation >
-    struct result_type
+class NormalSession : public Session
+{
+public:
+    NormalSession( ASTContext* pASTContext, Sema* pSema )
+        : Session( pASTContext, pSema )
     {
-        using Type = __eg_result_type( __mega_invocation< Context, TypePath, Operation > );
-    };
+    }
+};
+
+Session::Ptr make_normal_session( ASTContext* pASTContext, Sema* pSema )
+{
+    return std::make_unique< NormalSession >( pASTContext, pSema );
 }
 
-#endif //EG_RESULT_TYPE
+} // namespace clang

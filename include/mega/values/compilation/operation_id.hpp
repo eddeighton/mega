@@ -89,10 +89,10 @@ inline constexpr bool isOperationEnumeration( OperationID id )
     }
 }
 
-enum InvocableID : interface::SymbolID::ValueType
+enum ClangEGAttributeID : interface::SymbolID::ValueType
 {
-    id_Variant = HIGHEST_OPERATION_TYPE,
-    id_TypePath
+    id_MegaPointer = HIGHEST_OPERATION_TYPE,
+    id_MegaSymbolPath
 };
 
 enum ExplicitOperationID : interface::SymbolID::ValueType

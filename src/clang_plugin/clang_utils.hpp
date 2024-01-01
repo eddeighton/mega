@@ -36,7 +36,7 @@
 #include <optional>
 #include <iostream>
 
-// #define ENABLE_CLANG_PLUGIN_LOG 1
+#define ENABLE_CLANG_PLUGIN_LOG 1
 
 #ifdef ENABLE_CLANG_PLUGIN_LOG
 #define CLANG_PLUGIN_LOG( msg )                                                                              \
@@ -48,50 +48,57 @@
 
 namespace clang
 {
+/*
 std::string getCanonicalTypeStr( QualType type );
 
 std::optional< mega::interface::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType type );
 
-const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters );
 
-bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType,
-                          mega::InvocationID::SymbolIDVector& contextTypes );
 
-bool getSymbolVariant( ASTContext* pASTContext, QualType typePath, mega::InvocationID::SymbolIDVector& typePathTypes );
+bool getSymbolVariant( ASTContext* pASTContext, QualType typePath, mega::InvocationID::SymbolIDArray& typePathTypes );
 
 using SymbolID                      = mega::interface::SymbolID;
 using SymbolIDVariant               = std::vector< SymbolID >;
 using SymbolIDVariantSequence       = std::vector< SymbolIDVariant >;
 using SymbolIDVariantSequenceVector = std::vector< SymbolIDVariantSequence >;
 bool getSymbolIDVariantSequenceVector( ASTContext* pASTContext, QualType typePath,
-                                       SymbolIDVariantSequenceVector& result );
+                                   SymbolIDVariantSequenceVector& result );
 
 std::optional< ::mega::U64 > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext,
-                                          const SourceLocation& loc, const std::string& strConstantName );
+                                      const SourceLocation& loc, const std::string& strConstantName );
 
 QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                         const std::vector< QualType >& typeParameters );
+                     const std::vector< QualType >& typeParameters );
 
 QualType getVectorConstRefType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                                const QualType& valueType );
+                            const QualType& valueType );
 
 QualType getIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                               const clang::QualType& interfaceType, const char* pszIteratorTypeName );
+                           const clang::QualType& interfaceType, const char* pszIteratorTypeName );
 
 QualType getMultiIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                                    const clang::QualType& interfaceType, ::mega::U64 szTargetTypes,
-                                    const char* pszIteratorTypeName );
+                                const clang::QualType& interfaceType, ::mega::U64 szTargetTypes,
+                                const char* pszIteratorTypeName );
 
 QualType getVoidType( ASTContext* pASTContext );
 QualType getBooleanType( ASTContext* pASTContext );
 QualType getIntType( ASTContext* pASTContext );
 QualType getUIntType( ASTContext* pASTContext );
 
-QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, const SourceLocation& loc,
-                       const std::string& strTypeName );
+                   */
+
 /*
 QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName, DeclContext*& pDeclContext,
 SourceLocation& loc, bool bLast );*/
+
+bool getContextTypeIDs( ASTContext* pASTContext, QualType contextType, mega::InvocationID::TypeIDArray& contextTypes );
+
+bool getSymbolPath( ASTContext* pASTContext, QualType contextType, mega::InvocationID::SymbolIDArray& symbolPath );
+
+const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters );
+
+QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, const SourceLocation& loc,
+                       const std::string& strTypeName );
 
 struct DeclLocType
 {

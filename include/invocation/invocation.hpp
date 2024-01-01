@@ -21,7 +21,7 @@
 #define INVOCATION_6_JUNE_2022
 
 #include "database/environment.hxx"
-#include "database/OperationsStage.hxx"
+#include "database/ObjectStage.hxx"
 
 #include "mega/values/compilation/invocation_id.hpp"
 
@@ -46,23 +46,28 @@ public:
 
 struct SymbolTables
 {
-    SymbolTables( OperationsStage::Symbols::SymbolTable* pSymbolTable );
+    using SymbolTypeIDMap    = std::map< mega::interface::SymbolID, ObjectStage::Symbols::SymbolID* >;
+    using InterfaceTypeIDMap = std::map< mega::interface::TypeID, ObjectStage::Symbols::InterfaceTypeID* >;
 
-    using SymbolTypeIDMap    = std::map< mega::interface::SymbolID, OperationsStage::Symbols::SymbolTypeID* >;
-    using InterfaceTypeIDMap = std::map< mega::interface::TypeID, OperationsStage::Symbols::interface::TypeID* >;
+    inline SymbolTables( ObjectStage::Symbols::SymbolTable* pSymbolTable )
+        : symbolIDMap( pSymbolTable->get_symbol_ids() )
+        , interfaceIDMap( pSymbolTable->get_interface_type_ids() )
+    {
+    }
+
     SymbolTypeIDMap    symbolIDMap;
     InterfaceTypeIDMap interfaceIDMap;
 };
 
-OperationsStage::Operations::Invocation* compileInvocation( OperationsStage::Database& database,
-                                                            const SymbolTables&        symbolTables,
-                                                            const mega::InvocationID&  id );
+ObjectStage::Functions::Invocation*
+compileInvocation( ObjectStage::Database& database, const SymbolTables& symbolTables, const mega::InvocationID& id );
 
-void compileTransitions( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
-void compileInterupts( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
-void compileDeciders( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
-void compileDecisions( OperationsStage::Database& database, const mega::io::megaFilePath& sourceFile );
-
+/*
+void compileTransitions( ObjectStage::Database& database, const mega::io::megaFilePath& sourceFile );
+void compileInterupts( ObjectStage::Database& database, const mega::io::megaFilePath& sourceFile );
+void compileDeciders( ObjectStage::Database& database, const mega::io::megaFilePath& sourceFile );
+void compileDecisions( ObjectStage::Database& database, const mega::io::megaFilePath& sourceFile );
+*/
 } // namespace mega::invocation
 
 #endif // INVOCATION_6_JUNE_2022

@@ -47,7 +47,7 @@
 
 namespace clang
 {
-
+/*
 bool isVariant( ASTContext* pASTContext, QualType typePath )
 {
     if( const IdentifierInfo* pBaseTypeID = typePath.getBaseTypeIdentifier() )
@@ -61,7 +61,7 @@ bool isTypePath( ASTContext* pASTContext, QualType typePath )
 {
     if( const IdentifierInfo* pBaseTypeID = typePath.getBaseTypeIdentifier() )
     {
-        return pBaseTypeID == pASTContext->getEGTypePathName();
+        return pBaseTypeID == pASTContext->getEGSymbolPathName();
     }
     return false;
 }
@@ -81,9 +81,9 @@ std::optional< mega::interface::TypeID > getMegaTypeID( ASTContext* pASTContext,
 
         if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
         {
-            if( pBaseTypeID == pASTContext->getEGTypePathName() )
+            if( pBaseTypeID == pASTContext->getEGSymbolPathName() )
             {
-                //return mega::interface::TypeID( mega::id_TypePath );
+                //return mega::interface::TypeID( mega::id_SymbolPath );
             }
         }
 
@@ -93,28 +93,25 @@ std::optional< mega::interface::TypeID > getMegaTypeID( ASTContext* pASTContext,
             {
                 if( EGTypeIDAttr* pAttr = pRecordDecl->getAttr< EGTypeIDAttr >() )
                 {
-                    return mega::interface::TypeID( static_cast< mega::interface::TypeID::ValueType >( pAttr->getId() ) );
+                    return mega::interface::TypeID( static_cast< mega::interface::TypeID::ValueType >( pAttr->getId() )
+);
                 }
             }
         }
-        /*
-            if( canonicalType->hasAttr< EGTypeIDAttr >() )
-            {
-                if( EGTypeIDAttr* pAttr = canonicalType->getAttr< EGTypeIDAttr >() )
-                {
-                    return pAttr->getId();
-                }
-            }
-            */
 
-        /*
-        if( const AttributedType* pAttributedType = canonicalType->getAs< AttributedType >() )
-        {
-            if( pAttributedType->getAttrKind() == ParsedAttr::AT_EGTypeID )
-            {
-
-            }
-        }*/
+        // if( canonicalType->hasAttr< EGTypeIDAttr >() )
+        // {
+        //     if( EGTypeIDAttr* pAttr = canonicalType->getAttr< EGTypeIDAttr >() )
+        //     {
+        //         return pAttr->getId();
+        //     }
+        // }
+        // if( const AttributedType* pAttributedType = canonicalType->getAs< AttributedType >() )
+        // {
+        //     if( pAttributedType->getAttrKind() == ParsedAttr::AT_EGTypeID )
+        //     {
+        //     }
+        // }
     }
 
     // CLANG_PLUGIN_LOG( "No symbol id for: "  << type.getAsString() );
@@ -122,202 +119,8 @@ std::optional< mega::interface::TypeID > getMegaTypeID( ASTContext* pASTContext,
     return std::optional< mega::interface::TypeID >();
 }
 
-const IdentifierInfo* getOperationIdentifier( ASTContext* pASTContext, const std::string& strName )
-{
-    return &pASTContext->Idents.get( strName.c_str() );
-}
-const IdentifierInfo* getImplicitNoParamsOperation( ASTContext* pASTContext )
-{
-    return getOperationIdentifier( pASTContext, mega::getOperationString( mega::id_Imp_NoParams ) );
-}
-const IdentifierInfo* getImplicitParamsOperation( ASTContext* pASTContext )
-{
-    return getOperationIdentifier( pASTContext, mega::getOperationString( mega::id_Imp_Params ) );
-}
 
-const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters )
-{
-    QualType              canonicalType = ty.getCanonicalType();
-    const IdentifierInfo* pBaseTypeID   = canonicalType.getBaseTypeIdentifier();
 
-    if( !pBaseTypeID )
-        return nullptr;
-
-    if( pBaseTypeID == pASTContext->getEGTypePathName() )
-    {
-        const Type* pType = canonicalType.getTypePtr();
-
-        if( const TemplateSpecializationType* pTemplateType = canonicalType->getAs< TemplateSpecializationType >() )
-        {
-            if( pTemplateType->getNumArgs() == 0U )
-                return nullptr;
-
-            const TemplateArgument& lastTemplateArg = pTemplateType->getArg( pTemplateType->getNumArgs() - 1U );
-            QualType                t               = lastTemplateArg.getAsType();
-            return getOperationID( pASTContext, t, bHasParameters );
-        }
-        else if( const DependentTemplateSpecializationType* pDependentTemplateType
-                 = llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
-        {
-            if( pTemplateType->getNumArgs() == 0U )
-                return nullptr;
-            const TemplateArgument& lastTemplateArg = pTemplateType->getArg( pTemplateType->getNumArgs() - 1U );
-            QualType                t               = lastTemplateArg.getAsType();
-            return getOperationID( pASTContext, t, bHasParameters );
-        }
-        else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
-        {
-            const CXXRecordDecl* pRecordDecl = llvm::dyn_cast< CXXRecordDecl >( pRecordType->getDecl() );
-            if( !pRecordDecl )
-                return nullptr;
-
-            const auto* Spec = llvm::dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl );
-            if( !Spec )
-                return nullptr;
-
-            const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
-            if( Args.size() == 0U )
-                return nullptr;
-
-            const TemplateArgument& lastTemplateArg = Args[ Args.size() - 1U ];
-
-            if( lastTemplateArg.getKind() == TemplateArgument::Pack )
-            {
-                const TemplateArgument& lastTemplatePackArg = lastTemplateArg.pack_elements().back();
-                QualType                t                   = lastTemplatePackArg.getAsType();
-                return getOperationID( pASTContext, t, bHasParameters );
-            }
-            else if( lastTemplateArg.getKind() == TemplateArgument::Type )
-            {
-                QualType t = lastTemplateArg.getAsType();
-                return getOperationID( pASTContext, t, bHasParameters );
-            }
-            else
-            {
-                return nullptr;
-            }
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
-
-    if( ::mega::getOperationName( pBaseTypeID->getName().str() ) != ::mega::HIGHEST_OPERATION_TYPE )
-    {
-        return getOperationIdentifier( pASTContext, pBaseTypeID->getName().str() );
-    }
-    else if( bHasParameters )
-    {
-        return getImplicitParamsOperation( pASTContext );
-    }
-    else
-    {
-        return getImplicitNoParamsOperation( pASTContext );
-    }
-
-    return nullptr;
-}
-
-bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType,
-                          mega::InvocationID::SymbolIDVector& contextTypes )
-{
-    QualType canonicalType = contextType.getCanonicalType();
-    if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
-    {
-        if( pBaseTypeID == pASTContext->getEGVariantName() )
-        {
-            const Type* pType = canonicalType.getTypePtr();
-
-            if( const TemplateSpecializationType* pTemplateType = canonicalType->getAs< TemplateSpecializationType >() )
-            {
-                if( pTemplateType->getNumArgs() == 0U )
-                    return false;
-
-                bool bSuccess = false;
-                for( TemplateSpecializationType::iterator pIter    = pTemplateType->begin(),
-                                                          pIterEnd = pTemplateType->end();
-                     pIter != pIterEnd;
-                     ++pIter )
-                {
-                    if( !getContextSymbolIDs( pASTContext, pIter->getAsType(), contextTypes ) )
-                        return false;
-                    else
-                        bSuccess = true;
-                }
-                return bSuccess;
-            }
-            else if( auto pDependentTemplateType
-                     = llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
-            {
-                return false;
-            }
-            else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
-            {
-                const CXXRecordDecl* pRecordDecl = llvm::dyn_cast< CXXRecordDecl >( pRecordType->getDecl() );
-                if( !pRecordDecl )
-                    return false;
-
-                const auto* Spec = llvm::dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl );
-                if( !Spec )
-                    return false;
-
-                bool                        bSuccess = false;
-                const TemplateArgumentList& Args     = Spec->getTemplateInstantiationArgs();
-                for( unsigned i = 0; i < Args.size(); ++i )
-                {
-                    const TemplateArgument& arg = Args[ i ];
-                    if( arg.getKind() == TemplateArgument::Pack )
-                    {
-                        for( TemplateArgument::pack_iterator j = arg.pack_begin(), jEnd = arg.pack_end(); j != jEnd;
-                             ++j )
-                        {
-                            const TemplateArgument& packArg = *j;
-                            if( !getContextSymbolIDs( pASTContext, packArg.getAsType(), contextTypes ) )
-                                return false;
-                            else
-                                bSuccess = true;
-                        }
-                    }
-                    else if( arg.getKind() == TemplateArgument::Type )
-                    {
-                        if( !getContextSymbolIDs( pASTContext, arg.getAsType(), contextTypes ) )
-                            return false;
-                        else
-                            bSuccess = true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                return bSuccess;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else
-        {
-            if( std::optional< mega::interface::TypeID > typeIDOpt = getMegaTypeID( pASTContext, canonicalType );
-                typeIDOpt.has_value() )
-            {
-                THROW_TODO;
-                // contextTypes.push_back( typeIDOpt.value() );
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-    }
-    else
-    {
-        return false;
-    }
-}
 
 bool getSymbol( ASTContext* pASTContext, QualType typePath, SymbolID& symbol )
 {
@@ -345,7 +148,7 @@ bool getSymbolVariant( ASTContext* pASTContext, QualType typePath, SymbolIDVaria
     if( !pBaseTypeID )
         return false;
 
-    if( pBaseTypeID == pASTContext->getEGTypePathName() )
+    if( pBaseTypeID == pASTContext->getEGSymbolPathName() )
     {
         const Type* pType = canonicalType.getTypePtr();
 
@@ -538,7 +341,7 @@ bool getSymbolIDVariantSequenceVector( ASTContext* pASTContext, QualType typePat
     if( !pBaseTypeID )
         return false;
 
-    if( pBaseTypeID == pASTContext->getEGTypePathName() )
+    if( pBaseTypeID == pASTContext->getEGSymbolPathName() )
     {
         if( const TemplateSpecializationType* pTemplateType = canonicalType->getAs< TemplateSpecializationType >() )
         {
@@ -735,8 +538,6 @@ QualType getIteratorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDe
 
 namespace mega
 {
-static const char* EG_RANGE_TYPE          = "__eg_Range";
-static const char* EG_MULTI_ITERATOR_TYPE = "__eg_MultiIterator";
 } // namespace mega
 
 QualType getIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
@@ -838,20 +639,7 @@ QualType getUIntType( ASTContext* pASTContext )
     return pASTContext->UnsignedIntTy;
 }
 
-QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, const SourceLocation& loc,
-                       const std::string& strTypeName )
-{
-    IdentifierInfo& identifierInfo = pASTContext->Idents.get( strTypeName );
-    LookupResult    lookupResult( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
-    if( pSema->LookupQualifiedName( lookupResult, pDeclContext ) )
-    {
-        if( TypeAliasDecl* pTypeAliasDecl = llvm::dyn_cast< TypeAliasDecl >( lookupResult.getFoundDecl() ) )
-        {
-            return pASTContext->getTypeDeclType( pTypeAliasDecl );
-        }
-    }
-    return QualType();
-}
+*/
 /*
 QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName,
                   DeclContext*& pDeclContext, SourceLocation& loc, bool bLast )
@@ -891,6 +679,358 @@ QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTy
     return QualType();
 }
 */
+
+bool getContextTypeIDs( ASTContext* pASTContext, QualType contextType, mega::InvocationID::TypeIDArray& contextTypes )
+{
+    std::size_t szIndex = 0;
+
+    QualType canonicalType = contextType.getCanonicalType();
+    if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
+    {
+        auto strName = pBaseTypeID->getName();
+        if( pBaseTypeID == pASTContext->getEGPointerName() )
+        {
+            const Type* pType = canonicalType.getTypePtr();
+
+            if( const TemplateSpecializationType* pTemplateType = canonicalType->getAs< TemplateSpecializationType >() )
+            {
+                if( pTemplateType->getNumArgs() == 0U )
+                    return false;
+
+                bool bSuccess = false;
+                for( TemplateSpecializationType::iterator pIter    = pTemplateType->begin(),
+                                                          pIterEnd = pTemplateType->end();
+                     pIter != pIterEnd;
+                     ++pIter )
+                {
+                    THROW_TODO;
+                }
+                return bSuccess;
+            }
+            else if( auto pDependentTemplateType
+                     = llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
+            {
+                return false;
+            }
+            else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+            {
+                const CXXRecordDecl* pRecordDecl = llvm::dyn_cast< CXXRecordDecl >( pRecordType->getDecl() );
+                if( !pRecordDecl )
+                    return false;
+
+                const auto* Spec = llvm::dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl );
+                if( !Spec )
+                    return false;
+
+                bool                        bSuccess = false;
+                const TemplateArgumentList& Args     = Spec->getTemplateInstantiationArgs();
+                for( unsigned i = 0; i < Args.size(); ++i )
+                {
+                    const TemplateArgument& arg = Args[ i ];
+                    if( arg.getKind() == TemplateArgument::Pack )
+                    {
+                        for( TemplateArgument::pack_iterator j = arg.pack_begin(), jEnd = arg.pack_end(); j != jEnd;
+                             ++j )
+                        {
+                            const TemplateArgument& packArg = *j;
+
+                            VERIFY_RTE_MSG(
+                                szIndex < mega::InvocationID::MAX_ELEMENTS,
+                                "More than " << mega::InvocationID::MAX_ELEMENTS << " elements in context" );
+
+                            switch( packArg.getKind() )
+                            {
+                                case TemplateArgument::Integral:
+                                {
+                                    const auto value = static_cast< mega::interface::TypeID::ValueType >(
+                                        packArg.getAsIntegral().getExtValue() );
+
+                                    contextTypes[ szIndex ] = mega::interface::TypeID( value );
+
+                                    ++szIndex;
+                                    bSuccess = true;
+                                }
+                                break;
+                                case TemplateArgument::Null:
+                                case TemplateArgument::Type:
+                                case TemplateArgument::Declaration:
+                                case TemplateArgument::NullPtr:
+                                case TemplateArgument::Template:
+                                case TemplateArgument::TemplateExpansion:
+                                case TemplateArgument::Expression:
+                                case TemplateArgument::Pack:
+                                {
+                                    THROW_TODO;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else if( arg.getKind() == TemplateArgument::Type )
+                    {
+                        THROW_TODO;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                return bSuccess;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            THROW_TODO;
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool getSymbolPath( ASTContext* pASTContext, QualType contextType, mega::InvocationID::SymbolIDArray& symbolPath )
+{
+    std::size_t szIndex = 0;
+
+    QualType canonicalType = contextType.getCanonicalType();
+    if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
+    {
+        auto strName = pBaseTypeID->getName();
+        if( pBaseTypeID == pASTContext->getEGSymbolPathName() )
+        {
+            const Type* pType = canonicalType.getTypePtr();
+
+            if( const TemplateSpecializationType* pTemplateType = canonicalType->getAs< TemplateSpecializationType >() )
+            {
+                if( pTemplateType->getNumArgs() == 0U )
+                    return false;
+
+                bool bSuccess = false;
+                for( TemplateSpecializationType::iterator pIter    = pTemplateType->begin(),
+                                                          pIterEnd = pTemplateType->end();
+                     pIter != pIterEnd;
+                     ++pIter )
+                {
+                    THROW_TODO;
+                }
+                return bSuccess;
+            }
+            else if( auto pDependentTemplateType
+                     = llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
+            {
+                return false;
+            }
+            else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+            {
+                const CXXRecordDecl* pRecordDecl = llvm::dyn_cast< CXXRecordDecl >( pRecordType->getDecl() );
+                if( !pRecordDecl )
+                    return false;
+
+                const auto* Spec = llvm::dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl );
+                if( !Spec )
+                    return false;
+
+                bool                        bSuccess = false;
+                const TemplateArgumentList& Args     = Spec->getTemplateInstantiationArgs();
+                for( unsigned i = 0; i < Args.size(); ++i )
+                {
+                    const TemplateArgument& arg = Args[ i ];
+                    if( arg.getKind() == TemplateArgument::Pack )
+                    {
+                        for( TemplateArgument::pack_iterator j = arg.pack_begin(), jEnd = arg.pack_end(); j != jEnd;
+                             ++j )
+                        {
+                            const TemplateArgument& packArg = *j;
+
+                            VERIFY_RTE_MSG(
+                                szIndex < mega::InvocationID::MAX_ELEMENTS,
+                                "More than " << mega::InvocationID::MAX_ELEMENTS << " elements in context" );
+
+                            switch( packArg.getKind() )
+                            {
+                                case TemplateArgument::Integral:
+                                {
+                                    const auto value = static_cast< mega::interface::SymbolID::ValueType >(
+                                        packArg.getAsIntegral().getExtValue() );
+
+                                    symbolPath[ szIndex ] = mega::interface::SymbolID( value );
+
+                                    ++szIndex;
+                                    bSuccess = true;
+                                }
+                                break;
+                                case TemplateArgument::Null:
+                                case TemplateArgument::Type:
+                                case TemplateArgument::Declaration:
+                                case TemplateArgument::NullPtr:
+                                case TemplateArgument::Template:
+                                case TemplateArgument::TemplateExpansion:
+                                case TemplateArgument::Expression:
+                                case TemplateArgument::Pack:
+                                {
+                                    THROW_TODO;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else if( arg.getKind() == TemplateArgument::Type )
+                    {
+                        THROW_TODO;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                return bSuccess;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            THROW_TODO;
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
+
+namespace
+{
+const IdentifierInfo* getOperationIdentifier( ASTContext* pASTContext, const std::string& strName )
+{
+    return &pASTContext->Idents.get( strName.c_str() );
+}
+const IdentifierInfo* getImplicitNoParamsOperation( ASTContext* pASTContext )
+{
+    return getOperationIdentifier( pASTContext, mega::getOperationString( mega::id_Imp_NoParams ) );
+}
+const IdentifierInfo* getImplicitParamsOperation( ASTContext* pASTContext )
+{
+    return getOperationIdentifier( pASTContext, mega::getOperationString( mega::id_Imp_Params ) );
+}
+} // namespace
+
+const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters )
+{
+    /*QualType              canonicalType = ty.getCanonicalType();
+    const IdentifierInfo* pBaseTypeID   = canonicalType.getBaseTypeIdentifier();
+
+    if( !pBaseTypeID )
+        return nullptr;
+
+    if( pBaseTypeID == pASTContext->getEGSymbolPathName() )
+    {
+        const Type* pType = canonicalType.getTypePtr();
+
+        if( const TemplateSpecializationType* pTemplateType = canonicalType->getAs< TemplateSpecializationType >() )
+        {
+            if( pTemplateType->getNumArgs() == 0U )
+                return nullptr;
+
+            const TemplateArgument& lastTemplateArg = pTemplateType->getArg( pTemplateType->getNumArgs() - 1U );
+            QualType                t               = lastTemplateArg.getAsType();
+            return getOperationID( pASTContext, t, bHasParameters );
+        }
+        else if( const DependentTemplateSpecializationType* pDependentTemplateType
+                 = llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
+        {
+            if( pTemplateType->getNumArgs() == 0U )
+                return nullptr;
+            const TemplateArgument& lastTemplateArg = pTemplateType->getArg( pTemplateType->getNumArgs() - 1U );
+            QualType                t               = lastTemplateArg.getAsType();
+            return getOperationID( pASTContext, t, bHasParameters );
+        }
+        else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+        {
+            const CXXRecordDecl* pRecordDecl = llvm::dyn_cast< CXXRecordDecl >( pRecordType->getDecl() );
+            if( !pRecordDecl )
+                return nullptr;
+
+            const auto* Spec = llvm::dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl );
+            if( !Spec )
+                return nullptr;
+
+            const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
+            if( Args.size() == 0U )
+                return nullptr;
+
+            const TemplateArgument& lastTemplateArg = Args[ Args.size() - 1U ];
+
+            if( lastTemplateArg.getKind() == TemplateArgument::Pack )
+            {
+                const TemplateArgument& lastTemplatePackArg = lastTemplateArg.pack_elements().back();
+
+
+                auto integral = lastTemplatePackArg.getAsIntegral();
+                mega::SymbolID::ValueType symbol = static_cast< mega::SymbolID::ValueType >( integral.getExtValue() );
+
+                //QualType t = lastTemplatePackArg.getNonTypeTemplateArgumentType()
+                //t.
+
+
+                QualType                t                   = lastTemplatePackArg.getAsType();
+                return getOperationID( pASTContext, t, bHasParameters );
+            }
+            else if( lastTemplateArg.getKind() == TemplateArgument::Type )
+            {
+                QualType t = lastTemplateArg.getAsType();
+                return getOperationID( pASTContext, t, bHasParameters );
+            }
+            else
+            {
+                return nullptr;
+            }
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    if( ::mega::getOperationName( pBaseTypeID->getName().str() ) != ::mega::HIGHEST_OPERATION_TYPE )
+    {
+        return getOperationIdentifier( pASTContext, pBaseTypeID->getName().str() );
+    }
+    else */
+    if( bHasParameters )
+    {
+        return getImplicitParamsOperation( pASTContext );
+    }
+    else
+    {
+        return getImplicitNoParamsOperation( pASTContext );
+    }
+
+    return nullptr;
+}
+
+QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, const SourceLocation& loc,
+                       const std::string& strTypeName )
+{
+    IdentifierInfo& identifierInfo = pASTContext->Idents.get( strTypeName );
+    LookupResult    lookupResult( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
+    if( pSema->LookupQualifiedName( lookupResult, pDeclContext ) )
+    {
+        if( auto pTypeAliasDecl = llvm::dyn_cast< TypeAliasDecl >( lookupResult.getFoundDecl() ) )
+        {
+            return pASTContext->getTypeDeclType( pTypeAliasDecl );
+        }
+    }
+    return {};
+}
+
 DeclLocType getNestedDeclContext( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
                                   const std::string& strIdentifier )
 {

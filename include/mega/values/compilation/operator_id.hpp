@@ -23,6 +23,8 @@
 
 #include "mega/values/compilation/interface/type_id.hpp"
 
+#include "common/serialisation.hpp"
+
 #include <ostream>
 #include <array>
 #include <string>
@@ -45,28 +47,36 @@ public:
         HIGHEST_OPERATOR_TYPE
     };
 
-    Type              m_operator;
+    Type              m_operator = HIGHEST_OPERATOR_TYPE;
     interface::TypeID m_typeID;
 
-    // inline bool operator==( const OperatorID& cmp ) const
-    // {
-    //     return ( m_operator == cmp.m_operator ) && ( m_typeID == cmp.m_typeID );
-    // }
-    // inline bool operator!=( const OperatorID& cmp ) const { return !this->operator==( cmp ); }
-    // inline bool operator<( const OperatorID& cmp ) const
-    // {
-    //     return ( m_operator != cmp.m_operator ) ? ( m_operator < cmp.m_operator ) : ( m_typeID < cmp.m_typeID );
-    // }
+    inline bool operator==( const OperatorID& cmp ) const
+    {
+        return ( m_operator == cmp.m_operator ) && ( m_typeID == cmp.m_typeID );
+    }
+    inline bool operator!=( const OperatorID& cmp ) const { return !this->operator==( cmp ); }
+    inline bool operator<( const OperatorID& cmp ) const
+    {
+        return ( m_operator != cmp.m_operator ) ? ( m_operator < cmp.m_operator ) : ( m_typeID < cmp.m_typeID );
+    }
 
-    using OperatorIDTypeName = std::pair< Type, std::string >;
+    using OperatorIDTypeName = std::pair< Type, std::string >;  
     using Array              = std::array< OperatorIDTypeName, HIGHEST_OPERATOR_TYPE >;
     static const Array names;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& m_operator;
-        archive& m_typeID;
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            archive& boost::serialization::make_nvp( "operator", m_operator );
+            archive& boost::serialization::make_nvp( "typeID", m_typeID );
+        }
+        else
+        {
+            archive& m_operator;
+            archive& m_typeID;
+        }
     }
 };
 

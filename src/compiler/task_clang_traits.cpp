@@ -120,7 +120,9 @@ public:
                 {
                     if( auto pPath = db_cast< Parser::Type::Absolute >( pFragment ) )
                     {
-                        os << "TypedPtr< " << pPath->get_type()->get_interface_id()->get_type_id() << " >";
+                        os << MEGA_POINTER << "< "
+                           << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
+                           << pPath->get_type()->get_interface_id()->get_type_id().getValue() << std::dec << " > ";
                     }
                     else if( auto pPath = db_cast< Parser::Type::Deriving >( pFragment ) )
                     {
@@ -129,7 +131,7 @@ public:
                         std::vector< ClangTraits::Derivation::Or* >    frontier;
                         auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
 
-                        os << "TypedPtr< ";
+                        os << MEGA_POINTER << "< ";
                         bool                                bFirst = true;
                         std::set< mega::interface::TypeID > uniqueInterfaceTypeIDs;
                         for( auto pOr : frontier )
@@ -146,11 +148,12 @@ public:
                                 {
                                     os << ", ";
                                 }
-                                os << interfaceTypeID;
+                                os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
+                                   << interfaceTypeID.getValue() << std::dec;
                                 uniqueInterfaceTypeIDs.insert( interfaceTypeID );
                             }
                         }
-                        os << " >";
+                        os << " > ";
                     }
                     else if( auto pOpaque = db_cast< Parser::Type::CPPOpaque >( pFragment ) )
                     {

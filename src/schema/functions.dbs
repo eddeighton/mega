@@ -17,86 +17,86 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-namespace Operations
+namespace Functions
 {
     namespace ReturnTypes
     {
-        object ReturnType -> OperationsStage::Operations
+        object ReturnType -> ObjectStage::Obj
         {
             // set only when compiled by clang
             late< value< std::string > > canonical_type;
         }
 
-        object Void : ReturnType -> OperationsStage::Operations
+        object Void : ReturnType -> ObjectStage::Obj
         {
         }
 
-        object Bool : ReturnType -> OperationsStage::Operations
+        object Bool : ReturnType -> ObjectStage::Obj
         {
         }
 
-        object Dimension : ReturnType -> OperationsStage::Operations
+        object Dimension : ReturnType -> ObjectStage::Obj
         {
-            array< ref< Interface::DimensionTrait > >   dimensions;
-            value< bool >                               homogeneous;
+            array< ref< Interface::Aggregate > >    dimensions;
+            value< bool >                           homogeneous;
         }
 
-        object Function : ReturnType -> OperationsStage::Operations
+        object Function : ReturnType -> ObjectStage::Obj
         {
             array< ref< Interface::Function > >         functions;
             value< bool >                               homogeneous;
         }
 
-        object Context : ReturnType -> OperationsStage::Operations
+        object Context : ReturnType -> ObjectStage::Obj
         {
             array< ref< Interface::IContext > > contexts;
         }
 
-        object Range : Context -> OperationsStage::Operations
+        object Range : Context -> ObjectStage::Obj
         {
 
         }
     }
 
-    object Operator -> OperationsStage::Operations
+    object Operator -> ObjectStage::Obj
     {
         value< mega::OperatorID > id;
     }
 
-    object New : Operator -> OperationsStage::Operations
+    object New : Operator -> ObjectStage::Obj
     {
     }
 
-    object RemoteNew : Operator -> OperationsStage::Operations
+    object RemoteNew : Operator -> ObjectStage::Obj
     {
     }
 
-    object Delete : Operator -> OperationsStage::Operations
+    object Delete : Operator -> ObjectStage::Obj
     {
     }
 
-    object Cast : Operator -> OperationsStage::Operations
+    object Cast : Operator -> ObjectStage::Obj
     {
     }
 
-    object Active : Operator -> OperationsStage::Operations
+    object Active : Operator -> ObjectStage::Obj
     {
     }
 
-    object Enabled : Operator -> OperationsStage::Operations
+    object Enabled : Operator -> ObjectStage::Obj
     {
     }
 
-    object EventDispatch -> OperationsStage::Operations
+    object EventDispatch -> ObjectStage::Obj
     {
-        ref< Derivation::Dispatch > derivation;
+        ref< ClangTraits::Derivation::Dispatch > derivation;
         ref< Concrete::Context >    event;
-        ref< Concrete::Interupt >   interupt;
+        ref< Interface::Interupt >  interupt;
     }
 
-    object Invocation -> OperationsStage::Operations
+    object Invocation -> ObjectStage::Obj
     {
-        ref< Derivation::Root >                         derivation;
+        ref< Invocation::Derivation::Root >             derivation;
         value< mega::InvocationID >                     id;
         
         late< value< mega::ExplicitOperationID > >      explicit_operation;
@@ -109,56 +109,56 @@ namespace Operations
         late< value< std::string > >                    canonical_operation;
     }
 
-    object Start : Invocation -> OperationsStage::Operations
+    object Start : Invocation -> ObjectStage::Obj
     {
     }
 
-    object Call : Invocation -> OperationsStage::Operations
+    object Call : Invocation -> ObjectStage::Obj
     {
     }
 
-    object Signal : Invocation -> OperationsStage::Operations
+    object Signal : Invocation -> ObjectStage::Obj
     {
     }
 
-    object Move : Invocation -> OperationsStage::Operations
+    object Move : Invocation -> ObjectStage::Obj
     {
     }
 
-    object GetContext : Invocation -> OperationsStage::Operations
+    object GetContext : Invocation -> ObjectStage::Obj
     {
     }
 
-    object Read : Invocation -> OperationsStage::Operations
+    object Read : Invocation -> ObjectStage::Obj
     {
     }
 
-    object Write : Invocation -> OperationsStage::Operations
+    object Write : Invocation -> ObjectStage::Obj
     {
         ref< ReturnTypes::ReturnType > parameter_type;
     }
 
-    object LinkRead : Invocation -> OperationsStage::Operations
+    object LinkRead : Invocation -> ObjectStage::Obj
     {
     }
 
-    object LinkAdd : Invocation -> OperationsStage::Operations
+    object LinkAdd : Invocation -> ObjectStage::Obj
     {
     }
 
-    object LinkRemove : Invocation -> OperationsStage::Operations
+    object LinkRemove : Invocation -> ObjectStage::Obj
     {
     }
 
-    object LinkClear : Invocation -> OperationsStage::Operations
+    object LinkClear : Invocation -> ObjectStage::Obj
     {
     }
 
-    object Range : Invocation -> OperationsStage::Operations
+    object Range : Invocation -> ObjectStage::Obj
     {
     }
 
-    object Invocations -> OperationsStage::Operations
+    object Invocations -> ObjectStage::Obj
     {
         map< value< mega::InvocationID >, ref< Invocation > >   invocations;
         map< value< mega::OperatorID >, ref< Operator > >       operators;

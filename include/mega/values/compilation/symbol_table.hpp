@@ -32,6 +32,8 @@
 #include "mega/values/compilation/type_id_sequence.hpp"
 #include "mega/values/hash.hpp"
 #include "mega/values/compilation/operation_id.hpp"
+
+#include "mega/eg_common_strings.hpp"
 #include "mega/common_strings.hpp"
 
 #include "common/serialisation.hpp"
@@ -280,10 +282,10 @@ public:
                 m_symbolMap.insert( { opStrings[ i ], interface::SymbolID( i ) } );
             }
 
-            m_symbolVector.push_back( EG_TYPE_PATH );
-            m_symbolMap.insert( { EG_TYPE_PATH, interface::SymbolID( id_TypePath ) } );
-            m_symbolVector.push_back( EG_VARIANT_TYPE );
-            m_symbolMap.insert( { EG_VARIANT_TYPE, interface::SymbolID( id_Variant ) } );
+            m_symbolVector.push_back( MEGA_SYMBOL_PATH );
+            m_symbolMap.insert( { MEGA_SYMBOL_PATH, interface::SymbolID( id_MegaSymbolPath ) } );
+            m_symbolVector.push_back( MEGA_POINTER );
+            m_symbolMap.insert( { MEGA_POINTER, interface::SymbolID( id_MegaPointer ) } );
         }
     }
 

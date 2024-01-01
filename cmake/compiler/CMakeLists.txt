@@ -75,7 +75,7 @@ set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/interface_printer.hpp
     ${MEGA_API_DIR}/compiler/interface_visitor.hpp
     ${MEGA_API_DIR}/compiler/interface.hpp
-    ${MEGA_API_DIR}/compiler/type_path.hpp
+    ${MEGA_API_DIR}/compiler/symbol_path.hpp
 )
 
 set( COMPILER_LIB_SOURCE

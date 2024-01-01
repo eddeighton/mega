@@ -175,7 +175,6 @@ static void printContextType( std::vector< const IContext* >& contexts, std::ost
     {
         // from mega/common_strings.hpp
         // cannot include header here as file is intended to be included in stage namespace
-        static const char* EG_VARIANT_TYPE = "__eg_variant";
         os << EG_VARIANT_TYPE << "< ";
         bool bFirst = true;
         for( auto pContext : contexts )

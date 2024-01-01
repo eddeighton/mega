@@ -17,25 +17,23 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef DATABASE_HEADER_15_04_2019
 #define DATABASE_HEADER_15_04_2019
 
 #include "mega/common_strings.hpp"
 
 #if defined( _WIN32 )
-#    ifdef MEGA_CLANG_PLUGIN_MODULE
-#        define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllexport )
-#    else
-#        define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllimport )
-#    endif
+#ifdef MEGA_CLANG_PLUGIN_MODULE
+#define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllexport )
+#else
+#define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllimport )
+#endif
 #elif defined( __GNUC__ )
-#    ifdef MEGA_CLANG_PLUGIN_MODULE
-#        define MEGA_CLANG_PLUGIN_EXPORT __attribute__( ( visibility( "default" ) ) )
-#    else
-#        define MEGA_CLANG_PLUGIN_EXPORT
-#    endif
+#ifdef MEGA_CLANG_PLUGIN_MODULE
+#define MEGA_CLANG_PLUGIN_EXPORT __attribute__( ( visibility( "default" ) ) )
+#else
+#define MEGA_CLANG_PLUGIN_EXPORT
+#endif
 #endif
 
 namespace clang
@@ -55,16 +53,16 @@ using EGChar = char;
 struct MEGA_CLANG_PLUGIN_EXPORT EG_PLUGIN_INTERFACE
 {
     virtual void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema ) = 0;
-    virtual void onMegaPragma() = 0;
+    virtual void onMegaPragma()                                                   = 0;
     virtual void setMode( const char* strMode, const char* strSrcDir, const char* strBuildDir,
-                             const char* strSourceFile )
+                          const char* strSourceFile )
         = 0;
-    virtual void runFinalAnalysis()                                                                   = 0;
-    virtual bool isEGEnabled()                                                                        = 0;
-    virtual bool isEGType( const clang::QualType& type )                                              = 0;
-    virtual bool isPossibleEGType( const clang::QualType& type )                                      = 0;
-    virtual bool isPossibleEGTypeIdentifier( const clang::Token& token )                              = 0;
-    virtual int  isPossibleEGTypeIdentifierDecl( const clang::Token& token, bool bIsTypePathParsing ) = 0;
+    virtual void runFinalAnalysis() = 0;
+    virtual bool isEGEnabled()      = 0;
+
+    virtual bool isPtr( const clang::QualType& type )     = 0;
+    virtual unsigned int  getSymbolID( const clang::Token& token ) = 0;
+
     virtual bool getInvocationOperationType( const clang::SourceLocation& loc, const clang::QualType& typePathType,
                                              bool bHasArguments, clang::QualType& operationType )
         = 0;

@@ -29,22 +29,22 @@ static void pop_indent( std::string& str )
     str.pop_back();
 }
 
-static void printDerivationStep( Edge* pEdge, std::string& strIndent, bool bShowEliminated, std::ostream& os )
+static void printDerivationStep( Derivation::Edge* pEdge, std::string& strIndent, bool bShowEliminated, std::ostream& os )
 {
     if( !bShowEliminated && pEdge->get_eliminated() )
         return;
 
-    Step* pStep = pEdge->get_next();
+    Derivation::Step* pStep = pEdge->get_next();
     {
-        if( db_cast< Select >( pStep ) )
+        if( db_cast< Derivation::Select >( pStep ) )
         {
             os << strIndent << "SELECT (";
         }
-         else if( db_cast< And >( pStep ) )
+         else if( db_cast< Derivation::And >( pStep ) )
         {
             os << strIndent << "AND (";
         }
-        else if( db_cast< Or >( pStep ) )
+        else if( db_cast< Derivation::Or >( pStep ) )
         {
             os << strIndent << "OR (";
         }
@@ -53,7 +53,7 @@ static void printDerivationStep( Edge* pEdge, std::string& strIndent, bool bShow
             THROW_RTE( "Unknown step type" );
         }
 
-        Concrete::printContextFullType( pStep->get_vertex(), os );
+        os << Concrete::fullTypeName( pStep->get_vertex() );
         if( pEdge->get_eliminated() )
         {
             os << " <eliminated>";
@@ -73,7 +73,7 @@ static void printDerivationStep( Edge* pEdge, std::string& strIndent, bool bShow
     pop_indent( strIndent );
 }
 
-static void printDerivationStep( Root* pRoot, bool bShowEliminated, std::ostream& os )
+static void printDerivationStep( Derivation::Root* pRoot, bool bShowEliminated, std::ostream& os )
 {
     {
         os << "ROOT (";
@@ -85,7 +85,7 @@ static void printDerivationStep( Root* pRoot, bool bShowEliminated, std::ostream
                 bFirst = false;
             else
                 os << ", ";
-            Concrete::printContextFullType( pContext, os );
+            os << Concrete::fullTypeName( pContext );
         }
         os << ")\n";
     }
@@ -101,7 +101,7 @@ static void printDerivationStep( Root* pRoot, bool bShowEliminated, std::ostream
     pop_indent( strIndent );
 }
 
-static std::string printDerivationStep( Root* pRoot, bool bShowEliminated )
+static std::string printDerivationStep( Derivation::Root* pRoot, bool bShowEliminated )
 {
     std::ostringstream os;
     printDerivationStep( pRoot, bShowEliminated, os );

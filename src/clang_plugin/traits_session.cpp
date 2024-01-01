@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "session.hpp"
+#include "symbol_session.hpp"
 #include "clang_utils.hpp"
 
 #include "database/ClangAnalysisStage.hxx"
@@ -35,15 +35,15 @@
 #include "clang/Basic/DiagnosticParse.h"
 #include "clang/AST/Mangle.h"
 
+#pragma warning( pop )
+
+#include <map>
+
 namespace ClangAnalysisStage
 {
 #include "compiler/interface_visitor.hpp"
 #include "compiler/interface_printer.hpp"
 } // namespace ClangAnalysisStage
-
-#pragma warning( pop )
-
-#include <map>
 
 #define REPORT_ERROR( _msg )                                                                                     \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _os; _os << _msg;                                        \
@@ -55,7 +55,7 @@ namespace clang
 using namespace ClangAnalysisStage;
 using namespace ClangAnalysisStage::Interface;
 
-class TraitsSession : public AnalysisSession
+class TraitsSession : public SymbolSession
 {
     Database m_database;
 
@@ -63,21 +63,16 @@ class TraitsSession : public AnalysisSession
     using InterfaceTypeIDMap = std::map< mega::interface::TypeID, Symbols::InterfaceTypeID* >;
 
     std::map< std::string, Symbols::SymbolID* > m_symbols;
-    // SymbolTypeIDMap                             m_symbolIDs;
-    // InterfaceTypeIDMap                          m_interfaceTypeIDs;
 
     ItaniumMangleContext* m_pMangle = nullptr;
 
 public:
     TraitsSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir )
-        : AnalysisSession( pASTContext, pSema, strSrcDir, strBuildDir )
+        : SymbolSession( pASTContext, pSema, strSrcDir, strBuildDir )
         , m_database( m_environment, m_environment.project_manifest() )
     {
         Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-
         m_symbols = pSymbolTable->get_symbol_names();
-        // _symbolIDs        = pSymbolTable->get_symbol_type_ids();
-        // m_interfaceTypeIDs = pSymbolTable->get_interface_type_ids();
     }
 
     ItaniumMangleContext* getMangle()
@@ -89,16 +84,25 @@ public:
         return m_pMangle;
     }
 
-    virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const override
+    virtual unsigned int getSymbolID( const std::string& strIdentifier ) const override
     {
-        if( AnalysisSession::isPossibleEGTypeIdentifier( strIdentifier ) )
+        auto result = SymbolSession::getSymbolID( strIdentifier );
+        if( 0U == result )
         {
-            return true;
+            auto iFind = m_symbols.find( strIdentifier );
+            if( iFind == m_symbols.end() )
+            {
+                return 0;
+            }
+            else
+            {
+                return iFind->second->get_id().getValue();
+            }
         }
-
-        if( m_symbols.find( strIdentifier ) != m_symbols.end() )
-            return true;
-        return false;
+        else
+        {
+            return result;
+        }
     }
 
     struct Visitor : Interface::Visitor
@@ -120,7 +124,6 @@ public:
         virtual ~Visitor() = default;
         virtual bool visit( Interface::UserDimension* pNode ) const
         {
-            // class std::vector<class TypedPtr<{{{24}, {6}}}> >
             QualType traitType
                 = getTypeTrait( pASTContext, pSema, pDeclContext, loc, pNode->get_symbol()->get_token() );
 
@@ -215,14 +218,14 @@ public:
             DeclContext*   pDeclContext = pASTContext->getTranslationUnitDecl();
 
             Interface::Root* pRoot = m_database.one< Interface::Root >( m_environment.project_manifest() );
-            for( Interface::Node* pNode : pRoot->get_children() )
+            /*for( Interface::Node* pNode : pRoot->get_children() )
             {
                 if( !recurse( pNode, pDeclContext, loc, visitor ) )
                 {
                     bSuccess = false;
                     break;
                 }
-            }
+            }*/
         }
 
         if( bSuccess )

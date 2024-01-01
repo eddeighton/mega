@@ -223,7 +223,7 @@ private:
                 {
                     std::ostringstream osTrait;
                     {
-                        osTrait << "using Type = " << mega::EG_TYPE_PATH << "< " << mega::EG_TYPE_PATH << "< ";
+                        osTrait << "using Type = " << mega::EG_SYMBOL_PATH << "< " << mega::EG_SYMBOL_PATH << "< ";
                         bool bFirst = true;
 
                         for( const auto& arg :
@@ -235,7 +235,7 @@ private:
                                 osTrait << ", ";
                             if( arg.m_symbols.size() != 1 )
                             {
-                                osTrait << mega::EG_TYPE_PATH;
+                                osTrait << mega::EG_SYMBOL_PATH;
                             }
                             osTrait << arg.str();
                         }
@@ -309,7 +309,7 @@ private:
                                        { "traits", nlohmann::json::array() } } );
         {
             std::ostringstream osTrait;
-            osTrait << "using Type = " << mega::EG_TYPE_PATH << "< ";
+            osTrait << "using Type = " << mega::EG_SYMBOL_PATH << "< ";
             {
                 bool bFirst = true;
                 for( const mega::NamedSymbolVariantPath& namedSymbolVariantPath :
@@ -320,7 +320,7 @@ private:
                     else
                         osTrait << ",";
 
-                    osTrait << mega::EG_TYPE_PATH << "< ";
+                    osTrait << mega::EG_SYMBOL_PATH << "< ";
                     bool bFirstVariant = true;
                     for( const mega::SymbolVariant& symbolVariant :
                          namedSymbolVariantPath.m_symbolVariantPath.m_symbolVariants )
@@ -336,7 +336,7 @@ private:
                         }
                         else
                         {
-                            osTrait << mega::EG_TYPE_PATH << "< ";
+                            osTrait << mega::EG_SYMBOL_PATH << "< ";
                             bool bFirstSymbol = true;
                             for( const mega::Symbol& symbol : symbolVariant.m_symbols )
                             {
@@ -375,7 +375,7 @@ private:
         {
             std::ostringstream osTrait;
 
-            osTrait << "using Type = " << mega::EG_TYPE_PATH << "< ";
+            osTrait << "using Type = " << mega::EG_SYMBOL_PATH << "< ";
             {
                 bool bFirst = true;
                 for( const auto& symbolVariantPath :
@@ -386,7 +386,7 @@ private:
                     else
                         osTrait << ",";
 
-                    osTrait << mega::EG_TYPE_PATH << "< ";
+                    osTrait << mega::EG_SYMBOL_PATH << "< ";
                     bool bFirstVariant = true;
                     for( const mega::SymbolVariant& symbolVariant : symbolVariantPath.m_symbolVariants )
                     {
@@ -401,7 +401,7 @@ private:
                         }
                         else
                         {
-                            osTrait << mega::EG_TYPE_PATH << "< ";
+                            osTrait << mega::EG_SYMBOL_PATH << "< ";
                             bool bFirstSymbol = true;
                             for( const mega::Symbol& symbol : symbolVariant.m_symbols )
                             {

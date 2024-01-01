@@ -63,7 +63,7 @@ public:
     ASTContext* getASTContext() const { return pASTContext; }
     Sema*       getSema() const { return pSema; }
 
-    virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const { return false; }
+    virtual unsigned int getSymbolID( const std::string& strIdentifier ) const { return 0U; }
 
     virtual void runFinalAnalysis()
     {
@@ -74,37 +74,6 @@ public:
                                           clang::QualType& resultType )
     {
         THROW_RTE( "Unimplemented" );
-    }
-};
-
-class AnalysisSession : public Session
-{
-protected:
-    const boost::filesystem::path m_srcDir, m_buildDir;
-    mega::io::Directories         m_directories;
-    mega::io::BuildEnvironment    m_environment;
-    // const mega::io::megaFilePath  m_sourceFile;
-
-public:
-    using Ptr = std::unique_ptr< Session >;
-    AnalysisSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir )
-        : Session( pASTContext, pSema )
-        , m_srcDir( strSrcDir )
-        , m_buildDir( strBuildDir )
-        , m_directories{ m_srcDir, m_buildDir, "", "" }
-        , m_environment( m_directories )
-        //, m_sourceFile( m_environment.megaFilePath_fromPath( boost::filesystem::path( strSourceFile ) ) )
-    {
-    }
-
-    virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const override
-    {
-        if( mega::getOperationName( strIdentifier ) != mega::HIGHEST_OPERATION_TYPE )
-        {
-            return true;
-        }
-
-        return false;
     }
 };
 

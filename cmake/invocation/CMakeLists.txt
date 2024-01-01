@@ -35,11 +35,12 @@ set( INVOCATION_HEADERS
 )
 
 set( INVOCATION_SOURCE
-    ${MEGA_SRC_DIR}/invocation/deciders.cpp
-    ${MEGA_SRC_DIR}/invocation/decision.cpp
-    ${MEGA_SRC_DIR}/invocation/interupts.cpp
     ${MEGA_SRC_DIR}/invocation/invocation.cpp
-    ${MEGA_SRC_DIR}/invocation/transitions.cpp
+
+    # ${MEGA_SRC_DIR}/invocation/deciders.cpp
+    # ${MEGA_SRC_DIR}/invocation/decision.cpp
+    # ${MEGA_SRC_DIR}/invocation/interupts.cpp
+    # ${MEGA_SRC_DIR}/invocation/transitions.cpp
 )
 
 add_library( invocation

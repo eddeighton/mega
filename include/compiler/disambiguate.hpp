@@ -25,9 +25,9 @@ enum Disambiguation
     eAmbiguous
 };
 
-static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontier );
+static Disambiguation disambiguate( Derivation::Step* pStep, const std::vector< Derivation::Or* >& finalFrontier );
 
-static Disambiguation inclusive( Step* pStep, const std::vector< Or* >& finalFrontier,
+static Disambiguation inclusive( Derivation::Step* pStep, const std::vector< Derivation::Or* >& finalFrontier,
                                  std::optional< Disambiguation >& result )
 {
     const Disambiguation stepResult = disambiguate( pStep, finalFrontier );
@@ -88,7 +88,7 @@ static Disambiguation inclusive( Step* pStep, const std::vector< Or* >& finalFro
     return stepResult;
 }
 
-static Disambiguation exclusive( Step* pStep, const std::vector< Or* >& finalFrontier,
+static Disambiguation exclusive( Derivation::Step* pStep, const std::vector< Derivation::Or* >& finalFrontier,
                                  std::optional< Disambiguation >& result )
 {
     const Disambiguation stepResult = disambiguate( pStep, finalFrontier );
@@ -149,18 +149,18 @@ static Disambiguation exclusive( Step* pStep, const std::vector< Or* >& finalFro
     return stepResult;
 }
 
-static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontier )
+static Disambiguation disambiguate( Derivation::Step* pStep, const std::vector< Derivation::Or* >& finalFrontier )
 {
     std::optional< Disambiguation > result;
 
-    if( And* pAnd = db_cast< And >( pStep ) )
+    if( Derivation::And* pAnd = db_cast< Derivation::And >( pStep ) )
     {
         for( auto pEdge : pStep->get_edges() )
         {
             const auto EdgeResult = inclusive( pEdge->get_next(), finalFrontier, result );
         }
     }
-    else if( Or* pOr = db_cast< Or >( pStep ) )
+    else if( Derivation::Or* pOr = db_cast< Derivation::Or >( pStep ) )
     {
         if( std::find( finalFrontier.begin(), finalFrontier.end(), pOr ) != finalFrontier.end() )
         {
@@ -232,7 +232,7 @@ static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& final
             }
         }
 
-        std::vector< Edge* > edges;
+        std::vector< Derivation::Edge* > edges;
         for( auto pEdge : pStep->get_edges() )
         {
             if( pEdge->get_precedence() == iHighestPrecedence )
@@ -269,7 +269,7 @@ static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& final
     }
 }
 
-static Disambiguation disambiguate( Root* pStep, const std::vector< Or* >& finalFrontier )
+static Disambiguation disambiguate( Derivation::Root* pStep, const std::vector< Derivation::Or* >& finalFrontier )
 {
     std::optional< Disambiguation > result;
 
@@ -288,7 +288,7 @@ static Disambiguation disambiguate( Root* pStep, const std::vector< Or* >& final
     }
 }
 
-static void precedence( Edge* pEdge )
+static void precedence( Derivation::Edge* pEdge )
 {
     {
         auto edges = pEdge->get_edges();
@@ -304,7 +304,7 @@ static void precedence( Edge* pEdge )
                     break;
                 case ::mega::EdgeType::eLink:
                     // do not give ownership link precedence
-                    if( !db_cast< Concrete::Dimensions::OwnershipLink >( pGraphEdge->get_target() ) )
+                    if( !db_cast< Concrete::OwnershipLink >( pGraphEdge->get_target() ) )
                     {
                         pEdge->set_precedence( 1 );
                     }
@@ -336,7 +336,7 @@ static void precedence( Edge* pEdge )
     }
 }
 
-static void precedence( Root* pStep )
+static void precedence( Derivation::Root* pStep )
 {
     for( auto pEdge : pStep->get_edges() )
     {

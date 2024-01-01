@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -37,18 +36,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-#ifndef EG_COMMON_STRINGS_18_01_2020
-#define EG_COMMON_STRINGS_18_01_2020
+#ifndef GUARD_2023_December_30_eg_common_strings
+#define GUARD_2023_December_30_eg_common_strings
 
 namespace mega
 {
-    static const char* EG_TYPE_PATH = "__eg_type_path";
-    static const char* EG_INVOCATION_TYPE = "__eg_invocation";
-    static const char* EG_VARIANT_TYPE = "__eg_variant";
-    static const char* EG_INVOKE_MEMBER_FUNCTION_NAME = "invoke";
-    static const char* EG_RESULT_TRAIT_TYPE = "__eg_result_type";
-}
+static const char* MEGA_SYMBOL_PATH                 = "__mega_symbol_path";
+static const char* MEGA_INVOCATION                  = "__mega_invocation";
+static const char* MEGA_POINTER                     = "__mega_ptr";
+static const char* MEGA_RESULT_TYPE                 = "__eg_result_type";
+static const char* MEGA_INVOKE_MEMBER_FUNCTION_NAME = "__mega_invoke";
+} // namespace mega
 
-#endif //EG_COMMON_STRINGS_18_01_2020
+#endif // GUARD_2023_December_30_eg_common_strings
