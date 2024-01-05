@@ -282,10 +282,14 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     dependencies.add( includePCH, { includes } );
 
     const TskDesc clang_Traits_Gen = encode( Task{ eTask_Clang_Traits_Gen } );
-    dependencies.add( clang_Traits_Gen, { includePCH, automata } );
+    dependencies.add( clang_Traits_Gen, { automata } );
+
+    // NOTE: nothing requires decision
+    const TskDesc decisions = encode( Task{ eTask_Decisions } );
+    dependencies.add( decisions, { clang_Traits_Gen } );
 
     const TskDesc clang_Traits_Analysis = encode( Task{ eTask_Clang_Traits_Analysis } );
-    dependencies.add( clang_Traits_Analysis, { clang_Traits_Gen } );
+    dependencies.add( clang_Traits_Analysis, { includePCH, clang_Traits_Gen } );
 
     const TskDesc CPP_Decl = encode( Task{ eTask_CPP_Decl } );
     dependencies.add( CPP_Decl, { clang_Traits_Analysis } );

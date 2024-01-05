@@ -112,6 +112,7 @@ stage ConcreteStage
     global accessor ref< Concrete::Root >;
     global accessor array< ref< Interface::Abstract > >;
     global accessor array< ref< Interface::IContext > >;
+    global accessor array< ref< Interface::Node > >;
 
     persource accessor array< ref< Parser::Type::Absolute > >;
     
@@ -175,7 +176,23 @@ stage ClangTraitsStage
     file Traits;
 
     global accessor ref< Interface::Root >;
+    global accessor ref< Concrete::Root >;
     global accessor array< ref< Components::Component > >;
+}
+
+stage DecisionsStage
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+
+    dependency ClangTraitsStage;
+
+    file Decisions;
+
+    global accessor array< ref< Concrete::Object > >;
+    global accessor array< ref< Concrete::Interupt > >;
+    global accessor array< ref< Concrete::State > >;
 }
 
 stage ClangAnalysisStage

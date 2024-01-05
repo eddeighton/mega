@@ -1,0 +1,43 @@
+
+
+namespace Decision
+{
+    object Step -> DecisionsStage::Decisions
+    {
+        opt< ref< Concrete::Decider > >             decider;
+        array< ref< Automata::Vertex > >            assignment;
+        array< ref< Automata::Vertex > >            vars_true;
+        array< ref< Automata::Vertex > >            vars_false;
+        array< ref< Step > >                        children;
+    }
+
+    object Assignment -> DecisionsStage::Decisions
+    {
+        value< bool >                       is_true;
+        ref< Automata::Vertex >             vertex;
+        value< mega::concrete::Instance >   instance_multiplier;
+    }
+
+    object Assignments : Step -> DecisionsStage::Decisions
+    {
+        array< ref< Assignment > > assignments;
+    }
+
+    object Boolean : Step -> DecisionsStage::Decisions
+    {
+        ref< Automata::Vertex > variable;
+    }
+
+    object Selection : Step -> DecisionsStage::Decisions
+    {
+        array< ref< Automata::Vertex > >    variable_alternatives;
+        array< value< mega::U32 > >         variable_ordering;
+    }
+
+    object DecisionProcedure -> DecisionsStage::Decisions
+    {
+        ref< Concrete::State >              common_ancestor;
+        value< mega::concrete::Instance >   instance_divider;
+        ref< Step >                         root;
+    }
+}

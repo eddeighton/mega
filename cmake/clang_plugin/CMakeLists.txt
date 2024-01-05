@@ -64,7 +64,7 @@ import_clang( clang_plugin )
 ENDIF()
 
 target_link_libraries( clang_plugin database )
-# target_link_libraries( clang_plugin invocation )
+target_link_libraries( clang_plugin invocation )
 
 install( FILES ${CLANG_PLUGIN_API} DESTINATION include/clang_plugin )
 install( TARGETS clang_plugin DESTINATION bin)

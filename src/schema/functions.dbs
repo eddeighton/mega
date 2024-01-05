@@ -19,6 +19,13 @@
 
 namespace Functions
 {
+    object EventDispatch -> ClangTraitsStage::Traits
+    {
+        ref< ClangTraits::Derivation::Dispatch >    derivation;
+        ref< Concrete::Context >                    event;
+        ref< Concrete::Interupt >                   interupt;
+    }
+
     namespace ReturnTypes
     {
         object ReturnType -> ObjectStage::Obj
@@ -85,13 +92,6 @@ namespace Functions
 
     object Enabled : Operator -> ObjectStage::Obj
     {
-    }
-
-    object EventDispatch -> ObjectStage::Obj
-    {
-        ref< ClangTraits::Derivation::Dispatch > derivation;
-        ref< Concrete::Context >    event;
-        ref< Interface::Interupt >  interupt;
     }
 
     object Invocation -> ObjectStage::Obj

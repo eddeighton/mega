@@ -131,6 +131,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
     ${MEGA_SRC_DIR}/compiler/task_clang_traits.cpp
     ${MEGA_SRC_DIR}/compiler/task_clang_analysis.cpp
+    ${MEGA_SRC_DIR}/compiler/task_decisions.cpp
 
     ${MEGA_SRC_DIR}/compiler/task_cpp_decl.cpp
     ${MEGA_SRC_DIR}/compiler/task_cpp_source.cpp

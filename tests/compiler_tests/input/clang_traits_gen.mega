@@ -1,0 +1,37 @@
+
+
+
+object Test
+{
+
+
+    component Component : ^OR
+    {
+        action A : ^OR > @B
+        {
+            interupt a( @AA, @AB ) > @C;
+
+            action AA
+            {
+            }
+
+            action AB
+            {
+
+            }
+        }
+
+        action B > @C
+        {
+        }
+
+        action C > @A
+        {
+
+        }
+
+
+
+    }
+
+}

@@ -47,6 +47,7 @@ set( MEGA_DATABASE_STAGES
     SymbolAnalysis
     SymbolRollout
     ClangTraitsStage
+    DecisionsStage
     ClangAnalysisStage
     ClangCompilationStage
     CPPSourceStage
@@ -62,6 +63,7 @@ set( DATABASE_SCHEMAS
     ${MEGA_SRC_DIR}/schema/analysis.dbs
     ${MEGA_SRC_DIR}/schema/automata.dbs
     ${MEGA_SRC_DIR}/schema/derivation.dbs
+    ${MEGA_SRC_DIR}/schema/decisions.dbs
     ${MEGA_SRC_DIR}/schema/functions.dbs
 )
 

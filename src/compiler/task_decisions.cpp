@@ -1,4 +1,3 @@
-
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -18,57 +17,48 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "invocation/invocation.hpp"
+#include "base_task.hpp"
 
-#include "database/OperationsStage.hxx"
+#include "database/DecisionsStage.hxx"
 
-#include "compiler/derivation.hpp"
-
-#include "mega/values/compilation/hyper_graph.hpp"
-#include "mega/values/compilation/operation_id.hpp"
-#include "mega/values/compilation/hyper_graph.hpp"
+#include "compiler/clang_compilation.hpp"
 
 #include "mega/common_strings.hpp"
+
+#include "mega/values/compilation/hyper_graph.hpp"
+#include "mega/values/runtime/pointer.hpp"
 #include "mega/make_unique_without_reorder.hpp"
 
-#include "common/unreachable.hpp"
+#include "nlohmann/json.hpp"
 
-#include <optional>
-#include <unordered_set>
+#include "inja/inja.hpp"
+#include "inja/environment.hpp"
+#include "inja/template.hpp"
 
-namespace OperationsStage
+#include <memory>
+
+namespace DecisionsStage
 {
 #include "compiler/interface_printer.hpp"
-#include "compiler/concrete_printer.hpp"
+#include "compiler/interface_visitor.hpp"
 #include "compiler/common_ancestor.hpp"
-namespace Derivation
+#include "compiler/concrete_printer.hpp"
+
+namespace ClangTraits
 {
 #include "compiler/derivation_printer.hpp"
-#include "compiler/disambiguate.hpp"
-} // namespace Derivation
-} // namespace OperationsStage
+} // namespace ClangTraits
 
-using namespace OperationsStage;
+} // namespace DecisionsStage
 
-namespace mega::invocation
+namespace mega::compiler
 {
+
+using namespace DecisionsStage;
+
 namespace
 {
-using DeciderVector = std::vector< Concrete::Decider* >;
-
-void findDeciders( Concrete::Context* pContext, DeciderVector& deciders )
-{
-    if( auto pDecider = db_cast< Concrete::Decider >( pContext ) )
-    {
-        deciders.push_back( pDecider );
-    }
-
-    for( auto pChild : pContext->get_children() )
-    {
-        findDeciders( pChild, deciders );
-    }
-}
-
+using DeciderVector     = std::vector< Concrete::Decider* >;
 using StateVector       = std::vector< Concrete::State* >;
 using StateVectorVector = std::vector< StateVector >;
 using StateSet          = std::unordered_set< Concrete::State* >;
@@ -80,12 +70,12 @@ Concrete::State* findCommonAncestor( Concrete::State* pState, Concrete::State* p
     CommonAncestor::GraphEdgeVector edges;
     auto pAncestorVertex = CommonAncestor::commonRootDerivation( pState, pAncestor, edges, true );
     VERIFY_RTE_MSG( pAncestorVertex,
-                    "Failed to find common ancestor between: " << Concrete::printContextFullType( pState ) << " and: "
-                                                               << Concrete::printContextFullType( pAncestorVertex ) );
+                    "Failed to find common ancestor between: " << Concrete::fullTypeName( pState ) << " and: "
+                                                               << Concrete::fullTypeName( pAncestorVertex ) );
     pAncestor = db_cast< Concrete::State >( pAncestorVertex );
     VERIFY_RTE_MSG( pAncestor,
-                    "Failed to find common ancestor state between: " << Concrete::printContextFullType(
-                        pState ) << " and: " << Concrete::printContextFullType( pAncestor ) );
+                    "Failed to find common ancestor state between: " << Concrete::fullTypeName( pState ) << " and: "
+                                                                     << Concrete::fullTypeName( pAncestor ) );
     return pAncestor;
 }
 
@@ -239,7 +229,7 @@ struct Collector
         }
     }
 
-    static void collectTargets( Derivation::Step* pStep, std::vector< Concrete::Graph::Vertex* >& targets )
+    static void collectTargets( ClangTraits::Derivation::Step* pStep, std::vector< Concrete::Node* >& targets )
     {
         auto edges = pStep->get_edges();
         if( edges.empty() )
@@ -258,12 +248,12 @@ struct Collector
         }
     }
 
-    static std::vector< Concrete::State* > collectTargetStates( Concrete::Context* pContext,
-                                                                Derivation::Root*  pDerivation )
+    static std::vector< Concrete::State* > collectTargetStates( Concrete::Context*             pContext,
+                                                                ClangTraits::Derivation::Root* pDerivation )
     {
         std::vector< Concrete::State* > states;
         {
-            std::vector< Concrete::Graph::Vertex* > targets;
+            std::vector< Concrete::Node* > targets;
             for( auto pEdge : pDerivation->get_edges() )
             {
                 if( !pEdge->get_eliminated() )
@@ -271,11 +261,11 @@ struct Collector
                     collectTargets( pEdge->get_next(), targets );
                 }
             }
-            VERIFY_RTE_MSG( !targets.empty(),
-                            "No derivation targets for derivation: " << Concrete::printContextFullType( pContext ) );
+            VERIFY_RTE_MSG(
+                !targets.empty(), "No derivation targets for derivation: " << Concrete::fullTypeName( pContext ) );
             VERIFY_RTE_MSG( targets.size() == 1U,
-                            "Non-singular derivation targets for derivation: " << Concrete::printContextFullType(
-                                pContext ) << "\n" << Derivation::printDerivationStep( pDerivation, false ) );
+                            "Non-singular derivation targets for derivation: " << Concrete::fullTypeName(
+                                pContext ) << "\n" << ClangTraits::printDerivationStep( pDerivation, false ) );
             for( auto pVertex : targets )
             {
                 if( auto pState = db_cast< Concrete::State >( pVertex ) )
@@ -284,7 +274,7 @@ struct Collector
                 }
                 else
                 {
-                    THROW_RTE( "Transition to non-state context: " << Concrete::printContextFullType( pContext ) );
+                    THROW_RTE( "Transition to non-state context: " << Concrete::fullTypeName( pContext ) );
                 }
             }
             states = make_unique_without_reorder( states );
@@ -292,21 +282,20 @@ struct Collector
         return states;
     }
 
-    static StateVectorVector collectDerivationStates( Concrete::Context*                      pContext,
-                                                      const std::vector< Derivation::Root* >& transitions )
+    static StateVectorVector collectDerivationStates( Concrete::Context*                                   pContext,
+                                                      const std::vector< ClangTraits::Derivation::Root* >& transitions )
     {
         StateVectorVector transitionStates;
 
         for( auto pDerivation : transitions )
         {
             std::vector< Concrete::State* > states = collectTargetStates( pContext, pDerivation );
-            VERIFY_RTE_MSG(
-                !states.empty(), "Derivation has empty target: " << Concrete::printContextFullType( pContext ) );
+            VERIFY_RTE_MSG( !states.empty(), "Derivation has empty target: " << Concrete::fullTypeName( pContext ) );
             transitionStates.push_back( states );
         }
 
         VERIFY_RTE_MSG(
-            !transitionStates.empty(), "Derivation has no successors: " << Concrete::printContextFullType( pContext ) );
+            !transitionStates.empty(), "Derivation has no successors: " << Concrete::fullTypeName( pContext ) );
 
         return transitionStates;
     }
@@ -471,7 +460,7 @@ struct DeciderSelector
     {
         for( auto pDecider : deciders )
         {
-            auto states    = Collector::collectDerivationStates( pDecider, pDecider->get_variables() );
+            auto states    = Collector::collectDerivationStates( pDecider, pDecider->get_events() );
             auto variables = Collector::statesToUniqueVariables( states );
             m_deciders.push_back( DeciderInfo{ pDecider, { variables.begin(), variables.end() } } );
         }
@@ -497,8 +486,7 @@ struct DeciderSelector
                 }
             }
         }
-        THROW_RTE(
-            "Failed to resolve decider for non singular transition: " << Concrete::printContextFullType( m_pContext ) );
+        THROW_RTE( "Failed to resolve decider for non singular transition: " << Concrete::fullTypeName( m_pContext ) );
     }
 
     std::optional< Concrete::Decider* > chooseDecider( VariableVector::const_iterator iBegin,
@@ -518,8 +506,7 @@ struct DeciderSelector
                 }
             }
         }
-        THROW_RTE(
-            "Failed to resolve decider for non singular transition: " << Concrete::printContextFullType( m_pContext ) );
+        THROW_RTE( "Failed to resolve decider for non singular transition: " << Concrete::fullTypeName( m_pContext ) );
     }
 };
 
@@ -540,7 +527,7 @@ VariableVector calculateRemainingDecideableVariables( Concrete::Context* pContex
 
     VERIFY_RTE_MSG(
         !compatibleStates.empty(),
-        "Failed to find compatible truth table states for transition: " << Concrete::printContextFullType( pContext ) );
+        "Failed to find compatible truth table states for transition: " << Concrete::fullTypeName( pContext ) );
 
     // determine all remaining variables that CAN be both true AND false
     VariableVector remainingDecideableVars;
@@ -580,15 +567,16 @@ VariableVector calculateRemainingDecideableVariables( Concrete::Context* pContex
     return remainingDecideableVars;
 }
 
-Instance calculateInstanceMultiplier( Concrete::State* pCommonAncestor, Automata::Vertex* pVariable )
+concrete::Instance::ValueType calculateInstanceMultiplier( Concrete::State*  pCommonAncestor,
+                                                           Automata::Vertex* pVariable )
 {
-    Instance multipler = 1;
+    concrete::Instance::ValueType multipler{ 1 };
 
     Concrete::Context* pIter = pVariable->get_context();
 
     while( pIter != pCommonAncestor )
     {
-        multipler = multipler * pIter->get_local_size();
+        multipler = multipler * pIter->get_icontext()->get_size();
         pIter     = db_cast< Concrete::Context >( pIter->get_parent() );
         VERIFY_RTE( pIter );
     }
@@ -605,7 +593,7 @@ Decision::Assignments* buildAssignments( Database& database, Concrete::State* pC
         std::unordered_set< Automata::Vertex* > variables;
         for( auto pTrueVar : trueVars )
         {
-            const Instance multiplier = calculateInstanceMultiplier( pCommonAncestor, pTrueVar );
+            const concrete::Instance multiplier( calculateInstanceMultiplier( pCommonAncestor, pTrueVar ) );
 
             auto pAssignment = database.construct< Decision::Assignment >(
                 Decision::Assignment::Args{ true, pTrueVar, multiplier } );
@@ -626,8 +614,8 @@ Decision::Assignments* buildAssignments( Database& database, Concrete::State* pC
         {
             if( !variables.contains( pFalseVar ) )
             {
-                Instance multiplier  = calculateInstanceMultiplier( pCommonAncestor, pFalseVar );
-                auto     pAssignment = database.construct< Decision::Assignment >(
+                concrete::Instance multiplier( calculateInstanceMultiplier( pCommonAncestor, pFalseVar ) );
+                auto               pAssignment = database.construct< Decision::Assignment >(
                     Decision::Assignment::Args{ false, pFalseVar, multiplier } );
                 assignments.push_back( pAssignment );
                 variables.insert( pFalseVar );
@@ -851,12 +839,10 @@ Decision::DecisionProcedure* compileDecision( Database& database, Concrete::Cont
             }
         }
         VERIFY_RTE_MSG( pContextState, "Failed to determine state assocaited with transition context : "
-                                           << Concrete::printContextFullType( pContext ) );
+                                           << Concrete::fullTypeName( pContext ) );
     }
 
-    auto opt = pContext->get_concrete_object();
-    VERIFY_RTE( opt.has_value() );
-    Concrete::Object* pObject = opt.value();
+    Concrete::Object* pObject = pContext->get_parent_object();
 
     // const TruthTable                        truthTable = pObject->get_truth_table();
     // const std::vector< Automata::Vertex* >  variables  = pObject->get_variable_vertices();
@@ -864,17 +850,17 @@ Decision::DecisionProcedure* compileDecision( Database& database, Concrete::Cont
 
     Concrete::State* pCommonAncestor = findCommonAncestor( pContextState, transitionStates );
     pCommonAncestor                  = findCommonAncestorContextParent( pContext, pCommonAncestor );
-    VERIFY_RTE_MSG( pCommonAncestor, "Failed to determine common ancestor for decision: "
-                                         << Concrete::printContextFullType( pContext ) );
+    VERIFY_RTE_MSG(
+        pCommonAncestor, "Failed to determine common ancestor for decision: " << Concrete::fullTypeName( pContext ) );
 
     // calculate instance divider to common ancestor
-    Instance instanceDivider = 1;
+    concrete::Instance::ValueType instanceDivider = 1;
     {
         for( auto pIter = pContext; pIter != pCommonAncestor;
              pIter      = db_cast< Concrete::Context >( pIter->get_parent() ) )
         {
             VERIFY_RTE( pIter );
-            instanceDivider = instanceDivider * pIter->get_local_size();
+            instanceDivider = instanceDivider * pIter->get_icontext()->get_size();
         }
     }
 
@@ -884,66 +870,111 @@ Decision::DecisionProcedure* compileDecision( Database& database, Concrete::Cont
     Decision::Step* pRoot = buildDecisionProcedure( database, deciders, pContext, pCommonAncestor, variableSequence );
 
     Decision::DecisionProcedure* pProcedure = database.construct< Decision::DecisionProcedure >(
-        Decision::DecisionProcedure::Args{ pCommonAncestor, instanceDivider, pRoot } );
+        Decision::DecisionProcedure::Args{ pCommonAncestor, concrete::Instance( instanceDivider ), pRoot } );
 
     return pProcedure;
 }
-
 } // namespace
 
-void compileDecisions( Database& database, const mega::io::megaFilePath& sourceFile )
+class Task_Decisions : public BaseTask
 {
-    // find all deciders in object and construct object truth table
-    for( Concrete::Object* pObject : database.many< Concrete::Object >( sourceFile ) )
-    {
-        DeciderVector deciders;
-        findDeciders( pObject, deciders );
+    const mega::io::manifestFilePath m_manifestFilePath;
 
-        std::vector< Automata::TruthAssignment* > truthTable;
+public:
+    Task_Decisions( const TaskArguments& taskArguments )
+        : BaseTask( taskArguments )
+        , m_manifestFilePath( m_environment.project_manifest() )
+    {
+    }
+
+    virtual void run( mega::pipeline::Progress& taskProgress )
+    {
+        const mega::io::CompilationFilePath decisionsDBFile
+            = m_environment.DecisionsStage_Decisions( m_manifestFilePath );
+        start( taskProgress, "Task_Decisions", m_manifestFilePath.path(), decisionsDBFile.path() );
+
+        task::DeterminantHash determinant(
+            m_toolChain.toolChainHash,
+            m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( m_manifestFilePath ) ),
+            m_environment.getBuildHashCode( m_environment.ConcreteStage_Concrete( m_manifestFilePath ) ),
+            m_environment.getBuildHashCode( m_environment.HyperGraphAnalysis_Model( m_manifestFilePath ) ),
+            m_environment.getBuildHashCode( m_environment.ClangTraitsStage_Traits( m_manifestFilePath ) )
+
+        );
+
+        for( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
         {
-            for( const auto& truthAssignments : TruthTableSolver::solve( pObject->get_automata_root() ) )
+            determinant ^= m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
+        }
+
+        if( m_environment.restore( decisionsDBFile, determinant ) )
+        {
+            m_environment.setBuildHashCode( decisionsDBFile );
+            cached( taskProgress );
+            return;
+        }
+
+        Database database( m_environment, m_manifestFilePath );
+
+        // find all deciders in object and construct object truth table
+        for( Concrete::Object* pObject : database.many< Concrete::Object >( m_manifestFilePath ) )
+        {
+            std::vector< Automata::TruthAssignment* > truthTable;
             {
-                auto pTruthAssignment = database.construct< Automata::TruthAssignment >(
-                    Automata::TruthAssignment::Args{ truthAssignments } );
-                truthTable.push_back( pTruthAssignment );
-            };
+                for( const auto& truthAssignments : TruthTableSolver::solve( pObject->get_automata_root() ) )
+                {
+                    auto pTruthAssignment = database.construct< Automata::TruthAssignment >(
+                        Automata::TruthAssignment::Args{ truthAssignments } );
+                    truthTable.push_back( pTruthAssignment );
+                };
+            }
+
+            std::vector< Automata::Vertex* > variables;
+            Collector::collectVariables( pObject->get_automata_root(), variables );
+
+            database.construct< Concrete::Object >( Concrete::Object::Args{ pObject, truthTable, variables } );
         }
 
-        std::vector< Automata::Vertex* > variables;
-        Collector::collectVariables( pObject->get_automata_root(), variables );
+        // determine decision procedures for each transition
+        for( Concrete::Interupt* pInterupt : database.many< Concrete::Interupt >( m_manifestFilePath ) )
+        {
+            std::optional< Decision::DecisionProcedure* > decisionProcedureOpt;
+            {
+                auto transitions = pInterupt->get_transitions();
+                if( !transitions.empty() )
+                {
+                    decisionProcedureOpt = compileDecision(
+                        database, pInterupt, Collector::collectDerivationStates( pInterupt, transitions ) );
+                }
+            }
+            database.construct< Concrete::Interupt >( Concrete::Interupt::Args{ pInterupt, decisionProcedureOpt } );
+        }
 
-        database.construct< Concrete::Object >( Concrete::Object::Args{ pObject, deciders, truthTable, variables } );
-    }
+        for( Concrete::State* pState : database.many< Concrete::State >( m_manifestFilePath ) )
+        {
+            std::optional< Decision::DecisionProcedure* > decisionProcedureOpt;
+            {
+                auto transitions = pState->get_transitions();
+                if( !transitions.empty() )
+                {
+                    decisionProcedureOpt = compileDecision(
+                        database, pState, Collector::collectDerivationStates( pState, transitions ) );
+                }
+            }
+            database.construct< Concrete::State >( Concrete::State::Args{ pState, decisionProcedureOpt } );
+        }
 
-    // determine decision procedures for each transition
-    for( Concrete::Interupt* pInterupt : database.many< Concrete::Interupt >( sourceFile ) )
-    {
-        auto transitions = pInterupt->get_transition();
-        if( !transitions.empty() )
-        {
-            Decision::DecisionProcedure* pProcedure
-                = compileDecision( database, pInterupt, Collector::collectDerivationStates( pInterupt, transitions ) );
-            pInterupt->set_transition_decision( std::optional< Decision::DecisionProcedure* >( pProcedure ) );
-        }
-        else
-        {
-            pInterupt->set_transition_decision( std::nullopt );
-        }
+        auto fileHashCode = database.save_Decisions_to_temp();
+        m_environment.setBuildHashCode( decisionsDBFile, fileHashCode );
+        m_environment.temp_to_real( decisionsDBFile );
+        m_environment.stash( decisionsDBFile, determinant );
+        succeeded( taskProgress );
     }
-    for( Concrete::State* pState : database.many< Concrete::State >( sourceFile ) )
-    {
-        auto transitions = pState->get_transition();
-        if( !transitions.empty() )
-        {
-            Decision::DecisionProcedure* pProcedure
-                = compileDecision( database, pState, Collector::collectDerivationStates( pState, transitions ) );
-            pState->set_transition_decision( std::optional< Decision::DecisionProcedure* >( pProcedure ) );
-        }
-        else
-        {
-            pState->set_transition_decision( std::nullopt );
-        }
-    }
+};
+
+BaseTask::Ptr create_Task_Decisions( const TaskArguments& taskArguments )
+{
+    return std::make_unique< Task_Decisions >( taskArguments );
 }
 
-} // namespace mega::invocation
+} // namespace mega::compiler

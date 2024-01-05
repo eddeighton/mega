@@ -4,7 +4,7 @@ interface IOne
 {
     dim m_int5 int;
 
-    function f1( int i ) : void
+    function f1( int i ) -> void
     {
     }
 }
@@ -15,7 +15,7 @@ namespace testing
     {
         namespace nested
         {
-            function f2( int i, @Object2 o ) : void
+            function f2( int i, @Object2 o ) -> void
             {
                 //
                 o.dosomething( i );

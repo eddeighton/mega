@@ -38,8 +38,9 @@ namespace Concrete
 
     object Node : NodeGroup -> ConcreteStage::Concrete
     {
-        ref< NodeGroup >        parent;
-        ref< Interface::Node >  node;
+        ref< NodeGroup >       parent;
+        ref< Interface::Node > node;
+        late< ref< Object > >  parent_object;
 
         ref< Symbols::ConcreteID > concrete_id -> ConcreteTypeAnalysis::ConcreteTable;
 
@@ -54,9 +55,19 @@ namespace Concrete
         value< mega::U64 > number_of_bits -> AutomataStage::AutomataAnalysis;
     }
 
-    object OwnershipLink : Node -> ConcreteStage::Concrete
+    object Link : Node -> ConcreteStage::Concrete
     {
-        ref< Interface::OwnershipLink > link;
+        ref< Interface::Aggregate > aggregate;
+    }
+
+    object UserLink : Link -> ConcreteStage::Concrete
+    {
+        ref< Interface::UserLink > user_link;
+    }
+
+    object OwnershipLink : Link -> ConcreteStage::Concrete
+    {
+        ref< Interface::OwnershipLink > ownership_link;
     }
 
     object Context : Node -> ConcreteStage::Concrete
@@ -64,34 +75,59 @@ namespace Concrete
         ref< Interface::IContext > icontext;
     }
 
+    object Event : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Event > event;
+    }
+
+    object Interupt : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Interupt > interupt;
+        
+        array< ref< ClangTraits::Derivation::Root > >   transitions     -> ClangTraitsStage::Traits;
+        array< ref< ClangTraits::Derivation::Root > >   events          -> ClangTraitsStage::Traits;
+        array< ref< Functions::EventDispatch > >        dispatches      -> ClangTraitsStage::Traits;
+
+        opt< ref< Decision::DecisionProcedure > > transition_decision -> DecisionsStage::Decisions;
+    }
+
     object State : Context -> ConcreteStage::Concrete
     {
         ref< Interface::State > state;
 
         ref< Automata::Vertex > automata_vertex -> AutomataStage::AutomataAnalysis;
+
+        array< ref< ClangTraits::Derivation::Root > > transitions -> ClangTraitsStage::Traits;
+        
+        opt< ref< Decision::DecisionProcedure > > transition_decision -> DecisionsStage::Decisions;
+    }
+
+    object Action : State -> ConcreteStage::Concrete
+    {
+        ref< Interface::Action > action;
     }
 
     object Decider : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Decider > decider;
-    }
-
-    object Action : Context -> ConcreteStage::Concrete
-    {
-        ref< Interface::Action > action;
+        array< ref< ClangTraits::Derivation::Root > > events -> ClangTraitsStage::Traits;
     }
 
     object Object : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Object >        object;
+        array< ref< Decider > >         deciders;
         late< ref< ActivationBitSet > > activation_bitset;
-        late< ref< OwnershipLink > >    ownership_link;
+        late< ref< OwnershipLink > >    ownership;
 
         ref< Automata::Vertex >             automata_root       -> AutomataStage::AutomataAnalysis;
         array< ref< Automata::Vertex > >    automata_tests      -> AutomataStage::AutomataAnalysis;
         array< ref< Automata::Enum > >      automata_enums      -> AutomataStage::AutomataAnalysis;
         value< mega::U32 >                  total_bitset_index  -> AutomataStage::AutomataAnalysis;
         value< mega::U32 >                  total_switch_index  -> AutomataStage::AutomataAnalysis;
+
+        array< ref< Automata::TruthAssignment > >  truth_table         -> DecisionsStage::Decisions;
+        array< ref< Automata::Vertex > >           variable_vertices   -> DecisionsStage::Decisions;
     }
 
     /*

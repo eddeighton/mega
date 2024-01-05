@@ -64,51 +64,9 @@ namespace Automata
         late< value< mega::U32 > >  failure_switch_index;
         late< value< mega::U32 > >  bitset_index;
     }
-/*
-    object TruthAssignment -> OperationsStage::Operations
+    
+    object TruthAssignment -> DecisionsStage::Decisions
     {
         array< ref< Vertex > > true_vertices;
-    }*/
+    }
 }
-/*
-namespace Decision
-{
-    object Step -> OperationsStage::Operations
-    {
-        opt< ref< Concrete::Decider > >             decider;
-        array< ref< Automata::Vertex > >            assignment;
-        array< ref< Automata::Vertex > >            vars_true;
-        array< ref< Automata::Vertex > >            vars_false;
-        array< ref< Step > >                        children;
-    }
-
-    object Assignment -> OperationsStage::Operations
-    {
-        value< bool >           is_true;
-        ref< Automata::Vertex > vertex;
-        value< mega::Instance > instance_multiplier;
-    }
-
-    object Assignments : Step -> OperationsStage::Operations
-    {
-        array< ref< Assignment > > assignments;
-    }
-
-    object Boolean : Step -> OperationsStage::Operations
-    {
-        ref< Automata::Vertex > variable;
-    }
-
-    object Selection : Step -> OperationsStage::Operations
-    {
-        array< ref< Automata::Vertex > >    variable_alternatives;
-        array< value< mega::U32 > >         variable_ordering;
-    }
-
-    object DecisionProcedure -> OperationsStage::Operations
-    {
-        ref< Concrete::State >  common_ancestor;
-        value< mega::Instance > instance_divider;
-        ref< Step >             root;
-    }
-}*/

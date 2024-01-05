@@ -38,7 +38,7 @@ namespace ClangTraits
 
         object Step : Node -> ClangTraitsStage::Traits
         {
-            ref< Concrete::Node >  vertex;
+            ref< Concrete::Node > vertex;
         }
 
         object Or : Step -> ClangTraitsStage::Traits

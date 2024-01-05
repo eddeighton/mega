@@ -36,6 +36,8 @@ TASK_PROJECT(HyperGraph)
 TASK_PROJECT(Automata)
 
 TASK_PROJECT(Clang_Traits_Gen)
+TASK_PROJECT(Decisions)
+
 TASK_PROJECT(Clang_Traits_Analysis)
 TASK_PROJECT(CPP_Decl)
 

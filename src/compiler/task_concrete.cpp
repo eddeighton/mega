@@ -47,112 +47,159 @@ public:
 
     using Inheritors = std::multimap< Interface::Node*, Concrete::Node* >;
 
-    void
-    inherit( Database& database, Interface::Node* pIParentNode, Concrete::Node* pCParentNode, Inheritors& inheritors )
+    void inherit( Database& database, Concrete::Root* pConcreteRoot, Interface::Node* pIParentNode,
+                  Concrete::Node* pCParentNode, std::vector< Concrete::Node* >& objects, Inheritors& inheritors )
     {
-        inheritors.insert( { pIParentNode, pCParentNode } );
-
-        if( auto pIContext = db_cast< Interface::IContext >( pIParentNode ) )
+        if( !pCParentNode )
         {
-            if( auto inheritance = pIContext->get_inheritance_opt() )
+            // see if can start object
+            if( auto pIObject = db_cast< Interface::Object >( pIParentNode ) )
             {
-                auto pInheritance = inheritance.value();
-                auto pTypePathSeq = pInheritance->get_type_path_sequence();
-                for( auto pPath : pTypePathSeq->get_path_sequence() )
-                {
-                    if( auto pAbsolutePath = db_cast< Parser::Type::Absolute >( pPath ) )
-                    {
-                        auto pNode = pAbsolutePath->get_type();
-                        inherit( database, pNode, pCParentNode, inheritors );
-                    }
-                    else
-                    {
-                        THROW_RTE(
-                            "Non absolute path used in inheritance for: " << Interface::fullTypeName( pIContext ) );
-                    }
-                }
+                pCParentNode = database.construct< Concrete::Node >(
+                    Concrete::Node::Args{ Concrete::NodeGroup::Args{ {} }, pConcreteRoot, pIParentNode } );
+                objects.push_back( pCParentNode );
             }
         }
 
-        for( auto pINode : pIParentNode->get_children() )
+        if( pCParentNode )
         {
-            // determine if override or add
-            Concrete::Node* pChildCNode = nullptr;
+            inheritors.insert( { pIParentNode, pCParentNode } );
+
+            if( auto pIContext = db_cast< Interface::IContext >( pIParentNode ) )
             {
-                for( auto pExistingCNode : pCParentNode->get_children() )
+                if( auto inheritance = pIContext->get_inheritance_opt() )
                 {
-                    if( pINode->get_symbol()->get_token() == pExistingCNode->get_node()->get_symbol()->get_token() )
+                    auto pInheritance = inheritance.value();
+                    auto pTypePathSeq = pInheritance->get_type_path_sequence();
+                    for( auto pPath : pTypePathSeq->get_path_sequence() )
                     {
-                        pChildCNode = pExistingCNode;
-                        break;
+                        if( auto pAbsolutePath = db_cast< Parser::Type::Absolute >( pPath ) )
+                        {
+                            auto pNode = pAbsolutePath->get_type();
+                            inherit( database, pConcreteRoot, pNode, pCParentNode, objects, inheritors );
+                        }
+                        else
+                        {
+                            THROW_RTE(
+                                "Non absolute path used in inheritance for: " << Interface::fullTypeName( pIContext ) );
+                        }
                     }
                 }
             }
 
-            if( !pChildCNode )
+            for( auto pINode : pIParentNode->get_children() )
             {
-                pChildCNode = database.construct< Concrete::Node >(
-                    Concrete::Node::Args{ Concrete::NodeGroup::Args{ {} }, pCParentNode, pINode } );
-                pCParentNode->push_back_children( pChildCNode );
-            }
-            else
-            {
-                // override existing node with deriving interface node
-                // ensure nodes are same kind
-                VERIFY_RTE_MSG( pChildCNode->get_node()->get_kind() == pINode->get_kind(),
-                                "Conflicting node kinds in inheritance for: "
-                                    << Interface::fullTypeName( pINode ) << " of: "
-                                    << pChildCNode->get_node()->get_kind() << " and: " << pINode->get_kind() );
-                pChildCNode->set_node( pINode );
-            }
+                // determine if override or add
+                Concrete::Node* pChildCNode = nullptr;
+                {
+                    for( auto pExistingCNode : pCParentNode->get_children() )
+                    {
+                        if( pINode->get_symbol()->get_token() == pExistingCNode->get_node()->get_symbol()->get_token() )
+                        {
+                            pChildCNode = pExistingCNode;
+                            break;
+                        }
+                    }
+                }
 
-            inherit( database, pINode, pChildCNode, inheritors );
+                if( !pChildCNode )
+                {
+                    pChildCNode = database.construct< Concrete::Node >(
+                        Concrete::Node::Args{ Concrete::NodeGroup::Args{ {} }, pCParentNode, pINode } );
+                    pCParentNode->push_back_children( pChildCNode );
+                }
+                else
+                {
+                    // override existing node with deriving interface node
+                    // ensure nodes are same kind
+                    VERIFY_RTE_MSG( pChildCNode->get_node()->get_kind() == pINode->get_kind(),
+                                    "Conflicting node kinds in inheritance for: "
+                                        << Interface::fullTypeName( pINode ) << " of: "
+                                        << pChildCNode->get_node()->get_kind() << " and: " << pINode->get_kind() );
+                    pChildCNode->set_node( pINode );
+                }
+
+                inherit( database, pConcreteRoot, pINode, pChildCNode, objects, inheritors );
+            }
+        }
+        else
+        {
+            // recurse through the interface looking for objects
+            for( auto pINode : pIParentNode->get_children() )
+            {
+                inherit( database, pConcreteRoot, pINode, nullptr, objects, inheritors );
+            }
         }
     }
 
-    void refine( Database& database, Concrete::Node* pCNode )
+    void refine( Database& database, Concrete::Node* pCNode, Concrete::Object* pParentObject )
     {
+        if( pParentObject )
+        {
+            pCNode->set_parent_object( pParentObject );
+        }
+
         if( auto pIContext = db_cast< Interface::IContext >( pCNode->get_node() ) )
         {
-            if( auto pState = db_cast< Interface::State >( pIContext ) )
+            if( auto pInterupt = db_cast< Interface::Interupt >( pIContext ) )
+            {
+                database.construct< Concrete::Interupt >(
+                    Concrete::Interupt::Args{ Concrete::Context::Args{ pCNode, pIContext }, pInterupt } );
+            }
+            else if( auto pEvent = db_cast< Interface::Event >( pIContext ) )
+            {
+                database.construct< Concrete::Event >(
+                    Concrete::Event::Args{ Concrete::Context::Args{ pCNode, pIContext }, pEvent } );
+            }
+            else if( auto pAction = db_cast< Interface::Action >( pIContext ) )
+            {
+                database.construct< Concrete::Action >( Concrete::Action::Args{
+                    Concrete::State::Args{ Concrete::Context::Args{ pCNode, pIContext }, pAction }, pAction } );
+            }
+            else if( auto pState = db_cast< Interface::State >( pIContext ) )
             {
                 database.construct< Concrete::State >(
                     Concrete::State::Args{ Concrete::Context::Args{ pCNode, pIContext }, pState } );
             }
             else if( auto pDecider = db_cast< Interface::Decider >( pIContext ) )
             {
-                database.construct< Concrete::Decider >(
+                auto pCDecider = database.construct< Concrete::Decider >(
                     Concrete::Decider::Args{ Concrete::Context::Args{ pCNode, pIContext }, pDecider } );
-            }
-            else if( auto pAction = db_cast< Interface::Action >( pIContext ) )
-            {
-                database.construct< Concrete::Action >(
-                    Concrete::Action::Args{ Concrete::Context::Args{ pCNode, pIContext }, pAction } );
+
+                VERIFY_RTE( pParentObject );
+                pParentObject->push_back_deciders( pCDecider );
             }
             else if( auto pObject = db_cast< Interface::Object >( pIContext ) )
             {
-                database.construct< Concrete::Object >(
-                    Concrete::Object::Args{ Concrete::Context::Args{ pCNode, pIContext }, pObject } );
+                pParentObject = database.construct< Concrete::Object >(
+                    Concrete::Object::Args{ Concrete::Context::Args{ pCNode, pIContext }, pObject, {} } );
+                // object is parent of itself
+                pCNode->set_parent_object( pParentObject );
             }
             else
             {
                 database.construct< Concrete::Context >( Concrete::Context::Args{ pCNode, pIContext } );
             }
         }
+        else if( auto pIUserLink = db_cast< Interface::UserLink >( pCNode->get_node() ) )
+        {
+            auto pUserLink = database.construct< Concrete::UserLink >(
+                Concrete::UserLink::Args{ Concrete::Link::Args{ pCNode, pIUserLink }, pIUserLink } );
+        }
         else if( auto pIOwnershipLink = db_cast< Interface::OwnershipLink >( pCNode->get_node() ) )
         {
-            auto pOwnershipLink = 
-                database.construct< Concrete::OwnershipLink >( Concrete::OwnershipLink::Args{ pCNode, pIOwnershipLink } );
-            
+            auto pOwnershipLink = database.construct< Concrete::OwnershipLink >(
+                Concrete::OwnershipLink::Args{ Concrete::Link::Args{ pCNode, pIOwnershipLink }, pIOwnershipLink } );
+
             auto pObject = db_cast< Concrete::Object >( pOwnershipLink->get_parent() );
             VERIFY_RTE( pObject );
-            pObject->set_ownership_link( pOwnershipLink );
+            pObject->set_ownership( pOwnershipLink );
         }
         else if( auto pActivation = db_cast< Interface::ActivationBitSet >( pCNode->get_node() ) )
         {
-            auto pActivationBitset = 
-                database.construct< Concrete::ActivationBitSet >( Concrete::ActivationBitSet::Args{ pCNode, pActivation } );
-            
+            auto pActivationBitset = database.construct< Concrete::ActivationBitSet >(
+                Concrete::ActivationBitSet::Args{ pCNode, pActivation } );
+
             auto pObject = db_cast< Concrete::Object >( pActivationBitset->get_parent() );
             VERIFY_RTE( pObject );
             pObject->set_activation_bitset( pActivationBitset );
@@ -162,9 +209,26 @@ public:
             // leave as Concrete::Node
         }
 
+        VERIFY_RTE( pParentObject );
+
         for( auto pChild : pCNode->get_children() )
         {
-            refine( database, pChild );
+            refine( database, pChild, pParentObject );
+        }
+    }
+
+    using Realisers = std::multimap< Interface::Node*, Concrete::Node* >;
+
+    void findRealisers( Concrete::Node* pCNode, Realisers& realisers )
+    {
+        auto pINode = pCNode->get_node();
+        VERIFY_RTE( pINode );
+
+        realisers.insert( { pINode, pCNode } );
+
+        for( auto pChild : pCNode->get_children() )
+        {
+            findRealisers( pChild, realisers );
         }
     }
 
@@ -199,29 +263,49 @@ public:
             = database.construct< Concrete::Root >( Concrete::Root::Args{ Concrete::NodeGroup::Args{ {} } } );
 
         Inheritors inheritors;
-        for( auto pINode : pInterfaceRoot->get_children() )
         {
-            auto pCNode = database.construct< Concrete::Node >(
-                Concrete::Node::Args{ Concrete::NodeGroup::Args{ {} }, pConcreteRoot, pINode } );
-            pConcreteRoot->push_back_children( pCNode );
-            inherit( database, pINode, pCNode, inheritors );
+            std::vector< Concrete::Node* > objects;
+            for( auto pINode : pInterfaceRoot->get_children() )
+            {
+                inherit( database, pConcreteRoot, pINode, nullptr, objects, inheritors );
+            }
+            pConcreteRoot->set_children( objects );
         }
 
-        // record all inheritors
-        for( auto i = inheritors.begin(), iEnd = inheritors.end(); i != iEnd; )
+        // determine realisers
+        Realisers realisers;
+        for( auto pCNode : pConcreteRoot->get_children() )
         {
-            auto                           pINode = i->first;
+            findRealisers( pCNode, realisers );
+        }
+
+        // record all inheritors and realisers
+        for( auto pINode : database.many< Interface::Node >( projectManifestPath ) )
+        {
             std::vector< Concrete::Node* > inherits;
-            for( auto iNext = inheritors.upper_bound( i->first ); i != iNext; ++i )
             {
-                inherits.push_back( i->second );
+                for( auto i = inheritors.lower_bound( pINode ), iNext = inheritors.upper_bound( pINode ); i != iNext;
+                     ++i )
+                {
+                    inherits.push_back( i->second );
+                }
             }
-            database.construct< Interface::Node >( Interface::Node::Args{ pINode, inherits } );
+
+            std::vector< Concrete::Node* > realise;
+            {
+                for( auto i = realisers.lower_bound( pINode ), iNext = realisers.upper_bound( pINode ); i != iNext;
+                     ++i )
+                {
+                    realise.push_back( i->second );
+                }
+            }
+
+            database.construct< Interface::Node >( Interface::Node::Args{ pINode, inherits, realise } );
         }
 
         for( auto pCNode : pConcreteRoot->get_children() )
         {
-            refine( database, pCNode );
+            refine( database, pCNode, nullptr );
         }
 
         // detect flags
@@ -237,8 +321,7 @@ public:
                         contextFlags[ pInterface ].set( IContextFlags::eMeta );
 
                         for( auto i = inheritors.lower_bound( pInterface ), iEnd = inheritors.upper_bound( pInterface );
-                             i != iEnd;
-                             ++i )
+                             i != iEnd; ++i )
                         {
                             if( auto pContext = db_cast< Interface::IContext >( i->second->get_node() ) )
                             {

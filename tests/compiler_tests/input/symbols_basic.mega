@@ -12,7 +12,7 @@ object SymObject2
     dim m_test2 @SymObject1;
     dim m_test3 ^SymObject2.m_test1;
 
-    function A::B::C() : void
+    function A::B::C() -> void
     {
 
     }

@@ -208,7 +208,7 @@ public:
         }
     }
 
-    Type::Path* parse_type_path()
+    Type::Path* parse_type_path( bool bAllowAbsolute, bool bAllowDerived )
     {
         if( tokIsAtOrHat() )
         {
@@ -231,12 +231,19 @@ public:
             }
             if( bAbsolute )
             {
+                if( !bAllowAbsolute )
+                {
+                    MEGA_PARSER_ERROR( "Absolute type not allowed" );
+                }
                 return m_database.construct< Type::Absolute >(
                     Type::Absolute::Args{ Type::Path::Args{ Type::Fragment::Args{}, variants } } );
             }
             else
-
             {
+                if( !bAllowDerived )
+                {
+                    MEGA_PARSER_ERROR( "Derived type not allowed" );
+                }
                 return m_database.construct< Type::Deriving >(
                     Type::Deriving::Args{ Type::Path::Args{ Type::Fragment::Args{}, variants } } );
             }
@@ -248,14 +255,14 @@ public:
         }
     }
 
-    Type::PathSequence* parse_type_path_sequence()
+    Type::PathSequence* parse_type_path_sequence( bool bAllowAbsolute, bool bAllowDerived )
     {
         if( tokIsAtOrHat() )
         {
             std::vector< Type::Path* > typePaths;
             while( true )
             {
-                typePaths.push_back( parse_type_path() );
+                typePaths.push_back( parse_type_path( bAllowAbsolute, bAllowDerived ) );
                 parse_comment();
                 if( !Tok.is( clang::tok::comma ) )
                 {
@@ -274,9 +281,9 @@ public:
         }
     }
 
-    Type::NamedPath* parse_named_path()
+    Type::NamedPath* parse_named_path( bool bAllowAbsolute, bool bAllowDerived )
     {
-        Type::Path* pTypePath = parse_type_path();
+        Type::Path* pTypePath = parse_type_path( bAllowAbsolute, bAllowDerived );
         if( Tok.is( clang::tok::identifier ) )
         {
             return m_database.construct< Type::NamedPath >( Type::NamedPath::Args{
@@ -289,14 +296,14 @@ public:
         }
     }
 
-    Type::NamedPathSequence* parse_named_path_sequence()
+    Type::NamedPathSequence* parse_named_path_sequence( bool bAllowAbsolute, bool bAllowDerived )
     {
         if( tokIsAtOrHat() )
         {
             std::vector< Type::NamedPath* > typePaths;
             while( true )
             {
-                typePaths.push_back( parse_named_path() );
+                typePaths.push_back( parse_named_path( bAllowAbsolute, bAllowDerived ) );
                 parse_comment();
                 if( !Tok.is( clang::tok::comma ) )
                 {
@@ -338,7 +345,7 @@ public:
         {
             if( tokIsAtOrHat() )
             {
-                Type::Path* pPath = parse_type_path();
+                Type::Path* pPath = parse_type_path( true, true );
                 fragments.push_back( pPath );
             }
             else
@@ -394,7 +401,7 @@ public:
         {
             if( tokIsAtOrHat() )
             {
-                Type::Path* pPath = parse_type_path();
+                Type::Path* pPath = parse_type_path( true, true );
                 fragments.push_back( pPath );
             }
             else
@@ -550,7 +557,7 @@ public:
 
         if( bIsSuccessor || bIsPredecessor )
         {
-            Type::PathSequence* pTypePathSequence = parse_type_path_sequence();
+            Type::PathSequence* pTypePathSequence = parse_type_path_sequence( false, true );
             return m_database.construct< TypeDecl::Transitions >( TypeDecl::Transitions::Args{
                 TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pTypePathSequence,
                 bIsSuccessor, bIsPredecessor } );
@@ -570,7 +577,7 @@ public:
         {
             BalancedDelimiterTracker T( *this, clang::tok::l_paren );
             T.consumeOpen();
-            pNamedPathSequence = parse_named_path_sequence();
+            pNamedPathSequence = parse_named_path_sequence( false, true );
             T.consumeClose();
         }
         else
@@ -590,7 +597,7 @@ public:
             ConsumeAnyToken();
             parse_comment();
             auto                startLoc          = Tok.getLocation();
-            Type::PathSequence* pTypePathSequence = parse_type_path_sequence();
+            Type::PathSequence* pTypePathSequence = parse_type_path_sequence( true, false );
             return m_database.construct< TypeDecl::Inheritance >( TypeDecl::Inheritance::Args{
                 TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pTypePathSequence } );
         }
@@ -619,7 +626,7 @@ public:
     TypeDecl::Link* parse_link_type()
     {
         auto        startLoc  = Tok.getLocation();
-        Type::Path* pTypePath = parse_type_path();
+        Type::Path* pTypePath = parse_type_path( true, false );
         return m_database.construct< TypeDecl::Link >( TypeDecl::Link::Args{
             TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pTypePath } );
     }
@@ -627,7 +634,7 @@ public:
     TypeDecl::Alias* parse_alias_type()
     {
         auto        startLoc  = Tok.getLocation();
-        Type::Path* pTypePath = parse_type_path();
+        Type::Path* pTypePath = parse_type_path( true, true );
         return m_database.construct< TypeDecl::Alias >( TypeDecl::Alias::Args{
             TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pTypePath } );
     }
