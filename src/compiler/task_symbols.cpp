@@ -316,6 +316,7 @@ public:
 
         Symbols::SymbolTable* pSymbolTable     = database.one< Symbols::SymbolTable >( manifestFilePath );
         const auto            symbolNames      = pSymbolTable->get_symbol_names();
+        const auto            symbolIDs        = pSymbolTable->get_symbol_ids();
         const auto            interfaceTypeIDs = pSymbolTable->get_interface_symbol_id_sequences();
 
         // reconstruct all symbols with their associated symbolID
@@ -330,7 +331,7 @@ public:
         // determine absolute types
         for( auto pAbsoluteTypePath : database.many< Parser::Type::Absolute >( m_sourceFilePath ) )
         {
-            auto pNode = Interface::resolve( interfaceTypeIDs, pAbsoluteTypePath );
+            auto pNode = Interface::resolve( interfaceTypeIDs, symbolIDs, pAbsoluteTypePath );
             database.construct< Parser::Type::Absolute >( Parser::Type::Absolute::Args{ pAbsoluteTypePath, pNode } );
         }
 

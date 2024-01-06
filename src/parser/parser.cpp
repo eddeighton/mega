@@ -176,23 +176,6 @@ public:
             Identifier::Args{ getSourceRange( startLoc, Tok.getLocation() ), symbols } );
     }
 
-    /*
-    Identifier* generate_unamedIdentifier( const char* pszPrefix )
-    {
-        const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
-        const mega::U64   szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
-        std::string strName;
-        {
-            std::ostringstream osName;
-            osName << "_" << pszPrefix << "_" << szLineNumber;
-            strName = osName.str();
-            boost::replace_all( strName, "/", "_" );
-            boost::replace_all( strName, ".", "_" );
-            boost::replace_all( strName, " ", "_" );
-        }
-        return m_database.construct< Identifier >( Identifier::Args{ strName } );
-    }*/
-
     Type::Variant* parse_type_variant()
     {
         if( Tok.is( clang::tok::identifier ) )
@@ -318,7 +301,6 @@ public:
         }
         else
         {
-            MEGA_PARSER_ERROR( "Expected @ or ^" );
             return m_database.construct< Type::NamedPathSequence >( Type::NamedPathSequence::Args{ {} } );
         }
     }
@@ -506,7 +488,7 @@ public:
         }
         else
         {
-            MEGA_PARSER_ERROR( "Function missing return type" );
+            MEGA_PARSER_ERROR( "Function missing return type.  Expected '->'" );
             pCPP = m_database.construct< Type::CPP >( Type::CPP::Args{ {} } );
         }
         return m_database.construct< TypeDecl::Return >( TypeDecl::Return::Args{
@@ -528,7 +510,7 @@ public:
         }
         else
         {
-            MEGA_PARSER_ERROR( "Error parsing argument list" );
+            MEGA_PARSER_ERROR( "Error parsing argument list.  Expected '('" );
             pCPP = m_database.construct< Type::CPP >( Type::CPP::Args{ {} } );
         }
 
@@ -582,7 +564,7 @@ public:
         }
         else
         {
-            MEGA_PARSER_ERROR( "Error parsing events" );
+            MEGA_PARSER_ERROR( "Error parsing events.  Expected '('" );
             pNamedPathSequence = m_database.construct< Type::NamedPathSequence >( Type::NamedPathSequence::Args{ {} } );
         }
 
@@ -646,29 +628,29 @@ public:
         return m_database.construct< TypeDecl::Using >( TypeDecl::Using::Args{
             TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pCPP } );
     }
-
-    TypeDecl::Body* parse_body()
-    {
-        auto startLoc = Tok.getLocation();
-
-        Type::CPP* pCPP = nullptr;
-
-        if( Tok.is( clang::tok::r_brace ) )
+    /*
+        TypeDecl::Body* parse_body()
         {
-            BalancedDelimiterTracker T( *this, clang::tok::r_brace );
-            T.consumeOpen();
-            pCPP = parse_cpp_block();
-            T.consumeClose();
-        }
-        else
-        {
-            MEGA_PARSER_ERROR( "Error parsing argument list" );
-            pCPP = m_database.construct< Type::CPP >( Type::CPP::Args{ {} } );
-        }
+            auto startLoc = Tok.getLocation();
 
-        return m_database.construct< TypeDecl::Body >( TypeDecl::Body::Args{
-            TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pCPP } );
-    }
+            Type::CPP* pCPP = nullptr;
+
+            if( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                pCPP = parse_cpp_block();
+                T.consumeClose();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Error parsing argument list.  Expected '{'" );
+                pCPP = m_database.construct< Type::CPP >( Type::CPP::Args{ {} } );
+            }
+
+            return m_database.construct< TypeDecl::Body >( TypeDecl::Body::Args{
+                TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pCPP } );
+        }*/
     ////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -825,7 +807,7 @@ public:
                     }
                     if( !getSourceText( startPartLoc, endLoc, strArguments ) )
                     {
-                        MEGA_PARSER_ERROR( "Error parsing argument list" );
+                        MEGA_PARSER_ERROR( "Error parsing part list" );
                     }
                 }
 
@@ -916,7 +898,7 @@ public:
                 std::string strInteger;
                 if( !getSourceText( startLoc, endLoc, strInteger ) )
                 {
-                    MEGA_PARSER_ERROR( "Error link size" );
+                    MEGA_PARSER_ERROR( "Error parsing link size" );
                 }
                 std::istringstream is( strInteger );
                 is >> iNumber;
@@ -953,11 +935,11 @@ public:
                 }
                 else
                 {
-                    MEGA_PARSER_ERROR( "Expected colon in link cardinality specifier" );
+                    MEGA_PARSER_ERROR( "Error parsing link cardinality.  Expected ':'" );
                 }
                 if( !Tok.is( clang::tok::r_square ) )
                 {
-                    MEGA_PARSER_ERROR( "Expected right square bracket for link relation specifier" );
+                    MEGA_PARSER_ERROR( "Error parsing link cardinality.  Expected ']'" );
                 }
                 T.consumeClose();
             }
@@ -989,6 +971,143 @@ public:
     ////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
     // Containers
+    Namespace* parse_namespace()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< Namespace >( Namespace::Args{ body } );
+    }
+
+    Abstract* parse_abstract()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        auto pSizeOpt = parse_size();
+        parse_comment();
+        auto pInheritanceOpt = parse_inheritance();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< Abstract >( Abstract::Args{ body, pSizeOpt, pInheritanceOpt } );
+    }
+
+    Event* parse_event()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        auto pSizeOpt = parse_size();
+        parse_comment();
+        auto pInheritanceOpt = parse_inheritance();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< Event >( Event::Args{ body, pSizeOpt, pInheritanceOpt } );
+    }
+
+    Interupt* parse_interupt()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        std::optional< TypeDecl::Events* > pEventsOpt = parse_events();
+        parse_comment();
+        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< Interupt >( Interupt::Args{ body, pEventsOpt, pTransitionsOpt } );
+    }
+
+    Requirement* parse_requirement()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        std::optional< TypeDecl::Events* > pEventsOpt = parse_events();
+        parse_comment();
+        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< Requirement >( Requirement::Args{ body, pEventsOpt, pTransitionsOpt } );
+    }
+
+    Function* parse_function()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        TypeDecl::Arguments* pArguments = parse_arguments();
+        parse_comment();
+        TypeDecl::Return* pReturn = parse_return();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< Function >( Function::Args{ body, pArguments, pReturn } );
+    }
+
+    Decider* parse_decider()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        std::optional< TypeDecl::Events* > pEventsOpt = parse_events();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        if( !pEventsOpt.has_value() )
+        {
+            MEGA_PARSER_ERROR( "Expected event list for decider" );
+        }
+        return m_database.construct< Decider >( Decider::Args{ body, pEventsOpt.value() } );
+    }
+
+    Object* parse_object()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        auto pSizeOpt = parse_size();
+        parse_comment();
+        auto pInheritanceOpt = parse_inheritance();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< Object >( Object::Args{ body, pSizeOpt, pInheritanceOpt } );
+    }
+
+    State* parse_state()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        auto pSizeOpt = parse_size();
+        parse_comment();
+        auto pInheritanceOpt = parse_inheritance();
+        parse_comment();
+        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< State >( State::Args{ body, pSizeOpt, pInheritanceOpt, pTransitionsOpt } );
+    }
+
+    Action* parse_action()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        auto pSizeOpt = parse_size();
+        parse_comment();
+        auto pInheritanceOpt = parse_inheritance();
+        parse_comment();
+        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< Action >(
+            Action::Args{ State::Args{ body, pSizeOpt, pInheritanceOpt, pTransitionsOpt } } );
+    }
+
+    Component* parse_component()
+    {
+        Identifier* pIdentifier = parse_identifier();
+        parse_comment();
+        auto pSizeOpt = parse_size();
+        parse_comment();
+        auto pInheritanceOpt = parse_inheritance();
+        parse_comment();
+        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
+        parse_comment();
+        auto body = parse_container( pIdentifier );
+        return m_database.construct< Component >(
+            Component::Args{ State::Args{ body, pSizeOpt, pInheritanceOpt, pTransitionsOpt } } );
+    }
 
     Container::Args defaultContainer( Identifier* pIdentifier ) const
     {
@@ -1008,352 +1127,33 @@ public:
         return body;
     }
 
-    Namespace* parse_namespace()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected body in abstract" );
-            }
-        }
-
-        return m_database.construct< Namespace >( Namespace::Args{ body } );
-    }
-
-    Abstract* parse_abstract()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        auto pSizeOpt = parse_size();
-        parse_comment();
-        auto pInheritanceOpt = parse_inheritance();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected body in abstract" );
-            }
-        }
-
-        return m_database.construct< Abstract >( Abstract::Args{ body, pSizeOpt, pInheritanceOpt } );
-    }
-
-    Event* parse_event()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        auto pSizeOpt = parse_size();
-        parse_comment();
-        auto pInheritanceOpt = parse_inheritance();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }
-
-        return m_database.construct< Event >( Event::Args{ body, pSizeOpt, pInheritanceOpt } );
-    }
-
-    Interupt* parse_interupt()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        std::optional< TypeDecl::Events* > pEventsOpt = parse_events();
-        parse_comment();
-        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }
-
-        return m_database.construct< Interupt >( Interupt::Args{ body, pEventsOpt, pTransitionsOpt } );
-    }
-
-    Requirement* parse_requirement()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        std::optional< TypeDecl::Events* > pEventsOpt = parse_events();
-        parse_comment();
-        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }
-
-        return m_database.construct< Requirement >( Requirement::Args{ body, pEventsOpt, pTransitionsOpt } );
-    }
-
-    Function* parse_function()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        TypeDecl::Arguments* pArguments = parse_arguments();
-        parse_comment();
-        TypeDecl::Return* pReturn = parse_return();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }
-
-        return m_database.construct< Function >( Function::Args{ body, pArguments, pReturn } );
-    }
-
-    Decider* parse_decider()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        std::optional< TypeDecl::Events* > pEventsOpt = parse_events();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }
-
-        if( !pEventsOpt.has_value() )
-        {
-            MEGA_PARSER_ERROR( "Expected event list for decider" );
-        }
-
-        return m_database.construct< Decider >( Decider::Args{ body, pEventsOpt.value() } );
-    }
-
-    Object* parse_object()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        auto pSizeOpt = parse_size();
-        parse_comment();
-        auto pInheritanceOpt = parse_inheritance();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }
-
-        return m_database.construct< Object >( Object::Args{ body, pSizeOpt, pInheritanceOpt } );
-    }
-
-    State* parse_state()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        auto pSizeOpt = parse_size();
-        parse_comment();
-        auto pInheritanceOpt = parse_inheritance();
-        parse_comment();
-        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }
-
-        return m_database.construct< State >( State::Args{ body, pSizeOpt, pInheritanceOpt, pTransitionsOpt } );
-    }
-
-    Action* parse_action()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        auto pSizeOpt = parse_size();
-        parse_comment();
-        auto pInheritanceOpt = parse_inheritance();
-        parse_comment();
-        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }
-
-        return m_database.construct< Action >(
-            Action::Args{ State::Args{ body, pSizeOpt, pInheritanceOpt, pTransitionsOpt } } );
-    }
-
-    Component* parse_component()
-    {
-        Identifier* pIdentifier = parse_identifier();
-        parse_comment();
-        auto pSizeOpt = parse_size();
-        parse_comment();
-        auto pInheritanceOpt = parse_inheritance();
-        parse_comment();
-        std::optional< TypeDecl::Transitions* > pTransitionsOpt = parse_transitions();
-        parse_comment();
-
-        Container::Args body = defaultContainer( pIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_container( pIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }
-
-        return m_database.construct< Component >(
-            Component::Args{ State::Args{ body, pSizeOpt, pInheritanceOpt, pTransitionsOpt } } );
-    }
-
     Container::Args parse_container( Identifier* pIdentifier )
     {
-        Container::Args bodyArgs = defaultContainer( pIdentifier );
+        Container::Args container = defaultContainer( pIdentifier );
+        {
+            if( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                braceStack.push_back( BraceCount );
+                parse_container( container );
+                braceStack.pop_back();
+                T.consumeClose();
+            }
+            else if( Tok.is( clang::tok::semi ) )
+            {
+                ConsumeToken();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Error parsing container.  Expected ';' or '{'" );
+            }
+        }
+        return container;
+    }
 
-        braceStack.push_back( BraceCount );
-
+    void parse_container( Container::Args& bodyArgs )
+    {
         bool bIsBodyDefinition = false;
 
         while( !isEofOrEom() )
@@ -1496,8 +1296,6 @@ public:
                             clang::tok::kw_part,
                             clang::tok::kw_requirement,
                             clang::tok::kw_state
-                            
-                            // NOTE: cannot now using 'using namespace ...' in function bodies
                         )
                     ) &&
                     !(
@@ -1544,19 +1342,16 @@ public:
                 }
             }
         }
-
-        VERIFY_RTE( BraceCount == braceStack.back() );
-        braceStack.pop_back();
-
-        return bodyArgs;
     }
 
     Container* parse_file()
     {
         auto            pSourceRange = getSourceRange( Tok.getLocation(), Tok.getLocation() );
         Identifier*     pID          = m_database.construct< Identifier >( Identifier::Args{ pSourceRange, {} } );
-        Container::Args args         = parse_container( pID );
-        return m_database.construct< Container >( args );
+        Container::Args container    = defaultContainer( pID );
+        parse_container( container );
+        VERIFY_RTE( braceStack.empty() );
+        return m_database.construct< Container >( container );
     }
 };
 
@@ -1600,9 +1395,3 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;
 MEGA_PARSER_EXPORT EG_PARSER_IMPL             g_parserSymbol;
-
-/*
-std::unique_ptr< EG_PARSER_INTERFACE > getParser()
-{
-    return std::make_unique< EG_PARSER_IMPL >();
-}*/

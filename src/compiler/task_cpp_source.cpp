@@ -50,9 +50,11 @@ using namespace CPPSourceStage;
 struct SymbolInfo
 {
     using SymbolNameMap       = std::map< std::string, Symbols::SymbolID* >;
+    using SymbolIDMap         = std::map< ::mega::interface::SymbolID, Symbols::SymbolID* >;
     using SymbolIDSequenceMap = std::map< ::mega::interface::SymbolIDSequence, Symbols::InterfaceTypeID* >;
 
     SymbolNameMap       symbolNameMap;
+    SymbolIDMap         symbolIDMap;
     SymbolIDSequenceMap symbolSequenceMap;
 };
 
@@ -324,8 +326,8 @@ class Task_CPP_Source : public BaseTask
                         {
                             os << ", ";
                         }
-                        os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
-                            << interfaceTypeID.getValue() << std::dec;
+                        os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << interfaceTypeID.getValue()
+                           << std::dec;
                         uniqueInterfaceTypeIDs.insert( interfaceTypeID );
                     }
                 }
@@ -351,12 +353,13 @@ class Task_CPP_Source : public BaseTask
             {
                 symbolIDSeq.push_back( pSymbolID->get_id() );
             }
-            auto pInterfaceNode = Interface::resolve( m_symbolInfo.symbolSequenceMap, symbolIDSeq );
+            auto pInterfaceNode
+                = Interface::resolve( m_symbolInfo.symbolSequenceMap, m_symbolInfo.symbolIDMap, symbolIDSeq );
 
             std::ostringstream os;
             os << MEGA_POINTER << "< "
-                << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
-                << pInterfaceNode->get_interface_id()->get_type_id().getValue() << std::dec << " > ";
+               << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
+               << pInterfaceNode->get_interface_id()->get_type_id().getValue() << std::dec << " > ";
             return os.str();
         }
     };
@@ -404,7 +407,8 @@ class Task_CPP_Source : public BaseTask
             {
                 symbolIDSeq.push_back( pSymbolID->get_id() );
             }
-            m_pInterfaceNode = Interface::resolve( m_symbolInfo.symbolSequenceMap, symbolIDSeq );
+            m_pInterfaceNode
+                = Interface::resolve( m_symbolInfo.symbolSequenceMap, m_symbolInfo.symbolIDMap, symbolIDSeq );
             VERIFY_RTE_MSG( m_pInterfaceNode, "Failed to resolve interface node type" );
         }
 
@@ -730,7 +734,8 @@ public:
         auto pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
         VERIFY_RTE( pSymbolTable );
 
-        SymbolInfo symbolInfo{ pSymbolTable->get_symbol_names(), pSymbolTable->get_interface_symbol_id_sequences() };
+        SymbolInfo symbolInfo{ pSymbolTable->get_symbol_names(), pSymbolTable->get_symbol_ids(),
+                               pSymbolTable->get_interface_symbol_id_sequences() };
 
         Components::Component* pInterfaceComponent = nullptr;
         {

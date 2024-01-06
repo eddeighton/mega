@@ -25,8 +25,38 @@ namespace Interface
 {
 
 using SymbolIDSequenceMap = std::map< ::mega::interface::SymbolIDSequence, Symbols::InterfaceTypeID* >;
+using SymbolIDMap         = std::map< ::mega::interface::SymbolID, Symbols::SymbolID* >;
 
-static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, const  mega::interface::SymbolIDSequence& symbolIDSeq )
+static void printSymbolSequence( const SymbolIDMap&                       symbolIDMap,
+                                 const mega::interface::SymbolIDSequence& symbolIDSeq,
+                                 std::ostream&                            os )
+{
+    bool bFirst = true;
+    for( auto symbolID : symbolIDSeq )
+    {
+        if( bFirst )
+        {
+            bFirst = false;
+        }
+        else
+        {
+            os << ".";
+        }
+        auto i = symbolIDMap.find( symbolID );
+        if( i != symbolIDMap.end() )
+        {
+            os << i->second->get_token();
+        }
+        else
+        {
+            os << "_";
+        }
+    }
+}
+
+static Interface::Node* resolve( const SymbolIDSequenceMap&               idMap,
+                                 const SymbolIDMap&                       symbolIDMap,
+                                 const mega::interface::SymbolIDSequence& symbolIDSeq )
 {
     auto iFind = idMap.find( symbolIDSeq );
     if( iFind != idMap.end() )
@@ -35,12 +65,23 @@ static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, const  mega::
     }
     else
     {
-        THROW_RTE( "Failed to locate absolute type: " << symbolIDSeq );
+        std::ostringstream os;
+        {
+            printSymbolSequence( symbolIDMap, symbolIDSeq, os );
+            os << "\nActual symbol sequences:";
+            for( const auto& [ idSeq, _ ] : idMap )
+            {
+                os << "\n";
+                printSymbolSequence( symbolIDMap, idSeq, os );
+            }
+        }
+        THROW_RTE( "Failed to locate absolute type: " << os.str() );
     }
     return {};
 }
 
-static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, Parser::Type::Absolute* pAbsolutePath )
+static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, const SymbolIDMap& symbolIDMap,
+                                 Parser::Type::Absolute* pAbsolutePath )
 {
     mega::interface::SymbolIDSequence symbolIDSeq;
     for( auto pVar : pAbsolutePath->get_variants() )
@@ -51,7 +92,7 @@ static Interface::Node* resolve( const SymbolIDSequenceMap& idMap, Parser::Type:
         auto pSymbolID = pSymbol->get_id();
         symbolIDSeq.push_back( pSymbolID->get_id() );
     }
-    return resolve( idMap, symbolIDSeq );
+    return resolve( idMap, symbolIDMap, symbolIDSeq );
 }
 
 } // namespace Interface

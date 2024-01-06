@@ -4,11 +4,11 @@ object Obj1
 {
     component test
     {
-        link a ^Obj2.test;
+        link ^Obj2.test;
     }
     component test2
     {
-        link b ^Obj2;
+        link ^Obj2;
     }
 }
 
@@ -16,11 +16,11 @@ object Obj2
 {
     component test
     {
-        link a ^Obj1.test;
+        link  ^Obj1.test;
     }
     component test2
     {
-        link b ^Obj1;
+        link ^Obj1;
     }
 }
 

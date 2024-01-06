@@ -97,19 +97,52 @@ public:
         return pIter;
     }
 
+    Parser::Symbol* findUnusedSymbol( const ReservedSymbolMap& reservedSymbols, Interface::NodeGroup* pNodeGroup )
+    {
+        // find anon symbol for context
+        std::optional< std::string > strUnusedAnonOpt;
+        {
+            for( const auto& strAnon : getAnonSymbols() )
+            {
+                bool bFound = false;
+                for( auto pExisting : pNodeGroup->get_children() )
+                {
+                    if( pExisting->get_symbol()->get_token() == strAnon )
+                    {
+                        bFound = true;
+                        break;
+                    }
+                }
+                if( !bFound )
+                {
+                    strUnusedAnonOpt = strAnon;
+                    break;
+                }
+            }
+            VERIFY_RTE_MSG( strUnusedAnonOpt.has_value(), "No remaining anon symbols to use" );
+        }
+
+        // use the anon symbol - and allow duplicate use outside of context
+        auto iFind = reservedSymbols.find( strUnusedAnonOpt.value() );
+        VERIFY_RTE( iFind != reservedSymbols.end() );
+        return iFind->second;
+    }
+
     void buildInterfaceTree( Database& database, Components::Component* pComponent, Interface::NodeGroup* pNodeGroup,
                              Parser::Container* pContainer, std::vector< Interface::IContext* >& icontexts,
                              const ReservedSymbolMap& reservedSymbols )
     {
         VERIFY_RTE( pNodeGroup );
 
-        const auto symbols = pContainer->get_symbols();
-        if( !symbols.empty() )
+        auto symbols = pContainer->get_symbols();
+        if( symbols.empty() )
         {
-            pNodeGroup = findOrCreate( database, pComponent, pNodeGroup, symbols.begin(), symbols.end(), icontexts );
-            VERIFY_PARSER(
-                db_cast< Interface::IContext >( pNodeGroup ), "Conflicting context type detected: ", pContainer );
+            symbols = { findUnusedSymbol( reservedSymbols, pNodeGroup ) };
         }
+
+        pNodeGroup = findOrCreate( database, pComponent, pNodeGroup, symbols.begin(), symbols.end(), icontexts );
+        VERIFY_PARSER(
+            db_cast< Interface::IContext >( pNodeGroup ), "Conflicting context type detected: ", pContainer );
 
         for( auto pChild : pContainer->get_children() )
         {
@@ -173,32 +206,7 @@ public:
                     }
                     else
                     {
-                        std::optional< std::string > strUnusedAnonOpt;
-                        {
-                            for( const auto& strAnon : getAnonSymbols() )
-                            {
-                                bool bFound = false;
-                                for( auto pExisting : pAggregateParent->get_children() )
-                                {
-                                    if( pExisting->get_symbol()->get_token() == strAnon )
-                                    {
-                                        bFound = true;
-                                        break;
-                                    }
-                                }
-                                if( !bFound )
-                                {
-                                    strUnusedAnonOpt = strAnon;
-                                    break;
-                                }
-                            }
-                            VERIFY_RTE_MSG( strUnusedAnonOpt.has_value(), "No remaining anon symbols to use" );
-                        }
-
-                        // use the anon symbol - and allow duplicate use
-                        auto iFind = reservedSymbols.find( strUnusedAnonOpt.value() );
-                        VERIFY_RTE( iFind != reservedSymbols.end() );
-                        pSymbol = iFind->second;
+                        pSymbol = findUnusedSymbol( reservedSymbols, pAggregateParent );
                     }
                 }
 
@@ -848,8 +856,12 @@ public:
                 VERIFY_RTE( pComponent );
                 auto* pParserRoot = database.one< Parser::ObjectSourceRoot >( sourceFilePath );
                 VERIFY_RTE( pParserRoot );
-                buildInterfaceTree(
-                    database, pComponent, pInterfaceRoot, pParserRoot->get_ast(), icontexts, reservedSymbols );
+                auto* pParserAST = pParserRoot->get_ast();
+                VERIFY_RTE( pParserAST );
+                for( auto pParserNode : pParserAST->get_children() )
+                {
+                    buildInterfaceTree( database, pComponent, pInterfaceRoot, pParserNode, icontexts, reservedSymbols );
+                }
             }
         }
 

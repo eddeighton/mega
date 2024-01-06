@@ -25,6 +25,8 @@
 #include "mega/values/compilation/interface/type_id.hpp"
 #include "mega/values/compilation/concrete/type_id.hpp"
 
+#include "common/string.hpp"
+
 #include <vector>
 #include <ostream>
 
@@ -33,17 +35,27 @@ namespace mega
 namespace interface
 {
 using SymbolIDSequence = std::vector< SymbolID >;
-using TypeIDSequence   = std::vector< TypeID >;
-std::ostream& operator<<( std::ostream& os, const SymbolIDSequence& symbolIDSequence );
-std::ostream& operator<<( std::ostream& os, const TypeIDSequence& typeIDSequence );
+inline std::ostream& operator<<( std::ostream& os, const SymbolIDSequence& symbolIDSequence )
+{
+    common::delimit( symbolIDSequence.begin(), symbolIDSequence.end(), ".", os );
+    return os;
+}
+using TypeIDSequence = std::vector< TypeID >;
+inline std::ostream& operator<<( std::ostream& os, const TypeIDSequence& typeIDSequence )
+{
+    common::delimit( typeIDSequence.begin(), typeIDSequence.end(), ".", os );
+    return os;
+}
 } // namespace interface
-
 namespace concrete
 {
 using TypeIDSequence = std::vector< TypeID >;
-std::ostream& operator<<( std::ostream& os, const TypeIDSequence& typeIDSequence );
+inline std::ostream& operator<<( std::ostream& os, const TypeIDSequence& typeIDSequence )
+{
+    common::delimit( typeIDSequence.begin(), typeIDSequence.end(), ".", os );
+    return os;
+}
 } // namespace concrete
-
 } // namespace mega
 
 #endif // GUARD_2023_October_20_type_id_sequence_123

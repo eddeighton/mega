@@ -9,7 +9,7 @@ object Test
     {
         action A : ^OR > @B
         {
-            interupt a( @AA, @AB ) > @C;
+            interupt( @AA, @AB ) > @C;
 
             action AA
             {

@@ -163,30 +163,4 @@ static std::string fullTypeName( const Node* pContext, const std::string& strDel
     }
     return os.str();
 }
-/*
-static void printContextType( std::vector< const IContext* >& contexts, std::ostream& os )
-{
-    VERIFY_RTE( !contexts.empty() );
-    if( contexts.size() == 1 )
-    {
-        os << printIContextFullType( contexts.front(), "::" );
-    }
-    else
-    {
-        // from mega/common_strings.hpp
-        // cannot include header here as file is intended to be included in stage namespace
-        os << EG_VARIANT_TYPE << "< ";
-        bool bFirst = true;
-        for( auto pContext : contexts )
-        {
-            if( bFirst )
-                bFirst = false;
-            else
-                os << ", ";
-            os << printIContextFullType( pContext );
-        }
-        os << " >";
-    }
-}*/
-
 } // namespace Interface

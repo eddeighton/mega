@@ -87,7 +87,7 @@ public:
 
         std::ostringstream osError, osWarn;
 
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
+        auto pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
         using namespace ParserStage::Parser;
 
@@ -105,9 +105,9 @@ public:
             {
                 bExhaustedAll = true;
 
-                for( MegaInclude* pInclude : database.many< MegaInclude >( m_sourceFilePath ) )
+                for( auto pInclude : database.many< MegaInclude >( m_sourceFilePath ) )
                 {
-                    FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->get_megaSourceFilePath() );
+                    auto iFind = m_rootFiles.find( pInclude->get_megaSourceFilePath() );
                     if( iFind == m_rootFiles.end() )
                     {
                         Container* pIncludeContextDef
@@ -115,9 +115,8 @@ public:
                                               m_environment.megaFilePath_fromPath( pInclude->get_megaSourceFilePath() ),
                                               osError, osWarn );
 
-                        IncludeRoot* pIncludeRoot
-                            = database.construct< IncludeRoot >( { IncludeRoot::Args{ SourceRoot::Args{
-                                pInclude->get_megaSourceFilePath(), pComponent, pIncludeContextDef } } } );
+                        auto pIncludeRoot = database.construct< IncludeRoot >( { IncludeRoot::Args{ SourceRoot::Args{
+                            pInclude->get_megaSourceFilePath(), pComponent, pIncludeContextDef } } } );
 
                         pInclude->set_root( pIncludeRoot );
 
@@ -127,7 +126,7 @@ public:
                     }
                     else
                     {
-                        IncludeRoot* pIncludeRoot = db_cast< IncludeRoot >( iFind->second );
+                        auto pIncludeRoot = db_cast< IncludeRoot >( iFind->second );
                         VERIFY_RTE( pIncludeRoot );
                         pInclude->set_root( pIncludeRoot );
                     }
@@ -152,12 +151,6 @@ public:
             {
                 const task::FileHash astHashCode = database.save_AST_to_temp();
                 m_environment.setBuildHashCode( astFile, astHashCode );
-
-                /*{
-                    std::ostringstream os;
-                    os << "PARSER: " << astHashCode.toHexString();
-                    msg( taskProgress, os.str() );
-                }*/
 
                 const task::DeterminantHash determinant( { m_toolChain.toolChainHash, astHashCode } );
 
