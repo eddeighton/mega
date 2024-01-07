@@ -256,10 +256,24 @@ public:
             m_symbolVector.push_back( ROOT_SYMBOL );
             m_symbolMap.insert( { ROOT_SYMBOL, ROOT_SYMBOL_ID } );
 
+            m_symbolVector.push_back( EG_OWNER );
+            m_symbolMap.insert( { EG_OWNER, OWNER_SYMBOL_ID } );
+
+            m_symbolVector.push_back( EG_STATE );
+            m_symbolMap.insert( { EG_STATE, STATE_SYMBOL_ID } );
+
             // null interface object type
             m_interfaceVector.push_back( InterfaceObject( NULL_OBJECT_ID, { NULL_SYMBOL_ID } ) );
             m_interfaceMap.insert( { { NULL_SYMBOL_ID }, NULL_OBJECT_ID } );
 
+            // owner interface object type
+            m_interfaceVector.push_back( InterfaceObject( NULL_OBJECT_ID, { OWNER_SYMBOL_ID } ) );
+            m_interfaceMap.insert( { { OWNER_SYMBOL_ID }, NULL_OBJECT_ID } );
+
+            // state interface object type
+            m_interfaceVector.push_back( InterfaceObject( NULL_OBJECT_ID, { STATE_SYMBOL_ID } ) );
+            m_interfaceMap.insert( { { STATE_SYMBOL_ID }, NULL_OBJECT_ID } );
+          
             // root interface object type
             m_interfaceVector.push_back( InterfaceObject( ROOT_OBJECT_ID, { ROOT_SYMBOL_ID } ) );
             m_interfaceMap.insert( { { ROOT_SYMBOL_ID }, ROOT_OBJECT_ID } );
@@ -268,6 +282,14 @@ public:
         // null concrete object type
         m_concreteVector.push_back( ConcreteObject( concrete::NULL_OBJECT_ID, { interface::NULL_TYPE_ID } ) );
         m_concreteMap.insert( { { interface::NULL_TYPE_ID }, concrete::NULL_OBJECT_ID } );
+
+        // root concrete owner type
+        m_concreteVector.push_back( ConcreteObject( concrete::NULL_OBJECT_ID, { interface::OWNER_TYPE_ID } ) );
+        m_concreteMap.insert( { { interface::OWNER_TYPE_ID }, concrete::NULL_OBJECT_ID } );
+
+        // root concrete state type
+        m_concreteVector.push_back( ConcreteObject( concrete::NULL_OBJECT_ID, { interface::STATE_TYPE_ID } ) );
+        m_concreteMap.insert( { { interface::STATE_TYPE_ID }, concrete::NULL_OBJECT_ID } );
 
         // root concrete object type
         m_concreteVector.push_back( ConcreteObject( concrete::ROOT_OBJECT_ID, { interface::ROOT_TYPE_ID } ) );

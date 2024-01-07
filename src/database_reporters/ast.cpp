@@ -305,49 +305,27 @@ void recurse( Interface::Aggregate* pNode, reports::Branch& tree )
     using namespace mega::reports;
 
     Branch branch;
-    if( auto pParsedAggregate = db_cast< Interface::ParsedAggregate >( pNode ) )
-    {
-        auto pParserAggregate = pParsedAggregate->get_aggregate();
+    auto   pParserAggregate = pNode->get_aggregate();
 
-        if( auto pDimension = db_cast< Parser::Dimension >( pParserAggregate ) )
-        {
-            branch.m_label = { { "Dim "s, Interface::getIdentifier( pNode ) } };
-        }
-        else if( auto pLink = db_cast< Parser::Link >( pParserAggregate ) )
-        {
-            branch.m_label = { { "Link "s, Interface::getIdentifier( pNode ) } };
-        }
-        else if( auto pAlias = db_cast< Parser::Alias >( pParserAggregate ) )
-        {
-            branch.m_label = { { "Alias "s, Interface::getIdentifier( pNode ) } };
-        }
-        else if( auto pUsing = db_cast< Parser::Using >( pParserAggregate ) )
-        {
-            branch.m_label = { { "Using "s, Interface::getIdentifier( pNode ) } };
-        }
-        else
-        {
-            THROW_RTE( "Unknown ParsedAggregate type" );
-        }
-    }
-    else if( auto pGeneratedAggregate = db_cast< Interface::GeneratedAggregate >( pNode ) )
+    if( auto pDimension = db_cast< Parser::Dimension >( pParserAggregate ) )
     {
-        if( auto pOwnershipLink = db_cast< Interface::OwnershipLink >( pGeneratedAggregate ) )
-        {
-            branch.m_label = { { "Ownership Link "s, Interface::getIdentifier( pNode ) } };
-        }
-        else if( auto pActivationBitSet = db_cast< Interface::ActivationBitSet >( pGeneratedAggregate ) )
-        {
-            branch.m_label = { { "Activation Bitset "s, Interface::getIdentifier( pNode ) } };
-        }
-        else
-        {
-            THROW_RTE( "Unknown Generated Aggregate type" );
-        }
+        branch.m_label = { { "Dim "s, Interface::getIdentifier( pNode ) } };
+    }
+    else if( auto pLink = db_cast< Parser::Link >( pParserAggregate ) )
+    {
+        branch.m_label = { { "Link "s, Interface::getIdentifier( pNode ) } };
+    }
+    else if( auto pAlias = db_cast< Parser::Alias >( pParserAggregate ) )
+    {
+        branch.m_label = { { "Alias "s, Interface::getIdentifier( pNode ) } };
+    }
+    else if( auto pUsing = db_cast< Parser::Using >( pParserAggregate ) )
+    {
+        branch.m_label = { { "Using "s, Interface::getIdentifier( pNode ) } };
     }
     else
     {
-        THROW_RTE( "Unknown aggregate type" );
+        THROW_RTE( "Unknown Aggregate type" );
     }
     tree.m_elements.emplace_back( std::move( branch ) );
 }
@@ -418,7 +396,6 @@ void recurse( Interface::IContext* pNode, reports::Branch& tree )
 
     tree.m_elements.emplace_back( std::move( branch ) );
 }
-
 
 void recurse( Interface::Node* pNode, reports::Branch& tree )
 {

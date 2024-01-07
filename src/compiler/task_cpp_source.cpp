@@ -37,6 +37,8 @@ namespace CPPSourceStage
 {
 #include "compiler/symbol_path.hpp"
 #include "compiler/common_ancestor.hpp"
+#include "compiler/interface.hpp"
+#include "compiler/concrete.hpp"
 
 namespace FunctionBody
 {
@@ -315,7 +317,7 @@ class Task_CPP_Source : public BaseTask
                 std::set< mega::interface::TypeID > uniqueInterfaceTypeIDs;
                 for( auto pOr : frontier )
                 {
-                    const auto interfaceTypeID = pOr->get_vertex()->get_node()->get_interface_id()->get_type_id();
+                    const auto interfaceTypeID = Concrete::getInterfaceTypeID( pOr->get_vertex() );
                     if( !uniqueInterfaceTypeIDs.contains( interfaceTypeID ) )
                     {
                         if( bFirst )

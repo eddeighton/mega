@@ -95,23 +95,6 @@ public:
         return nullptr;
     }
 
-    Interface::OwnershipLink* findOwnershipLink( Interface::Node* pNode )
-    {
-        if( auto pLink = db_cast< Interface::OwnershipLink >( pNode ) )
-        {
-            return pLink;
-        }
-
-        for( auto pChild : pNode->get_children() )
-        {
-            if( auto pResult = findOwnershipLink( pChild ) )
-            {
-                return pResult;
-            }
-        }
-        return nullptr;
-    }
-
     void buildRelations( Database& database )
     {
         // for all non-owning links they must uniquely pair up into binary relations
@@ -121,8 +104,8 @@ public:
         using UserLinkPairs = std::map< Interface::UserLink*, Interface::UserLink* >;
         UserLinkPairs userLinkPairs, userLinkPairsOpposites;
 
-        std::multimap< Interface::UserLink*, Interface::OwnershipLink* > owners;
-        std::multimap< Interface::OwnershipLink*, Interface::UserLink* > owned;
+        std::multimap< Interface::OwningLink*, Concrete::OwnershipLink* > owners;
+        std::multimap< Concrete::OwnershipLink*, Interface::OwningLink* > owned;
 
         for( auto pUserLink : database.many< Interface::UserLink >( m_manifestFilePath ) )
         {
@@ -135,15 +118,20 @@ public:
 
             if( pUserLink->get_link()->get_owning() )
             {
-                auto pOwnershipLink = findOwnershipLink( pTargetType );
-                VERIFY_RTE_MSG( pOwnershipLink,
-                                "Failed to locate owning link target object for: " << Interface::fullTypeName(
-                                    pUserLink ) << " with type: " << Interface::fullTypeName( pTargetType ) );
-
-                owners.insert( { pUserLink, pOwnershipLink } );
-                owned.insert( { pOwnershipLink, pUserLink } );
-
-                database.construct< Interface::OwningLink >( Interface::OwningLink::Args{ pUserLink, pOwnershipLink } );
+                std::vector< Concrete::OwnershipLink* > ownershipLinks;
+                {
+                    for( auto pConcreteTarget : pTargetType->get_inheritors() )
+                    {
+                        ownershipLinks.push_back( pConcreteTarget->get_parent_object()->get_ownership() );
+                    }
+                }
+                auto pOwningLink = database.construct< Interface::OwningLink >(
+                    Interface::OwningLink::Args{ pUserLink, ownershipLinks } );
+                for( auto p : ownershipLinks )
+                {
+                    owners.insert( { pOwningLink, p } );
+                    owned.insert( { p, pOwningLink } );
+                }
             }
             else
             {
@@ -162,17 +150,15 @@ public:
             }
         }
 
-        for( auto pOwnershipLink : database.many< Interface::OwnershipLink >( m_manifestFilePath ) )
+        for( auto pOwnershipLink : database.many< Concrete::OwnershipLink >( m_manifestFilePath ) )
         {
             std::vector< Interface::OwningLink* > owners;
             for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink ); i != iEnd;
                  ++i )
             {
-                auto pOwningLink = db_cast< Interface::OwningLink >( i->second );
-                VERIFY_RTE( pOwningLink );
-                owners.push_back( pOwningLink );
+                owners.push_back( i->second );
             }
-            database.construct< Interface::OwnershipLink >( Interface::OwnershipLink::Args{ pOwnershipLink, owners } );
+            database.construct< Concrete::OwnershipLink >( Concrete::OwnershipLink::Args{ pOwnershipLink, owners } );
         }
 
         for( const auto& pair : userLinkPairs )
@@ -219,19 +205,13 @@ public:
     {
         Concrete::Node* pConcrete;
 
-        Database&                                                        database;
-        std::multimap< Interface::UserLink*, Interface::OwnershipLink* > owners;
-        std::multimap< Interface::OwnershipLink*, Interface::UserLink* > owned;
-        std::map< Interface::UserLink*, HyperGraph::NonOwningRelation* > nonOwningRelations;
+        Database& database;
 
         std::vector< Concrete::Edge* >& edges;
 
         Visitor( Database& database, HyperGraph::Graph* pGraph, std::vector< Concrete::Edge* >& edges )
             : database( database )
             , edges( edges )
-            , owners( pGraph->get_owning_relation()->get_owners() )
-            , owned( pGraph->get_owning_relation()->get_owned() )
-            , nonOwningRelations( pGraph->get_non_owning_relations() )
         {
         }
 
@@ -241,8 +221,6 @@ public:
             edges.push_back( pEdge );
             return pEdge;
         }
-
-        virtual bool visit( Interface::ParsedAggregate* pNode ) const { THROW_RTE( "Unknown parsed aggregate type" ); }
 
         virtual bool visit( Interface::UserDimension* pNode ) const
         {
@@ -339,67 +317,16 @@ public:
                 createEdge( EdgeType::eParent, pConcrete, pConcreteParent );
             }
 
-            U64 total = 0;
-            {
-                for( auto pNode : pNode->get_owned()->get_inheritors() )
-                {
-                    ++total;
-                }
-            }
+            auto targets = pNode->get_type()->get_inheritors();
+            U64  total   = targets.size();
 
-            for( auto pOwned : pNode->get_owned()->get_inheritors() )
+            for( auto pConcreteTarget : targets )
             {
-                auto pCounterPart = db_cast< Concrete::OwnershipLink >( pOwned );
-                VERIFY_RTE( pCounterPart );
-                auto pTarget = pCounterPart->get_parent_object();
-                auto pEdge   = createEdge( EdgeType::eInterObjectOwner, pConcrete, pTarget );
+                auto pCounterPart = pConcreteTarget->get_parent_object()->get_ownership();
+                auto pEdge        = createEdge( EdgeType::eInterObjectOwner, pConcrete, pConcreteTarget );
                 database.construct< Concrete::InterObjectEdge >( Concrete::InterObjectEdge::Args{
                     pEdge, pCounterPart, pNode->get_link()->get_cardinality(), total != 1 } );
             }
-            return true;
-        }
-
-        virtual bool visit( Interface::OwnershipLink* pNode ) const
-        {
-            auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
-            VERIFY_RTE( pConcreteParent );
-
-            createEdge( EdgeType::eLink, pConcreteParent, pConcrete );
-            createEdge( EdgeType::eParent, pConcrete, pConcreteParent );
-
-            U64 total = 0;
-            {
-                for( auto pOwner : pNode->get_owners() )
-                {
-                    for( auto pNode : pOwner->get_inheritors() )
-                    {
-                        ++total;
-                    }
-                }
-            }
-
-            for( auto pOwner : pNode->get_owners() )
-            {
-                for( auto pNode : pOwner->get_inheritors() )
-                {
-                    auto pCounterPart = db_cast< Concrete::UserLink >( pNode );
-                    VERIFY_RTE( pCounterPart );
-                    Concrete::Object* pTarget = pCounterPart->get_parent_object();
-                    auto              pEdge   = createEdge( EdgeType::eInterObjectParent, pConcrete, pTarget );
-                    database.construct< Concrete::InterObjectEdge >(
-                        Concrete::InterObjectEdge::Args{ pEdge, pCounterPart, CardinalityRange{}, total != 1 } );
-                }
-            }
-            return true;
-        }
-
-        virtual bool visit( Interface::ActivationBitSet* pNode ) const
-        {
-            auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
-            VERIFY_RTE( pConcreteParent );
-
-            createEdge( EdgeType::eDim, pConcreteParent, pConcrete );
-            createEdge( EdgeType::eParent, pConcrete, pConcreteParent );
             return true;
         }
 
@@ -407,18 +334,33 @@ public:
         {
             for( auto pChild : pConcrete->get_children() )
             {
-                if( db_cast< Interface::IContext >( pChild->get_node() ) )
+                if( pChild->get_node_opt().has_value() )
                 {
-                    if( pNode->get_singular() )
+                    if( db_cast< Interface::IContext >( pChild->get_node_opt().value() ) )
                     {
-                        createEdge( EdgeType::eChildSingular, pConcrete, pChild );
-                        createEdge( EdgeType::eParent, pChild, pConcrete );
+                        if( pNode->get_singular() )
+                        {
+                            createEdge( EdgeType::eChildSingular, pConcrete, pChild );
+                            createEdge( EdgeType::eParent, pChild, pConcrete );
+                        }
+                        else
+                        {
+                            createEdge( EdgeType::eChildNonSingular, pConcrete, pChild );
+                            createEdge( EdgeType::eParent, pChild, pConcrete );
+                        }
                     }
-                    else
-                    {
-                        createEdge( EdgeType::eChildNonSingular, pConcrete, pChild );
-                        createEdge( EdgeType::eParent, pChild, pConcrete );
-                    }
+                }
+                else if( auto pActivationBitSet = db_cast< Concrete::ActivationBitSet >( pChild ) )
+                {
+                    // ignor
+                }
+                else if( auto pOwnershipLink = db_cast< Concrete::OwnershipLink >( pChild ) )
+                {
+                    // ignor
+                }
+                else
+                {
+                    THROW_RTE( "Unexpected missing interface node in concrete node" );
                 }
             }
             return true;
@@ -428,7 +370,57 @@ public:
     void buildGraph( Database& database, Concrete::Node* pNode, Visitor& visitor )
     {
         visitor.pConcrete = pNode;
-        VERIFY_RTE( Interface::visit( visitor, pNode->get_node() ) );
+
+        if( pNode->get_node_opt().has_value() )
+        {
+            bool bResult = Interface::visit( visitor, pNode->get_node_opt().value() );
+            VERIFY_RTE( bResult );
+        }
+        else if( auto pActivationBitSet = db_cast< Concrete::ActivationBitSet >( pNode ) )
+        {
+            auto pConcreteParent = db_cast< Concrete::Node >( pNode->get_parent() );
+            VERIFY_RTE( pConcreteParent );
+            visitor.createEdge( EdgeType::eDim, pConcreteParent, pActivationBitSet );
+            visitor.createEdge( EdgeType::eParent, pActivationBitSet, pConcreteParent );
+        }
+        else if( auto pOwnershipLink = db_cast< Concrete::OwnershipLink >( pNode ) )
+        {
+            auto pConcreteParent = db_cast< Concrete::Node >( pNode->get_parent() );
+            VERIFY_RTE( pConcreteParent );
+
+            visitor.createEdge( EdgeType::eLink, pConcreteParent, pOwnershipLink );
+            visitor.createEdge( EdgeType::eParent, pOwnershipLink, pConcreteParent );
+
+            U64 total = 0;
+            {
+                for( auto pOwner : pOwnershipLink->get_owners() )
+                {
+                    for( auto pNode : pOwner->get_inheritors() )
+                    {
+                        ++total;
+                    }
+                }
+            }
+
+            // construct inter-object edges from the ownership to to ALL owning objects
+            for( auto pOwner : pOwnershipLink->get_owners() )
+            {
+                for( auto pCounterNode : pOwner->get_inheritors() )
+                {
+                    auto pCounterPart = db_cast< Concrete::UserLink >( pCounterNode );
+                    VERIFY_RTE( pCounterPart );
+                    auto pTarget = db_cast< Concrete::Node >( pCounterPart->get_parent() );
+                    auto pEdge   = visitor.createEdge( EdgeType::eInterObjectParent, pOwnershipLink, pTarget );
+                    database.construct< Concrete::InterObjectEdge >(
+                        Concrete::InterObjectEdge::Args{ pEdge, pCounterPart, CardinalityRange{}, total != 1 } );
+                }
+            }
+        }
+        else
+        {
+            THROW_RTE( "Unknown concrete node type" );
+        }
+
         for( auto pChild : pNode->get_children() )
         {
             buildGraph( database, pChild, visitor );

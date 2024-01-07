@@ -53,4 +53,95 @@ void getNodes( NodeGroup* pNodeGroup, std::vector< IContext* >& contexts, std::v
     }
 }
 
+template< typename T >
+static const std::string& getKind();
+
+#define MAKE_KIND_GETTER( TypeName ) \
+template<>\
+inline const std::string& getKind< TypeName >()\
+{\
+    static const std::string s = #TypeName;\
+    return s;\
+}
+
+MAKE_KIND_GETTER( Aggregate )
+MAKE_KIND_GETTER( Namespace )
+MAKE_KIND_GETTER( Abstract )
+MAKE_KIND_GETTER( Event )
+MAKE_KIND_GETTER( Object )
+MAKE_KIND_GETTER( Interupt )
+MAKE_KIND_GETTER( Requirement )
+MAKE_KIND_GETTER( Decider )
+MAKE_KIND_GETTER( Function )
+MAKE_KIND_GETTER( Action )
+MAKE_KIND_GETTER( Component )
+MAKE_KIND_GETTER( State )
+MAKE_KIND_GETTER( InvocationContext )
+MAKE_KIND_GETTER( IContext )
+
+static const std::string& getKind( const Node* pNode )
+{
+    using namespace std::string_literals;
+    if( auto* p = db_cast< Aggregate >( pNode ) )
+    {
+        return getKind< Aggregate >();
+    }
+    else if( auto* p = db_cast< Namespace >( pNode ) )
+    {
+        return getKind< Namespace >();
+    }
+    else if( auto* p = db_cast< Abstract >( pNode ) )
+    {
+        return getKind< Abstract >();
+    }
+    else if( auto* p = db_cast< Event >( pNode ) )
+    {
+        return getKind< Event >();
+    }
+    else if( auto* p = db_cast< Object >( pNode ) )
+    {
+        return getKind< Object >();
+    }
+    else if( auto* p = db_cast< Interupt >( pNode ) )
+    {
+        return getKind< Interupt >();
+    }
+    else if( auto* p = db_cast< Requirement >( pNode ) )
+    {
+        return getKind< Requirement >();
+    }
+    else if( auto* p = db_cast< Decider >( pNode ) )
+    {
+        return getKind< Decider >();
+    }
+    else if( auto* p = db_cast< Function >( pNode ) )
+    {
+        return getKind< Function >();
+    }
+    else if( auto* p = db_cast< Action >( pNode ) )
+    {
+        return getKind< Action >();
+    }
+    else if( auto* p = db_cast< Component >( pNode ) )
+    {
+        return getKind< Component >();
+    }
+    else if( auto* p = db_cast< State >( pNode ) )
+    {
+        return getKind< State >();
+    }
+    else if( auto* p = db_cast< InvocationContext >( pNode ) )
+    {
+        return getKind< InvocationContext >();
+    }
+    else if( auto* p = db_cast< IContext >( pNode ) )
+    {
+        return getKind< IContext >();
+    }
+    else
+    {
+        THROW_RTE( "Unknown interface node type" );
+    }
+}
+
 } // namespace Interface

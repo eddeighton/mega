@@ -45,9 +45,9 @@ namespace Concrete
 
     object Node : NodeGroup -> ConcreteStage::Concrete
     {
-        ref< NodeGroup >       parent;
-        ref< Interface::Node > node;
-        late< ref< Object > >  parent_object;
+        ref< NodeGroup >                parent;
+        opt< ref< Interface::Node > >   node_opt;
+        late< ref< Object > >           parent_object;
 
         ref< Symbols::ConcreteID > concrete_id -> ConcreteTypeAnalysis::ConcreteTable;
 
@@ -57,14 +57,11 @@ namespace Concrete
 
     object ActivationBitSet : Node -> ConcreteStage::Concrete
     {
-        ref< Interface::ActivationBitSet > bitset;
-
         value< mega::U64 > number_of_bits -> AutomataStage::AutomataAnalysis;
     }
 
     object Link : Node -> ConcreteStage::Concrete
     {
-        ref< Interface::Aggregate > aggregate;
     }
 
     object UserLink : Link -> ConcreteStage::Concrete
@@ -74,7 +71,7 @@ namespace Concrete
 
     object OwnershipLink : Link -> ConcreteStage::Concrete
     {
-        ref< Interface::OwnershipLink > ownership_link;
+        array< ref< Interface::OwningLink > > owners -> HyperGraphAnalysis::Model;
     }
 
     object Context : Node -> ConcreteStage::Concrete

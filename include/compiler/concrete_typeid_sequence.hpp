@@ -20,11 +20,6 @@
 
 struct TypeIDSequenceGen
 {
-    inline mega::interface::TypeID getTypeID( const Concrete::Node* pNode ) const
-    {
-        return pNode->get_node()->get_interface_id()->get_type_id();
-    }
-
     using TypeIDSeqPair = mega::SymbolTraits::TypeIDSequencePair;
 
     inline void recurse( Concrete::Node* pNode, TypeIDSeqPair& sequence, bool bFoundObject ) const
@@ -42,11 +37,11 @@ struct TypeIDSequenceGen
         }
         if( bFoundObject )
         {
-            sequence.first.push_back( getTypeID( pNode ) );
+            sequence.first.push_back( getInterfaceTypeID( pNode ) );
         }
         else
         {
-            sequence.second.push_back( getTypeID( pNode ) );
+            sequence.second.push_back( getInterfaceTypeID( pNode ) );
         }
 
         if( auto pParent = db_cast< Concrete::Node >( pNode->get_parent() ) )

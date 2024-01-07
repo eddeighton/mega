@@ -84,6 +84,8 @@ inline constexpr SymbolID operator ""_S( unsigned long long int value )
 
 static constexpr SymbolID NULL_SYMBOL_ID = 0x0_S;
 static constexpr SymbolID ROOT_SYMBOL_ID = 0x1_S;
+static constexpr SymbolID OWNER_SYMBOL_ID = 0x2_S;
+static constexpr SymbolID STATE_SYMBOL_ID = 0x3_S;
 
 static constexpr const char* ROOT_SYMBOL = "Root";
 

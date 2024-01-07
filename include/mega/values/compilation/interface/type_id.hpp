@@ -101,8 +101,10 @@ inline constexpr TypeID operator""_IT( unsigned long long int value )
     return TypeID( static_cast< TypeID::ValueType >( value ) );
 }
 
-static constexpr TypeID NULL_TYPE_ID = 0x00000000_IT;
-static constexpr TypeID ROOT_TYPE_ID = 0x00010000_IT;
+static constexpr TypeID NULL_TYPE_ID  = 0x00000000_IT;
+static constexpr TypeID OWNER_TYPE_ID = 0x00000001_IT;
+static constexpr TypeID STATE_TYPE_ID = 0x00000002_IT;
+static constexpr TypeID ROOT_TYPE_ID  = 0x00010000_IT;
 
 static_assert( ROOT_TYPE_ID.getValue() == 0x00010000 );
 static_assert( NULL_TYPE_ID.getValue() == 0x00000000 );

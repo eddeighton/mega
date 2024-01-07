@@ -39,10 +39,12 @@
 
 namespace ClangTraitsStage
 {
+#include "compiler/interface.hpp"
 #include "compiler/interface_printer.hpp"
 #include "compiler/interface_visitor.hpp"
-#include "compiler/common_ancestor.hpp"
+#include "compiler/concrete.hpp"
 #include "compiler/concrete_printer.hpp"
+#include "compiler/common_ancestor.hpp"
 
 namespace ClangTraits
 {
@@ -88,7 +90,7 @@ std::string generateCPPType( Database& database, Interface::Node* pNode,
             std::set< mega::interface::TypeID > uniqueInterfaceTypeIDs;
             for( auto pOr : frontier )
             {
-                const auto interfaceTypeID = pOr->get_vertex()->get_node()->get_interface_id()->get_type_id();
+                const auto interfaceTypeID = Concrete::getInterfaceTypeID( pOr->get_vertex() );
                 if( !uniqueInterfaceTypeIDs.contains( interfaceTypeID ) )
                 {
                     if( bFirst )
@@ -179,14 +181,14 @@ solveTransitions( Database& database, Parser::TypeDecl::Transitions* pTransition
 
 struct GraphInfo
 {
-    std::map< Interface::UserLink*, HyperGraph::NonOwningRelation* > nonOwning;
-    std::multimap< Interface::UserLink*, Interface::OwnershipLink* > owners;
-    std::multimap< Interface::OwnershipLink*, Interface::UserLink* > owned;
+    // std::map< Interface::UserLink*, HyperGraph::NonOwningRelation* > nonOwning;
+    //  std::multimap< Interface::UserLink*, Concrete::OwnershipLink* > owners;
+    //  std::multimap< Concrete::OwnershipLink*, Interface::UserLink* > owned;
 
     GraphInfo( HyperGraph::Graph* pGraph )
-        : nonOwning( pGraph->get_non_owning_relations() )
-        , owners( pGraph->get_owning_relation()->get_owners() )
-        , owned( pGraph->get_owning_relation()->get_owned() )
+    //: nonOwning( pGraph->get_non_owning_relations() )
+    // , owners( pGraph->get_owning_relation()->get_owners() )
+    // , owned( pGraph->get_owning_relation()->get_owned() )
     {
     }
 };
@@ -205,7 +207,7 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, G
         auto pEventState  = db_cast< Concrete::State >( pEventVertex );
         auto pEventEvent  = db_cast< Concrete::Event >( pEventVertex );
         VERIFY_RTE_MSG( pEventState || pEventEvent, "Interupt event does NOT specify an Event or State. Kind is: "
-                                                        << pEventVertex->get_node()->get_kind() );
+                                                        << Concrete::getKind( pEventVertex ) );
 
         // create event dispatch
         auto pDispatch = database.construct< Derivation::Dispatch >( Derivation::Dispatch::Args{
@@ -464,10 +466,6 @@ public:
                 return true;
             }
             virtual bool visit( Interface::UserLink* pNode ) const { return false; }
-            virtual bool visit( Interface::ParsedAggregate* pNode ) const { return false; }
-            virtual bool visit( Interface::OwnershipLink* pNode ) const { return false; }
-            virtual bool visit( Interface::ActivationBitSet* pNode ) const { return false; }
-            virtual bool visit( Interface::GeneratedAggregate* pNode ) const { return false; }
             virtual bool visit( Interface::Aggregate* pNode ) const { return true; }
 
             virtual bool visit( Interface::Namespace* pNode ) const { return false; }

@@ -41,6 +41,7 @@
 
 namespace ClangAnalysisStage
 {
+#include "compiler/interface.hpp"
 #include "compiler/interface_visitor.hpp"
 #include "compiler/interface_printer.hpp"
 } // namespace ClangAnalysisStage
@@ -149,10 +150,6 @@ public:
         }
         virtual bool visit( Interface::UserUsing* pNode ) const { return true; }
         virtual bool visit( Interface::UserLink* pNode ) const { return false; }
-        virtual bool visit( Interface::ParsedAggregate* pNode ) const { return false; }
-        virtual bool visit( Interface::OwnershipLink* pNode ) const { return false; }
-        virtual bool visit( Interface::ActivationBitSet* pNode ) const { return false; }
-        virtual bool visit( Interface::GeneratedAggregate* pNode ) const { return false; }
         virtual bool visit( Interface::Aggregate* pNode ) const { return true; }
 
         virtual bool visit( Interface::Namespace* pNode ) const { return false; }

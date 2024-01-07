@@ -94,11 +94,11 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
         {
             for( auto j = owners.upper_bound( i->first ); i != j; ++i )
             {
-                Interface::UserLink*      pLink  = i->first;
-                Interface::OwnershipLink* pOwned = i->second;
+                Interface::UserLink*     pLink  = i->first;
+                Concrete::OwnershipLink* pOwned = i->second;
                 ownersTable.m_rows.push_back(
                     { Line{ Interface::fullTypeName( pLink ) }, Line{ pLink->get_interface_id()->get_type_id() },
-                      Line{ Interface::fullTypeName( pOwned ) }, Line{ pOwned->get_interface_id()->get_type_id() } } );
+                      Line{ Concrete::fullTypeName( pOwned ) }, Line{ pOwned->get_concrete_id()->get_type_id() } } );
             }
         }
 
@@ -115,10 +115,10 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
         {
             for( auto j = owned.upper_bound( i->first ); i != j; ++i )
             {
-                Interface::OwnershipLink* pLink  = i->first;
-                Interface::UserLink*      pOwner = i->second;
+                Concrete::OwnershipLink* pLink  = i->first;
+                Interface::UserLink*     pOwner = i->second;
                 ownedTable.m_rows.push_back(
-                    { Line{ Interface::fullTypeName( pLink ) }, Line{ pLink->get_interface_id()->get_type_id() },
+                    { Line{ Concrete::fullTypeName( pLink ) }, Line{ pLink->get_concrete_id()->get_type_id() },
                       Line{ Interface::fullTypeName( pOwner ) }, Line{ pOwner->get_interface_id()->get_type_id() } } );
             }
         }

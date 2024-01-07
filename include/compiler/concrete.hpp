@@ -18,14 +18,36 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef GUARD_2024_January_07_concrete
+#define GUARD_2024_January_07_concrete
+
 namespace Concrete
 {
-
-static const std::string getIdentifier( const Node* pNode )
+static inline mega::interface::TypeID getInterfaceTypeID( const Concrete::Node* pNode )
 {
     if( pNode->get_node_opt().has_value() )
     {
-        return pNode->get_node_opt().value()->get_symbol()->get_token();
+        return pNode->get_node_opt().value()->get_interface_id()->get_type_id();
+    }
+    else if( db_cast< Concrete::OwnershipLink >( pNode ) )
+    {
+        return mega::interface::OWNER_TYPE_ID;
+    }
+    else if( db_cast< Concrete::ActivationBitSet >( pNode ) )
+    {
+        return mega::interface::STATE_TYPE_ID;
+    }
+    else
+    {
+        THROW_RTE( "Unknown concrete node type" );
+    }
+}
+
+static inline std::string getKind( const Concrete::Node* pNode )
+{
+    if( pNode->get_node_opt().has_value() )
+    {
+        return Interface::getKind( pNode->get_node_opt().value() );
     }
     else if( db_cast< Concrete::OwnershipLink >( pNode ) )
     {
@@ -40,31 +62,6 @@ static const std::string getIdentifier( const Node* pNode )
         THROW_RTE( "Unknown concrete node type" );
     }
 }
-
-static std::string fullTypeName( const Node* pContext, const std::string& strDelimiter = "::" )
-{
-    std::ostringstream os;
-    using NodeVector = std::vector< const Node* >;
-    NodeVector path;
-    while( pContext )
-    {
-        path.push_back( pContext );
-        pContext = db_cast< const Node >( pContext->get_parent() );
-    }
-    std::reverse( path.begin(), path.end() );
-    for( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
-    {
-        ++iNext;
-        if( iNext == iEnd )
-        {
-            os << getIdentifier( *i );
-        }
-        else
-        {
-            os << getIdentifier( *i ) << strDelimiter;
-        }
-    }
-    return os.str();
-}
-
 } // namespace Concrete
+
+#endif // GUARD_2024_January_07_concrete

@@ -211,48 +211,47 @@ public:
                 }
 
                 // clang-format off
-                Interface::ParsedAggregate* pParsedAggregate =
-                    database.construct< Interface::ParsedAggregate >(
-                        Interface::ParsedAggregate::Args
+                Interface::Aggregate* pInterfaceAggregate =
+                    database.construct< Interface::Aggregate >(
+                        Interface::Aggregate::Args
                         {
-                            Interface::Aggregate::Args
+                            Interface::Node::Args
                             {
-                                Interface::Node::Args
+                                Interface::NodeGroup::Args
                                 {
-                                    Interface::NodeGroup::Args
-                                    {
-                                        {}
-                                    },
-                                    pSymbol, 
-                                    pAggregateParent, 
-                                    pComponent
-                                }
+                                    {}
+                                },
+                                pSymbol, 
+                                pAggregateParent, 
+                                pComponent
                             },
                             pAggregate
-                        });
+                        }
+                    );
+                
                 // clang-format on
-                pAggregateParent->push_back_children( pParsedAggregate );
+                pAggregateParent->push_back_children( pInterfaceAggregate );
 
                 // refine the aggregate as needed
                 if( auto pParserDimension = db_cast< Parser::Dimension >( pAggregate ) )
                 {
                     database.construct< Interface::UserDimension >(
-                        Interface::UserDimension::Args{ pParsedAggregate, pParserDimension } );
+                        Interface::UserDimension::Args{ pInterfaceAggregate, pParserDimension } );
                 }
                 else if( auto pParserLink = db_cast< Parser::Link >( pAggregate ) )
                 {
                     database.construct< Interface::UserLink >(
-                        Interface::UserLink::Args{ pParsedAggregate, pParserLink } );
+                        Interface::UserLink::Args{ pInterfaceAggregate, pParserLink } );
                 }
                 else if( auto pParserAlias = db_cast< Parser::Alias >( pAggregate ) )
                 {
                     database.construct< Interface::UserAlias >(
-                        Interface::UserAlias::Args{ pParsedAggregate, pParserAlias } );
+                        Interface::UserAlias::Args{ pInterfaceAggregate, pParserAlias } );
                 }
                 else if( auto pParserUsing = db_cast< Parser::Using >( pAggregate ) )
                 {
                     database.construct< Interface::UserUsing >(
-                        Interface::UserUsing::Args{ pParsedAggregate, pParserUsing } );
+                        Interface::UserUsing::Args{ pInterfaceAggregate, pParserUsing } );
                 }
                 else
                 {
@@ -639,7 +638,6 @@ public:
             }
             else if( auto pAbstract = db_cast< Abstract >( pIContext ) )
             {
-                
             }
             else if( auto pEvent = db_cast< Event >( pIContext ) )
             {
@@ -667,78 +665,6 @@ public:
             }
             else if( auto pObject = db_cast< Object >( pIContext ) )
             {
-                // check no existing EG_OWNER or EG_STATE
-                for( auto pChild : pObject->get_children() )
-                {
-                    VERIFY_RTE_MSG( pChild->get_symbol()->get_token() != EG_OWNER,
-                                    "Invalid use of reserved symbol: " << EG_OWNER << " in: "
-                                                                       << Interface::fullTypeName( pChild ) );
-                    VERIFY_RTE_MSG( pChild->get_symbol()->get_token() != EG_STATE,
-                                    "Invalid use of reserved symbol: " << EG_STATE << " in: "
-                                                                       << Interface::fullTypeName( pChild ) );
-                }
-
-                // create ownership link
-                {
-                    auto iFind = reservedSymbols.find( EG_OWNER );
-                    VERIFY_RTE_MSG(
-                        iFind != reservedSymbols.end(), "Failed to locate reserved symbol for: " << EG_OWNER );
-
-                    VERIFY_RTE( pObject->get_component_opt().has_value() );
-                    // clang-format off
-                    auto pOwnershipLink = database.construct< Interface::OwnershipLink >(
-                    {
-                        Interface::OwnershipLink::Args
-                        {
-                            Interface::GeneratedAggregate::Args
-                            {
-                                Interface::Aggregate::Args
-                                {
-                                    Interface::Node::Args
-                                    {
-                                        Interface::NodeGroup::Args{ {} },
-                                        iFind->second,
-                                        pObject,
-                                        pObject->get_component_opt().value()
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    // clang-format on
-                    pObject->set_ownership_link( pOwnershipLink );
-                    pObject->push_back_children( pOwnershipLink );
-                }
-
-                // create activation bitset
-                // clang-format off
-                {
-                    auto iFind = reservedSymbols.find( EG_STATE );
-                    VERIFY_RTE_MSG( iFind != reservedSymbols.end(), "Failed to locate reserved symbol for: " << EG_STATE );
-
-                    auto pActivationBitset = database.construct< Interface::ActivationBitSet >(
-                    {
-                        Interface::ActivationBitSet::Args
-                        {
-                            Interface::GeneratedAggregate::Args
-                            {
-                                Interface::Aggregate::Args
-                                {
-                                    Interface::Node::Args
-                                    {
-                                        Interface::NodeGroup::Args{ {} },
-                                        iFind->second,
-                                        pObject,
-                                        pObject->get_component_opt().value()
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    // clang-format on
-                    pObject->set_activation_bitset( pActivationBitset );
-                    pObject->push_back_children( pActivationBitset );
-                }
             }
             else if( auto pAction = db_cast< Action >( pIContext ) )
             {

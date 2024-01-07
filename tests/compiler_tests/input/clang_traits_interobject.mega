@@ -23,3 +23,8 @@ object Toaster
         interupt( @Slice.AnEvent );
     }
 }
+
+object SuperToaster : ^Toaster
+{
+
+}

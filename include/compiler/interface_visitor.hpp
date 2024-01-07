@@ -32,10 +32,6 @@ struct Visitor
     virtual bool visit( NonOwningLink* pNode ) const { return false; }
     virtual bool visit( OwningLink* pNode ) const { return false; }
     virtual bool visit( UserLink* pNode ) const { return false; }
-    virtual bool visit( ParsedAggregate* pNode ) const { return false; }
-    virtual bool visit( OwnershipLink* pNode ) const { return false; }
-    virtual bool visit( ActivationBitSet* pNode ) const { return false; }
-    virtual bool visit( GeneratedAggregate* pNode ) const { return false; }
     virtual bool visit( Aggregate* pNode ) const { return false; }
     
     virtual bool visit( Namespace* pNode ) const { return false; }
@@ -59,12 +55,9 @@ inline bool visit( Visitor& visitor, Interface::Node* pINode )
     {
         if( !visitor.visit( pUserDimension ) )
         {
-            if( !visitor.visit( static_cast< ParsedAggregate* >( pUserDimension ) ) )
+            if( !visitor.visit( static_cast< Aggregate* >( pUserDimension ) ) )
             {
-                if( !visitor.visit( static_cast< Aggregate* >( pUserDimension ) ) )
-                {
-                    return false;
-                }
+                return false;
             }
         }
         return true;
@@ -73,12 +66,9 @@ inline bool visit( Visitor& visitor, Interface::Node* pINode )
     {
         if( !visitor.visit( pUserAlias ) )
         {
-            if( !visitor.visit( static_cast< ParsedAggregate* >( pUserAlias ) ) )
+            if( !visitor.visit( static_cast< Aggregate* >( pUserAlias ) ) )
             {
-                if( !visitor.visit( static_cast< Aggregate* >( pUserAlias ) ) )
-                {
-                    return false;
-                }
+                return false;
             }
         }
         return true;
@@ -87,12 +77,9 @@ inline bool visit( Visitor& visitor, Interface::Node* pINode )
     {
         if( !visitor.visit( pUserUsing ) )
         {
-            if( !visitor.visit( static_cast< ParsedAggregate* >( pUserUsing ) ) )
+            if( !visitor.visit( static_cast< Aggregate* >( pUserUsing ) ) )
             {
-                if( !visitor.visit( static_cast< Aggregate* >( pUserUsing ) ) )
-                {
-                    return false;
-                }
+                return false;
             }
         }
         return true;
@@ -103,12 +90,9 @@ inline bool visit( Visitor& visitor, Interface::Node* pINode )
         {
             if( !visitor.visit( static_cast< UserLink* >( pNonOwningLink ) ) )
             {
-                if( !visitor.visit( static_cast< ParsedAggregate* >( pNonOwningLink ) ) )
+                if( !visitor.visit( static_cast< Aggregate* >( pNonOwningLink ) ) )
                 {
-                    if( !visitor.visit( static_cast< Aggregate* >( pNonOwningLink ) ) )
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
         }
@@ -120,12 +104,9 @@ inline bool visit( Visitor& visitor, Interface::Node* pINode )
         {
             if( !visitor.visit( static_cast< UserLink* >( pOwningLink ) ) )
             {
-                if( !visitor.visit( static_cast< ParsedAggregate* >( pOwningLink ) ) )
+                if( !visitor.visit( static_cast< Aggregate* >( pOwningLink ) ) )
                 {
-                    if( !visitor.visit( static_cast< Aggregate* >( pOwningLink ) ) )
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
         }
@@ -136,60 +117,7 @@ inline bool visit( Visitor& visitor, Interface::Node* pINode )
     {
         if( !visitor.visit( pUserLink ) )
         {
-            if( !visitor.visit( static_cast< ParsedAggregate* >( pUserLink ) ) )
-            {
-                if( !visitor.visit( static_cast< Aggregate* >( pUserLink ) ) )
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    else if( auto* pParsedAggregate = db_cast< ParsedAggregate >( pINode ) )
-    {
-        if( !visitor.visit( pParsedAggregate ) )
-        {
-            if( !visitor.visit( static_cast< Aggregate* >( pParsedAggregate ) ) )
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-    else if( auto* pOwnershipLink = db_cast< OwnershipLink >( pINode ) )
-    {
-        if( !visitor.visit( pOwnershipLink ) )
-        {
-            if( !visitor.visit( static_cast< GeneratedAggregate* >( pOwnershipLink ) ) )
-            {
-                if( !visitor.visit( static_cast< Aggregate* >( pOwnershipLink ) ) )
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    else if( auto* pActivationBitSet = db_cast< ActivationBitSet >( pINode ) )
-    {
-        if( !visitor.visit( pActivationBitSet ) )
-        {
-            if( !visitor.visit( static_cast< GeneratedAggregate* >( pActivationBitSet ) ) )
-            {
-                if( !visitor.visit( static_cast< Aggregate* >( pActivationBitSet ) ) )
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    else if( auto* pGeneratedAggregate = db_cast< GeneratedAggregate >( pINode ) )
-    {
-        if( !visitor.visit( pGeneratedAggregate ) )
-        {
-            if( !visitor.visit( static_cast< Aggregate* >( pGeneratedAggregate ) ) )
+            if( !visitor.visit( static_cast< Aggregate* >( pUserLink ) ) )
             {
                 return false;
             }

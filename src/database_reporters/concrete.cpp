@@ -43,6 +43,7 @@ namespace ConcreteStage
 {
 #include "compiler/interface.hpp"
 #include "compiler/interface_printer.hpp"
+#include "compiler/concrete.hpp"
 #include "compiler/concrete_printer.hpp"
 } // namespace ConcreteStage
 
@@ -62,7 +63,7 @@ void recurse( Concrete::Node* pNode, mega::reports::Branch& tree )
 
     Branch branch;
 
-    branch.m_label = { { Interface::getKind( pNode->get_node() ), ": "s, Concrete::getIdentifier( pNode ) } };
+    branch.m_label = { { Concrete::getKind( pNode ), ": "s, Concrete::getIdentifier( pNode ) } };
 
     if( auto pContext = db_cast< Concrete::Context >( pNode ) )
     {

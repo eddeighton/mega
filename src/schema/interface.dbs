@@ -143,29 +143,25 @@ namespace Interface
     // Aggregates
     object Aggregate : Node -> InterfaceStage::Tree
     {
-    }
-
-    object ParsedAggregate : Aggregate -> InterfaceStage::Tree
-    {
         ref< Parser::Aggregate > aggregate;
     }
 
-    object UserDimension : ParsedAggregate -> InterfaceStage::Tree
+    object UserDimension : Aggregate -> InterfaceStage::Tree
     {
         ref< Parser::Dimension > dimension;
     }
 
-    object UserAlias : ParsedAggregate -> InterfaceStage::Tree
+    object UserAlias : Aggregate -> InterfaceStage::Tree
     {
         ref< Parser::Alias > alias;
     }
 
-    object UserUsing : ParsedAggregate -> InterfaceStage::Tree
+    object UserUsing : Aggregate -> InterfaceStage::Tree
     {
         ref< Parser::Using > cpp_using;
     }
 
-    object UserLink : ParsedAggregate -> InterfaceStage::Tree
+    object UserLink : Aggregate -> InterfaceStage::Tree
     {
         ref< Parser::Link > link;
 
@@ -179,20 +175,7 @@ namespace Interface
 
     object OwningLink : UserLink -> HyperGraphAnalysis::Model
     {
-        ref< OwnershipLink > owned;
-    }
-
-    object GeneratedAggregate : Aggregate -> InterfaceStage::Tree
-    {
-    }
-
-    object OwnershipLink : GeneratedAggregate -> InterfaceStage::Tree
-    {
-        array< ref< OwningLink > > owners -> HyperGraphAnalysis::Model;
-    }
-
-    object ActivationBitSet : GeneratedAggregate -> InterfaceStage::Tree
-    {
+        array< ref< Concrete::OwnershipLink > > owned -> HyperGraphAnalysis::Model;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -221,14 +204,11 @@ namespace Interface
 
     object Object : IContext -> InterfaceStage::Tree
     {
-        late< ref< OwnershipLink > >    ownership_link;
-        late< ref< ActivationBitSet > > activation_bitset;
     }
 
     object Event : IContext -> InterfaceStage::Tree
     {
     }
-
 
     object InvocationContext : IContext -> InterfaceStage::Tree
     {

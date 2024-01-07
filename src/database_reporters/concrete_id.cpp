@@ -42,9 +42,10 @@
 
 namespace ConcreteTypeAnalysis
 {
-#include "compiler/interface_printer.hpp"
-#include "compiler/concrete_printer.hpp"
 #include "compiler/interface.hpp"
+#include "compiler/interface_printer.hpp"
+#include "compiler/concrete.hpp"
+#include "compiler/concrete_printer.hpp"
 } // namespace ConcreteTypeAnalysis
 
 namespace mega::reporters
@@ -63,7 +64,7 @@ mega::reports::Container ConcreteIDReporter::generate( const mega::reports::URL&
     auto pSymbolTable = database.one< Symbols::SymbolTable >( m_args.environment.project_manifest() );
 
     {
-        Table concrete{ { "Concrete Type ID"s, "Interface Type ID"s, "Full Type Name"s } };
+        Table      concrete{ { "Concrete Type ID"s, "Interface Type ID"s, "Full Type Name"s } };
         const auto concreteTypeIDs = pSymbolTable->get_concrete_type_ids();
         for( const auto& [ typeID, pConcreteID ] : concreteTypeIDs )
         {
@@ -72,7 +73,7 @@ mega::reports::Container ConcreteIDReporter::generate( const mega::reports::URL&
             // clang-format off
             concrete.m_rows.push_back( ContainerVector{
                 Line{ typeID, std::nullopt, typeID }
-                , Line{ pNode->get_node()->get_interface_id()->get_type_id() }
+                , Line{ Concrete::getInterfaceTypeID( pNode ) }
                 , Line{ Concrete::fullTypeName( pNode ) }
                 }
 
