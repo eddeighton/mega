@@ -376,11 +376,9 @@ class OperationBuilder
                         {
                             switch( pGraphEdge->get_type().get() )
                             {
-                                case EdgeType::eMonoSingularMandatory:
-                                case EdgeType::ePolySingularMandatory:
-                                case EdgeType::eMonoSingularOptional:
-                                case EdgeType::ePolySingularOptional:
-                                case EdgeType::ePolyParent:
+                                case EdgeType::eInterObjectNonOwner:
+                                case EdgeType::eInterObjectOwner:
+                                case EdgeType::eInterObjectParent:
                                 {
                                     // VERIFY_RTE( !bFound );
                                     auto pTargetContext
@@ -392,10 +390,9 @@ class OperationBuilder
                                 }
                                 break;
 
-                                case EdgeType::eMonoNonSingularMandatory:
-                                case EdgeType::ePolyNonSingularMandatory:
-                                case EdgeType::eMonoNonSingularOptional:
-                                case EdgeType::ePolyNonSingularOptional:
+                                case EdgeType::eInterObjectNonOwner:
+                                case EdgeType::eInterObjectOwner:
+                                case EdgeType::eInterObjectParent:
                                 {
                                     bSingular = false;
                                     // VERIFY_RTE( !bFound );

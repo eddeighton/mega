@@ -34,21 +34,11 @@ static const std::array< std::string, mega::EdgeType::TOTAL_EDGE_TYPES > g_edgeT
     "Parent"s,
     "ChildSingular"s,
     "ChildNonSingular"s,
-    "Link"s,
     "Dim"s,
-
-    "MonoSingularMandatory"s,
-    "PolySingularMandatory"s,
-    "MonoNonSingularMandatory"s,
-    "PolyNonSingularMandatory"s,
-
-    "MonoSingularOptional"s,
-    "PolySingularOptional"s,
-    "MonoNonSingularOptional"s,
-    "PolyNonSingularOptional"s,
-
-    "PolyParent"s
-
+    "Link"s,
+    "InterObjectNonOwner"s,
+    "InterObjectOwner"s,
+    "InterObjectParent"s
 };
 } // namespace
 
@@ -64,18 +54,9 @@ const char* EdgeType::str() const
         case eChildNonSingular:
         case eDim:
         case eLink:
-
-        case eMonoSingularMandatory:
-        case ePolySingularMandatory:
-        case eMonoNonSingularMandatory:
-        case ePolyNonSingularMandatory:
-
-        case eMonoSingularOptional:
-        case ePolySingularOptional:
-        case eMonoNonSingularOptional:
-        case ePolyNonSingularOptional:
-
-        case ePolyParent:
+        case eInterObjectNonOwner:
+        case eInterObjectOwner:
+        case eInterObjectParent:
             return g_edgeTypes[ m_value ].c_str();
         case TOTAL_EDGE_TYPES:
         default:

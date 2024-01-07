@@ -1,0 +1,25 @@
+
+
+
+object Slice
+{
+    event AnEvent;
+}
+
+object WhiteBread : ^Slice
+{
+}
+
+object BrownBread : ^Slice
+{
+}
+
+object Toaster
+{
+    owns Slice ^Slice;
+
+    action Testing
+    {
+        interupt( @Slice.AnEvent );
+    }
+}

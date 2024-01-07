@@ -1,0 +1,41 @@
+
+
+object Obj1Base
+{
+    component test2
+    {
+        link a ^Obj2Base;
+    }
+    component test
+    {
+        link b ^Obj2Base.test;
+    }
+}
+
+object Obj1A : ^Obj1Base
+{
+
+}
+
+object Obj2Base
+{
+    component test
+    {
+        link c ^Obj1Base.test;
+    }
+    component test2
+    {
+        link d ^Obj1Base;
+    }
+}
+
+object Obj2C : ^Obj2Base
+{
+
+}
+
+object Obj3
+{
+    owns ^Obj1Base;
+    owns ^Obj2Base;
+}

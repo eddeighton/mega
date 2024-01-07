@@ -123,8 +123,8 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
             }
         }
 
-        ownedBranch.m_elements.push_back( ownedTable );
-        branch.m_elements.push_back( ownedBranch );
+        ownedBranch.m_elements.emplace_back( std::move( ownedTable ) );
+        branch.m_elements.emplace_back( std::move( ownedBranch ) );
     }
 
     {
@@ -134,22 +134,42 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
         {
             std::map< Concrete::Node*, U64 > nodeIDs;
 
+            std::multimap< Concrete::Object*, Concrete::Node* > objectNodes;
+
             for( auto pNode : database.many< Concrete::Node >( m_args.environment.project_manifest() ) )
             {
                 nodeIDs.insert( { pNode, nodeIDs.size() } );
-
-                graph.m_nodes.push_back( Graph::Node{ { { Interface::fullTypeName( pNode->get_node() ) } } } );
+                graph.m_nodes.emplace_back( Graph::Node{ { { Concrete::fullTypeName( pNode ) } } } );
+                objectNodes.insert( { pNode->get_parent_object(), pNode } );
             }
 
             for( auto pEdge : database.many< Concrete::Edge >( m_args.environment.project_manifest() ) )
             {
-                graph.m_edges.push_back(
-                    Graph::Edge{ nodeIDs[ pEdge->get_source() ], nodeIDs[ pEdge->get_target() ] } );
+                Graph::Edge edge{ nodeIDs[ pEdge->get_source() ], nodeIDs[ pEdge->get_target() ] };
+                if( auto pInterObjectEdge = db_cast< Concrete::InterObjectEdge >( pEdge ) )
+                {
+                    edge.m_label = ValueVector{ Concrete::fullTypeName( pInterObjectEdge->get_counterpart() ) };
+                }
+                graph.m_edges.emplace_back( std::move( edge ) );
+            }
+
+            for( auto i = objectNodes.begin(), iEnd = objectNodes.end(); i != iEnd; )
+            {
+                auto            pObject = i->first;
+                Graph::Subgraph subgraph{
+                    { { Concrete::fullTypeName( pObject ), pObject->get_concrete_id()->get_type_id() } } };
+                std::vector< Graph::Node::ID > nodes;
+                for( auto iNext = objectNodes.upper_bound( i->first ); i != iNext; ++i )
+                {
+                    nodes.push_back( nodeIDs[ i->second ] );
+                }
+                subgraph.m_nodes = nodes;
+                graph.m_subgraphs.push_back( subgraph );
             }
         }
-        graphBranch.m_elements.push_back( graph );
+        graphBranch.m_elements.emplace_back( std::move( graph ) );
 
-        branch.m_elements.push_back( graphBranch );
+        branch.m_elements.emplace_back( std::move( graphBranch ) );
     }
 
     return branch;

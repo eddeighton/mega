@@ -160,15 +160,9 @@ struct InterObjectDerivationPolicy : public DerivationPolicyBase
             {
                 switch( pEdge->get_type().get() )
                 {
-                    case mega::EdgeType::eMonoSingularMandatory:
-                    case mega::EdgeType::ePolySingularMandatory:
-                    case mega::EdgeType::eMonoNonSingularMandatory:
-                    case mega::EdgeType::ePolyNonSingularMandatory:
-                    case mega::EdgeType::eMonoSingularOptional:
-                    case mega::EdgeType::ePolySingularOptional:
-                    case mega::EdgeType::eMonoNonSingularOptional:
-                    case mega::EdgeType::ePolyNonSingularOptional:
-                    case mega::EdgeType::ePolyParent:
+                    case mega::EdgeType::eInterObjectNonOwner:
+                    case mega::EdgeType::eInterObjectOwner:
+                    case mega::EdgeType::eInterObjectParent:
                     {
                         edges.push_back( pEdge );
                     }
@@ -196,29 +190,11 @@ struct InterObjectDerivationPolicy : public DerivationPolicyBase
 
             for( auto pGraphEdge : edges )
             {
-                // determine the parent context of the link target
-                Concrete::Node* pParentVertex = nullptr;
-                Concrete::Edge* pParentEdge   = nullptr;
-                {
-                    auto pLinkTarget = pGraphEdge->get_target();
-                    for( auto pLinkGraphEdge : pLinkTarget->get_out_edges() )
-                    {
-                        if( pLinkGraphEdge->get_type().get() == mega::EdgeType::eParent )
-                        {
-                            VERIFY_RTE( !pParentVertex );
-                            pParentEdge   = pLinkGraphEdge;
-                            pParentVertex = pLinkGraphEdge->get_target();
-                        }
-                    }
-                }
-                VERIFY_RTE( pParentEdge );
-                VERIFY_RTE( pParentVertex );
-
                 auto pLinkTargetOr = m_database.construct< Derivation::Or >(
-                    Derivation::Or::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pParentVertex } } );
+                    Derivation::Or::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pGraphEdge->get_target() } } );
 
                 auto pDerivationEdge = m_database.construct< Derivation::Edge >(
-                    Derivation::Edge::Args{ pAnd, pLinkTargetOr, false, false, 0, { pGraphEdge, pParentEdge } } );
+                    Derivation::Edge::Args{ pAnd, pLinkTargetOr, false, false, 0, { pGraphEdge } } );
 
                 pAnd->push_back_edges( pDerivationEdge );
 

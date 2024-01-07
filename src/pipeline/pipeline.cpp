@@ -399,12 +399,26 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
         {
             if( !strSourceFile.empty() )
             {
-                osLog << "Running UP TO task: " << strTaskName << " with source: " << strSourceFile << std::endl;
+                if( bInclusive )
+                {
+                    osLog << "Running UP TO AND INCLUDING task: " << strTaskName << " with source: " << strSourceFile << std::endl;
+                }
+                else
+                {
+                    osLog << "Running UP TO NOT INCLUDING task: " << strTaskName << " with source: " << strSourceFile << std::endl;
+                }
                 schedule = schedule.getUpTo( strTaskName, strSourceFile, bInclusive );
             }
             else
             {
-                osLog << "Running UP TO task: " << strTaskName << std::endl;
+                if( bInclusive )
+                {
+                    osLog << "Running UP TO AND INCLUDING task: " << strTaskName << std::endl;
+                }
+                else
+                {
+                    osLog << "Running UP TO NOT INCLUDING task: " << strTaskName << std::endl;
+                }
                 schedule = schedule.getUpTo( strTaskName, bInclusive );
             }
         }

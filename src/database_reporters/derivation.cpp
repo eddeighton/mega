@@ -146,16 +146,9 @@ void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation
                         edge.m_colour = Colour::greenyellow;
                         break;
 
-                    case EdgeType::eMonoSingularMandatory:
-                    case EdgeType::eMonoSingularOptional:
-                    case EdgeType::eMonoNonSingularMandatory:
-                    case EdgeType::eMonoNonSingularOptional:
-
-                    case EdgeType::ePolySingularMandatory:
-                    case EdgeType::ePolySingularOptional:
-                    case EdgeType::ePolyNonSingularMandatory:
-                    case EdgeType::ePolyNonSingularOptional:
-                    case EdgeType::ePolyParent:
+                    case EdgeType::eInterObjectNonOwner:
+                    case EdgeType::eInterObjectOwner:
+                    case EdgeType::eInterObjectParent:
                         edge.m_style  = Graph::Edge::Style::dashed;
                         edge.m_colour = Colour::darkgreen;
                         break;

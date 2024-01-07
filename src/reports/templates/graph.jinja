@@ -95,6 +95,22 @@ digraph
 {% for edge in edges %}
     {{ edge.from }} -> {{ edge.to }}
     [
+{% if edge.has_label %}
+        label       = 
+        <
+            <table 
+                border      = "1" 
+                cellborder  = "1" 
+                cellpadding = "0"
+            >
+            <tr>
+            {% for value in edge.label %}
+                {{ value }}
+            {% endfor %}
+            </tr>
+            </table>
+        >
+{% endif %}
         penwidth    = "{{ edge.line_width }}"
         color       = "{{ edge.colour }}"
         style       = "{{ edge.style }}"

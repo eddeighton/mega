@@ -29,6 +29,8 @@ struct Visitor
     virtual bool visit( UserDimension* pNode ) const { return false; }
     virtual bool visit( UserAlias* pNode ) const { return false; }
     virtual bool visit( UserUsing* pNode ) const { return false; }
+    virtual bool visit( NonOwningLink* pNode ) const { return false; }
+    virtual bool visit( OwningLink* pNode ) const { return false; }
     virtual bool visit( UserLink* pNode ) const { return false; }
     virtual bool visit( ParsedAggregate* pNode ) const { return false; }
     virtual bool visit( OwnershipLink* pNode ) const { return false; }
@@ -95,6 +97,41 @@ inline bool visit( Visitor& visitor, Interface::Node* pINode )
         }
         return true;
     }
+    else if( auto* pNonOwningLink = db_cast< NonOwningLink >( pINode ) )
+    {
+        if( !visitor.visit( pNonOwningLink ) )
+        {
+            if( !visitor.visit( static_cast< UserLink* >( pNonOwningLink ) ) )
+            {
+                if( !visitor.visit( static_cast< ParsedAggregate* >( pNonOwningLink ) ) )
+                {
+                    if( !visitor.visit( static_cast< Aggregate* >( pNonOwningLink ) ) )
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    else if( auto* pOwningLink = db_cast< OwningLink >( pINode ) )
+    {
+        if( !visitor.visit( pOwningLink ) )
+        {
+            if( !visitor.visit( static_cast< UserLink* >( pOwningLink ) ) )
+            {
+                if( !visitor.visit( static_cast< ParsedAggregate* >( pOwningLink ) ) )
+                {
+                    if( !visitor.visit( static_cast< Aggregate* >( pOwningLink ) ) )
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     else if( auto* pUserLink = db_cast< UserLink >( pINode ) )
     {
         if( !visitor.visit( pUserLink ) )

@@ -3,8 +3,6 @@
 
 object Test
 {
-
-
     component Component : ^OR
     {
         action A : ^OR > @B
@@ -29,9 +27,5 @@ object Test
         {
 
         }
-
-
-
     }
-
 }

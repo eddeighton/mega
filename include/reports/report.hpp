@@ -294,6 +294,8 @@ public:
         Style    m_style           = Style::solid;
         bool     m_bIgnoreInLayout = false;
         int      line_width        = 1;
+
+        std::optional< std::vector< Value > > m_label;
     };
 
     Node::Vector     m_nodes;

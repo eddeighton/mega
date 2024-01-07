@@ -178,6 +178,7 @@ stage ClangTraitsStage
     global accessor ref< Interface::Root >;
     global accessor ref< Concrete::Root >;
     global accessor array< ref< Components::Component > >;
+    global accessor ref< HyperGraph::Graph >;
 }
 
 stage DecisionsStage

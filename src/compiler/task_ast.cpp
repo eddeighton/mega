@@ -639,6 +639,7 @@ public:
             }
             else if( auto pAbstract = db_cast< Abstract >( pIContext ) )
             {
+                
             }
             else if( auto pEvent = db_cast< Event >( pIContext ) )
             {

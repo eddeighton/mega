@@ -67,6 +67,7 @@ using namespace std::string_literals;
 INSTANTIATE_TEST_SUITE_P( ClangTraitsGen, ClangTraitsGenFixtureType,
         ::testing::Values
         ( 
-            Data{ "clang_traits_gen", { "clang_traits_gen.mega" }, {} }
+            Data{ "clang_traits_gen", { "clang_traits_gen.mega" }, {} },
+            Data{ "clang_traits_interobject", { "clang_traits_interobject.mega" }, {} }
         ));
 // clang-format on

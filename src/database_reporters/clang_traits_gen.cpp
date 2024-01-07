@@ -50,9 +50,160 @@ namespace mega::reporters
 {
 
 using namespace ClangTraitsStage;
+using namespace ClangTraitsStage::ClangTraits;
 
 namespace
 {
+
+void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges, reports::Graph& graph )
+{
+    using namespace std::string_literals;
+    using namespace mega::reports;
+
+    for( auto pEdge : edges )
+    {
+        auto pNextStep = pEdge->get_next();
+        auto pVertex   = pNextStep->get_vertex();
+        auto iNext     = graph.m_nodes.size();
+
+        if( db_cast< Derivation::Select >( pNextStep ) )
+        {
+            graph.m_nodes.push_back( Graph::Node{ { { "SELECT:"s, Concrete::fullTypeName( pVertex ) },
+                                                    { "TypeID:"s, pVertex->get_concrete_id()->get_type_id() } },
+                                                  Colour::lightyellow,
+                                                  std::nullopt,
+                                                  pVertex->get_concrete_id()->get_type_id() } );
+        }
+        else if( db_cast< Derivation::Or >( pNextStep ) )
+        {
+            graph.m_nodes.push_back( Graph::Node{ { { "OR:"s, Concrete::fullTypeName( pVertex ) },
+                                                    { "TypeID:"s, pVertex->get_concrete_id()->get_type_id() } },
+                                                  Colour::lightgreen,
+                                                  std::nullopt,
+                                                  pVertex->get_concrete_id()->get_type_id() } );
+        }
+        else
+        {
+            graph.m_nodes.push_back( Graph::Node{ { { "AND:"s, Concrete::fullTypeName( pVertex ) },
+                                                    { "TypeID:"s, pVertex->get_concrete_id()->get_type_id() } },
+                                                  Colour::lightblue,
+                                                  std::nullopt,
+                                                  pVertex->get_concrete_id()->get_type_id() } );
+        }
+
+        Graph::Edge edge{ iPrevious, iNext };
+
+        if( pEdge->get_eliminated() )
+        {
+            edge.m_style  = Graph::Edge::Style::dotted;
+            edge.m_colour = Colour::red;
+        }
+        else
+        {
+            for( auto pHyperEdge : pEdge->get_edges() )
+            {
+                switch( pHyperEdge->get_type().get() )
+                {
+                    case EdgeType::eParent:
+                        edge.m_colour = Colour::orange;
+                        break;
+                    case EdgeType::eChildSingular:
+                        edge.m_colour = Colour::olive;
+                        break;
+                    case EdgeType::eChildNonSingular:
+                        edge.m_colour = Colour::purple;
+                        break;
+
+                    case EdgeType::eDim:
+                        edge.m_colour = Colour::red;
+                        break;
+
+                    case EdgeType::eLink:
+                        edge.m_style  = Graph::Edge::Style::bold;
+                        edge.m_colour = Colour::greenyellow;
+                        break;
+
+                    case EdgeType::eInterObjectNonOwner:
+                    case EdgeType::eInterObjectOwner:
+                    case EdgeType::eInterObjectParent:
+                        edge.m_style  = Graph::Edge::Style::dashed;
+                        edge.m_colour = Colour::darkgreen;
+                        break;
+
+                    case EdgeType::TOTAL_EDGE_TYPES:
+                    default:
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        /*switch( pEdge->get_precedence() )
+        {
+            case 0:
+            break;
+            case 1:
+            {
+            }
+            break;
+            case 2:
+            {
+            }
+            break;
+            default:
+            {
+                THROW_RTE( "Unknown precendence type" );
+            }
+            break;
+        }*/
+
+        graph.m_edges.push_back( edge );
+
+        addEdges( iNext, pNextStep->get_edges(), graph );
+    }
+}
+
+void generateDerivationGraph( Derivation::Root* pRoot, reports::Graph& graph )
+{
+    using namespace std::string_literals;
+    using namespace mega::reports;
+
+    // add root node
+    graph.m_nodes.push_back( Graph::Node{ { { "Root:"s } }, Colour::lightblue } );
+    addEdges( 0, pRoot->get_edges(), graph );
+}
+
+void generateDerivationGraph( Derivation::Dispatch* pDispatch, reports::Graph& graph )
+{
+    using namespace std::string_literals;
+    using namespace mega::reports;
+
+    auto pVertex = pDispatch->get_vertex();
+
+    graph.m_nodes.push_back( Graph::Node{ { { "Dispatch:"s, Concrete::fullTypeName( pVertex ) },
+                                            { "TypeID:"s, pVertex->get_concrete_id()->get_type_id() } },
+                                          Colour::lightgreen,
+                                          std::nullopt,
+                                          pVertex->get_concrete_id()->get_type_id() } );
+    addEdges( 0, pDispatch->get_edges(), graph );
+}
+
+void generateDerivationGraph( Derivation::Node* pNode, reports::Graph& graph )
+{
+    if( auto pDispatch = db_cast< Derivation::Dispatch >( pNode ) )
+    {
+        generateDerivationGraph( pDispatch, graph );
+    }
+    else if( auto pRoot = db_cast< Derivation::Root >( pNode ) )
+    {
+        generateDerivationGraph( pRoot, graph );
+    }
+    else
+    {
+        THROW_RTE( "Unknown derivation node type" );
+    }
+}
 
 void recurse( Concrete::Node* pNode, mega::reports::Branch& tree )
 {
@@ -63,15 +214,65 @@ void recurse( Concrete::Node* pNode, mega::reports::Branch& tree )
 
     branch.m_label = { { Interface::getKind( pNode->get_node() ), ": "s, Concrete::getIdentifier( pNode ) } };
 
-    if( auto pContext = db_cast< Concrete::Context >( pNode ) )
+    if( auto pInterupt = db_cast< Concrete::Interupt >( pNode ) )
     {
-        branch.m_label.push_back( { pContext->get_icontext()->get_flags() } );
+        {
+            Branch transitions{ { "Transitions "s } };
+            for( auto pTransition : pInterupt->get_transitions() )
+            {
+                Graph graph;
+                generateDerivationGraph( pTransition, graph );
+                transitions.m_elements.push_back( graph );
+            }
+            branch.m_elements.push_back( transitions );
+        }
+        {
+            Branch events{ { "Events "s } };
+            for( auto pEvent : pInterupt->get_events() )
+            {
+                Graph graph;
+                generateDerivationGraph( pEvent, graph );
+                events.m_elements.push_back( graph );
+            }
+            branch.m_elements.push_back( events );
+        }
+        {
+            Branch dispatches{ { "Interupt Dispatch"s } };
+            for( auto pEventDispatch : pInterupt->get_dispatches() )
+            {
+                Branch event{ { "Event "s, Concrete::fullTypeName( pEventDispatch->get_event() ) } };
+                {
+                    Graph graph;
+                    generateDerivationGraph( pEventDispatch->get_derivation(), graph );
+                    event.m_elements.push_back( graph );
+                }
+                dispatches.m_elements.push_back( event );
+            }
+            branch.m_elements.push_back( dispatches );
+        }
     }
-
-    // if( auto pContext = db_cast< Interface::IContext >( pNode->get_node() ) )
-    // {
-    //     branch.m_label.push_back( { pContext->get_flags() } );
-    // }
+    else if( auto pState = db_cast< Concrete::State >( pNode ) )
+    {
+        Branch transitions{ { "Transitions "s } };
+        for( auto pTransition : pState->get_transitions() )
+        {
+            Graph graph;
+            generateDerivationGraph( pTransition, graph );
+            transitions.m_elements.push_back( graph );
+        }
+        branch.m_elements.push_back( transitions );
+    }
+    else if( auto pDecider = db_cast< Concrete::Decider >( pNode ) )
+    {
+        Branch events{ { "Events "s } };
+        for( auto pEvent : pDecider->get_events() )
+        {
+            Graph graph;
+            generateDerivationGraph( pEvent, graph );
+            events.m_elements.push_back( graph );
+        }
+        branch.m_elements.push_back( events );
+    }
 
     for( auto pChild : pNode->get_children() )
     {

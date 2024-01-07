@@ -34,7 +34,6 @@ object Object3
 
         action action1 > @action2
         {
-            interupt;
             interupt( @action1 );
             interupt( @action2 );
             decider();

@@ -177,7 +177,22 @@ solveTransitions( Database& database, Parser::TypeDecl::Transitions* pTransition
     return transitions;
 }
 
-std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, Derivation::Edge* pEdge )
+struct GraphInfo
+{
+    std::map< Interface::UserLink*, HyperGraph::NonOwningRelation* > nonOwning;
+    std::multimap< Interface::UserLink*, Interface::OwnershipLink* > owners;
+    std::multimap< Interface::OwnershipLink*, Interface::UserLink* > owned;
+
+    GraphInfo( HyperGraph::Graph* pGraph )
+        : nonOwning( pGraph->get_non_owning_relations() )
+        , owners( pGraph->get_owning_relation()->get_owners() )
+        , owned( pGraph->get_owning_relation()->get_owned() )
+    {
+    }
+};
+
+std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, GraphInfo& graph,
+                                                           Derivation::Edge* pEdge )
 {
     std::vector< Derivation::Dispatch* > dispatches;
 
@@ -189,7 +204,8 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, D
         auto pEventVertex = pCurrentStep->get_vertex();
         auto pEventState  = db_cast< Concrete::State >( pEventVertex );
         auto pEventEvent  = db_cast< Concrete::Event >( pEventVertex );
-        VERIFY_RTE_MSG( pEventState || pEventEvent, "Interupt event does NOT specify an Event or State" );
+        VERIFY_RTE_MSG( pEventState || pEventEvent, "Interupt event does NOT specify an Event or State. Kind is: "
+                                                        << pEventVertex->get_node()->get_kind() );
 
         // create event dispatch
         auto pDispatch = database.construct< Derivation::Dispatch >( Derivation::Dispatch::Args{
@@ -202,24 +218,29 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, D
         {
             if( !p->get_eliminated() )
             {
-                auto result = buildEventDispatches( database, p );
+                auto result = buildEventDispatches( database, graph, p );
                 std::copy( result.begin(), result.end(), std::back_inserter( dispatches ) );
             }
         }
     }
 
+    // the bottom up recursion will start with an empty dispatch.
+    // As the stuck unfolds each inverse edge will be added to the dispatch.
     for( Derivation::Dispatch* pDispatch : dispatches )
     {
+        // obtain the last step in the event dispatch sequence
         Derivation::Step* pLastStep = pDispatch;
-        while( !pLastStep->get_edges().empty() )
         {
-            auto edges = pLastStep->get_edges();
-            VERIFY_RTE( edges.size() == 1 );
-            pLastStep = edges.front()->get_next();
-            VERIFY_RTE( pLastStep );
+            while( !pLastStep->get_edges().empty() )
+            {
+                auto edges = pLastStep->get_edges();
+                VERIFY_RTE( edges.size() == 1 );
+                pLastStep = edges.front()->get_next();
+                VERIFY_RTE( pLastStep );
+            }
         }
 
-        // solve inverse step to the parent
+        // solve inverse step from pLastStep->get_vertex() to pEdge->get_from()
         auto pSourceVertex = pLastStep->get_vertex();
         if( auto pTargetStep = db_cast< Derivation::Step >( pEdge->get_from() ) )
         {
@@ -252,64 +273,62 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, D
                     VERIFY_RTE( pLastOr );
 
                     // the And MUST be on a link vertex
-                    VERIFY_RTE( db_cast< Concrete::Link >( pTargetAnd->get_vertex() ) );
+                    auto pConcreteLink = db_cast< Concrete::Link >( pTargetAnd->get_vertex() );
+                    VERIFY_RTE( pConcreteLink );
 
-                    // and for interupt policy ALWAYS has two edges
+                    // edge should be single edge to the inter object target type
                     auto graphEdges = pEdge->get_edges();
-                    VERIFY_RTE( graphEdges.size() == 2 );
-
-                    // the first of which is the inter-object hypergraph edge
-                    auto pGraphInterObjectEdge = graphEdges[ 0 ];
+                    VERIFY_RTE( graphEdges.size() == 1 );
+                    auto pGraphInterObjectEdge = db_cast< Concrete::InterObjectEdge >( graphEdges[ 0 ] );
+                    VERIFY_RTE( pGraphInterObjectEdge );
 
                     // which MUST have a source of the target vertex
                     VERIFY_RTE( pGraphInterObjectEdge->get_source() == pTargetVertex );
 
-                    // get the link on the other side
-                    pGraphInterObjectLinkVertex = pGraphInterObjectEdge->get_target();
+                    // get the counter part of the inter object edge
+                    auto pCounterPart = pGraphInterObjectEdge->get_counterpart();
+                    VERIFY_RTE( pCounterPart );
 
-                    VERIFY_RTE( db_cast< Concrete::Link >( pGraphInterObjectLinkVertex ) );
-                }
-
-                // create the Selection to perform the inter-object derivation step
-                auto pSelect = database.construct< Derivation::Select >(
-                    Derivation::Select::Args{ Derivation::Or::Args{ Derivation::Step::Args{
-                                                  Derivation::Node::Args{ {} }, pGraphInterObjectLinkVertex } },
-                                              pTargetVertex } );
-
-                // and construct the edge from the last step to the selection with the common root derivation edges
-                {
-                    // solve common root derivation to the link from the current vertex
-                    std::vector< Concrete::Edge* > edges;
-                    VERIFY_RTE( CommonAncestor::commonRootDerivation(
-                        pSourceVertex, pGraphInterObjectLinkVertex, edges, true ) );
-
-                    auto pEdgeToSelect = database.construct< Derivation::Edge >(
-                        Derivation::Edge::Args{ pLastStep, pSelect, false, false, 0, edges } );
-                    pLastStep->push_back_edges( pEdgeToSelect );
-                }
-
-                // determine the inverse inter-object edge of pGraphInterObjectEdge
-                Concrete::Edge* pInverseInterObjectEdge = nullptr;
-                {
-                    for( auto pIter : pGraphInterObjectLinkVertex->get_out_edges() )
+                    Concrete::InterObjectEdge* pCounterEdge = nullptr;
                     {
-                        if( pIter->get_target() == pTargetVertex )
+                        for( auto pCounterPartOutEdge : pCounterPart->get_out_edges() )
                         {
-                            VERIFY_RTE_MSG( !pInverseInterObjectEdge, "Found duplicate hyper graph edges to target" );
-                            pInverseInterObjectEdge = pIter;
+                            if( auto pCounterInterObjectEdge
+                                = db_cast< Concrete::InterObjectEdge >( pCounterPartOutEdge ) )
+                            {
+                                if( pCounterInterObjectEdge->get_counterpart() == pConcreteLink )
+                                {
+                                    VERIFY_RTE( !pCounterEdge );
+                                    pCounterEdge = pCounterInterObjectEdge;
+                                }
+                            }
                         }
                     }
-                    VERIFY_RTE( pInverseInterObjectEdge );
-                }
+                    VERIFY_RTE( pCounterEdge );
+                    auto pCounterTarget = pCounterEdge->get_target();
 
-                // can now construct an Or vertex at the target which the Selection derives
-                auto pFinalOrStep = database.construct< Derivation::Or >(
-                    Derivation::Or::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pTargetVertex } } );
+                    // create the Selection to perform the inter-object derivation step
+                    auto pSelect = database.construct< Derivation::Select >( Derivation::Select::Args{
+                        Derivation::Or::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pCounterPart } },
+                        pCounterTarget } );
 
-                // finally create the edge for the select using the interobject hypergraph edge
-                {
+                    // derive to the counterpart
+                    {
+                        // solve common root derivation to the link from the current vertex
+                        std::vector< Concrete::Edge* > edges;
+                        VERIFY_RTE( CommonAncestor::commonRootDerivation( pSourceVertex, pCounterPart, edges, true ) );
+
+                        auto pEdgeToCounterPart = database.construct< Derivation::Edge >(
+                            Derivation::Edge::Args{ pLastStep, pSelect, false, false, 0, edges } );
+                        pLastStep->push_back_edges( pEdgeToCounterPart );
+                    }
+
+                    // can now construct an Or vertex at the target which the Selection derives
+                    auto pFinalOrStep = database.construct< Derivation::Or >( Derivation::Or::Args{
+                        Derivation::Step::Args{ Derivation::Node::Args{ {} }, pCounterTarget } } );
+
                     auto pSelectEdge = database.construct< Derivation::Edge >(
-                        Derivation::Edge::Args{ pSelect, pFinalOrStep, false, false, 0, { pInverseInterObjectEdge } } );
+                        Derivation::Edge::Args{ pSelect, pFinalOrStep, false, false, 0, { pCounterEdge } } );
                     pSelect->push_back_edges( pSelectEdge );
                 }
             }
@@ -331,14 +350,14 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, D
     return dispatches;
 }
 
-void buildEventDispatches( Database& database, Derivation::Root* pDerivationRoot,
+void buildEventDispatches( Database& database, GraphInfo& graph, Derivation::Root* pDerivationRoot,
                            std::vector< Derivation::Dispatch* >& eventDispatches )
 {
     for( auto pEdge : pDerivationRoot->get_edges() )
     {
         if( !pEdge->get_eliminated() )
         {
-            auto dispatches = buildEventDispatches( database, pEdge );
+            auto dispatches = buildEventDispatches( database, graph, pEdge );
             std::copy( dispatches.begin(), dispatches.end(), std::back_inserter( eventDispatches ) );
         }
     }
@@ -389,15 +408,17 @@ public:
         void outdent() { m_indent -= m_indentSize; }
     };
 
-    void recurse( Database& database, Interface::Node* pNode, Printer& printer )
+    void recurse( Database& database, GraphInfo& graph, Interface::Node* pNode, Printer& printer )
     {
         struct Visitor : Interface::Visitor
         {
-            Database& database;
-            Printer&  printer;
+            Database&  database;
+            GraphInfo& graph;
+            Printer&   printer;
 
-            Visitor( Database& database, Printer& printer )
+            Visitor( Database& database, GraphInfo& graph, Printer& printer )
                 : database( database )
+                , graph( graph )
                 , printer( printer )
             {
             }
@@ -489,7 +510,7 @@ public:
                             {
                                 // analysis inverse event dispatches ...
                                 std::vector< Derivation::Dispatch* > dispatches;
-                                buildEventDispatches( database, pRoot, dispatches );
+                                buildEventDispatches( database, graph, pRoot, dispatches );
 
                                 for( auto pDispatch : dispatches )
                                 {
@@ -564,16 +585,21 @@ public:
             virtual bool visit( Interface::Component* pNode ) const { return false; }
             virtual bool visit( Interface::State* pNode ) const
             {
-                if( auto transitionOpt = pNode->get_transition_opt() )
-                {
-                    Parser::TypeDecl::Transitions* pTransitions = transitionOpt.value();
+                auto transitionOpt = pNode->get_transition_opt();
 
-                    for( auto pCNode : pNode->get_realisers() )
+                for( auto pCNode : pNode->get_realisers() )
+                {
+                    auto pCState = db_cast< Concrete::State >( pCNode );
+                    VERIFY_RTE( pCState );
+
+                    if( transitionOpt.has_value() )
                     {
-                        auto transitions = solveTransitions( database, pTransitions, pCNode );
-                        auto pCState     = db_cast< Concrete::State >( pCNode );
-                        VERIFY_RTE( pCState );
+                        auto transitions = solveTransitions( database, transitionOpt.value(), pCNode );
                         database.construct< Concrete::State >( Concrete::State::Args{ pCState, transitions } );
+                    }
+                    else
+                    {
+                        database.construct< Concrete::State >( Concrete::State::Args{ pCState, {} } );
                     }
                 }
 
@@ -581,7 +607,7 @@ public:
             }
             virtual bool visit( Interface::InvocationContext* pNode ) const { return false; }
             virtual bool visit( Interface::IContext* pNode ) const { return true; }
-        } visitor{ database, printer };
+        } visitor{ database, graph, printer };
 
         Interface::visit( visitor, pNode );
 
@@ -596,7 +622,7 @@ public:
 
         for( Interface::Node* pChildNode : pNode->get_children() )
         {
-            recurse( database, pChildNode, printer );
+            recurse( database, graph, pChildNode, printer );
         }
 
         if( bIsContext && !bIsFunction )
@@ -643,9 +669,11 @@ public:
             Printer printer{ osInterface };
 
             Interface::Root* pRoot = database.one< Interface::Root >( m_manifestFilePath );
+            GraphInfo        graph( database.one< HyperGraph::Graph >( m_manifestFilePath ) );
+
             for( Interface::Node* pNode : pRoot->get_children() )
             {
-                recurse( database, pNode, printer );
+                recurse( database, graph, pNode, printer );
             }
 
             auto fileHashCode = database.save_Traits_to_temp();
@@ -658,13 +686,13 @@ public:
         {
             m_environment.setBuildHashCode( traitsHeader );
             m_environment.stash( traitsHeader, determinant );
-            succeeded( taskProgress );
         }
         else
         {
             m_environment.setBuildHashCode( traitsHeader );
-            cached( taskProgress );
         }
+
+        succeeded( taskProgress );
     }
 };
 

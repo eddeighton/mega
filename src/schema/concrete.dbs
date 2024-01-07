@@ -26,6 +26,13 @@ namespace Concrete
         ref< Node >             source;
         ref< Node >             target;
     }
+
+    object InterObjectEdge : Edge -> HyperGraphAnalysis::Model
+    {
+        ref< Link >                     counterpart;
+        value< mega::CardinalityRange > cardinality;
+        value< bool >                   polymorphic;
+    }
     
     object NodeGroup -> ConcreteStage::Concrete
     {

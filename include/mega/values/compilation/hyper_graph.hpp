@@ -38,18 +38,9 @@ public:
         eChildNonSingular,
         eDim,
         eLink,
-
-        eMonoSingularMandatory,
-        ePolySingularMandatory,
-        eMonoNonSingularMandatory,
-        ePolyNonSingularMandatory,
-
-        eMonoSingularOptional,
-        ePolySingularOptional,
-        eMonoNonSingularOptional,
-        ePolyNonSingularOptional,
-
-        ePolyParent,
+        eInterObjectNonOwner,
+        eInterObjectOwner,
+        eInterObjectParent,
         TOTAL_EDGE_TYPES
     };
 
@@ -79,60 +70,6 @@ private:
 };
 
 std::ostream& operator<<( std::ostream& os, mega::EdgeType edgeType );
-
-inline EdgeType fromCardinality( bool bMonoMorphic, const CardinalityRange& cardinality )
-{
-    if( cardinality.isOptional() )
-    {
-        if( cardinality.isNonSingular() )
-        {
-            if( bMonoMorphic )
-            {
-                return EdgeType::eMonoNonSingularOptional;
-            }
-            else
-            {
-                return EdgeType::ePolyNonSingularOptional;
-            }
-        }
-        else
-        {
-            if( bMonoMorphic )
-            {
-                return EdgeType::eMonoSingularOptional;
-            }
-            else
-            {
-                return EdgeType::ePolySingularOptional;
-            }
-        }
-    }
-    else
-    {
-        if( cardinality.isNonSingular() )
-        {
-            if( bMonoMorphic )
-            {
-                return EdgeType::eMonoNonSingularMandatory;
-            }
-            else
-            {
-                return EdgeType::ePolyNonSingularMandatory;
-            }
-        }
-        else
-        {
-            if( bMonoMorphic )
-            {
-                return EdgeType::eMonoSingularMandatory;
-            }
-            else
-            {
-                return EdgeType::ePolySingularMandatory;
-            }
-        }
-    }
-}
 
 } // namespace mega
 

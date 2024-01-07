@@ -235,10 +235,11 @@ public:
         {
         }
 
-        void createEdge( EdgeType edgeType, Concrete::Node* pSource, Concrete::Node* pTarget ) const
+        Concrete::Edge* createEdge( EdgeType edgeType, Concrete::Node* pSource, Concrete::Node* pTarget ) const
         {
-            edges.push_back(
-                database.construct< Concrete::Edge >( Concrete::Edge::Args{ edgeType, pSource, pTarget } ) );
+            auto pEdge = database.construct< Concrete::Edge >( Concrete::Edge::Args{ edgeType, pSource, pTarget } );
+            edges.push_back( pEdge );
+            return pEdge;
         }
 
         virtual bool visit( Interface::ParsedAggregate* pNode ) const { THROW_RTE( "Unknown parsed aggregate type" ); }
@@ -251,7 +252,7 @@ public:
             createEdge( EdgeType::eParent, pConcrete, pConcreteParent );
             return true;
         }
-        
+
         virtual bool visit( Interface::UserAlias* pNode ) const
         {
             auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
@@ -261,8 +262,8 @@ public:
             return true;
         }
 
-        virtual bool visit( Interface::UserUsing* pNode ) const 
-        { 
+        virtual bool visit( Interface::UserUsing* pNode ) const
+        {
             auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
             VERIFY_RTE( pConcreteParent );
             createEdge( EdgeType::eDim, pConcreteParent, pConcrete );
@@ -270,7 +271,23 @@ public:
             return true;
         }
 
-        virtual bool visit( Interface::UserLink* pNode ) const
+        void findCounterPart( std::vector< Concrete::Node* >& counterParts, Concrete::Node* pTarget,
+                              std::vector< Concrete::Link* >& results ) const
+        {
+            auto iFind = std::find( counterParts.begin(), counterParts.end(), pTarget );
+            if( iFind != counterParts.end() )
+            {
+                auto pCounterPartLink = db_cast< Concrete::Link >( *iFind );
+                VERIFY_RTE( pCounterPartLink );
+                results.push_back( pCounterPartLink );
+            }
+            for( auto pChild : pTarget->get_children() )
+            {
+                findCounterPart( counterParts, pChild, results );
+            }
+        };
+
+        virtual bool visit( Interface::NonOwningLink* pNode ) const
         {
             {
                 auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
@@ -280,80 +297,97 @@ public:
                 createEdge( EdgeType::eParent, pConcrete, pConcreteParent );
             }
 
-            auto       pInterfaceTarget = pNode->get_type();
-            const auto cardinality      = pNode->get_link()->get_cardinality();
+            auto pCounterpart = pNode->get_counterpart();
+            VERIFY_RTE( pCounterpart );
 
-            auto targets = pInterfaceTarget->get_inheritors();
-            if( targets.size() == 1 )
-            {
-                if( cardinality.isOptional() )
-                {
-                    if( cardinality.isSingular() )
-                    {
-                        createEdge( EdgeType::eMonoSingularOptional, pConcrete, targets.front() );
-                    }
-                    else
-                    {
-                        createEdge( EdgeType::eMonoNonSingularOptional, pConcrete, targets.front() );
-                    }
-                }
-                else
-                {
-                    if( cardinality.isSingular() )
-                    {
-                        createEdge( EdgeType::eMonoSingularMandatory, pConcrete, targets.front() );
-                    }
-                    else
-                    {
-                        createEdge( EdgeType::eMonoNonSingularMandatory, pConcrete, targets.front() );
-                    }
-                }
-            }
-            else if( targets.size() > 1 )
+            auto pInterfaceTarget   = pNode->get_type();
+            auto targets            = pInterfaceTarget->get_inheritors();
+            auto counterPartTargets = pCounterpart->get_inheritors();
+
+            // map all targets to associated counter parts
+            std::map< Concrete::Node*, Concrete::Link* > targetToCounterPart;
             {
                 for( auto pTarget : targets )
                 {
-                    if( cardinality.isOptional() )
-                    {
-                        if( cardinality.isSingular() )
-                        {
-                            createEdge( EdgeType::ePolySingularOptional, pConcrete, pTarget );
-                        }
-                        else
-                        {
-                            createEdge( EdgeType::ePolyNonSingularOptional, pConcrete, pTarget );
-                        }
-                    }
-                    else
-                    {
-                        if( cardinality.isSingular() )
-                        {
-                            createEdge( EdgeType::ePolySingularMandatory, pConcrete, pTarget );
-                        }
-                        else
-                        {
-                            createEdge( EdgeType::ePolyNonSingularMandatory, pConcrete, pTarget );
-                        }
-                    }
+                    std::vector< Concrete::Link* > results;
+                    findCounterPart( counterPartTargets, pTarget, results );
+                    VERIFY_RTE_MSG( results.size() == 1,
+                                    "Ambiguous concrete link counterparts found for link: "
+                                        << Concrete::fullTypeName( pConcrete ) );
+                    targetToCounterPart.insert( { pTarget, results.front() } );
                 }
             }
 
+            for( auto pTarget : targets )
+            {
+                auto pEdge        = createEdge( EdgeType::eInterObjectNonOwner, pConcrete, pTarget );
+                auto pCounterPart = targetToCounterPart[ pTarget ];
+                VERIFY_RTE( pCounterPart );
+                database.construct< Concrete::InterObjectEdge >( Concrete::InterObjectEdge::Args{
+                    pEdge, pCounterPart, pNode->get_link()->get_cardinality(), targets.size() != 1 } );
+            }
+            return true;
+        }
+
+        virtual bool visit( Interface::OwningLink* pNode ) const
+        {
+            {
+                auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
+                VERIFY_RTE( pConcreteParent );
+
+                createEdge( EdgeType::eLink, pConcreteParent, pConcrete );
+                createEdge( EdgeType::eParent, pConcrete, pConcreteParent );
+            }
+
+            U64 total = 0;
+            {
+                for( auto pNode : pNode->get_owned()->get_inheritors() )
+                {
+                    ++total;
+                }
+            }
+
+            for( auto pOwned : pNode->get_owned()->get_inheritors() )
+            {
+                auto pCounterPart = db_cast< Concrete::OwnershipLink >( pOwned );
+                VERIFY_RTE( pCounterPart );
+                auto pTarget = pCounterPart->get_parent_object();
+                auto pEdge   = createEdge( EdgeType::eInterObjectOwner, pConcrete, pTarget );
+                database.construct< Concrete::InterObjectEdge >( Concrete::InterObjectEdge::Args{
+                    pEdge, pCounterPart, pNode->get_link()->get_cardinality(), total != 1 } );
+            }
             return true;
         }
 
         virtual bool visit( Interface::OwnershipLink* pNode ) const
         {
-            Concrete::Node* pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
+            auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
             VERIFY_RTE( pConcreteParent );
 
             createEdge( EdgeType::eLink, pConcreteParent, pConcrete );
             createEdge( EdgeType::eParent, pConcrete, pConcreteParent );
 
-            for( auto i = owned.lower_bound( pNode ), iEnd = owned.upper_bound( pNode ); i != iEnd; ++i )
+            U64 total = 0;
             {
-                for( auto pConcreteOwner : i->second->get_inheritors() )
+                for( auto pOwner : pNode->get_owners() )
                 {
-                    createEdge( EdgeType::ePolyParent, pConcrete, pConcreteOwner );
+                    for( auto pNode : pOwner->get_inheritors() )
+                    {
+                        ++total;
+                    }
+                }
+            }
+
+            for( auto pOwner : pNode->get_owners() )
+            {
+                for( auto pNode : pOwner->get_inheritors() )
+                {
+                    auto pCounterPart = db_cast< Concrete::UserLink >( pNode );
+                    VERIFY_RTE( pCounterPart );
+                    Concrete::Object* pTarget = pCounterPart->get_parent_object();
+                    auto              pEdge   = createEdge( EdgeType::eInterObjectParent, pConcrete, pTarget );
+                    database.construct< Concrete::InterObjectEdge >(
+                        Concrete::InterObjectEdge::Args{ pEdge, pCounterPart, CardinalityRange{}, total != 1 } );
                 }
             }
             return true;
@@ -361,7 +395,7 @@ public:
 
         virtual bool visit( Interface::ActivationBitSet* pNode ) const
         {
-            Concrete::Node* pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
+            auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
             VERIFY_RTE( pConcreteParent );
 
             createEdge( EdgeType::eDim, pConcreteParent, pConcrete );

@@ -182,10 +182,6 @@ static Disambiguation disambiguate( Derivation::Step* pStep, const std::vector< 
                 {
                     switch( pGraphEdge->get_type().get() )
                     {
-                        case ::mega::EdgeType::eMonoNonSingularMandatory:
-                        case ::mega::EdgeType::eMonoNonSingularOptional:
-                        case ::mega::EdgeType::ePolyNonSingularMandatory:
-                        case ::mega::EdgeType::ePolyNonSingularOptional:
                         case ::mega::EdgeType::eChildNonSingular:
                              bContainsInvalidEdge = true;
                              break;
@@ -194,12 +190,10 @@ static Disambiguation disambiguate( Derivation::Step* pStep, const std::vector< 
                         case ::mega::EdgeType::eLink:
                         case ::mega::EdgeType::eParent:
 
-                        case ::mega::EdgeType::eMonoSingularMandatory:
-                        case ::mega::EdgeType::eMonoSingularOptional:
-                        case ::mega::EdgeType::ePolySingularMandatory:
-                        case ::mega::EdgeType::ePolySingularOptional:
+                        case mega::EdgeType::eInterObjectNonOwner:
+                        case mega::EdgeType::eInterObjectOwner:
+                        case mega::EdgeType::eInterObjectParent:
 
-                        case ::mega::EdgeType::ePolyParent:
                             break;
                         case ::mega::EdgeType::TOTAL_EDGE_TYPES:
                         default:
@@ -311,17 +305,9 @@ static void precedence( Derivation::Edge* pEdge )
                     break;
                 case ::mega::EdgeType::eParent:
 
-                case ::mega::EdgeType::eMonoSingularMandatory:
-                case ::mega::EdgeType::eMonoSingularOptional:
-                case ::mega::EdgeType::eMonoNonSingularMandatory:
-                case ::mega::EdgeType::eMonoNonSingularOptional:
-
-                case ::mega::EdgeType::ePolySingularMandatory:
-                case ::mega::EdgeType::ePolySingularOptional:
-                case ::mega::EdgeType::ePolyNonSingularMandatory:
-                case ::mega::EdgeType::ePolyNonSingularOptional:
-
-                case ::mega::EdgeType::ePolyParent:
+                case mega::EdgeType::eInterObjectNonOwner:
+                case mega::EdgeType::eInterObjectOwner:
+                case mega::EdgeType::eInterObjectParent:
                     break;
                 case ::mega::EdgeType::TOTAL_EDGE_TYPES:
                 default:

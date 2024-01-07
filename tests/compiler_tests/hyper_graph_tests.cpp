@@ -68,6 +68,8 @@ using namespace std::string_literals;
 INSTANTIATE_TEST_SUITE_P( HyperGraph, HyperGraphFixtureType,
         ::testing::Values
         ( 
-            Data{ "hyper_graph_basic", { "hyper_graph_basic.mega" }, {} }
+            Data{ "hyper_graph_basic", { "hyper_graph_basic.mega" }, {} },
+            Data{ "hyper_graph_poly", { "hyper_graph_poly.mega" }, {} },
+            Data{ "hyper_graph_poly_owner", { "clang_traits_interobject.mega" }, {} }
         ));
 // clang-format on

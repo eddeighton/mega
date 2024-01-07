@@ -631,9 +631,19 @@ void renderGraph( Args& args, const Graph& graph, std::ostream& os )
             { "colour", edge.m_colour.str() },
             { "style", edge.m_style.str() },
             { "constraint", edge.m_bIgnoreInLayout ? "false" : "true" },
-            { "line_width", edge.line_width }
+            { "line_width", edge.line_width },
+            { "has_label", edge.m_label.has_value() },
+            { "label", nlohmann::json::array() }
 
         } );
+
+        if( edge.m_label.has_value() )
+        {
+            for( const auto& value : edge.m_label.value() )
+            {
+                graphValueToJSON( args, value, std::nullopt, edgeData[ "label" ] );
+            }
+        }
 
         data[ "edges" ].push_back( edgeData );
     }
