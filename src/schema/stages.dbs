@@ -191,6 +191,9 @@ stage DecisionsStage
 
     file Decisions;
 
+    global accessor ref< Interface::Root >;
+    global accessor ref< Concrete::Root >;
+    global accessor ref< HyperGraph::Graph >;
     global accessor array< ref< Concrete::Object > >;
     global accessor array< ref< Concrete::Interupt > >;
     global accessor array< ref< Concrete::State > >;
