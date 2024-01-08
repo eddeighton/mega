@@ -633,7 +633,8 @@ public:
             {
                 if( pNamespace->get_is_global() )
                 {
-                    VERIFY_PARSER( aggregates.empty(), "Global namespace cannot contain aggregates", pContainer );
+                    // Allow namespaces to be inherited like an interface so they should be able to
+                    // contain anything
                 }
             }
             else if( auto pAbstract = db_cast< Abstract >( pIContext ) )

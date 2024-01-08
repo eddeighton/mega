@@ -15,7 +15,20 @@ namespace testing
     {
         namespace nested
         {
+            cpp Foobar float;
+
             function f2( int i, @Object2 o ) -> void
+            {
+                Foobar f;
+                //
+                o.dosomething( i );
+            }
+            function f3( int i, @Object2 o ) -> void
+            {
+                //
+                o.dosomething( i );
+            }
+            function f4( int i, @Object2 o ) -> void
             {
                 //
                 o.dosomething( i );
@@ -29,6 +42,11 @@ object Object1
     component A : ^OR
     {
         dim m_int1 int;
+    }
+
+    component B
+    {
+        dim m_int2 SomeCPPType;
     }
 }
 
@@ -46,6 +64,11 @@ object Object3
     {
         dim m_int3 int;
     }
+
+    component B <- ^testing.ITwo.nested
+    {
+        cpp Foobar float;
+    }
 }
 
 object Object4 : ^Object2, ^Object3
@@ -59,3 +82,18 @@ object Object4 : ^Object2, ^Object3
     {
     }
 }
+
+// example of inheritance as recontextualisation
+object Object5 <- ^Object2, ^Object3
+{
+    component A
+    {
+        dim m_int4 int;
+    }
+
+    component B : ^Object2.A, ^Historical
+    {
+        cpp SomeCPPType int;
+    }
+}
+

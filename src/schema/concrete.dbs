@@ -47,6 +47,7 @@ namespace Concrete
     {
         ref< NodeGroup >                parent;
         opt< ref< Interface::Node > >   node_opt;
+        value< bool >                   recontextualise;
         late< ref< Object > >           parent_object;
 
         ref< Symbols::ConcreteID > concrete_id -> ConcreteTypeAnalysis::ConcreteTable;

@@ -176,7 +176,8 @@ namespace Parser
 
         object Inheritance : TypeDeclaration -> ParserStage::AST
         {
-            ref< Type::PathSequence > type_path_sequence;
+            ref< Type::PathSequence >   type_path_sequence;
+            value< bool >               recontextualise;
         }
 
         object Data : TypeDeclaration -> ParserStage::AST

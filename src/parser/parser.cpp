@@ -581,7 +581,17 @@ public:
             auto                startLoc          = Tok.getLocation();
             Type::PathSequence* pTypePathSequence = parse_type_path_sequence( true, false );
             return m_database.construct< TypeDecl::Inheritance >( TypeDecl::Inheritance::Args{
-                TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pTypePathSequence } );
+                TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pTypePathSequence, false } );
+        }
+        else if( Tok.is( clang::tok::less ) && NextToken().is( clang::tok::minus ) )
+        {
+            ConsumeAnyToken();
+            ConsumeAnyToken();
+            parse_comment();
+            auto                startLoc          = Tok.getLocation();
+            Type::PathSequence* pTypePathSequence = parse_type_path_sequence( true, false );
+            return m_database.construct< TypeDecl::Inheritance >( TypeDecl::Inheritance::Args{
+                TypeDecl::TypeDeclaration::Args{ getSourceRange( startLoc, Tok.getLocation() ) }, pTypePathSequence, true } );
         }
         else
         {

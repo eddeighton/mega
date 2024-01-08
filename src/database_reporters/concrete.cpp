@@ -63,7 +63,14 @@ void recurse( Concrete::Node* pNode, mega::reports::Branch& tree )
 
     Branch branch;
 
-    branch.m_label = { { Concrete::getKind( pNode ), ": "s, Concrete::getIdentifier( pNode ) } };
+    std::ostringstream osRecontextualise;
+    if( pNode->get_recontextualise() )
+    {
+        osRecontextualise << "Recontextualised";
+    }
+
+    branch.m_label
+        = { { Concrete::getKind( pNode ), ": "s, Concrete::getIdentifier( pNode ), " "s, osRecontextualise.str() } };
 
     if( auto pContext = db_cast< Concrete::Context >( pNode ) )
     {
