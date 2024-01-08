@@ -1,14 +1,21 @@
 
+cpp Int32 int;
+
+mega Obj ^SymObject1;
+
 object SymObject1
 {
-    dim m_test1 std::vector< int >;
+    mega Obj @SymObject1.m_test1;
+
+    dim m_test1 std::vector< Int32 >;
     dim m_test2 std::vector< @SymObject2 >;
 
 }
 
 object SymObject2
 {
-    dim m_test1 int;
+
+    dim m_test1 Int32;
     dim m_test2 @SymObject1;
     dim m_test3 ^SymObject1.m_test1;
 
@@ -17,12 +24,17 @@ object SymObject2
 
     }
 
-    action action1 > @action2
+    action action1 : ^OR > @action2
     {
 
     }
     
-    action action2 > @action1
+    action action2 : ^Historical > @action1
+    {
+
+    }
+    
+    action action3 : ^Template > @action1, @action2
     {
 
     }

@@ -32,7 +32,7 @@ object Object3
 
         }
 
-        action action1 > @action2
+        action action1 : ^OR, ^Historical > @action2
         {
             interupt( @action1 );
             interupt( @action2 );
@@ -42,7 +42,7 @@ object Object3
 
     dim D::A::m_thing int;
     
-    action action2 > @action1
+    action action2 : ^Template > @action1
     {
 
     }

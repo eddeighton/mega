@@ -35,14 +35,17 @@ public:
         eMeta,
         eOR,
         eHistorical,
+        eTemplate,
         TOTAL_FLAGS
     };
     using Bits = std::bitset< TOTAL_FLAGS >;
 
-    std::string                                          str() const;
-    static const char*                                   str( Value bit );
+    static const char* str( Value bit );
+    static bool        isDirect( Value bit );
+
     static const std::array< std::string, TOTAL_FLAGS >& strings();
 
+    std::string str() const;
     inline bool get( Value bit ) const { return m_value.test( bit ); }
     inline void set( Value bit ) { m_value.set( bit ); }
     inline void reset( Value bit ) { m_value.reset( bit ); }

@@ -36,82 +36,7 @@ namespace Interface
         // value< bool >                           simple          -> InterfaceAnalysisStage::Clang;
         // array< ref< Symbols::SymbolTypeID > >   symbols         -> InterfaceAnalysisStage::Clang;
     }
-
-    object UserDimensionTrait : DimensionTrait -> InterfaceStage::Tree
-    {
-        ref< Parser::Dimension > parser_dimension;
-    }
-
-    object CompilerDimensionTrait : DimensionTrait -> InterfaceStage::Tree
-    {
-        value< std::string > identifier;
-    }
-
-    object LinkTrait -> InterfaceStage::Tree
-    {
-        ref< IContext > parent;
-
-        array< ref< Concrete::Dimensions::Link > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
-
-        ref< HyperGraph::Relation > relation -> HyperGraphAnalysisRollout::PerSourceModel;
-    }
-
-    object UserLinkTrait : LinkTrait  -> InterfaceStage::Tree
-    {
-        ref< Parser::Link > parser_link;
-        // array< ref< SymbolVariantSequence > > symbol_variant_sequences -> InterfaceAnalysisStage::Clang;
-    }
-
-    object OwnershipLinkTrait : LinkTrait  -> InterfaceStage::Tree
-    {
-    }
-
-    object InheritanceTrait : Parser::TypeDecl::Inheritance -> InterfaceStage::Tree
-    {
-        // array< ref< IContext > > contexts -> InterfaceAnalysisStage::Clang;
-    }
-
-    object ReturnTypeTrait : Parser::TypeDecl::Return -> InterfaceStage::Tree
-    {
-        // value< std::string > canonical_type  -> InterfaceAnalysisStage::Clang;
-    }
-
-    object ArgumentListTrait : Parser::TypeDecl::Arguments -> InterfaceStage::Tree
-    {
-        // array< value< std::string > > canonical_types -> InterfaceAnalysisStage::Clang;
-    }
-
-    object EventTypeTrait : Parser::TypeDecl::Events -> InterfaceStage::Tree
-    {
-        ref< InvocationContext > parent_invocation_context;
-
-        // each argument may be a variant of type paths
-        // array< ref< SymbolVariantSequence > > symbol_variant_sequences -> InterfaceAnalysisStage::Clang;
-    }
-
-    object TransitionTypeTrait : Parser::TypeDecl::Transitions -> InterfaceStage::Tree
-    {
-        ref< InvocationContext > parent_invocation_context;
-        
-        array< ref< SymbolVariantSequence > > symbol_variant_sequences -> InterfaceAnalysisStage::Clang;
-    }
-
-    object PartTrait : Parser::Part -> InterfaceStage::Tree
-    {
-        ref< IContext > parent;
-    }
-
-    object SizeTrait : Parser::Size -> InterfaceStage::Tree
-    {
-        // value< mega::U64 > size -> InterfaceAnalysisStage::Clang;
-    }
-    */
-
-    // object InvocationInstance -> OperationsLocs::Locations
-    // {
-    //     // ref< Operations::Invocation > invocation;
-    //     // value< mega::SourceLocation > source_location;
-    // }
+*/
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -149,6 +74,9 @@ namespace Interface
     object UserDimension : Aggregate -> InterfaceStage::Tree
     {
         ref< Parser::Dimension > dimension;
+
+        // value< std::string > canonical  -> ClangAnalysisStage::Analysis;
+        // value< std::string > mangle     -> ClangAnalysisStage::Analysis;
     }
 
     object UserAlias : Aggregate -> InterfaceStage::Tree

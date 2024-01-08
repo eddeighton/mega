@@ -46,10 +46,12 @@ public:
     {
     }
 
-    using Inheritors = std::multimap< Interface::Node*, Concrete::Node* >;
+    using Inheritors       = std::multimap< Interface::Node*, Concrete::Node* >;
+    using DirectInheritors = std::multimap< Interface::Node*, Interface::Node* >;
 
     void inherit( Database& database, Concrete::Root* pConcreteRoot, Interface::Node* pIParentNode,
-                  Concrete::Node* pCParentNode, std::vector< Concrete::Node* >& objects, Inheritors& inheritors )
+                  Concrete::Node* pCParentNode, std::vector< Concrete::Node* >& objects, Inheritors& inheritors,
+                  DirectInheritors& directInheritors )
     {
         if( !pCParentNode )
         {
@@ -77,7 +79,9 @@ public:
                         if( auto pAbsolutePath = db_cast< Parser::Type::Absolute >( pPath ) )
                         {
                             auto pNode = pAbsolutePath->get_type();
-                            inherit( database, pConcreteRoot, pNode, pCParentNode, objects, inheritors );
+                            directInheritors.insert( { pNode, pIContext } );
+                            inherit(
+                                database, pConcreteRoot, pNode, pCParentNode, objects, inheritors, directInheritors );
                         }
                         else
                         {
@@ -124,7 +128,7 @@ public:
                     pChildCNode->set_node_opt( pINode );
                 }
 
-                inherit( database, pConcreteRoot, pINode, pChildCNode, objects, inheritors );
+                inherit( database, pConcreteRoot, pINode, pChildCNode, objects, inheritors, directInheritors );
             }
         }
         else
@@ -132,7 +136,7 @@ public:
             // recurse through the interface looking for objects
             for( auto pINode : pIParentNode->get_children() )
             {
-                inherit( database, pConcreteRoot, pINode, nullptr, objects, inheritors );
+                inherit( database, pConcreteRoot, pINode, nullptr, objects, inheritors, directInheritors );
             }
         }
     }
@@ -276,12 +280,13 @@ public:
         Concrete::Root* pConcreteRoot
             = database.construct< Concrete::Root >( Concrete::Root::Args{ Concrete::NodeGroup::Args{ {} } } );
 
-        Inheritors inheritors;
+        Inheritors       inheritors;
+        DirectInheritors directInheritors;
         {
             std::vector< Concrete::Node* > objects;
             for( auto pINode : pInterfaceRoot->get_children() )
             {
-                inherit( database, pConcreteRoot, pINode, nullptr, objects, inheritors );
+                inherit( database, pConcreteRoot, pINode, nullptr, objects, inheritors, directInheritors );
             }
             pConcreteRoot->set_children( objects );
         }
@@ -332,16 +337,31 @@ public:
                     const auto bit = static_cast< IContextFlags::Value >( i );
                     if( pInterface->get_symbol()->get_token() == IContextFlags::str( bit ) )
                     {
-                        contextFlags[ pInterface ].set( IContextFlags::eMeta );
-
-                        for( auto i = inheritors.lower_bound( pInterface ), iEnd = inheritors.upper_bound( pInterface );
-                             i != iEnd; ++i )
+                        if( IContextFlags::isDirect( bit ) )
                         {
-                            if( auto interfaceNodeOpt = i->second->get_node_opt() )
+                            for( auto i    = directInheritors.lower_bound( pInterface ),
+                                      iEnd = directInheritors.upper_bound( pInterface );
+                                 i != iEnd;
+                                 ++i )
                             {
-                                if( auto pContext = db_cast< Interface::IContext >( interfaceNodeOpt.value() ) )
+                                auto pContext = db_cast< Interface::IContext >( i->second );
+                                VERIFY_RTE( pContext );
+                                contextFlags[ pContext ].set( bit );
+                            }
+                        }
+                        else
+                        {
+                            for( auto i    = inheritors.lower_bound( pInterface ),
+                                      iEnd = inheritors.upper_bound( pInterface );
+                                 i != iEnd;
+                                 ++i )
+                            {
+                                if( auto interfaceNodeOpt = i->second->get_node_opt() )
                                 {
-                                    contextFlags[ pContext ].set( bit );
+                                    if( auto pContext = db_cast< Interface::IContext >( interfaceNodeOpt.value() ) )
+                                    {
+                                        contextFlags[ pContext ].set( bit );
+                                    }
                                 }
                             }
                         }

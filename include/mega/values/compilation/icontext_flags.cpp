@@ -27,8 +27,12 @@
 
 namespace
 {
-static const std::array< std::string, mega::IContextFlags::TOTAL_FLAGS > g_pszModes = { "Meta", "OR", "Historical" };
-}
+using namespace std::string_literals;
+static const std::array< std::string, mega::IContextFlags::TOTAL_FLAGS > g_pszModes
+    = { "Meta"s, "OR"s, "Historical"s, "Template"s };
+
+static const std::array< bool, mega::IContextFlags::TOTAL_FLAGS > g_isDirect = { false, false, false, true };
+} // namespace
 
 namespace mega
 {
@@ -59,6 +63,11 @@ std::string IContextFlags::str() const
     }
     os << "]";
     return os.str();
+}
+
+bool IContextFlags::isDirect( Value bit )
+{
+    return g_isDirect[ bit ];
 }
 
 const char* IContextFlags::str( Value bit )

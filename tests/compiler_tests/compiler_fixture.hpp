@@ -122,7 +122,7 @@ public:
     mega::pipeline::PipelineResult runPipeline( const std::string& strSourceFile )
     {
         return mega::pipeline::runPipelineLocally( g_stashDir, std::nullopt, g_toolChain, m_pipeline, TASK_NAME,
-                                                   strSourceFile, {}, false, true, true, std::cout );
+                                                   strSourceFile, {}, true, true, true, std::cout );
     };
 
     void generateReport( const std::string& strURL, const std::string& strFileNameNoExt )

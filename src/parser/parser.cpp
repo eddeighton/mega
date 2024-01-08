@@ -1260,7 +1260,8 @@ public:
                 Part* pPart = parse_part();
                 bodyArgs.parts.value().push_back( pPart );
             }
-            else if( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) )
+            else if( Tok.is( clang::tok::r_brace )
+                     && ( ( BraceCount == 0 && braceStack.empty() ) || ( BraceCount == braceStack.back() ) ) )
             {
                 // leave the r_brace to be consumed by parent
                 break;
@@ -1299,7 +1300,7 @@ public:
                         )
                     ) &&
                     !(
-                        ( BraceCount == braceStack.back() ) &&
+                        ( ( BraceCount == 0 && braceStack.empty() ) || ( BraceCount == braceStack.back() ) ) &&
                         Tok.is( clang::tok::r_brace )
                     )
                 )

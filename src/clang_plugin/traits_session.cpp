@@ -215,14 +215,14 @@ public:
             DeclContext*   pDeclContext = pASTContext->getTranslationUnitDecl();
 
             Interface::Root* pRoot = m_database.one< Interface::Root >( m_environment.project_manifest() );
-            /*for( Interface::Node* pNode : pRoot->get_children() )
+            for( Interface::Node* pNode : pRoot->get_children() )
             {
                 if( !recurse( pNode, pDeclContext, loc, visitor ) )
                 {
                     bSuccess = false;
                     break;
                 }
-            }*/
+            }
         }
 
         if( bSuccess )
