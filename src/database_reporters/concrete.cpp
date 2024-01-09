@@ -55,36 +55,56 @@ using namespace ConcreteStage;
 namespace
 {
 
-void recurse( Concrete::Node* pNode, mega::reports::Branch& tree )
+struct TableTree
+{
+    mega::reports::Branch concreteTypeID{ { { ConcreteReporter::ID } } };
+    mega::reports::Branch concreteTree{ { { ConcreteReporter::ID } } };
+    mega::reports::Branch directRealiser{ { { ConcreteReporter::ID } } };
+    mega::reports::Branch recontextualised{ { { ConcreteReporter::ID } } };
+    mega::reports::Branch flags{ { { ConcreteReporter::ID } } };
+};
+
+const std::string& bool_to_string( bool b )
+{
+    using namespace std::string_literals;
+    static const std::string strTrue  = "True"s;
+    static const std::string strFalse = "False"s;
+    return b ? strTrue : strFalse;
+}
+
+void recurse( Concrete::Node* pNode, TableTree& table, mega::reports::Branch& tree )
 {
     using namespace ConcreteStage;
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    Branch branch;
-
-    std::ostringstream osRecontextualise;
-    if( pNode->get_recontextualise() )
-    {
-        osRecontextualise << "Recontextualised";
-    }
-
-    branch.m_label
-        = { { Concrete::getKind( pNode ), ": "s, Concrete::getIdentifier( pNode ), " "s, osRecontextualise.str() } };
-
+    Colour color = Colour::blue;
     if( auto pContext = db_cast< Concrete::Context >( pNode ) )
     {
-        branch.m_label.push_back( { pContext->get_icontext()->get_flags() } );
+        table.flags.m_elements.push_back( Line{ pContext->get_icontext()->get_flags() } );
+        color = Colour::blue;
+    }
+    else
+    {
+        table.flags.m_elements.push_back( Line{ " "s } );
+        color = Colour::lightgreen;
     }
 
-    // if( auto pContext = db_cast< Interface::IContext >( pNode->get_node() ) )
-    // {
-    //     branch.m_label.push_back( { pContext->get_flags() } );
-    // }
+    if( pNode->get_is_direct_realiser() )
+    {
+        VERIFY_RTE( pNode->get_node_opt().has_value() );
+        VERIFY_RTE( pNode->get_node_opt().value()->get_direct_realiser_opt().has_value() );
+        VERIFY_RTE( pNode->get_node_opt().value()->get_direct_realiser_opt().value() == pNode );
+    }
 
+    table.concreteTypeID.m_elements.push_back( Line{ Concrete::getKind( pNode ), std::nullopt, std::nullopt, color } );
+    table.directRealiser.m_elements.push_back( Line{ bool_to_string( pNode->get_is_direct_realiser() ) } );
+    table.recontextualised.m_elements.push_back( Line{ bool_to_string( pNode->get_recontextualise() ) } );
+
+    Branch branch{ { Concrete::getIdentifier( pNode ) } };
     for( auto pChild : pNode->get_children() )
     {
-        recurse( pChild, branch );
+        recurse( pChild, table, branch );
     }
     tree.m_elements.emplace_back( std::move( branch ) );
 }
@@ -97,19 +117,20 @@ mega::reports::Container ConcreteReporter::generate( const mega::reports::URL& u
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    Branch root{ { ID } };
+    Table root{ { "Kind"s, ID, "Direct Realiser"s, "Recontextualised"s, "Flags"s } };
+
+    TableTree tree;
 
     Database database( m_args.environment, m_args.environment.project_manifest(), true );
-
-    Branch tree{ { m_args.manifest.getManifestFilePath().path() } };
 
     auto pRoot = database.one< Concrete::Root >( m_args.manifest.getManifestFilePath() );
 
     for( Concrete::Node* pNode : pRoot->get_children() )
     {
-        recurse( pNode, tree );
+        recurse( pNode, tree, tree.concreteTree );
     }
-    root.m_elements.push_back( { tree } );
+    root.m_rows.push_back(
+        { tree.concreteTypeID, tree.concreteTree, tree.directRealiser, tree.recontextualised, tree.flags } );
 
     return root;
 }

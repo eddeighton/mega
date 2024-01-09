@@ -46,12 +46,21 @@ public:
     {
     }
 
-    using Inheritors       = std::multimap< Interface::Node*, Concrete::Node* >;
-    using DirectInheritors = std::multimap< Interface::Node*, Interface::Node* >;
+    struct InheritanceInfo
+    {
+        using Inheritors       = std::multimap< Interface::Node*, Concrete::Node* >;
+        using DirectInheritors = std::multimap< Interface::Node*, Interface::Node* >;
+        using DirectRealisers  = std::map< Interface::Node*, Concrete::Node* >;
+
+        Inheritors                     inheritors;
+        DirectInheritors               directInheritors;
+        DirectRealisers                directRealisers;
+        std::vector< Concrete::Node* > objects;
+    };
 
     void inherit( Database& database, Concrete::Root* pConcreteRoot, Interface::Node* pIParentNode,
-                  Concrete::Node* pCParentNode, std::vector< Concrete::Node* >& objects, Inheritors& inheritors,
-                  DirectInheritors& directInheritors, bool bRecontextualisationContext, bool bRecontextualiseSubTree )
+                  Concrete::Node* pCParentNode, InheritanceInfo& info, bool bDirectRealisationContext,
+                  bool bRecontextualiseSubTree )
     {
         if( !pCParentNode )
         {
@@ -59,14 +68,15 @@ public:
             if( auto pIObject = db_cast< Interface::Object >( pIParentNode ) )
             {
                 pCParentNode = database.construct< Concrete::Node >( Concrete::Node::Args{
-                    Concrete::NodeGroup::Args{ {} }, pConcreteRoot, pIParentNode, bRecontextualiseSubTree } );
-                objects.push_back( pCParentNode );
+                    Concrete::NodeGroup::Args{ {} }, pConcreteRoot, pIParentNode, true, bRecontextualiseSubTree } );
+                VERIFY_RTE( info.directRealisers.insert( { pIParentNode, pCParentNode } ).second );
+                info.objects.push_back( pCParentNode );
             }
         }
 
         if( pCParentNode )
         {
-            inheritors.insert( { pIParentNode, pCParentNode } );
+            info.inheritors.insert( { pIParentNode, pCParentNode } );
 
             if( auto pIContext = db_cast< Interface::IContext >( pIParentNode ) )
             {
@@ -79,7 +89,7 @@ public:
                         if( auto pAbsolutePath = db_cast< Parser::Type::Absolute >( pPath ) )
                         {
                             auto pNode = pAbsolutePath->get_type();
-                            directInheritors.insert( { pNode, pIContext } );
+                            info.directInheritors.insert( { pNode, pIContext } );
 
                             bool bShouldRecontextualiseInheritance = false;
                             // if already recontextualising then continue doing it
@@ -89,13 +99,14 @@ public:
                             }
                             // otherwise ONLY if in a valid recontextualisation context then
                             // determine if SHOULD recontextualised using the inheritance specification
-                            else if( bRecontextualisationContext )
+                            else if( bDirectRealisationContext )
                             {
                                 bShouldRecontextualiseInheritance = pInheritance->get_recontextualise();
                             }
 
-                            inherit( database, pConcreteRoot, pNode, pCParentNode, objects, inheritors,
-                                     directInheritors, false, bShouldRecontextualiseInheritance );
+                            // when recurse due to inheritance then bDirectRealisationContext becomes false
+                            inherit( database, pConcreteRoot, pNode, pCParentNode, info, false,
+                                     bShouldRecontextualiseInheritance );
                         }
                         else
                         {
@@ -123,8 +134,13 @@ public:
 
                 if( !pChildCNode )
                 {
-                    pChildCNode = database.construct< Concrete::Node >( Concrete::Node::Args{
-                        Concrete::NodeGroup::Args{ {} }, pCParentNode, pINode, bRecontextualiseSubTree } );
+                    pChildCNode = database.construct< Concrete::Node >(
+                        Concrete::Node::Args{ Concrete::NodeGroup::Args{ {} }, pCParentNode, pINode,
+                                              bDirectRealisationContext, bRecontextualiseSubTree } );
+                    if( bDirectRealisationContext )
+                    {
+                        VERIFY_RTE( info.directRealisers.insert( { pINode, pChildCNode } ).second );
+                    }
                     pCParentNode->push_back_children( pChildCNode );
                 }
                 else
@@ -140,10 +156,15 @@ public:
                                             << " and: " << pINode->get_kind() );
                     }
                     pChildCNode->set_node_opt( pINode );
+                    if( bDirectRealisationContext )
+                    {
+                        VERIFY_RTE( info.directRealisers.insert( { pINode, pChildCNode } ).second );
+                        pChildCNode->set_is_direct_realiser( true );
+                    }
                 }
 
-                inherit( database, pConcreteRoot, pINode, pChildCNode, objects, inheritors, directInheritors,
-                         bRecontextualisationContext, bRecontextualiseSubTree );
+                inherit( database, pConcreteRoot, pINode, pChildCNode, info, bDirectRealisationContext,
+                         bRecontextualiseSubTree );
             }
         }
         else
@@ -151,8 +172,8 @@ public:
             // recurse through the interface looking for objects
             for( auto pINode : pIParentNode->get_children() )
             {
-                inherit( database, pConcreteRoot, pINode, nullptr, objects, inheritors, directInheritors,
-                         bRecontextualisationContext, bRecontextualiseSubTree );
+                inherit( database, pConcreteRoot, pINode, nullptr, info, bDirectRealisationContext,
+                         bRecontextualiseSubTree );
             }
         }
     }
@@ -214,7 +235,7 @@ public:
                 {
                     auto pActivationBitSet = database.construct< Concrete::ActivationBitSet >(
                         Concrete::ActivationBitSet::Args{ Concrete::Node::Args{
-                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false } } );
+                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false, false } } );
                     pParentObject->set_activation_bitset( pActivationBitSet );
                     pParentObject->push_back_children( pActivationBitSet );
                 }
@@ -223,7 +244,7 @@ public:
                 {
                     auto pOwnershipLink = database.construct< Concrete::OwnershipLink >(
                         Concrete::OwnershipLink::Args{ Concrete::Link::Args{ Concrete::Node::Args{
-                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false } } } );
+                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false, false } } } );
                     pParentObject->set_ownership( pOwnershipLink );
                     pParentObject->push_back_children( pOwnershipLink );
                 }
@@ -296,15 +317,13 @@ public:
         Concrete::Root* pConcreteRoot
             = database.construct< Concrete::Root >( Concrete::Root::Args{ Concrete::NodeGroup::Args{ {} } } );
 
-        Inheritors       inheritors;
-        DirectInheritors directInheritors;
+        InheritanceInfo info;
         {
-            std::vector< Concrete::Node* > objects;
             for( auto pINode : pInterfaceRoot->get_children() )
             {
-                inherit( database, pConcreteRoot, pINode, nullptr, objects, inheritors, directInheritors, true, false );
+                inherit( database, pConcreteRoot, pINode, nullptr, info, true, false );
             }
-            pConcreteRoot->set_children( objects );
+            pConcreteRoot->set_children( info.objects );
         }
 
         // determine realisers
@@ -319,8 +338,8 @@ public:
         {
             std::vector< Concrete::Node* > inherits;
             {
-                for( auto i = inheritors.lower_bound( pINode ), iNext = inheritors.upper_bound( pINode ); i != iNext;
-                     ++i )
+                for( auto i = info.inheritors.lower_bound( pINode ), iNext = info.inheritors.upper_bound( pINode );
+                     i != iNext; ++i )
                 {
                     inherits.push_back( i->second );
                 }
@@ -335,7 +354,16 @@ public:
                 }
             }
 
-            database.construct< Interface::Node >( Interface::Node::Args{ pINode, inherits, realise } );
+            std::optional< Concrete::Node* > directRealiser;
+            {
+                auto iFind = info.directRealisers.find( pINode );
+                if( iFind != info.directRealisers.end() )
+                {
+                    directRealiser = iFind->second;
+                }
+            }
+
+            database.construct< Interface::Node >( Interface::Node::Args{ pINode, directRealiser, inherits, realise } );
         }
 
         for( auto pCNode : pConcreteRoot->get_children() )
@@ -355,8 +383,8 @@ public:
                     {
                         if( IContextFlags::isDirect( bit ) )
                         {
-                            for( auto i    = directInheritors.lower_bound( pInterface ),
-                                      iEnd = directInheritors.upper_bound( pInterface );
+                            for( auto i    = info.directInheritors.lower_bound( pInterface ),
+                                      iEnd = info.directInheritors.upper_bound( pInterface );
                                  i != iEnd;
                                  ++i )
                             {
@@ -367,8 +395,8 @@ public:
                         }
                         else
                         {
-                            for( auto i    = inheritors.lower_bound( pInterface ),
-                                      iEnd = inheritors.upper_bound( pInterface );
+                            for( auto i    = info.inheritors.lower_bound( pInterface ),
+                                      iEnd = info.inheritors.upper_bound( pInterface );
                                  i != iEnd;
                                  ++i )
                             {

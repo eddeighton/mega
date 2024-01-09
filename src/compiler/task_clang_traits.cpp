@@ -410,202 +410,238 @@ public:
         void outdent() { m_indent -= m_indentSize; }
     };
 
-    void recurse( Database& database, GraphInfo& graph, Interface::Node* pNode, Printer& printer )
+    struct Visitor : Interface::Visitor
     {
-        struct Visitor : Interface::Visitor
+        Database&  database;
+        GraphInfo& graph;
+        Printer&   printer;
+
+        Visitor( Database& database, GraphInfo& graph, Printer& printer )
+            : database( database )
+            , graph( graph )
+            , printer( printer )
         {
-            Database&  database;
-            GraphInfo& graph;
-            Printer&   printer;
+        }
 
-            Visitor( Database& database, GraphInfo& graph, Printer& printer )
-                : database( database )
-                , graph( graph )
-                , printer( printer )
+        virtual ~Visitor() = default;
+        virtual bool visit( Interface::UserDimension* pNode ) const
+        {
+            auto pDataType = pNode->get_dimension()->get_data_type();
+            printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
+                            << generateCPPType( database, pNode, pDataType->get_cpp_fragments()->get_elements() )
+                            << ";";
+            return true;
+        }
+        virtual bool visit( Interface::UserAlias* pNode ) const
+        {
+            auto pPath = pNode->get_alias()->get_alias_type()->get_type_path();
+            if( auto pDeriving = db_cast< Parser::Type::Deriving >( pPath ) )
             {
-            }
+                ClangTraits::InterObjectDerivationPolicy       policy{ database };
+                ClangTraits::InterObjectDerivationPolicy::Spec spec{ pNode->get_inheritors(), pDeriving, true };
+                std::vector< ClangTraits::Derivation::Or* >    frontier;
+                auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
 
-            virtual ~Visitor() = default;
-            virtual bool visit( Interface::UserDimension* pNode ) const
-            {
-                auto pDataType = pNode->get_dimension()->get_data_type();
-                printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
-                               << generateCPPType( database, pNode, pDataType->get_cpp_fragments()->get_elements() )
-                               << ";";
-                return true;
+                // TODO
             }
-            virtual bool visit( Interface::UserAlias* pNode ) const
+            else if( auto pAbsolute = db_cast< Parser::Type::Absolute >( pPath ) )
             {
-                auto pPath = pNode->get_alias()->get_alias_type()->get_type_path();
-                if( auto pDeriving = db_cast< Parser::Type::Deriving >( pPath ) )
+                auto pType = pAbsolute->get_type();
+            }
+            else
+            {
+                THROW_RTE( "Unknown type path type" );
+            }
+            return true;
+        }
+        virtual bool visit( Interface::UserUsing* pNode ) const
+        {
+            auto pUsingType = pNode->get_cpp_using()->get_using_type();
+            printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
+                            << generateCPPType( database, pNode, pUsingType->get_cpp_fragments()->get_elements() )
+                            << ";";
+
+            return true;
+        }
+        virtual bool visit( Interface::UserLink* pNode ) const { return false; }
+        virtual bool visit( Interface::Aggregate* pNode ) const { return true; }
+
+        virtual bool visit( Interface::Namespace* pNode ) const { return false; }
+        virtual bool visit( Interface::Abstract* pNode ) const { return false; }
+        virtual bool visit( Interface::Event* pNode ) const { return false; }
+        virtual bool visit( Interface::Object* pNode ) const { return false; }
+
+        virtual bool visit( Interface::Interupt* pNode ) const
+        {
+            for( auto pCNode : pNode->get_realisers() )
+            {
+                auto pCInterupt = db_cast< Concrete::Interupt >( pCNode );
+                VERIFY_RTE( pCInterupt );
+
+                std::vector< ClangTraits::Derivation::Root* > transitions;
+                std::vector< ClangTraits::Derivation::Root* > derivations;
+                std::vector< Functions::EventDispatch* >      eventDispatches;
+
+                if( auto transitionOpt = pNode->get_transition_opt() )
                 {
-                    ClangTraits::InterObjectDerivationPolicy       policy{ database };
-                    ClangTraits::InterObjectDerivationPolicy::Spec spec{ pNode->get_inheritors(), pDeriving, true };
-                    std::vector< ClangTraits::Derivation::Or* >    frontier;
-                    auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
-
-                    // TODO
+                    transitions = solveTransitions( database, transitionOpt.value(), pCNode );
                 }
-                else if( auto pAbsolute = db_cast< Parser::Type::Absolute >( pPath ) )
+
+                if( auto eventOpt = pNode->get_events_opt() )
                 {
-                    auto pType = pAbsolute->get_type();
+                    Parser::TypeDecl::Events* pEvents = eventOpt.value();
+
+                    for( auto pNamedPath : pEvents->get_type_named_path_sequence()->get_named_path_sequence() )
+                    {
+                        auto pDerivingPath = db_cast< Parser::Type::Deriving >( pNamedPath->get_path() );
+                        VERIFY_RTE( pDerivingPath );
+
+                        ClangTraits::InterObjectDerivationPolicy       policy{ database };
+                        ClangTraits::InterObjectDerivationPolicy::Spec spec{ { pCNode }, pDerivingPath, true };
+                        std::vector< ClangTraits::Derivation::Or* >    frontier;
+                        auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
+                        derivations.push_back( pRoot );
+
+                        try
+                        {
+                            // analysis inverse event dispatches ...
+                            std::vector< Derivation::Dispatch* > dispatches;
+                            buildEventDispatches( database, graph, pRoot, dispatches );
+
+                            for( auto pDispatch : dispatches )
+                            {
+                                auto pEvent = db_cast< Concrete::Context >( pDispatch->get_vertex() );
+                                VERIFY_RTE( pEvent );
+                                auto pEventDispatch = database.construct< Functions::EventDispatch >(
+                                    Functions::EventDispatch::Args{ pDispatch, pEvent, pCInterupt } );
+                                eventDispatches.push_back( pEventDispatch );
+                            }
+                        }
+                        catch( std::exception& ex )
+                        {
+                            std::ostringstream os;
+                            os << "Exception while compiling interupt dispatch for: "
+                                << Concrete::fullTypeName( pCInterupt ) << "\n";
+                            ClangTraits::printDerivationStep( pRoot, true, os );
+                            os << "\nError: " << ex.what();
+                            THROW_RTE( os.str() );
+                        }
+                    }
+                }
+
+                database.construct< Concrete::Interupt >(
+                    Concrete::Interupt::Args{ pCInterupt, transitions, derivations, eventDispatches } );
+            }
+
+            return true;
+        }
+        virtual bool visit( Interface::Requirement* pNode ) const { return false; }
+
+        virtual bool visit( Interface::Decider* pNode ) const
+        {
+            for( auto pCNode : pNode->get_realisers() )
+            {
+                auto pCDecider = db_cast< Concrete::Decider >( pCNode );
+                VERIFY_RTE( pCDecider );
+
+                auto pEvents = pNode->get_events();
+
+                std::vector< ClangTraits::Derivation::Root* > events;
+                {
+                    for( auto pNamedPath : pEvents->get_type_named_path_sequence()->get_named_path_sequence() )
+                    {
+                        auto pDerivingPath = db_cast< Parser::Type::Deriving >( pNamedPath->get_path() );
+                        VERIFY_RTE( pDerivingPath );
+
+                        ClangTraits::NonInterObjectDerivationPolicy       policy{ database };
+                        ClangTraits::NonInterObjectDerivationPolicy::Spec spec{ { pCNode }, pDerivingPath, false };
+                        std::vector< ClangTraits::Derivation::Or* >       frontier;
+                        auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
+                        events.push_back( pRoot );
+                    }
+                }
+                database.construct< Concrete::Decider >( Concrete::Decider::Args{ pCDecider, events } );
+            }
+
+            return true;
+        }
+
+        virtual bool visit( Interface::Function* pNode ) const
+        {
+            printer.line()
+                << "using " << pNode->get_symbol()->get_token() << " = "
+                << generateCPPType( database, pNode, pNode->get_return_type()->get_cpp_fragments()->get_elements() )
+                << "(*)("
+                << generateCPPType( database, pNode, pNode->get_arguments()->get_cpp_fragments()->get_elements() )
+                << ");";
+            return true;
+        }
+
+        virtual bool visit( Interface::Action* pNode ) const { return false; }
+        virtual bool visit( Interface::Component* pNode ) const { return false; }
+        virtual bool visit( Interface::State* pNode ) const
+        {
+            auto transitionOpt = pNode->get_transition_opt();
+
+            for( auto pCNode : pNode->get_realisers() )
+            {
+                auto pCState = db_cast< Concrete::State >( pCNode );
+                VERIFY_RTE( pCState );
+
+                if( transitionOpt.has_value() )
+                {
+                    auto transitions = solveTransitions( database, transitionOpt.value(), pCNode );
+                    database.construct< Concrete::State >( Concrete::State::Args{ pCState, transitions } );
                 }
                 else
                 {
-                    THROW_RTE( "Unknown type path type" );
+                    database.construct< Concrete::State >( Concrete::State::Args{ pCState, {} } );
                 }
-                return true;
             }
-            virtual bool visit( Interface::UserUsing* pNode ) const
+
+            return true;
+        }
+        virtual bool visit( Interface::InvocationContext* pNode ) const { return false; }
+        virtual bool visit( Interface::IContext* pNode ) const { return true; }
+    };
+
+    void recurse( Database& database, GraphInfo& graph, Concrete::Node* pNode, Printer& printer )
+    {
+        Visitor visitor{ database, graph, printer };
+
+        auto iNodeOpt = pNode->get_node_opt();
+        VERIFY_RTE( iNodeOpt.has_value() );
+        auto pINode = iNodeOpt.value();
+
+        Interface::visit( visitor, pINode );
+
+        const bool bIsContext  = db_cast< Interface::IContext >( pINode );
+        const bool bIsFunction = db_cast< Interface::Function >( pINode );
+        if( bIsContext && !bIsFunction )
+        {
+            printer.line() << "namespace " << pINode->get_symbol()->get_token();
+            printer.line() << "{";
+            printer.indent();
+        }
+
+        for( auto pChild : pNode->get_children() )
+        {
+            if( !pChild->get_is_direct_realiser() )
             {
-                auto pUsingType = pNode->get_cpp_using()->get_using_type();
-                printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
-                               << generateCPPType( database, pNode, pUsingType->get_cpp_fragments()->get_elements() )
-                               << ";";
-
-                return true;
+                recurse( database, graph, pChild, printer );
             }
-            virtual bool visit( Interface::UserLink* pNode ) const { return false; }
-            virtual bool visit( Interface::Aggregate* pNode ) const { return true; }
+        }
 
-            virtual bool visit( Interface::Namespace* pNode ) const { return false; }
-            virtual bool visit( Interface::Abstract* pNode ) const { return false; }
-            virtual bool visit( Interface::Event* pNode ) const { return false; }
-            virtual bool visit( Interface::Object* pNode ) const { return false; }
+        if( bIsContext && !bIsFunction )
+        {
+            printer.outdent();
+            printer.line() << "}";
+        }
+    }
 
-            virtual bool visit( Interface::Interupt* pNode ) const
-            {
-                for( auto pCNode : pNode->get_realisers() )
-                {
-                    auto pCInterupt = db_cast< Concrete::Interupt >( pCNode );
-                    VERIFY_RTE( pCInterupt );
-
-                    std::vector< ClangTraits::Derivation::Root* > transitions;
-                    std::vector< ClangTraits::Derivation::Root* > derivations;
-                    std::vector< Functions::EventDispatch* >      eventDispatches;
-
-                    if( auto transitionOpt = pNode->get_transition_opt() )
-                    {
-                        transitions = solveTransitions( database, transitionOpt.value(), pCNode );
-                    }
-
-                    if( auto eventOpt = pNode->get_events_opt() )
-                    {
-                        Parser::TypeDecl::Events* pEvents = eventOpt.value();
-
-                        for( auto pNamedPath : pEvents->get_type_named_path_sequence()->get_named_path_sequence() )
-                        {
-                            auto pDerivingPath = db_cast< Parser::Type::Deriving >( pNamedPath->get_path() );
-                            VERIFY_RTE( pDerivingPath );
-
-                            ClangTraits::InterObjectDerivationPolicy       policy{ database };
-                            ClangTraits::InterObjectDerivationPolicy::Spec spec{ { pCNode }, pDerivingPath, true };
-                            std::vector< ClangTraits::Derivation::Or* >    frontier;
-                            auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
-                            derivations.push_back( pRoot );
-
-                            try
-                            {
-                                // analysis inverse event dispatches ...
-                                std::vector< Derivation::Dispatch* > dispatches;
-                                buildEventDispatches( database, graph, pRoot, dispatches );
-
-                                for( auto pDispatch : dispatches )
-                                {
-                                    auto pEvent = db_cast< Concrete::Context >( pDispatch->get_vertex() );
-                                    VERIFY_RTE( pEvent );
-                                    auto pEventDispatch = database.construct< Functions::EventDispatch >(
-                                        Functions::EventDispatch::Args{ pDispatch, pEvent, pCInterupt } );
-                                    eventDispatches.push_back( pEventDispatch );
-                                }
-                            }
-                            catch( std::exception& ex )
-                            {
-                                std::ostringstream os;
-                                os << "Exception while compiling interupt dispatch for: "
-                                   << Concrete::fullTypeName( pCInterupt ) << "\n";
-                                ClangTraits::printDerivationStep( pRoot, true, os );
-                                os << "\nError: " << ex.what();
-                                THROW_RTE( os.str() );
-                            }
-                        }
-                    }
-
-                    database.construct< Concrete::Interupt >(
-                        Concrete::Interupt::Args{ pCInterupt, transitions, derivations, eventDispatches } );
-                }
-
-                return true;
-            }
-            virtual bool visit( Interface::Requirement* pNode ) const { return false; }
-
-            virtual bool visit( Interface::Decider* pNode ) const
-            {
-                for( auto pCNode : pNode->get_realisers() )
-                {
-                    auto pCDecider = db_cast< Concrete::Decider >( pCNode );
-                    VERIFY_RTE( pCDecider );
-
-                    auto pEvents = pNode->get_events();
-
-                    std::vector< ClangTraits::Derivation::Root* > events;
-                    {
-                        for( auto pNamedPath : pEvents->get_type_named_path_sequence()->get_named_path_sequence() )
-                        {
-                            auto pDerivingPath = db_cast< Parser::Type::Deriving >( pNamedPath->get_path() );
-                            VERIFY_RTE( pDerivingPath );
-
-                            ClangTraits::NonInterObjectDerivationPolicy       policy{ database };
-                            ClangTraits::NonInterObjectDerivationPolicy::Spec spec{ { pCNode }, pDerivingPath, false };
-                            std::vector< ClangTraits::Derivation::Or* >       frontier;
-                            auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
-                            events.push_back( pRoot );
-                        }
-                    }
-                    database.construct< Concrete::Decider >( Concrete::Decider::Args{ pCDecider, events } );
-                }
-
-                return true;
-            }
-
-            virtual bool visit( Interface::Function* pNode ) const
-            {
-                printer.line()
-                    << "using " << pNode->get_symbol()->get_token() << " = "
-                    << generateCPPType( database, pNode, pNode->get_return_type()->get_cpp_fragments()->get_elements() )
-                    << "(*)("
-                    << generateCPPType( database, pNode, pNode->get_arguments()->get_cpp_fragments()->get_elements() )
-                    << ");";
-                return true;
-            }
-
-            virtual bool visit( Interface::Action* pNode ) const { return false; }
-            virtual bool visit( Interface::Component* pNode ) const { return false; }
-            virtual bool visit( Interface::State* pNode ) const
-            {
-                auto transitionOpt = pNode->get_transition_opt();
-
-                for( auto pCNode : pNode->get_realisers() )
-                {
-                    auto pCState = db_cast< Concrete::State >( pCNode );
-                    VERIFY_RTE( pCState );
-
-                    if( transitionOpt.has_value() )
-                    {
-                        auto transitions = solveTransitions( database, transitionOpt.value(), pCNode );
-                        database.construct< Concrete::State >( Concrete::State::Args{ pCState, transitions } );
-                    }
-                    else
-                    {
-                        database.construct< Concrete::State >( Concrete::State::Args{ pCState, {} } );
-                    }
-                }
-
-                return true;
-            }
-            virtual bool visit( Interface::InvocationContext* pNode ) const { return false; }
-            virtual bool visit( Interface::IContext* pNode ) const { return true; }
-        } visitor{ database, graph, printer };
+    void recurse( Database& database, GraphInfo& graph, Interface::Node* pNode, Printer& printer )
+    {
+        Visitor visitor{ database, graph, printer };
 
         Interface::visit( visitor, pNode );
 
@@ -621,6 +657,18 @@ public:
         for( Interface::Node* pChildNode : pNode->get_children() )
         {
             recurse( database, graph, pChildNode, printer );
+        }
+
+        if( auto realiserOpt = pNode->get_direct_realiser_opt() )
+        {
+            Concrete::Node* pDirectRealiser = realiserOpt.value();
+            for( auto pChild : pDirectRealiser->get_children() )
+            {
+                if( pChild->get_recontextualise() && !pChild->get_is_direct_realiser() )
+                {
+                    recurse( database, graph, pChild, printer );
+                }
+            }
         }
 
         if( bIsContext && !bIsFunction )

@@ -59,8 +59,9 @@ namespace Interface
 
         ref< Symbols::InterfaceTypeID > interface_id -> SymbolAnalysis::SymbolTable;
 
-        array< ref< Concrete::Node > >  inheritors  -> ConcreteStage::Concrete;
-        array< ref< Concrete::Node > >  realisers   -> ConcreteStage::Concrete;
+        opt< ref< Concrete::Node > >   direct_realiser_opt -> ConcreteStage::Concrete;
+        array< ref< Concrete::Node > > inheritors          -> ConcreteStage::Concrete;
+        array< ref< Concrete::Node > > realisers           -> ConcreteStage::Concrete;
     }
 
     ////////////////////////////////////////////////////////////////////////////

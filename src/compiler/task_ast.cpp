@@ -144,37 +144,6 @@ public:
         VERIFY_PARSER(
             db_cast< Interface::IContext >( pNodeGroup ), "Conflicting context type detected: ", pContainer );
 
-        for( auto pChild : pContainer->get_children() )
-        {
-            buildInterfaceTree( database, pComponent, pNodeGroup, pChild, icontexts, reservedSymbols );
-        }
-
-        for( auto pInclude : pContainer->get_includes() )
-        {
-            if( auto pMegaInclude = db_cast< Parser::MegaInclude >( pInclude ) )
-            {
-                if( auto pMegaIncludeInline = db_cast< Parser::MegaIncludeInline >( pMegaInclude ) )
-                {
-                    buildInterfaceTree( database, pComponent, pNodeGroup, pMegaIncludeInline->get_root()->get_ast(),
-                                        icontexts, reservedSymbols );
-                }
-                else if( auto pMegaIncludeNested = db_cast< Parser::MegaIncludeNested >( pMegaInclude ) )
-                {
-                    auto pIdentifier = pMegaIncludeNested->get_identifier();
-                    auto symbols     = pIdentifier->get_symbols();
-
-                    auto pIncludeGroup
-                        = findOrCreate( database, pComponent, pNodeGroup, symbols.begin(), symbols.end(), icontexts );
-                    buildInterfaceTree( database, pComponent, pIncludeGroup, pMegaIncludeNested->get_root()->get_ast(),
-                                        icontexts, reservedSymbols );
-                }
-                else
-                {
-                    THROW_RTE( "Unknown include type" );
-                }
-            }
-        }
-
         if( auto pIContext = db_cast< Interface::IContext >( pNodeGroup ) )
         {
             pIContext->push_back_containers( pContainer );
@@ -262,6 +231,37 @@ public:
         else
         {
             VERIFY_RTE( pContainer->get_aggregates().empty() );
+        }
+
+        for( auto pChild : pContainer->get_children() )
+        {
+            buildInterfaceTree( database, pComponent, pNodeGroup, pChild, icontexts, reservedSymbols );
+        }
+
+        for( auto pInclude : pContainer->get_includes() )
+        {
+            if( auto pMegaInclude = db_cast< Parser::MegaInclude >( pInclude ) )
+            {
+                if( auto pMegaIncludeInline = db_cast< Parser::MegaIncludeInline >( pMegaInclude ) )
+                {
+                    buildInterfaceTree( database, pComponent, pNodeGroup, pMegaIncludeInline->get_root()->get_ast(),
+                                        icontexts, reservedSymbols );
+                }
+                else if( auto pMegaIncludeNested = db_cast< Parser::MegaIncludeNested >( pMegaInclude ) )
+                {
+                    auto pIdentifier = pMegaIncludeNested->get_identifier();
+                    auto symbols     = pIdentifier->get_symbols();
+
+                    auto pIncludeGroup
+                        = findOrCreate( database, pComponent, pNodeGroup, symbols.begin(), symbols.end(), icontexts );
+                    buildInterfaceTree( database, pComponent, pIncludeGroup, pMegaIncludeNested->get_root()->get_ast(),
+                                        icontexts, reservedSymbols );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown include type" );
+                }
+            }
         }
     }
 
