@@ -122,9 +122,13 @@ namespace Interface
         value< mega::IContextFlags > flags -> ConcreteStage::Concrete;
     }
 
+    object Unspecified : IContext -> InterfaceStage::Tree
+    {
+    }
+
     object Namespace : IContext -> InterfaceStage::Tree
     {
-        value< bool > is_global;
+        late< value< bool > > is_global;
     }
 
     object Abstract : IContext -> InterfaceStage::Tree

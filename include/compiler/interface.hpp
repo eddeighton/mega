@@ -21,19 +21,6 @@
 namespace Interface
 {
 
-std::vector< Aggregate* > getAggregates( NodeGroup* pNodeGroup )
-{
-    std::vector< Aggregate* > aggregates;
-    for( auto p : pNodeGroup->get_children() )
-    {
-        if( auto pAgg = db_cast< Aggregate >( p ) )
-        {
-            aggregates.push_back( pAgg );
-        }
-    }
-    return aggregates;
-}
-
 void getNodes( NodeGroup* pNodeGroup, std::vector< IContext* >& contexts, std::vector< Aggregate* >& aggregates )
 {
     for( auto p : pNodeGroup->get_children() )
@@ -64,6 +51,10 @@ inline const std::string& getKind< TypeName >()\
     return s;\
 }
 
+MAKE_KIND_GETTER( UserDimension )
+MAKE_KIND_GETTER( UserAlias )
+MAKE_KIND_GETTER( UserUsing )
+MAKE_KIND_GETTER( UserLink )
 MAKE_KIND_GETTER( Aggregate )
 MAKE_KIND_GETTER( Namespace )
 MAKE_KIND_GETTER( Abstract )
@@ -77,12 +68,30 @@ MAKE_KIND_GETTER( Action )
 MAKE_KIND_GETTER( Component )
 MAKE_KIND_GETTER( State )
 MAKE_KIND_GETTER( InvocationContext )
+MAKE_KIND_GETTER( Unspecified )
 MAKE_KIND_GETTER( IContext )
 
 static const std::string& getKind( const Node* pNode )
 {
     using namespace std::string_literals;
-    if( auto* p = db_cast< Aggregate >( pNode ) )
+
+    if( auto* p = db_cast< UserDimension >( pNode ) )
+    {
+        return getKind< UserDimension >();
+    }
+    else if( auto* p = db_cast< UserAlias >( pNode ) )
+    {
+        return getKind< UserAlias >();
+    }
+    else if( auto* p = db_cast< UserUsing >( pNode ) )
+    {
+        return getKind< UserUsing >();
+    }
+    else if( auto* p = db_cast< UserLink >( pNode ) )
+    {
+        return getKind< UserLink >();
+    }
+    else if( auto* p = db_cast< Aggregate >( pNode ) )
     {
         return getKind< Aggregate >();
     }
@@ -133,6 +142,10 @@ static const std::string& getKind( const Node* pNode )
     else if( auto* p = db_cast< InvocationContext >( pNode ) )
     {
         return getKind< InvocationContext >();
+    }
+    else if( auto* p = db_cast< Unspecified >( pNode ) )
+    {
+        return getKind< Unspecified >();
     }
     else if( auto* p = db_cast< IContext >( pNode ) )
     {

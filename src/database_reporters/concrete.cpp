@@ -57,10 +57,11 @@ namespace
 
 struct TableTree
 {
-    mega::reports::Branch concreteTypeID{ { { ConcreteReporter::ID } } };
+    mega::reports::Branch concreteKind{ { { ConcreteReporter::ID } } };
     mega::reports::Branch concreteTree{ { { ConcreteReporter::ID } } };
     mega::reports::Branch directRealiser{ { { ConcreteReporter::ID } } };
-    mega::reports::Branch recontextualised{ { { ConcreteReporter::ID } } };
+    mega::reports::Branch interfaceType{ { { ConcreteReporter::ID } } };
+    mega::reports::Branch interfaceTypeID{ { { ConcreteReporter::ID } } };
     mega::reports::Branch flags{ { { ConcreteReporter::ID } } };
 };
 
@@ -97,9 +98,20 @@ void recurse( Concrete::Node* pNode, TableTree& table, mega::reports::Branch& tr
         VERIFY_RTE( pNode->get_node_opt().value()->get_direct_realiser_opt().value() == pNode );
     }
 
-    table.concreteTypeID.m_elements.push_back( Line{ Concrete::getKind( pNode ), std::nullopt, std::nullopt, color } );
+    if( auto interfaceNodeOpt = pNode->get_node_opt() )
+    {
+        auto pINode = interfaceNodeOpt.value();
+        table.interfaceType.m_elements.push_back( Line{ Interface::fullTypeName( pINode ) } );
+        table.interfaceTypeID.m_elements.push_back( Line{ pINode->get_interface_id()->get_type_id() } );
+    }
+    else
+    {
+        table.interfaceType.m_elements.push_back( Line{ " "s } );
+        table.interfaceTypeID.m_elements.push_back( Line{ interface::NULL_TYPE_ID } );
+    }
+
+    table.concreteKind.m_elements.push_back( Line{ Concrete::getKind( pNode ), std::nullopt, std::nullopt, color } );
     table.directRealiser.m_elements.push_back( Line{ bool_to_string( pNode->get_is_direct_realiser() ) } );
-    table.recontextualised.m_elements.push_back( Line{ bool_to_string( pNode->get_recontextualise() ) } );
 
     Branch branch{ { Concrete::getIdentifier( pNode ) } };
     for( auto pChild : pNode->get_children() )
@@ -117,7 +129,7 @@ mega::reports::Container ConcreteReporter::generate( const mega::reports::URL& u
     using namespace std::string_literals;
     using namespace mega::reports;
 
-    Table root{ { "Kind"s, ID, "Direct Realiser"s, "Recontextualised"s, "Flags"s } };
+    Table root{ { "Kind"s, ID, "Direct Realiser"s, "Interface Type"s, "Interface Type ID"s, "Flags"s } };
 
     TableTree tree;
 
@@ -129,8 +141,8 @@ mega::reports::Container ConcreteReporter::generate( const mega::reports::URL& u
     {
         recurse( pNode, tree, tree.concreteTree );
     }
-    root.m_rows.push_back(
-        { tree.concreteTypeID, tree.concreteTree, tree.directRealiser, tree.recontextualised, tree.flags } );
+    root.m_rows.push_back( { tree.concreteKind, tree.concreteTree, tree.directRealiser, tree.interfaceType,
+                             tree.interfaceTypeID, tree.flags } );
 
     return root;
 }

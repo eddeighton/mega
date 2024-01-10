@@ -1,0 +1,291 @@
+
+<html>
+
+<head>
+<style>
+table
+{
+    font-size:14px;
+    font-family:monospace;
+    border-collapse: collapse;
+}
+th
+{
+    border: 2px solid darkblue;
+    border-collapse: collapse;
+}
+td 
+{
+    border: 1px solid darkblue;
+    border-collapse: collapse;
+}
+.multiline_default
+{
+    white-space:pre;
+    font-size:14px;
+    font-family:monospace;
+    background-color:#b0c0c0;
+}
+.branch_default
+{
+    font-size:14px;
+    font-family:monospace;
+    background-color:#cfdfdf;
+}
+</style>
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+    currentReportType = "home"
+    
+    stateMachine = function() 
+    {
+        const queryString = window.location.search
+        const urlParams = new URLSearchParams(queryString);
+
+        if( window.location.hash.length === 0 )
+        {
+            // no fragment - nothing to do
+            console.log( "No fragment nothing to do" )
+        }
+        else
+        {
+            hash = window.location.hash.substring( 1 )
+            const element = document.getElementById( hash );
+            if( element )
+            {
+                element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+                console.log( "Scrolled to element: " + hash )
+            }
+            else
+            {I
+                console.log( "Could not locate element: " + hash )
+            }
+        }
+
+        if( urlParams.has( "report" ) )
+        {
+            currentReportType = urlParams.get( "report" )
+            console.log( "Report Type is: " + currentReportType )
+        }
+    }
+
+    window.onrefresh    = stateMachine
+    window.onload       = stateMachine
+    
+    function keyCodeToReportType( keyCode )
+    {
+        if( keyCode == 0 )
+        {
+            return ""
+        }
+        return ""
+    }
+
+    document.onkeypress = function (e) 
+    {
+        e = e || window.event;
+        lastKeyPressed = e.keyCode
+        console.log( "onkeypress= " + lastKeyPressed )
+        currentReportType = keyCodeToReportType( lastKeyPressed );
+        console.log( "Report Type is: " + currentReportType )
+    };
+
+    function navigateTo( path, params, fragment ) 
+    {
+        if( params )
+        {
+            newLocation = path + "?" + params + "&report=" + currentReportType
+        }
+        else
+        {
+            newLocation = path + "?report=" + currentReportType
+        }
+
+        if( fragment )
+        {
+            newLocation = newLocation + "#" + fragment
+        }
+
+        console.log( "href= " + newLocation + "\n" )
+
+        window.location.href = newLocation
+    }
+
+</script>
+
+<div style="position:relative;min-width:960px">
+    <table style="position: absolute;right:0;top:0">
+        <tr><th>Report</th><th>Shortcut Key</th></tr>
+            </table>
+</div>
+
+<table>
+<tr>
+<th>Kind</th>
+<th>Concrete</th>
+<th>Direct Realiser</th>
+<th>Interface Type</th>
+<th>Interface Type ID</th>
+<th>Flags</th>
+</tr>
+<tr>
+<td><div class="branch_default" >Concrete</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:blue;background-color:white;" >Object</div></li>
+    <li><div class="multiline_default" style="color:blue;background-color:white;" >Component</div></li>
+    <li><div class="multiline_default" style="color:lightgreen;background-color:white;" >UserUsing</div></li>
+    <li><div class="multiline_default" style="color:blue;background-color:white;" >Function</div></li>
+    <li><div class="multiline_default" style="color:blue;background-color:white;" >Function</div></li>
+    <li><div class="multiline_default" style="color:lightgreen;background-color:white;" >State</div></li>
+    <li><div class="multiline_default" style="color:lightgreen;background-color:white;" >Owner</div></li>
+    <li><div class="multiline_default" style="color:blue;background-color:white;" >Object</div></li>
+    <li><div class="multiline_default" style="color:blue;background-color:white;" >Component</div></li>
+    <li><div class="multiline_default" style="color:lightgreen;background-color:white;" >UserUsing</div></li>
+    <li><div class="multiline_default" style="color:blue;background-color:white;" >Function</div></li>
+    <li><div class="multiline_default" style="color:blue;background-color:white;" >Function</div></li>
+    <li><div class="multiline_default" style="color:lightgreen;background-color:white;" >State</div></li>
+    <li><div class="multiline_default" style="color:lightgreen;background-color:white;" >Owner</div></li>
+</ul>
+</td>
+<td><div class="branch_default" >Concrete</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >C</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >D</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Int</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >f1</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >f2</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >State</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Owner</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >E</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >D</div>
+<ul class="branch_default" >
+    <li><div class="branch_default" >Int</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >f1</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >f2</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+    <li><div class="branch_default" >State</div>
+<ul class="branch_default" >
+</ul>
+</li>
+    <li><div class="branch_default" >Owner</div>
+<ul class="branch_default" >
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</td>
+<td><div class="branch_default" >Concrete</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >True</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >True</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >True</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >False</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >False</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >False</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >False</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >True</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >False</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >True</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >False</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >False</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >False</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >False</div></li>
+</ul>
+</td>
+<td><div class="branch_default" >Concrete</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >C</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >C::D</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >C::D::Int</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >A::B::f1</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >A::B::f2</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >E</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >C::D</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >E::D::Int</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >A::B::f1</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >A::B::f2</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+</ul>
+</td>
+<td><div class="branch_default" >Concrete</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00030000_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00030001_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00030002_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00020004_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00020005_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00000000_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00000000_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00040000_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00030001_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00040002_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00020004_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00020005_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00000000_IT</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >0x00000000_IT</div></li>
+</ul>
+</td>
+<td><div class="branch_default" >Concrete</div>
+<ul class="branch_default" >
+    <li><div class="multiline_default" style="color:black;background-color:white;" >[Meta=0,OR=0,Historical=0]</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >[Meta=0,OR=0,Historical=0]</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >[Meta=0,OR=0,Historical=0]</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >[Meta=0,OR=0,Historical=0]</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >[Meta=0,OR=0,Historical=0]</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >[Meta=0,OR=0,Historical=0]</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >[Meta=0,OR=0,Historical=0]</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" >[Meta=0,OR=0,Historical=0]</div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+    <li><div class="multiline_default" style="color:black;background-color:white;" > </div></li>
+</ul>
+</td>
+</tr>
+</table>
+</body>
+
+</html>
+

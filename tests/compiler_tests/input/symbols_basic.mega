@@ -34,7 +34,7 @@ object SymObject2
 
     }
     
-    action action3 : ^Template > @action1, @action2
+    action action3 > @action1, @action2
     {
 
     }

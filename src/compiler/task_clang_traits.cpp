@@ -414,21 +414,16 @@ public:
 
     struct Visitor : Interface::Visitor
     {
-        Database&                        database;
-        GraphInfo&                       graph;
-        Printer&                         printer;
-        CPPTypeMap&                      cppTypes;
-        bool                             bRecontextualising;
-        std::optional< Concrete::Node* > concreteNodeOpt;
+        Database&   database;
+        GraphInfo&  graph;
+        Printer&    printer;
+        CPPTypeMap& cppTypes;
 
-        Visitor( Database& database, GraphInfo& graph, Printer& printer, CPPTypeMap& cppTypes, bool bRecontextualising,
-                 std::optional< Concrete::Node* > concreteNodeOpt )
+        Visitor( Database& database, GraphInfo& graph, Printer& printer, CPPTypeMap& cppTypes )
             : database( database )
             , graph( graph )
             , printer( printer )
             , cppTypes( cppTypes )
-            , bRecontextualising( bRecontextualising )
-            , concreteNodeOpt( concreteNodeOpt )
         {
         }
 
@@ -438,40 +433,39 @@ public:
             auto pDataType = pNode->get_dimension()->get_data_type();
             printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
                            << generateCPPType( database, pNode, pDataType->get_cpp_fragments()->get_elements() ) << ";";
-            if( concreteNodeOpt.has_value() )
-            {
+
+            /*{
                 VERIFY_RTE( cppTypes
                                 .insert( { concreteNodeOpt.value(),
                                            database.construct< Concrete::CPP::DataType >( Concrete::CPP::DataType::Args{
                                                Concrete::CPP::Type::Args{ concreteNodeOpt.value() } } ) } )
                                 .second );
-            }
+            }*/
+
             return true;
         }
         virtual bool visit( Interface::UserAlias* pNode ) const
         {
-            if( !bRecontextualising )
+            auto pPath = pNode->get_alias()->get_alias_type()->get_type_path();
+            if( auto pDeriving = db_cast< Parser::Type::Deriving >( pPath ) )
             {
-                auto pPath = pNode->get_alias()->get_alias_type()->get_type_path();
-                if( auto pDeriving = db_cast< Parser::Type::Deriving >( pPath ) )
-                {
-                    THROW_TODO;
-                    /*ClangTraits::InterObjectDerivationPolicy       policy{ database };
-                    ClangTraits::InterObjectDerivationPolicy::Spec spec{ pNode->get_inheritors(), pDeriving, true };
-                    std::vector< ClangTraits::Derivation::Or* >    frontier;
-                    auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );*/
+                THROW_TODO;
+                /*ClangTraits::InterObjectDerivationPolicy       policy{ database };
+                ClangTraits::InterObjectDerivationPolicy::Spec spec{ pNode->get_inheritors(), pDeriving, true };
+                std::vector< ClangTraits::Derivation::Or* >    frontier;
+                auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );*/
 
-                    // TODO
-                }
-                else if( auto pAbsolute = db_cast< Parser::Type::Absolute >( pPath ) )
-                {
-                    // auto pType = pAbsolute->get_type();
-                }
-                else
-                {
-                    THROW_RTE( "Unknown type path type" );
-                }
+                // TODO
             }
+            else if( auto pAbsolute = db_cast< Parser::Type::Absolute >( pPath ) )
+            {
+                // auto pType = pAbsolute->get_type();
+            }
+            else
+            {
+                THROW_RTE( "Unknown type path type" );
+            }
+
             return true;
         }
         virtual bool visit( Interface::UserUsing* pNode ) const
@@ -480,14 +474,13 @@ public:
             printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
                            << generateCPPType( database, pNode, pUsingType->get_cpp_fragments()->get_elements() )
                            << ";";
-            if( concreteNodeOpt.has_value() )
-            {
-                VERIFY_RTE( cppTypes
-                                .insert( { concreteNodeOpt.value(),
-                                           database.construct< Concrete::CPP::DataType >( Concrete::CPP::DataType::Args{
-                                               Concrete::CPP::Type::Args{ concreteNodeOpt.value() } } ) } )
-                                .second );
-            }
+
+            /* VERIFY_RTE( cppTypes
+                             .insert( { concreteNodeOpt.value(),
+                                        database.construct< Concrete::CPP::DataType >( Concrete::CPP::DataType::Args{
+                                            Concrete::CPP::Type::Args{ concreteNodeOpt.value() } } ) } )
+                             .second );*/
+
             return true;
         }
         virtual bool visit( Interface::UserLink* pNode ) const { return false; }
@@ -500,67 +493,64 @@ public:
 
         virtual bool visit( Interface::Interupt* pNode ) const
         {
-            if( !bRecontextualising )
+            for( auto pCNode : pNode->get_realisers() )
             {
-                for( auto pCNode : pNode->get_realisers() )
+                auto pCInterupt = db_cast< Concrete::Interupt >( pCNode );
+                VERIFY_RTE( pCInterupt );
+
+                std::vector< ClangTraits::Derivation::Root* > transitions;
+                std::vector< ClangTraits::Derivation::Root* > derivations;
+                std::vector< Functions::EventDispatch* >      eventDispatches;
+
+                if( auto transitionOpt = pNode->get_transition_opt() )
                 {
-                    auto pCInterupt = db_cast< Concrete::Interupt >( pCNode );
-                    VERIFY_RTE( pCInterupt );
+                    transitions = solveTransitions( database, transitionOpt.value(), pCNode );
+                }
 
-                    std::vector< ClangTraits::Derivation::Root* > transitions;
-                    std::vector< ClangTraits::Derivation::Root* > derivations;
-                    std::vector< Functions::EventDispatch* >      eventDispatches;
+                if( auto eventOpt = pNode->get_events_opt() )
+                {
+                    Parser::TypeDecl::Events* pEvents = eventOpt.value();
 
-                    if( auto transitionOpt = pNode->get_transition_opt() )
+                    for( auto pNamedPath : pEvents->get_type_named_path_sequence()->get_named_path_sequence() )
                     {
-                        transitions = solveTransitions( database, transitionOpt.value(), pCNode );
-                    }
+                        auto pDerivingPath = db_cast< Parser::Type::Deriving >( pNamedPath->get_path() );
+                        VERIFY_RTE( pDerivingPath );
 
-                    if( auto eventOpt = pNode->get_events_opt() )
-                    {
-                        Parser::TypeDecl::Events* pEvents = eventOpt.value();
+                        ClangTraits::InterObjectDerivationPolicy       policy{ database };
+                        ClangTraits::InterObjectDerivationPolicy::Spec spec{ { pCNode }, pDerivingPath, true };
+                        std::vector< ClangTraits::Derivation::Or* >    frontier;
+                        auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
+                        derivations.push_back( pRoot );
 
-                        for( auto pNamedPath : pEvents->get_type_named_path_sequence()->get_named_path_sequence() )
+                        try
                         {
-                            auto pDerivingPath = db_cast< Parser::Type::Deriving >( pNamedPath->get_path() );
-                            VERIFY_RTE( pDerivingPath );
+                            // analysis inverse event dispatches ...
+                            std::vector< Derivation::Dispatch* > dispatches;
+                            buildEventDispatches( database, graph, pRoot, dispatches );
 
-                            ClangTraits::InterObjectDerivationPolicy       policy{ database };
-                            ClangTraits::InterObjectDerivationPolicy::Spec spec{ { pCNode }, pDerivingPath, true };
-                            std::vector< ClangTraits::Derivation::Or* >    frontier;
-                            auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
-                            derivations.push_back( pRoot );
-
-                            try
+                            for( auto pDispatch : dispatches )
                             {
-                                // analysis inverse event dispatches ...
-                                std::vector< Derivation::Dispatch* > dispatches;
-                                buildEventDispatches( database, graph, pRoot, dispatches );
-
-                                for( auto pDispatch : dispatches )
-                                {
-                                    auto pEvent = db_cast< Concrete::Context >( pDispatch->get_vertex() );
-                                    VERIFY_RTE( pEvent );
-                                    auto pEventDispatch = database.construct< Functions::EventDispatch >(
-                                        Functions::EventDispatch::Args{ pDispatch, pEvent, pCInterupt } );
-                                    eventDispatches.push_back( pEventDispatch );
-                                }
-                            }
-                            catch( std::exception& ex )
-                            {
-                                std::ostringstream os;
-                                os << "Exception while compiling interupt dispatch for: "
-                                   << Concrete::fullTypeName( pCInterupt ) << "\n";
-                                ClangTraits::printDerivationStep( pRoot, true, os );
-                                os << "\nError: " << ex.what();
-                                THROW_RTE( os.str() );
+                                auto pEvent = db_cast< Concrete::Context >( pDispatch->get_vertex() );
+                                VERIFY_RTE( pEvent );
+                                auto pEventDispatch = database.construct< Functions::EventDispatch >(
+                                    Functions::EventDispatch::Args{ pDispatch, pEvent, pCInterupt } );
+                                eventDispatches.push_back( pEventDispatch );
                             }
                         }
+                        catch( std::exception& ex )
+                        {
+                            std::ostringstream os;
+                            os << "Exception while compiling interupt dispatch for: "
+                               << Concrete::fullTypeName( pCInterupt ) << "\n";
+                            ClangTraits::printDerivationStep( pRoot, true, os );
+                            os << "\nError: " << ex.what();
+                            THROW_RTE( os.str() );
+                        }
                     }
-
-                    database.construct< Concrete::Interupt >(
-                        Concrete::Interupt::Args{ pCInterupt, transitions, derivations, eventDispatches } );
                 }
+
+                database.construct< Concrete::Interupt >(
+                    Concrete::Interupt::Args{ pCInterupt, transitions, derivations, eventDispatches } );
             }
 
             return true;
@@ -569,31 +559,28 @@ public:
 
         virtual bool visit( Interface::Decider* pNode ) const
         {
-            if( !bRecontextualising )
+            for( auto pCNode : pNode->get_realisers() )
             {
-                for( auto pCNode : pNode->get_realisers() )
+                auto pCDecider = db_cast< Concrete::Decider >( pCNode );
+                VERIFY_RTE( pCDecider );
+
+                auto pEvents = pNode->get_events();
+
+                std::vector< ClangTraits::Derivation::Root* > events;
                 {
-                    auto pCDecider = db_cast< Concrete::Decider >( pCNode );
-                    VERIFY_RTE( pCDecider );
-
-                    auto pEvents = pNode->get_events();
-
-                    std::vector< ClangTraits::Derivation::Root* > events;
+                    for( auto pNamedPath : pEvents->get_type_named_path_sequence()->get_named_path_sequence() )
                     {
-                        for( auto pNamedPath : pEvents->get_type_named_path_sequence()->get_named_path_sequence() )
-                        {
-                            auto pDerivingPath = db_cast< Parser::Type::Deriving >( pNamedPath->get_path() );
-                            VERIFY_RTE( pDerivingPath );
+                        auto pDerivingPath = db_cast< Parser::Type::Deriving >( pNamedPath->get_path() );
+                        VERIFY_RTE( pDerivingPath );
 
-                            ClangTraits::NonInterObjectDerivationPolicy       policy{ database };
-                            ClangTraits::NonInterObjectDerivationPolicy::Spec spec{ { pCNode }, pDerivingPath, false };
-                            std::vector< ClangTraits::Derivation::Or* >       frontier;
-                            auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
-                            events.push_back( pRoot );
-                        }
+                        ClangTraits::NonInterObjectDerivationPolicy       policy{ database };
+                        ClangTraits::NonInterObjectDerivationPolicy::Spec spec{ { pCNode }, pDerivingPath, false };
+                        std::vector< ClangTraits::Derivation::Or* >       frontier;
+                        auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
+                        events.push_back( pRoot );
                     }
-                    database.construct< Concrete::Decider >( Concrete::Decider::Args{ pCDecider, events } );
                 }
+                database.construct< Concrete::Decider >( Concrete::Decider::Args{ pCDecider, events } );
             }
 
             return true;
@@ -607,15 +594,14 @@ public:
                 << "(*)("
                 << generateCPPType( database, pNode, pNode->get_arguments()->get_cpp_fragments()->get_elements() )
                 << ");";
-            if( concreteNodeOpt.has_value() )
-            {
-                VERIFY_RTE(
-                    cppTypes
-                        .insert( { concreteNodeOpt.value(),
-                                   database.construct< Concrete::CPP::FunctionType >( Concrete::CPP::FunctionType::Args{
-                                       Concrete::CPP::Type::Args{ concreteNodeOpt.value() } } ) } )
-                        .second );
-            }
+
+            /*VERIFY_RTE(
+                cppTypes
+                    .insert( { concreteNodeOpt.value(),
+                               database.construct< Concrete::CPP::FunctionType >( Concrete::CPP::FunctionType::Args{
+                                   Concrete::CPP::Type::Args{ concreteNodeOpt.value() } } ) } )
+                    .second );*/
+
             return true;
         }
 
@@ -623,24 +609,21 @@ public:
         virtual bool visit( Interface::Component* pNode ) const { return false; }
         virtual bool visit( Interface::State* pNode ) const
         {
-            if( !bRecontextualising )
+            auto transitionOpt = pNode->get_transition_opt();
+
+            for( auto pCNode : pNode->get_realisers() )
             {
-                auto transitionOpt = pNode->get_transition_opt();
+                auto pCState = db_cast< Concrete::State >( pCNode );
+                VERIFY_RTE( pCState );
 
-                for( auto pCNode : pNode->get_realisers() )
+                if( transitionOpt.has_value() )
                 {
-                    auto pCState = db_cast< Concrete::State >( pCNode );
-                    VERIFY_RTE( pCState );
-
-                    if( transitionOpt.has_value() )
-                    {
-                        auto transitions = solveTransitions( database, transitionOpt.value(), pCNode );
-                        database.construct< Concrete::State >( Concrete::State::Args{ pCState, transitions } );
-                    }
-                    else
-                    {
-                        database.construct< Concrete::State >( Concrete::State::Args{ pCState, {} } );
-                    }
+                    auto transitions = solveTransitions( database, transitionOpt.value(), pCNode );
+                    database.construct< Concrete::State >( Concrete::State::Args{ pCState, transitions } );
+                }
+                else
+                {
+                    database.construct< Concrete::State >( Concrete::State::Args{ pCState, {} } );
                 }
             }
             return true;
@@ -649,45 +632,9 @@ public:
         virtual bool visit( Interface::IContext* pNode ) const { return true; }
     };
 
-    void recurse( Database& database, GraphInfo& graph, CPPTypeMap& cppTypes, Concrete::Node* pNode, Printer& printer )
-    {
-        Visitor visitor{ database, graph, printer, cppTypes, true, pNode };
-
-        auto iNodeOpt = pNode->get_node_opt();
-        VERIFY_RTE( iNodeOpt.has_value() );
-        auto pINode = iNodeOpt.value();
-
-        Interface::visit( visitor, pINode );
-
-        const bool bIsContext  = db_cast< Interface::IContext >( pINode );
-        const bool bIsFunction = db_cast< Interface::Function >( pINode );
-        if( bIsContext && !bIsFunction )
-        {
-            printer.line() << "namespace " << pINode->get_symbol()->get_token();
-            printer.line() << "{";
-            printer.indent();
-        }
-
-        for( auto pChild : pNode->get_children() )
-        {
-            if( !pChild->get_is_direct_realiser() )
-            {
-                recurse( database, graph, cppTypes, pChild, printer );
-            }
-        }
-
-        if( bIsContext && !bIsFunction )
-        {
-            printer.outdent();
-            printer.line() << "}";
-        }
-    }
-
     void recurse( Database& database, GraphInfo& graph, CPPTypeMap& cppTypes, Interface::Node* pNode, Printer& printer )
     {
-        auto realiserOpt = pNode->get_direct_realiser_opt();
-
-        Visitor visitor{ database, graph, printer, cppTypes, false, realiserOpt };
+        Visitor visitor{ database, graph, printer, cppTypes };
 
         Interface::visit( visitor, pNode );
 
@@ -703,18 +650,6 @@ public:
         for( Interface::Node* pChildNode : pNode->get_children() )
         {
             recurse( database, graph, cppTypes, pChildNode, printer );
-        }
-
-        if( realiserOpt )
-        {
-            Concrete::Node* pDirectRealiser = realiserOpt.value();
-            for( auto pChild : pDirectRealiser->get_children() )
-            {
-                if( pChild->get_recontextualise() && !pChild->get_is_direct_realiser() )
-                {
-                    recurse( database, graph, cppTypes, pChild, printer );
-                }
-            }
         }
 
         if( bIsContext && !bIsFunction )

@@ -46,6 +46,7 @@ struct Visitor
     virtual bool visit( Component* pNode ) const { return false; }
     virtual bool visit( State* pNode ) const { return false; }
     virtual bool visit( InvocationContext* pNode ) const { return false; }
+    virtual bool visit( Unspecified* pNode ) const { return false; }
     virtual bool visit( IContext* pNode ) const { return false; }
 };
 
@@ -283,6 +284,17 @@ inline bool visit( Visitor& visitor, Interface::Node* pINode )
     else if( auto* pInvocationContext = db_cast< InvocationContext >( pINode ) )
     {
         if( !visitor.visit( pInvocationContext ) )
+        {
+            if( !visitor.visit( static_cast< IContext* >( pState ) ) )
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    else if( auto* pUnspecified = db_cast< Unspecified >( pINode ) )
+    {
+        if( !visitor.visit( pUnspecified ) )
         {
             if( !visitor.visit( static_cast< IContext* >( pState ) ) )
             {

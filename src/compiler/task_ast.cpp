@@ -365,6 +365,23 @@ public:
                 refineInheritance( pAbstract, pIAbstract );
                 refineSize( pAbstract, pIAbstract );
             }
+            else if( auto pNamespace = db_cast< Namespace >( pContainer ) )
+            {
+                auto pINamespace = getOrCreate< Interface::Namespace >( database, pIContext, pContainer, bRefined );
+
+                // allow namespace to be included into other type
+                bool bFoundParentObject = false;
+                for( Interface::IContext* p = pIContext; p != nullptr;
+                    p                      = db_cast< Interface::IContext >( p->get_parent() ) )
+                {
+                    if( db_cast< Interface::Object >( p ) )
+                    {
+                        bFoundParentObject = true;
+                        break;
+                    }
+                }
+                pINamespace->set_is_global( bFoundParentObject );
+            }
             else if( auto pEvent = db_cast< Event >( pContainer ) )
             {
                 auto pIEvent = getOrCreate< Interface::Event >( database, pIContext, pContainer, bRefined );
@@ -552,13 +569,9 @@ public:
                     p->push_back_parts( pPart );
                 }
             }
-            else if( auto pNamespace = db_cast< Namespace >( pContainer ) )
-            {
-                // allow namespace to be included into other type
-            }
             else
             {
-                // allow IContext containers to be consumed into parent Interface nodes
+                // leave unspecified and detect after all containers
             }
         }
 
@@ -566,17 +579,7 @@ public:
         if( !bRefined )
         {
             // is this a global namespace
-            bool bFoundParentObject = false;
-            for( Interface::IContext* p = pIContext; p != nullptr;
-                 p                      = db_cast< Interface::IContext >( p->get_parent() ) )
-            {
-                if( db_cast< Interface::Object >( p ) )
-                {
-                    bFoundParentObject = true;
-                    break;
-                }
-            }
-            database.construct< Interface::Namespace >( Interface::Namespace::Args{ pIContext, !bFoundParentObject } );
+            database.construct< Interface::Unspecified >( Interface::Unspecified::Args{ pIContext } );
             bRefined = true;
         }
     }
@@ -638,6 +641,9 @@ public:
                 }
             }
             else if( auto pAbstract = db_cast< Abstract >( pIContext ) )
+            {
+            }
+            else if( auto pUnspecified = db_cast< Unspecified >( pIContext ) )
             {
             }
             else if( auto pEvent = db_cast< Event >( pIContext ) )

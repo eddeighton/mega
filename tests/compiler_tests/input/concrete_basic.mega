@@ -50,7 +50,7 @@ object Object1
     }
 }
 
-object Object2 : ^Object1, ^Historical, ^Template
+object Object2 : ^Object1, ^Historical
 {
     component A : ^IOne, ^testing.ITwo
     {
@@ -65,7 +65,7 @@ object Object3
         dim m_int3 int;
     }
 
-    component B <- ^testing.ITwo.nested
+    component B : ^testing.ITwo.nested
     {
         cpp Foobar float;
     }
@@ -84,7 +84,7 @@ object Object4 : ^Object2, ^Object3
 }
 
 // example of inheritance as recontextualisation
-object Object5 <- ^Object2, ^Object3
+object Object5 : ^Object2, ^Object3
 {
     component A
     {

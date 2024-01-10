@@ -42,7 +42,7 @@ object Object3
 
     dim D::A::m_thing int;
     
-    action action2 : ^Template > @action1
+    action action2 > @action1
     {
 
     }

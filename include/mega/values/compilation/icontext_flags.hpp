@@ -35,7 +35,6 @@ public:
         eMeta,
         eOR,
         eHistorical,
-        eTemplate,
         TOTAL_FLAGS
     };
     using Bits = std::bitset< TOTAL_FLAGS >;

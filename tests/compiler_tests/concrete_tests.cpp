@@ -67,6 +67,7 @@ using namespace std::string_literals;
 INSTANTIATE_TEST_SUITE_P( Concrete, ConcreteFixtureType,
         ::testing::Values
         ( 
-            Data{ "concrete_basic", { "concrete_basic.mega" }, {} }
+            Data{ "concrete_basic", { "concrete_basic.mega" }, {} },
+            Data{ "concrete_unkinded", { "concrete_unkinded.mega" }, {} }
         ));
 // clang-format on

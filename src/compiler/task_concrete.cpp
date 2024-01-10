@@ -59,16 +59,15 @@ public:
     };
 
     void inherit( Database& database, Concrete::Root* pConcreteRoot, Interface::Node* pIParentNode,
-                  Concrete::Node* pCParentNode, InheritanceInfo& info, bool bDirectRealisationContext,
-                  bool bRecontextualiseSubTree )
+                  Concrete::Node* pCParentNode, InheritanceInfo& info, bool bDirectRealisationContext )
     {
         if( !pCParentNode )
         {
             // see if can start object
             if( auto pIObject = db_cast< Interface::Object >( pIParentNode ) )
             {
-                pCParentNode = database.construct< Concrete::Node >( Concrete::Node::Args{
-                    Concrete::NodeGroup::Args{ {} }, pConcreteRoot, pIParentNode, true, bRecontextualiseSubTree } );
+                pCParentNode = database.construct< Concrete::Node >(
+                    Concrete::Node::Args{ Concrete::NodeGroup::Args{ {} }, pConcreteRoot, pIParentNode, true } );
                 VERIFY_RTE( info.directRealisers.insert( { pIParentNode, pCParentNode } ).second );
                 info.objects.push_back( pCParentNode );
             }
@@ -90,23 +89,7 @@ public:
                         {
                             auto pNode = pAbsolutePath->get_type();
                             info.directInheritors.insert( { pNode, pIContext } );
-
-                            bool bShouldRecontextualiseInheritance = false;
-                            // if already recontextualising then continue doing it
-                            if( bRecontextualiseSubTree )
-                            {
-                                bShouldRecontextualiseInheritance = true;
-                            }
-                            // otherwise ONLY if in a valid recontextualisation context then
-                            // determine if SHOULD recontextualised using the inheritance specification
-                            else if( bDirectRealisationContext )
-                            {
-                                bShouldRecontextualiseInheritance = pInheritance->get_recontextualise();
-                            }
-
-                            // when recurse due to inheritance then bDirectRealisationContext becomes false
-                            inherit( database, pConcreteRoot, pNode, pCParentNode, info, false,
-                                     bShouldRecontextualiseInheritance );
+                            inherit( database, pConcreteRoot, pNode, pCParentNode, info, false );
                         }
                         else
                         {
@@ -134,9 +117,8 @@ public:
 
                 if( !pChildCNode )
                 {
-                    pChildCNode = database.construct< Concrete::Node >(
-                        Concrete::Node::Args{ Concrete::NodeGroup::Args{ {} }, pCParentNode, pINode,
-                                              bDirectRealisationContext, bRecontextualiseSubTree } );
+                    pChildCNode = database.construct< Concrete::Node >( Concrete::Node::Args{
+                        Concrete::NodeGroup::Args{ {} }, pCParentNode, pINode, bDirectRealisationContext } );
                     if( bDirectRealisationContext )
                     {
                         VERIFY_RTE( info.directRealisers.insert( { pINode, pChildCNode } ).second );
@@ -146,24 +128,18 @@ public:
                 else
                 {
                     // override existing node with deriving interface node
-                    // ensure nodes are same kind unless override is namespace or interface
+                    // unless the overriding node is Unspecified
                     bool bOverrideInterfaceNode = true;
-                    if( pChildCNode->get_node_opt().has_value() )
+                    if( db_cast< Interface::Unspecified >( pINode ) )
+                    {
+                        bOverrideInterfaceNode = false;
+                    }
+                    else if( pChildCNode->get_node_opt().has_value() )
                     {
                         auto pOldINode = pChildCNode->get_node_opt().value();
-
-                        if( db_cast< Interface::Namespace >( pINode ) || db_cast< Interface::Abstract >( pINode ) )
+                        if( db_cast< Interface::IContext >( pINode ) )
                         {
-                            // if the new node is namespace or abstract allow its type to be ignored
-                            // if the previous type is not
-                            if( !db_cast< Interface::Namespace >( pOldINode )
-                                && !db_cast< Interface::Abstract >( pOldINode ) )
-                            {
-                                bOverrideInterfaceNode = false;
-                            }
-                        }
-                        if( bOverrideInterfaceNode )
-                        {
+                            // allow namespace OR interface to be inherited into any IContext
                             if( !db_cast< Interface::Namespace >( pOldINode )
                                 && !db_cast< Interface::Abstract >( pOldINode ) )
                             {
@@ -174,20 +150,29 @@ public:
                                                     << " for: " << Interface::fullTypeName( pINode ) );
                             }
                         }
+                        else
+                        {
+                            // if not IContext then kind MUST be identical
+                            VERIFY_RTE_MSG( pOldINode->get_kind() == pINode->get_kind(),
+                                            "Conflicting node kinds in inheritance for: "
+                                                << Interface::fullTypeName( pINode ) << " of: " << pOldINode->get_kind()
+                                                << " and: " << pINode->get_kind()
+                                                << " for: " << Interface::fullTypeName( pINode ) );
+                        }
                     }
                     if( bOverrideInterfaceNode )
                     {
                         pChildCNode->set_node_opt( pINode );
-                    }
-                    if( bDirectRealisationContext )
-                    {
-                        VERIFY_RTE( info.directRealisers.insert( { pINode, pChildCNode } ).second );
-                        pChildCNode->set_is_direct_realiser( true );
+
+                        if( bDirectRealisationContext )
+                        {
+                            VERIFY_RTE( info.directRealisers.insert( { pINode, pChildCNode } ).second );
+                            pChildCNode->set_is_direct_realiser( true );
+                        }
                     }
                 }
 
-                inherit( database, pConcreteRoot, pINode, pChildCNode, info, bDirectRealisationContext,
-                         bRecontextualiseSubTree );
+                inherit( database, pConcreteRoot, pINode, pChildCNode, info, bDirectRealisationContext );
             }
         }
         else
@@ -195,8 +180,7 @@ public:
             // recurse through the interface looking for objects
             for( auto pINode : pIParentNode->get_children() )
             {
-                inherit( database, pConcreteRoot, pINode, nullptr, info, bDirectRealisationContext,
-                         bRecontextualiseSubTree );
+                inherit( database, pConcreteRoot, pINode, nullptr, info, bDirectRealisationContext );
             }
         }
     }
@@ -258,7 +242,7 @@ public:
                 {
                     auto pActivationBitSet = database.construct< Concrete::ActivationBitSet >(
                         Concrete::ActivationBitSet::Args{ Concrete::Node::Args{
-                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false, false } } );
+                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false } } );
                     pParentObject->set_activation_bitset( pActivationBitSet );
                     pParentObject->push_back_children( pActivationBitSet );
                 }
@@ -267,7 +251,7 @@ public:
                 {
                     auto pOwnershipLink = database.construct< Concrete::OwnershipLink >(
                         Concrete::OwnershipLink::Args{ Concrete::Link::Args{ Concrete::Node::Args{
-                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false, false } } } );
+                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false } } } );
                     pParentObject->set_ownership( pOwnershipLink );
                     pParentObject->push_back_children( pOwnershipLink );
                 }
@@ -344,7 +328,7 @@ public:
         {
             for( auto pINode : pInterfaceRoot->get_children() )
             {
-                inherit( database, pConcreteRoot, pINode, nullptr, info, true, false );
+                inherit( database, pConcreteRoot, pINode, nullptr, info, true );
             }
             pConcreteRoot->set_children( info.objects );
         }

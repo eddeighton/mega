@@ -29,9 +29,9 @@ namespace
 {
 using namespace std::string_literals;
 static const std::array< std::string, mega::IContextFlags::TOTAL_FLAGS > g_pszModes
-    = { "Meta"s, "OR"s, "Historical"s, "Template"s };
+    = { "Meta"s, "OR"s, "Historical"s };
 
-static const std::array< bool, mega::IContextFlags::TOTAL_FLAGS > g_isDirect = { false, false, false, true };
+static const std::array< bool, mega::IContextFlags::TOTAL_FLAGS > g_isDirect = { false, false, false };
 } // namespace
 
 namespace mega

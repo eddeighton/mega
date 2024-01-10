@@ -1,0 +1,26 @@
+
+
+namespace A
+{
+    component B
+    {
+        cpp Int int;
+
+        function f1( Int i ) -> Int;
+        function f2( Int i ) -> Int;
+    }
+}
+
+object C
+{
+    component D : ^A.B
+    {
+        cpp Int short;
+    }
+}
+
+object E : ^C
+{
+    // override the substructure WITHOUT specifying the kind of 'D'
+    cpp D::Int double;
+}
