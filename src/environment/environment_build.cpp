@@ -158,17 +158,10 @@ GeneratedHPPSourceFilePath BuildEnvironment::ClangTraits() const
     return { os.str() };
 }
 
-GeneratedHPPSourceFilePath BuildEnvironment::CPPDecls() const
+PrecompiledHeaderFile BuildEnvironment::TraitsPCH() const
 {
     std::ostringstream os;
-    os << "CPPDecls" << GeneratedHPPSourceFilePath::extension().string();
-    return { os.str() };
-}
-
-PrecompiledHeaderFile BuildEnvironment::CPPDeclsPCH() const
-{
-    std::ostringstream os;
-    os << "CPPDecls" << PrecompiledHeaderFile::extension().string();
+    os << "Traits" << PrecompiledHeaderFile::extension().string();
     return { os.str() };
 }
 

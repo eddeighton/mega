@@ -65,24 +65,13 @@ class TraitsSession : public SymbolSession
 
     std::map< std::string, Symbols::SymbolID* > m_symbols;
 
-    ItaniumMangleContext* m_pMangle = nullptr;
-
 public:
     TraitsSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir )
         : SymbolSession( pASTContext, pSema, strSrcDir, strBuildDir )
         , m_database( m_environment, m_environment.project_manifest() )
     {
         Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-        m_symbols = pSymbolTable->get_symbol_names();
-    }
-
-    ItaniumMangleContext* getMangle()
-    {
-        if( !m_pMangle )
-        {
-            m_pMangle = ItaniumMangleContext::create( *pASTContext, pASTContext->getDiagnostics() );
-        }
-        return m_pMangle;
+        m_symbols                          = pSymbolTable->get_symbol_names();
     }
 
     virtual unsigned int getSymbolID( const std::string& strIdentifier ) const override
@@ -108,44 +97,100 @@ public:
 
     struct Visitor : Interface::Visitor
     {
-        Database&   database;
-        ASTContext* pASTContext;
-        Sema*       pSema;
+        Database&                        database;
+        ASTContext*                      pASTContext;
+        Sema*                            pSema;
+        ItaniumMangleContext*            pMangle;
+        std::optional< Concrete::Node* > concreteNodeOpt;
 
         DeclContext*   pDeclContext = nullptr;
         SourceLocation loc;
 
-        Visitor( Database& database, ASTContext* pASTContext, Sema* pSema )
+        Visitor( Database&             database,
+                 ASTContext*           pASTContext,
+                 Sema*                 pSema,
+                 ItaniumMangleContext* pMangle,
+                 std::optional< Concrete::Node* >
+                     concreteNodeOpt )
             : database( database )
             , pASTContext( pASTContext )
             , pSema( pSema )
+            , pMangle( pMangle )
+            , concreteNodeOpt( concreteNodeOpt )
         {
         }
 
         virtual ~Visitor() = default;
+
         virtual bool visit( Interface::UserDimension* pNode ) const
         {
-            QualType traitType
-                = getTypeTrait( pASTContext, pSema, pDeclContext, loc, pNode->get_symbol()->get_token() );
+            if( concreteNodeOpt.has_value() )
+            {
+                QualType traitType
+                    = getTypeTrait( pASTContext, pSema, pDeclContext, loc, pNode->get_symbol()->get_token() );
 
-            CLANG_PLUGIN_LOG( "Found: " << Interface::getKind( pNode ) << " " << Interface::fullTypeName( pNode )
-                                        << " with type: " << traitType.getCanonicalType().getAsString() );
+                const std::string strCanonical = traitType.getCanonicalType().getAsString();
+                std::string       strMangle;
+                {
+                    llvm::raw_string_ostream os( strMangle );
+                    pMangle->mangleTypeName( traitType, os );
+                }
 
+                CLANG_PLUGIN_LOG( "Found: " << Interface::getKind( pNode ) << " " << Interface::fullTypeName( pNode )
+                                            << " with type: " << strCanonical );
+
+                Concrete::Node* pNode      = concreteNodeOpt.value();
+                auto            optCPPType = pNode->get_cpp_type_opt();
+                VERIFY_RTE( optCPPType );
+                auto pDataType = db_cast< Concrete::CPP::DataType >( optCPPType.value() );
+                VERIFY_RTE( pDataType );
+
+                auto pTypeInfo = database.construct< Concrete::CPP::TypeInfo >(
+                    Concrete::CPP::TypeInfo::Args{ strCanonical, strMangle } );
+
+                database.construct< Concrete::CPP::DataType >( Concrete::CPP::DataType::Args{ pDataType, pTypeInfo } );
+            }
             return true;
         }
+
         virtual bool visit( Interface::UserAlias* pNode ) const
         {
-            auto pPath = pNode->get_alias()->get_alias_type()->get_type_path();
-            if( auto pDeriving = db_cast< Parser::Type::Deriving >( pPath ) )
+            if( concreteNodeOpt.has_value() )
             {
+                auto pPath = pNode->get_alias()->get_alias_type()->get_type_path();
+                if( auto pDeriving = db_cast< Parser::Type::Deriving >( pPath ) )
+                {
+                }
+                else if( auto pAbsolute = db_cast< Parser::Type::Absolute >( pPath ) )
+                {
+                }
+                else
+                {
+                    THROW_RTE( "Unknown type path type" );
+                }
+
+                QualType traitType
+                    = getTypeTrait( pASTContext, pSema, pDeclContext, loc, pNode->get_symbol()->get_token() );
+
+                const std::string strCanonical = traitType.getCanonicalType().getAsString();
+                std::string       strMangle;
+                {
+                    llvm::raw_string_ostream os( strMangle );
+                    pMangle->mangleTypeName( traitType, os );
+                }
+
+                Concrete::Node* pNode      = concreteNodeOpt.value();
+                auto            optCPPType = pNode->get_cpp_type_opt();
+                VERIFY_RTE( optCPPType );
+                auto pDataType = db_cast< Concrete::CPP::DataType >( optCPPType.value() );
+                VERIFY_RTE( pDataType );
+
+                auto pTypeInfo = database.construct< Concrete::CPP::TypeInfo >(
+                    Concrete::CPP::TypeInfo::Args{ strCanonical, strMangle } );
+
+                database.construct< Concrete::CPP::DataType >( Concrete::CPP::DataType::Args{ pDataType, pTypeInfo } );
             }
-            else if( auto pAbsolute = db_cast< Parser::Type::Absolute >( pPath ) )
-            {
-            }
-            else
-            {
-                THROW_RTE( "Unknown type path type" );
-            }
+
             return true;
         }
         virtual bool visit( Interface::UserUsing* pNode ) const { return true; }
@@ -159,7 +204,58 @@ public:
         virtual bool visit( Interface::Interupt* pNode ) const { return false; }
         virtual bool visit( Interface::Requirement* pNode ) const { return false; }
         virtual bool visit( Interface::Decider* pNode ) const { return false; }
-        virtual bool visit( Interface::Function* pNode ) const { return true; }
+        virtual bool visit( Interface::Function* pNode ) const
+        {
+            if( concreteNodeOpt.has_value() )
+            {
+                Concrete::Node* pConcreteNode = concreteNodeOpt.value();
+                auto            optCPPType    = pConcreteNode->get_cpp_type_opt();
+                VERIFY_RTE( optCPPType );
+                auto pFunctionType = db_cast< Concrete::CPP::FunctionType >( optCPPType.value() );
+                VERIFY_RTE( pFunctionType );
+
+                QualType traitType
+                    = getTypeTrait( pASTContext, pSema, pDeclContext, loc, pNode->get_symbol()->get_token() );
+                VERIFY_RTE( traitType->isFunctionPointerType() );
+
+                auto pClangFunctionType = traitType->getPointeeType()->getAs< clang::FunctionProtoType >();
+                VERIFY_RTE( pClangFunctionType );
+
+                Concrete::CPP::TypeInfo* pReturnTypeInfo = nullptr;
+                {
+                    auto              returnType   = pClangFunctionType->getReturnType();
+                    const std::string strCanonical = returnType.getCanonicalType().getAsString();
+                    std::string       strMangle;
+                    {
+                        llvm::raw_string_ostream os( strMangle );
+                        pMangle->mangleTypeName( returnType, os );
+                    }
+                    pReturnTypeInfo = database.construct< Concrete::CPP::TypeInfo >(
+                        Concrete::CPP::TypeInfo::Args{ strCanonical, strMangle } );
+                }
+
+                std::vector< Concrete::CPP::TypeInfo* > parameterTypeInfos;
+                {
+                    for( auto paramType : pClangFunctionType->getParamTypes() )
+                    {
+                        const std::string strCanonical = paramType.getCanonicalType().getAsString();
+                        std::string       strMangle;
+                        {
+                            llvm::raw_string_ostream os( strMangle );
+                            pMangle->mangleTypeName( paramType, os );
+                        }
+                        auto pParameterType = database.construct< Concrete::CPP::TypeInfo >(
+                            Concrete::CPP::TypeInfo::Args{ strCanonical, strMangle } );
+                        parameterTypeInfos.push_back( pParameterType );
+                    }
+                }
+
+                database.construct< Concrete::CPP::FunctionType >(
+                    Concrete::CPP::FunctionType::Args{ pFunctionType, pReturnTypeInfo, parameterTypeInfos } );
+            }
+
+            return true;
+        }
         virtual bool visit( Interface::Action* pNode ) const { return false; }
         virtual bool visit( Interface::Component* pNode ) const { return false; }
         virtual bool visit( Interface::State* pNode ) const { return false; }
@@ -167,14 +263,55 @@ public:
         virtual bool visit( Interface::IContext* pNode ) const { return true; }
     };
 
-    bool recurse( Interface::Node* pNode, DeclContext* pDeclContext, SourceLocation loc, Visitor& visitor )
+    bool recurse( Concrete::Node* pNode, DeclContext* pDeclContext, ItaniumMangleContext* pMangle, SourceLocation loc )
     {
+        Visitor visitor{ m_database, pASTContext, pSema, pMangle, pNode };
+
+        auto iNodeOpt = pNode->get_node_opt();
+        VERIFY_RTE( iNodeOpt.has_value() );
+        auto pINode = iNodeOpt.value();
+
+        visitor.pDeclContext = pDeclContext;
+        visitor.loc          = loc;
+        Interface::visit( visitor, pINode );
+
+        // recurse following pattern used in compiler/task_clang_traits.cpp:213
+        const bool bIsContext  = db_cast< Interface::IContext >( pINode );
+        const bool bIsFunction = db_cast< Interface::Function >( pINode );
+
+        if( bIsContext && !bIsFunction )
+        {
+            DeclLocType result
+                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pINode->get_symbol()->get_token() );
+            if( nullptr == result.pDeclContext )
+            {
+                REPORT_ERROR( "Failed to resolve trait for: " << Interface::getKind( pINode ) << " "
+                                                              << Interface::fullTypeName( pINode ) );
+                return false;
+            }
+
+            for( auto pChild : pNode->get_children() )
+            {
+                if( !pChild->get_is_direct_realiser() )
+                {
+                    recurse( pChild, result.pDeclContext, pMangle, result.loc );
+                }
+            }
+        }
+        return true;
+    }
+
+    bool recurse( Interface::Node* pNode, DeclContext* pDeclContext, ItaniumMangleContext* pMangle, SourceLocation loc )
+    {
+        auto realiserOpt = pNode->get_direct_realiser_opt();
+
+        Visitor visitor{ m_database, pASTContext, pSema, pMangle, realiserOpt };
+
         visitor.pDeclContext = pDeclContext;
         visitor.loc          = loc;
         Interface::visit( visitor, pNode );
 
         // recurse following pattern used in compiler/task_clang_traits.cpp:213
-
         const bool bIsContext  = db_cast< Interface::IContext >( pNode );
         const bool bIsFunction = db_cast< Interface::Function >( pNode );
 
@@ -188,36 +325,42 @@ public:
                                                               << Interface::fullTypeName( pNode ) );
                 return false;
             }
-            else
-            {
-                // CLANG_PLUGIN_LOG( "Found: " << Interface::getKind( pNode ) << " " << Interface::fullTypeName( pNode )
-                // );
-            }
 
             for( Interface::Node* pChildNode : pNode->get_children() )
             {
-                if( !recurse( pChildNode, result.pDeclContext, result.loc, visitor ) )
+                if( !recurse( pChildNode, result.pDeclContext, pMangle, result.loc ) )
                 {
                     return false;
+                }
+            }
+
+            if( realiserOpt )
+            {
+                Concrete::Node* pDirectRealiser = realiserOpt.value();
+                for( auto pChild : pDirectRealiser->get_children() )
+                {
+                    if( pChild->get_recontextualise() && !pChild->get_is_direct_realiser() )
+                    {
+                        recurse( pChild, result.pDeclContext, pMangle, result.loc );
+                    }
                 }
             }
         }
         return true;
     }
 
-    virtual void runFinalAnalysis()
+    virtual void runFinalAnalysis() override
     {
-        Visitor visitor{ m_database, pASTContext, pSema };
-
         bool bSuccess = true;
         {
             SourceLocation loc;
             DeclContext*   pDeclContext = pASTContext->getTranslationUnitDecl();
+            auto           pMangle      = ItaniumMangleContext::create( *pASTContext, pASTContext->getDiagnostics() );
 
             Interface::Root* pRoot = m_database.one< Interface::Root >( m_environment.project_manifest() );
             for( Interface::Node* pNode : pRoot->get_children() )
             {
-                if( !recurse( pNode, pDeclContext, loc, visitor ) )
+                if( !recurse( pNode, pDeclContext, pMangle, loc ) )
                 {
                     bSuccess = false;
                     break;

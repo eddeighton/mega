@@ -146,16 +146,39 @@ public:
                 else
                 {
                     // override existing node with deriving interface node
-                    // ensure nodes are same kind
+                    // ensure nodes are same kind unless override is namespace or interface
+                    bool bOverrideInterfaceNode = true;
                     if( pChildCNode->get_node_opt().has_value() )
                     {
-                        VERIFY_RTE_MSG( pChildCNode->get_node_opt().value()->get_kind() == pINode->get_kind(),
-                                        "Conflicting node kinds in inheritance for: "
-                                            << Interface::fullTypeName( pINode )
-                                            << " of: " << pChildCNode->get_node_opt().value()->get_kind()
-                                            << " and: " << pINode->get_kind() );
+                        auto pOldINode = pChildCNode->get_node_opt().value();
+
+                        if( db_cast< Interface::Namespace >( pINode ) || db_cast< Interface::Abstract >( pINode ) )
+                        {
+                            // if the new node is namespace or abstract allow its type to be ignored
+                            // if the previous type is not
+                            if( !db_cast< Interface::Namespace >( pOldINode )
+                                && !db_cast< Interface::Abstract >( pOldINode ) )
+                            {
+                                bOverrideInterfaceNode = false;
+                            }
+                        }
+                        if( bOverrideInterfaceNode )
+                        {
+                            if( !db_cast< Interface::Namespace >( pOldINode )
+                                && !db_cast< Interface::Abstract >( pOldINode ) )
+                            {
+                                VERIFY_RTE_MSG( pOldINode->get_kind() == pINode->get_kind(),
+                                                "Conflicting node kinds in inheritance for: "
+                                                    << Interface::fullTypeName( pINode ) << " of: "
+                                                    << pOldINode->get_kind() << " and: " << pINode->get_kind()
+                                                    << " for: " << Interface::fullTypeName( pINode ) );
+                            }
+                        }
                     }
-                    pChildCNode->set_node_opt( pINode );
+                    if( bOverrideInterfaceNode )
+                    {
+                        pChildCNode->set_node_opt( pINode );
+                    }
                     if( bDirectRealisationContext )
                     {
                         VERIFY_RTE( info.directRealisers.insert( { pINode, pChildCNode } ).second );

@@ -287,9 +287,6 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc clang_Traits_Analysis = encode( Task{ eTask_Clang_Traits_Analysis } );
     dependencies.add( clang_Traits_Analysis, { includePCH, clang_Traits_Gen } );
 
-    const TskDesc CPP_Decl = encode( Task{ eTask_CPP_Decl } );
-    dependencies.add( CPP_Decl, { clang_Traits_Analysis } );
-
     std::vector< TskDesc > cppObjects;
     for( const auto& componentInfo : config.componentInfos )
     {
@@ -304,7 +301,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                 const TskDesc cppImpl    = encode( Task{ eTask_CPP_Impl, cppSourceFile } );
                 const TskDesc cppObj     = encode( Task{ eTask_CPP_Obj, cppSourceFile } );
 
-                dependencies.add( cppSource, { CPP_Decl } );
+                dependencies.add( cppSource, { clang_Traits_Analysis } );
                 dependencies.add( cppCompile, { cppSource } );
                 dependencies.add( cppImpl, { cppCompile } );
                 dependencies.add( cppObj, { cppImpl } );

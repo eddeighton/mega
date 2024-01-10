@@ -177,26 +177,9 @@ stage ClangTraitsStage
 
     global accessor ref< Interface::Root >;
     global accessor ref< Concrete::Root >;
+    global accessor array< ref< Concrete::Node > >;
     global accessor array< ref< Components::Component > >;
     global accessor ref< HyperGraph::Graph >;
-}
-
-stage DecisionsStage
-{
-    source .manifest;
-    source .mega;
-    source .cpp;
-
-    dependency ClangTraitsStage;
-
-    file Decisions;
-
-    global accessor ref< Interface::Root >;
-    global accessor ref< Concrete::Root >;
-    global accessor ref< HyperGraph::Graph >;
-    global accessor array< ref< Concrete::Object > >;
-    global accessor array< ref< Concrete::Interupt > >;
-    global accessor array< ref< Concrete::State > >;
 }
 
 stage ClangAnalysisStage
@@ -259,6 +242,24 @@ stage ObjectStage
     global accessor ref< Symbols::SymbolTable >;
 }
 
+
+stage DecisionsStage
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+
+    dependency ObjectStage;
+
+    file Decisions;
+
+    global accessor ref< Interface::Root >;
+    global accessor ref< Concrete::Root >;
+    global accessor ref< HyperGraph::Graph >;
+    global accessor array< ref< Concrete::Object > >;
+    global accessor array< ref< Concrete::Interupt > >;
+    global accessor array< ref< Concrete::State > >;
+}
 
 
 /*

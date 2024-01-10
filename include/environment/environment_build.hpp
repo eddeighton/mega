@@ -86,8 +86,7 @@ public:
     GeneratedHPPSourceFilePath Include() const;
     PrecompiledHeaderFile      IncludePCH() const;
     GeneratedHPPSourceFilePath ClangTraits() const;
-    GeneratedHPPSourceFilePath CPPDecls() const;
-    PrecompiledHeaderFile      CPPDeclsPCH() const;
+    PrecompiledHeaderFile      TraitsPCH() const;
 
     GeneratedHPPSourceFilePath CPPSource( const cppFilePath& source ) const;
     PrecompiledHeaderFile      CPPPCH( const cppFilePath& source ) const;
