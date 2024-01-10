@@ -41,6 +41,8 @@ object Object3
     }
 
     dim D::A::m_thing int;
+
+    dim E::A::m_thing int;
     
     action action2 > @action1
     {
