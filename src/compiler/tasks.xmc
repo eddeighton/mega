@@ -37,6 +37,7 @@ TASK_PROJECT(Automata)
 
 TASK_PROJECT(Clang_Traits_Gen)
 TASK_PROJECT(Clang_Traits_Analysis)
+TASK_PROJECT(CPP_Decl)
 
 TASK_SRC(CPP_Source,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
 TASK_SRC(CPP_Compile,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)

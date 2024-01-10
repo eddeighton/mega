@@ -82,8 +82,8 @@ public:
 
         if( EXIT_SUCCESS == run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
-            // m_environment.setBuildHashCode( compilationFile );
-            // m_environment.stash( compilationFile, determinant );
+            m_environment.setBuildHashCode( compilationFile );
+            m_environment.stash( compilationFile, determinant );
 
             m_environment.setBuildHashCode( cppPCH );
             m_environment.stash( cppPCH, determinant );

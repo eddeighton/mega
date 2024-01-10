@@ -97,18 +97,15 @@ public:
 
     struct Visitor : Interface::Visitor
     {
-        Database&                        database;
-        ASTContext*                      pASTContext;
-        Sema*                            pSema;
-        ItaniumMangleContext*            pMangle;
+        Database&             database;
+        ASTContext*           pASTContext;
+        Sema*                 pSema;
+        ItaniumMangleContext* pMangle;
 
         DeclContext*   pDeclContext = nullptr;
         SourceLocation loc;
 
-        Visitor( Database&             database,
-                 ASTContext*           pASTContext,
-                 Sema*                 pSema,
-                 ItaniumMangleContext* pMangle )
+        Visitor( Database& database, ASTContext* pASTContext, Sema* pSema, ItaniumMangleContext* pMangle )
             : database( database )
             , pASTContext( pASTContext )
             , pSema( pSema )
@@ -133,33 +130,16 @@ public:
             CLANG_PLUGIN_LOG( "Found: " << Interface::getKind( pNode ) << " " << Interface::fullTypeName( pNode )
                                         << " with type: " << strCanonical );
 
-            /*auto optCPPType = pNode->get_cpp_type_opt();
-            VERIFY_RTE( optCPPType );
-            auto pDataType = db_cast< Concrete::CPP::DataType >( optCPPType.value() );
-            VERIFY_RTE( pDataType );
+            auto pTypeInfo = database.construct< Interface::CPP::TypeInfo >(
+                Interface::CPP::TypeInfo::Args{ strCanonical, strMangle } );
+            database.construct< Interface::CPP::DataType >(
+                Interface::CPP::DataType::Args{ pNode->get_cpp_data_type(), pTypeInfo } );
 
-            auto pTypeInfo = database.construct< Concrete::CPP::TypeInfo >(
-                Concrete::CPP::TypeInfo::Args{ strCanonical, strMangle } );
-
-            database.construct< Concrete::CPP::DataType >( Concrete::CPP::DataType::Args{ pDataType, pTypeInfo } );*/
-            
             return true;
         }
 
-        virtual bool visit( Interface::UserAlias* pNode ) const
+        virtual bool visit( Interface::UserUsing* pNode ) const
         {
-            auto pPath = pNode->get_alias()->get_alias_type()->get_type_path();
-            if( auto pDeriving = db_cast< Parser::Type::Deriving >( pPath ) )
-            {
-            }
-            else if( auto pAbsolute = db_cast< Parser::Type::Absolute >( pPath ) )
-            {
-            }
-            else
-            {
-                THROW_RTE( "Unknown type path type" );
-            }
-
             QualType traitType
                 = getTypeTrait( pASTContext, pSema, pDeclContext, loc, pNode->get_symbol()->get_token() );
 
@@ -170,39 +150,19 @@ public:
                 pMangle->mangleTypeName( traitType, os );
             }
 
-            /*Concrete::Node* pNode      = concreteNodeOpt.value();
-            auto            optCPPType = pNode->get_cpp_type_opt();
-            VERIFY_RTE( optCPPType );
-            auto pDataType = db_cast< Concrete::CPP::DataType >( optCPPType.value() );
-            VERIFY_RTE( pDataType );
+            auto pTypeInfo = database.construct< Interface::CPP::TypeInfo >(
+                Interface::CPP::TypeInfo::Args{ strCanonical, strMangle } );
 
-            auto pTypeInfo = database.construct< Concrete::CPP::TypeInfo >(
-                Concrete::CPP::TypeInfo::Args{ strCanonical, strMangle } );
-
-            database.construct< Concrete::CPP::DataType >( Concrete::CPP::DataType::Args{ pDataType, pTypeInfo } );*/
+            database.construct< Interface::CPP::DataType >(
+                Interface::CPP::DataType::Args{ pNode->get_cpp_data_type(), pTypeInfo } );
 
             return true;
         }
-        virtual bool visit( Interface::UserUsing* pNode ) const { return true; }
-        virtual bool visit( Interface::UserLink* pNode ) const { return false; }
+
         virtual bool visit( Interface::Aggregate* pNode ) const { return true; }
 
-        virtual bool visit( Interface::Namespace* pNode ) const { return false; }
-        virtual bool visit( Interface::Abstract* pNode ) const { return false; }
-        virtual bool visit( Interface::Event* pNode ) const { return false; }
-        virtual bool visit( Interface::Object* pNode ) const { return false; }
-        virtual bool visit( Interface::Interupt* pNode ) const { return false; }
-        virtual bool visit( Interface::Requirement* pNode ) const { return false; }
-        virtual bool visit( Interface::Decider* pNode ) const { return false; }
         virtual bool visit( Interface::Function* pNode ) const
         {
-            /*
-            Concrete::Node* pConcreteNode = concreteNodeOpt.value();
-            auto            optCPPType    = pConcreteNode->get_cpp_type_opt();
-            VERIFY_RTE( optCPPType );
-            auto pFunctionType = db_cast< Concrete::CPP::FunctionType >( optCPPType.value() );
-            VERIFY_RTE( pFunctionType );
-
             QualType traitType
                 = getTypeTrait( pASTContext, pSema, pDeclContext, loc, pNode->get_symbol()->get_token() );
             VERIFY_RTE( traitType->isFunctionPointerType() );
@@ -210,7 +170,7 @@ public:
             auto pClangFunctionType = traitType->getPointeeType()->getAs< clang::FunctionProtoType >();
             VERIFY_RTE( pClangFunctionType );
 
-            Concrete::CPP::TypeInfo* pReturnTypeInfo = nullptr;
+            Interface::CPP::TypeInfo* pReturnTypeInfo = nullptr;
             {
                 auto              returnType   = pClangFunctionType->getReturnType();
                 const std::string strCanonical = returnType.getCanonicalType().getAsString();
@@ -219,11 +179,11 @@ public:
                     llvm::raw_string_ostream os( strMangle );
                     pMangle->mangleTypeName( returnType, os );
                 }
-                pReturnTypeInfo = database.construct< Concrete::CPP::TypeInfo >(
-                    Concrete::CPP::TypeInfo::Args{ strCanonical, strMangle } );
+                pReturnTypeInfo = database.construct< Interface::CPP::TypeInfo >(
+                    Interface::CPP::TypeInfo::Args{ strCanonical, strMangle } );
             }
 
-            std::vector< Concrete::CPP::TypeInfo* > parameterTypeInfos;
+            std::vector< Interface::CPP::TypeInfo* > parameterTypeInfos;
             {
                 for( auto paramType : pClangFunctionType->getParamTypes() )
                 {
@@ -233,21 +193,17 @@ public:
                         llvm::raw_string_ostream os( strMangle );
                         pMangle->mangleTypeName( paramType, os );
                     }
-                    auto pParameterType = database.construct< Concrete::CPP::TypeInfo >(
-                        Concrete::CPP::TypeInfo::Args{ strCanonical, strMangle } );
+                    auto pParameterType = database.construct< Interface::CPP::TypeInfo >(
+                        Interface::CPP::TypeInfo::Args{ strCanonical, strMangle } );
                     parameterTypeInfos.push_back( pParameterType );
                 }
             }
 
-            database.construct< Concrete::CPP::FunctionType >(
-                Concrete::CPP::FunctionType::Args{ pFunctionType, pReturnTypeInfo, parameterTypeInfos } );*/
+            database.construct< Interface::CPP::FunctionType >( Interface::CPP::FunctionType::Args{
+                pNode->get_cpp_function_type(), pReturnTypeInfo, parameterTypeInfos } );
 
             return true;
         }
-        virtual bool visit( Interface::Action* pNode ) const { return false; }
-        virtual bool visit( Interface::Component* pNode ) const { return false; }
-        virtual bool visit( Interface::State* pNode ) const { return false; }
-        virtual bool visit( Interface::InvocationContext* pNode ) const { return false; }
         virtual bool visit( Interface::IContext* pNode ) const { return true; }
     };
 

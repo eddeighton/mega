@@ -112,13 +112,30 @@ public:
         compilation.includeDirs = pComponent->get_include_directories();
 
         compilation.inputPCH = { environment.FilePath( environment.IncludePCH() ) };
-        compilation.outputPCH = environment.FilePath( environment.TraitsPCH() );
 
         compilation.inputFile = environment.FilePath( environment.ClangTraits() );
 
         return compilation;
     }
-    
+
+    template < typename TComponentType >
+    static inline Compilation make_cpp_decls_pch( const io::BuildEnvironment& environment,
+                                                  const utilities::ToolChain& toolChain,
+                                                  TComponentType*             pComponent )
+    {
+        Compilation compilation;
+        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
+        compilation.compiler_plugin  = toolChain.clangPluginPath;
+        compilation.flags            = pComponent->get_cpp_flags();
+        compilation.defines          = pComponent->get_cpp_defines();
+        compilation.includeDirs      = pComponent->get_include_directories();
+        compilation.inputPCH         = { environment.FilePath( environment.IncludePCH() ) };
+        compilation.outputPCH        = environment.FilePath( environment.CPPDeclsPCH() );
+        compilation.inputFile        = environment.FilePath( environment.CPPDecls() );
+        return compilation;
+    }
+
     template < typename TComponentType >
     static inline Compilation make_cpp_pch_compilation( const io::BuildEnvironment& environment,
                                                         const utilities::ToolChain& toolChain,
@@ -146,7 +163,7 @@ public:
         compilation.includeDirs.push_back( environment.FilePath( sourceFile ).parent_path() );
 
         compilation.inputPCH
-            = { environment.FilePath( environment.IncludePCH() ), environment.FilePath( environment.TraitsPCH() ) };
+            = { environment.FilePath( environment.IncludePCH() ), environment.FilePath( environment.CPPDeclsPCH() ) };
 
         compilation.inputFile = environment.FilePath( environment.CPPSource( sourceFile ) );
         compilation.outputPCH = environment.FilePath( environment.CPPPCH( sourceFile ) );
@@ -172,7 +189,7 @@ public:
         compilation.includeDirs = pComponent->get_include_directories();
 
         compilation.inputPCH
-            = { environment.FilePath( environment.IncludePCH() ), environment.FilePath( environment.TraitsPCH() ),
+            = { environment.FilePath( environment.IncludePCH() ), environment.FilePath( environment.CPPDeclsPCH() ),
                 environment.FilePath( environment.CPPPCH( sourceFile ) ) };
 
         compilation.inputFile    = environment.FilePath( environment.CPPImpl( sourceFile ) );

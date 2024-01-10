@@ -38,6 +38,31 @@ namespace Interface
     }
 */
 
+    namespace CPP
+    {
+        object TypeInfo -> ClangAnalysisStage::Analysis
+        {
+            value< std::string > canonical;
+            value< std::string > mangle;
+        }
+
+        object Type -> ClangTraitsStage::Traits
+        {
+            ref< Node > node;
+        }
+
+        object DataType : Type -> ClangTraitsStage::Traits
+        {
+            ref< TypeInfo > type_info -> ClangAnalysisStage::Analysis;
+        }
+
+        object FunctionType : Type -> ClangTraitsStage::Traits
+        {
+            ref< TypeInfo >          return_type_info    -> ClangAnalysisStage::Analysis;
+            array< ref< TypeInfo > > parameter_type_info -> ClangAnalysisStage::Analysis;
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
     // Tree Nodes
@@ -76,8 +101,7 @@ namespace Interface
     {
         ref< Parser::Dimension > dimension;
 
-        // value< std::string > canonical  -> ClangAnalysisStage::Analysis;
-        // value< std::string > mangle     -> ClangAnalysisStage::Analysis;
+        ref< CPP::DataType > cpp_data_type -> ClangTraitsStage::Traits;
     }
 
     object UserAlias : Aggregate -> InterfaceStage::Tree
@@ -88,6 +112,8 @@ namespace Interface
     object UserUsing : Aggregate -> InterfaceStage::Tree
     {
         ref< Parser::Using > cpp_using;
+
+        ref< CPP::DataType > cpp_data_type -> ClangTraitsStage::Traits;
     }
 
     object UserLink : Aggregate -> InterfaceStage::Tree
@@ -171,6 +197,8 @@ namespace Interface
     {
         late< ref< Parser::TypeDecl::Return > >         return_type;
         late< ref< Parser::TypeDecl::Arguments > >      arguments;
+
+        ref< CPP::FunctionType > cpp_function_type -> ClangTraitsStage::Traits;
     }
 
     object State : InvocationContext -> InterfaceStage::Tree

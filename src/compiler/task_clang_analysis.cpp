@@ -64,7 +64,6 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::GeneratedHPPSourceFilePath traitsHeader = m_environment.ClangTraits();
-        const mega::io::PrecompiledHeaderFile      traitsPCH    = m_environment.TraitsPCH();
         const mega::io::CompilationFilePath        clangTraitsAnalysisFile
             = m_environment.ClangTraitsStage_Traits( m_manifestFilePath );
 
@@ -80,10 +79,9 @@ public:
 
         start( taskProgress, "Task_Clang_Traits_Analysis", traitsHeader.path(), clangTraitsAnalysisFile.path() );
 
-        if( m_environment.restore( clangTraitsAnalysisFile, determinant ) && m_environment.restore( traitsPCH, determinant ) )
+        if( m_environment.restore( clangTraitsAnalysisFile, determinant ) )
         {
             m_environment.setBuildHashCode( clangTraitsAnalysisFile );
-            m_environment.setBuildHashCode( traitsPCH );
             cached( taskProgress );
         }
         else
@@ -109,9 +107,6 @@ public:
             {
                 m_environment.setBuildHashCode( clangTraitsAnalysisFile );
                 m_environment.stash( clangTraitsAnalysisFile, determinant );
-
-                m_environment.setBuildHashCode( traitsPCH );
-                m_environment.stash( traitsPCH, determinant );
 
                 succeeded( taskProgress );
                 return;

@@ -20,32 +20,6 @@
 
 namespace Concrete
 {
-    namespace CPP
-    {
-        object TypeInfo -> ClangAnalysisStage::Analysis
-        {
-            value< std::string > canonical;
-            value< std::string > mangle;
-        }
-
-        object Type -> ClangTraitsStage::Traits
-        {
-            ref< Node > node;
-        }
-
-        object DataType : Type -> ClangTraitsStage::Traits
-        {
-            ref< TypeInfo > type_info -> ClangAnalysisStage::Analysis;
-        }
-
-        object FunctionType : Type -> ClangTraitsStage::Traits
-        {
-            ref< TypeInfo >          return_type_info    -> ClangAnalysisStage::Analysis;
-            array< ref< TypeInfo > > parameter_type_info -> ClangAnalysisStage::Analysis;
-        }
-    }
-
-
     object Edge -> HyperGraphAnalysis::Model
     {
         value< mega::EdgeType > type;
@@ -80,8 +54,6 @@ namespace Concrete
 
         array< ref< Edge > > out_edges -> HyperGraphAnalysis::Model;
         array< ref< Edge > > in_edges  -> HyperGraphAnalysis::Model;
-
-        opt< ref< CPP::Type > > cpp_type_opt -> ClangTraitsStage::Traits;
     }
 
     object ActivationBitSet : Node -> ConcreteStage::Concrete

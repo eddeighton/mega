@@ -209,6 +209,7 @@ stage ClangCompilationStage
 
     global accessor ref< Interface::Root >;
     global accessor array< ref< Components::Component > >;
+    global accessor array< ref< Interface::UserUsing > >;
     global accessor ref< Symbols::SymbolTable >;
 }
 

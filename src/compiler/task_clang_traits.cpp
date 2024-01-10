@@ -410,20 +410,16 @@ public:
         void outdent() { m_indent -= m_indentSize; }
     };
 
-    using CPPTypeMap = std::map< Concrete::Node*, Concrete::CPP::Type* >;
-
     struct Visitor : Interface::Visitor
     {
-        Database&   database;
-        GraphInfo&  graph;
-        Printer&    printer;
-        CPPTypeMap& cppTypes;
+        Database&  database;
+        GraphInfo& graph;
+        Printer&   printer;
 
-        Visitor( Database& database, GraphInfo& graph, Printer& printer, CPPTypeMap& cppTypes )
+        Visitor( Database& database, GraphInfo& graph, Printer& printer )
             : database( database )
             , graph( graph )
             , printer( printer )
-            , cppTypes( cppTypes )
         {
         }
 
@@ -434,13 +430,11 @@ public:
             printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
                            << generateCPPType( database, pNode, pDataType->get_cpp_fragments()->get_elements() ) << ";";
 
-            /*{
-                VERIFY_RTE( cppTypes
-                                .insert( { concreteNodeOpt.value(),
-                                           database.construct< Concrete::CPP::DataType >( Concrete::CPP::DataType::Args{
-                                               Concrete::CPP::Type::Args{ concreteNodeOpt.value() } } ) } )
-                                .second );
-            }*/
+            auto pCPPDataType = database.construct< Interface::CPP::DataType >(
+                Interface::CPP::DataType::Args{ Interface::CPP::Type::Args{ pNode } } );
+
+            database.construct< Interface::UserDimension >(
+                Interface::UserDimension::Args{ pNode, pCPPDataType } );
 
             return true;
         }
@@ -475,11 +469,11 @@ public:
                            << generateCPPType( database, pNode, pUsingType->get_cpp_fragments()->get_elements() )
                            << ";";
 
-            /* VERIFY_RTE( cppTypes
-                             .insert( { concreteNodeOpt.value(),
-                                        database.construct< Concrete::CPP::DataType >( Concrete::CPP::DataType::Args{
-                                            Concrete::CPP::Type::Args{ concreteNodeOpt.value() } } ) } )
-                             .second );*/
+            auto pCPPDataType = database.construct< Interface::CPP::DataType >(
+                Interface::CPP::DataType::Args{ Interface::CPP::Type::Args{ pNode } } );
+
+            database.construct< Interface::UserUsing >(
+                Interface::UserUsing::Args{ pNode, pCPPDataType } );
 
             return true;
         }
@@ -595,12 +589,11 @@ public:
                 << generateCPPType( database, pNode, pNode->get_arguments()->get_cpp_fragments()->get_elements() )
                 << ");";
 
-            /*VERIFY_RTE(
-                cppTypes
-                    .insert( { concreteNodeOpt.value(),
-                               database.construct< Concrete::CPP::FunctionType >( Concrete::CPP::FunctionType::Args{
-                                   Concrete::CPP::Type::Args{ concreteNodeOpt.value() } } ) } )
-                    .second );*/
+            auto pCPPDataType = database.construct< Interface::CPP::FunctionType >(
+                Interface::CPP::FunctionType::Args{ Interface::CPP::Type::Args{ pNode } } );
+
+            database.construct< Interface::Function >(
+                Interface::Function::Args{ pNode, pCPPDataType } );
 
             return true;
         }
@@ -632,9 +625,9 @@ public:
         virtual bool visit( Interface::IContext* pNode ) const { return true; }
     };
 
-    void recurse( Database& database, GraphInfo& graph, CPPTypeMap& cppTypes, Interface::Node* pNode, Printer& printer )
+    void recurse( Database& database, GraphInfo& graph, Interface::Node* pNode, Printer& printer )
     {
-        Visitor visitor{ database, graph, printer, cppTypes };
+        Visitor visitor{ database, graph, printer };
 
         Interface::visit( visitor, pNode );
 
@@ -649,7 +642,7 @@ public:
 
         for( Interface::Node* pChildNode : pNode->get_children() )
         {
-            recurse( database, graph, cppTypes, pChildNode, printer );
+            recurse( database, graph, pChildNode, printer );
         }
 
         if( bIsContext && !bIsFunction )
@@ -698,23 +691,9 @@ public:
             Interface::Root* pRoot = database.one< Interface::Root >( m_manifestFilePath );
             GraphInfo        graph( database.one< HyperGraph::Graph >( m_manifestFilePath ) );
 
-            CPPTypeMap cppTypes;
             for( Interface::Node* pNode : pRoot->get_children() )
             {
-                recurse( database, graph, cppTypes, pNode, printer );
-            }
-
-            for( auto pNode : database.many< Concrete::Node >( m_manifestFilePath ) )
-            {
-                std::optional< Concrete::CPP::Type* > cppTypeOpt;
-                {
-                    auto iFind = cppTypes.find( pNode );
-                    if( iFind != cppTypes.end() )
-                    {
-                        cppTypeOpt = iFind->second;
-                    }
-                }
-                database.construct< Concrete::Node >( Concrete::Node::Args{ pNode, cppTypeOpt } );
+                recurse( database, graph, pNode, printer );
             }
 
             auto fileHashCode = database.save_Traits_to_temp();

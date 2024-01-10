@@ -433,7 +433,7 @@ public:
             if( invocationID.has_value() )
             {
                 Functions::Invocation* pInvocation    = nullptr;
-                bool                    bNewInvocation = false;
+                bool                   bNewInvocation = false;
                 {
                     auto iFind = m_invocationsMap.find( invocationID.value() );
                     if( iFind != m_invocationsMap.end() )
@@ -784,12 +784,7 @@ public:
                 }
 
                 std::map< mega::OperatorID, Functions::Operator* > operators;
-                /*auto operators = detectOperatorInstantiations();
-
-                mega::invocation::compileTransitions( m_database, m_sourceFile );
-                mega::invocation::compileInterupts( m_database, m_sourceFile );
-                mega::invocation::compileDeciders( m_database, m_sourceFile );
-                mega::invocation::compileDecisions( m_database, m_sourceFile );*/
+                // auto operators = detectOperatorInstantiations();
 
                 m_database.construct< Functions::Invocations >(
                     Functions::Invocations::Args{ m_invocationsMap, operators } );
