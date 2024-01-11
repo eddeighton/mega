@@ -361,7 +361,7 @@ class Task_CPP_Source : public BaseTask
             std::ostringstream os;
             os << MEGA_POINTER << "< "
                << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
-               << pInterfaceNode->get_interface_id()->get_type_id().getValue() << std::dec << " > ";
+               << pInterfaceNode->get_interface_id()->get_type_id().getValue() << " > ";
             return os.str();
         }
     };
@@ -669,11 +669,17 @@ class Task_CPP_Source : public BaseTask
                 }
                 os << pSymbolID->get_token();
             }
+
             os << "\n";
             os << "{\n";
             os << "namespace\n";
             os << "{\n";
-            os << "struct Impl : __mega_ptr< 0x00010000 >\n";
+            {
+                std::ostringstream osTypeID;
+                osTypeID << std::hex << std::setw( 8 ) << std::setfill( '0' )
+                         << m_pInterfaceNode->get_interface_id()->get_type_id().getValue();
+                os << "struct Impl : " << mega::MEGA_POINTER << "< 0x" << osTypeID.str() << " >\n";
+            }
             os << "{\n";
 
             os << m_osLineStart.str();

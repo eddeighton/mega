@@ -79,6 +79,7 @@ set( EXTERN_FILES
 set( MATERIALISER_FILES
 	${MEGA_API_DIR}/il/materialisers/object.hpp
 	${MEGA_API_DIR}/il/materialisers/relation.hpp
+	${MEGA_API_DIR}/il/materialisers/invocation.hpp
 )
 
 add_custom_target( run_il_gen

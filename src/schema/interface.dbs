@@ -44,6 +44,7 @@ namespace Interface
         {
             value< std::string > canonical;
             value< std::string > mangle;
+            value< std::string > trait_name;
         }
 
         object Type -> ClangTraitsStage::Traits
@@ -58,8 +59,8 @@ namespace Interface
 
         object FunctionType : Type -> ClangTraitsStage::Traits
         {
-            ref< TypeInfo >          return_type_info    -> ClangAnalysisStage::Analysis;
-            array< ref< TypeInfo > > parameter_type_info -> ClangAnalysisStage::Analysis;
+            ref< TypeInfo >          return_type_info      -> ClangAnalysisStage::Analysis;
+            array< ref< TypeInfo > > parameter_type_infos  -> ClangAnalysisStage::Analysis;
         }
     }
 
@@ -130,7 +131,7 @@ namespace Interface
 
     object OwningLink : UserLink -> HyperGraphAnalysis::Model
     {
-        array< ref< Concrete::OwnershipLink > > owned -> HyperGraphAnalysis::Model;
+        array< ref< Concrete::Data::OwnershipLink > > owned -> HyperGraphAnalysis::Model;
     }
 
     ////////////////////////////////////////////////////////////////////////////

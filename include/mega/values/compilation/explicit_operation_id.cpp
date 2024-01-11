@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mega/values/compilation/operation_id.hpp"
+#include "mega/values/compilation/explicit_operation_id.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -26,36 +26,6 @@
 
 namespace mega
 {
-
-static const OperationIDStringArray g_pszOperationStrings = { std::string( "__eg_ImpNoParams" ),
-                                                              std::string( "__eg_ImpParams" ),
-                                                              std::string( "MOVE" ),
-                                                              std::string( "GET" ),
-                                                              std::string( "RANGE" ),
-                                                              std::string( "REMOVE" ),
-                                                              std::string( "CLEAR" ) };
-static_assert( HIGHEST_OPERATION_TYPE == g_pszOperationStrings.size(),
-               "Incorrect operation strings" );
-
-const std::string& getOperationString( OperationID op )
-{
-    ASSERT( static_cast< interface::SymbolID::ValueType >( op ) < HIGHEST_OPERATION_TYPE );
-    return g_pszOperationStrings[ op ];
-}
-
-OperationID getOperationName( const std::string& strName )
-{
-    auto iFind = std::find( g_pszOperationStrings.begin(), g_pszOperationStrings.end(), strName );
-    if( iFind == g_pszOperationStrings.end() )
-        return HIGHEST_OPERATION_TYPE;
-    else
-        return static_cast< OperationID >( std::distance( g_pszOperationStrings.begin(), iFind ) );
-}
-
-const OperationIDStringArray& getOperationStrings()
-{
-    return g_pszOperationStrings;
-}
 
 // clang-format off
 static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings =

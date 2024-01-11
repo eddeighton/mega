@@ -212,7 +212,11 @@ inline Type::TypeIDVector Type::append( const Type::TypeIDVector& from, TypeID n
 
 PyObject* Type::createReference( const Pointer& ref, const Type::TypeIDVector& typePath, const char* symbol )
 {
-    const OperationID opID = getOperationName( symbol );
+    const bool bFound = mega::interface::getReservedSymbolIDMaybe( symbol, symbolID );
+
+    THROW_TODO;
+
+    // const OperationID opID = getOperationName( symbol );
     if( opID != mega::HIGHEST_OPERATION_TYPE )
     {
         const TypeIDVector   newTypePath   = append( typePath, TypeID( opID ) );

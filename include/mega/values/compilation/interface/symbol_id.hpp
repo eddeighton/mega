@@ -77,22 +77,29 @@ public:
     }
 };
 
-inline constexpr SymbolID operator ""_S( unsigned long long int value )
+inline constexpr SymbolID operator""_S( unsigned long long int value )
 {
     return SymbolID{ static_cast< SymbolID::ValueType >( value ) };
 }
-
-static constexpr SymbolID NULL_SYMBOL_ID = 0x0_S;
-static constexpr SymbolID ROOT_SYMBOL_ID = 0x1_S;
-static constexpr SymbolID OWNER_SYMBOL_ID = 0x2_S;
-static constexpr SymbolID STATE_SYMBOL_ID = 0x3_S;
-
-static constexpr const char* ROOT_SYMBOL = "Root";
 
 inline std::ostream& operator<<( std::ostream& os, const SymbolID& value )
 {
     return os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_S";
 }
+
+static constexpr SymbolID NULL_SYMBOL_ID         = 0x0_S;
+static constexpr SymbolID ROOT_SYMBOL_ID         = 0x1_S;
+static constexpr SymbolID OWNER_SYMBOL_ID        = 0x2_S;
+static constexpr SymbolID STATE_SYMBOL_ID        = 0x3_S;
+
+static constexpr SymbolID OPERATION_IMP_NOPARAMS = 0x4_S;
+static constexpr SymbolID OPERATION_IMP_PARAMS   = 0x5_S;
+
+static constexpr SymbolID OPERATION_MOVE         = 0x6_S;
+static constexpr SymbolID OPERATION_GET          = 0x7_S;
+static constexpr SymbolID OPERATION_RANGE        = 0x8_S;
+static constexpr SymbolID OPERATION_REMOVE       = 0x9_S;
+static constexpr SymbolID OPERATION_CLEAR        = 0xA_S;
 
 } // namespace mega::interface
 

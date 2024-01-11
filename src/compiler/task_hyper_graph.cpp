@@ -104,8 +104,8 @@ public:
         using UserLinkPairs = std::map< Interface::UserLink*, Interface::UserLink* >;
         UserLinkPairs userLinkPairs, userLinkPairsOpposites;
 
-        std::multimap< Interface::OwningLink*, Concrete::OwnershipLink* > owners;
-        std::multimap< Concrete::OwnershipLink*, Interface::OwningLink* > owned;
+        std::multimap< Interface::OwningLink*, Concrete::Data::OwnershipLink* > owners;
+        std::multimap< Concrete::Data::OwnershipLink*, Interface::OwningLink* > owned;
 
         for( auto pUserLink : database.many< Interface::UserLink >( m_manifestFilePath ) )
         {
@@ -118,7 +118,7 @@ public:
 
             if( pUserLink->get_link()->get_owning() )
             {
-                std::vector< Concrete::OwnershipLink* > ownershipLinks;
+                std::vector< Concrete::Data::OwnershipLink* > ownershipLinks;
                 {
                     for( auto pConcreteTarget : pTargetType->get_inheritors() )
                     {
@@ -150,7 +150,7 @@ public:
             }
         }
 
-        for( auto pOwnershipLink : database.many< Concrete::OwnershipLink >( m_manifestFilePath ) )
+        for( auto pOwnershipLink : database.many< Concrete::Data::OwnershipLink >( m_manifestFilePath ) )
         {
             std::vector< Interface::OwningLink* > owners;
             for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink ); i != iEnd;
@@ -158,7 +158,8 @@ public:
             {
                 owners.push_back( i->second );
             }
-            database.construct< Concrete::OwnershipLink >( Concrete::OwnershipLink::Args{ pOwnershipLink, owners } );
+            database.construct< Concrete::Data::OwnershipLink >(
+                Concrete::Data::OwnershipLink::Args{ pOwnershipLink, owners } );
         }
 
         for( const auto& pair : userLinkPairs )
@@ -250,12 +251,12 @@ public:
         }
 
         void findCounterPart( std::vector< Concrete::Node* >& counterParts, Concrete::Node* pTarget,
-                              std::vector< Concrete::Link* >& results ) const
+                              std::vector< Concrete::Data::Link* >& results ) const
         {
             auto iFind = std::find( counterParts.begin(), counterParts.end(), pTarget );
             if( iFind != counterParts.end() )
             {
-                auto pCounterPartLink = db_cast< Concrete::Link >( *iFind );
+                auto pCounterPartLink = db_cast< Concrete::Data::Link >( *iFind );
                 VERIFY_RTE( pCounterPartLink );
                 results.push_back( pCounterPartLink );
             }
@@ -283,11 +284,11 @@ public:
             auto counterPartTargets = pCounterpart->get_inheritors();
 
             // map all targets to associated counter parts
-            std::map< Concrete::Node*, Concrete::Link* > targetToCounterPart;
+            std::map< Concrete::Node*, Concrete::Data::Link* > targetToCounterPart;
             {
                 for( auto pTarget : targets )
                 {
-                    std::vector< Concrete::Link* > results;
+                    std::vector< Concrete::Data::Link* > results;
                     findCounterPart( counterPartTargets, pTarget, results );
                     VERIFY_RTE_MSG( results.size() == 1,
                                     "Ambiguous concrete link counterparts found for link: "
@@ -350,11 +351,11 @@ public:
                         }
                     }
                 }
-                else if( auto pActivationBitSet = db_cast< Concrete::ActivationBitSet >( pChild ) )
+                else if( auto pActivationBitSet = db_cast< Concrete::Data::ActivationBitSet >( pChild ) )
                 {
                     // ignor
                 }
-                else if( auto pOwnershipLink = db_cast< Concrete::OwnershipLink >( pChild ) )
+                else if( auto pOwnershipLink = db_cast< Concrete::Data::OwnershipLink >( pChild ) )
                 {
                     // ignor
                 }
@@ -376,14 +377,14 @@ public:
             bool bResult = Interface::visit( visitor, pNode->get_node_opt().value() );
             VERIFY_RTE( bResult );
         }
-        else if( auto pActivationBitSet = db_cast< Concrete::ActivationBitSet >( pNode ) )
+        else if( auto pActivationBitSet = db_cast< Concrete::Data::ActivationBitSet >( pNode ) )
         {
             auto pConcreteParent = db_cast< Concrete::Node >( pNode->get_parent() );
             VERIFY_RTE( pConcreteParent );
             visitor.createEdge( EdgeType::eDim, pConcreteParent, pActivationBitSet );
             visitor.createEdge( EdgeType::eParent, pActivationBitSet, pConcreteParent );
         }
-        else if( auto pOwnershipLink = db_cast< Concrete::OwnershipLink >( pNode ) )
+        else if( auto pOwnershipLink = db_cast< Concrete::Data::OwnershipLink >( pNode ) )
         {
             auto pConcreteParent = db_cast< Concrete::Node >( pNode->get_parent() );
             VERIFY_RTE( pConcreteParent );
@@ -407,7 +408,7 @@ public:
             {
                 for( auto pCounterNode : pOwner->get_inheritors() )
                 {
-                    auto pCounterPart = db_cast< Concrete::UserLink >( pCounterNode );
+                    auto pCounterPart = db_cast< Concrete::Data::UserLink >( pCounterNode );
                     VERIFY_RTE( pCounterPart );
                     auto pTarget = db_cast< Concrete::Node >( pCounterPart->get_parent() );
                     auto pEdge   = visitor.createEdge( EdgeType::eInterObjectParent, pOwnershipLink, pTarget );

@@ -19,8 +19,9 @@
 
 #include <typeinfo>
 
-#include "runtime/functions/invocations.hxx"
-#include "runtime/functions/operators.hxx"
+#include "mega/values/compilation/invocation_id.hpp"
+
+#include "runtime/functor_cpp.hxx"
 
 namespace 
 {
@@ -32,7 +33,9 @@ struct __invoke_impl{
     template< typename... Args >
     inline ResultType operator()( ContextType, Args... )
     {
-        static_assert( 0 && typeid( ResultType ).name() && typeid( ContextType ).name() && typeid( TypePathType ).name(), "Critical error: Invocation system failed to match implementation" );
+        static_assert( 0 && typeid( ResultType ).name() && 
+            typeid( ContextType ).name() && typeid( TypePathType ).name(), 
+            "Critical error: Invocation system failed to match implementation" );
     }
 };
 
@@ -46,45 +49,32 @@ struct __invoke_impl
     {{ invocation.operation }}
 >
 {
+    static constexpr mega::InvocationID id{ {{ invocation.id }} };
+    
 {% if invocation.explicit_operation == "Read" %}
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // Read
-        static thread_local mega::runtime::invocation::Read function( g_unit_name, id );
-        return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( function( context ) );
+        static thread_local mega::runtime::Invocation::Read function( id );
+        return *reinterpret_cast< {{ invocation.return_type }}* >( function( context ) );
     }
 {% else if invocation.explicit_operation == "Write" %}
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context, Args... args ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // Write
-        static thread_local mega::runtime::invocation::Write function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::Write function( id );
         const {{ invocation.parameter_type }} temp{ args... };
         return function( context, (const void*)&temp );
     }
     template<>
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context, const {{ invocation.parameter_type }}& arg ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        static thread_local mega::runtime::invocation::Write function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::Write function( id );
         return function( context, (const void*)&arg );
     }
 {% else if invocation.explicit_operation == "LinkRead" %}
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // LinkRead
-        static thread_local mega::runtime::invocation::LinkRead function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::LinkRead function( id );
         using ReturnType = std::remove_reference< {{ invocation.return_type }} >::type;
         return *reinterpret_cast< ReturnType* >( function( context ) );
     }
@@ -92,45 +82,29 @@ struct __invoke_impl
     template< typename T >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context, T& interfaceRef ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // LinkAdd
-        static thread_local mega::runtime::invocation::LinkAdd function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::LinkAdd function( id );
         return function( context, interfaceRef );
     }
 {% else if invocation.explicit_operation == "LinkRemove" %}
     template< typename T >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context, T& interfaceRef ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // LinkRemove
-        static thread_local mega::runtime::invocation::LinkRemove function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::LinkRemove function( id );
         return function( context, interfaceRef );
     }
 {% else if invocation.explicit_operation == "LinkClear" %}
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // LinkClear
-        static thread_local mega::runtime::invocation::LinkClear function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::LinkClear function( id );
         return function( context );
     }
 {% else if invocation.explicit_operation == "Call" %}
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context, Args... args ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // Call
-        static thread_local mega::runtime::invocation::Call function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::Call function( id );
         mega::runtime::CallResult result = function( context );
-        using FunctionType = {{ invocation.runtime_return_type }};
+        using FunctionType = {{ invocation.function_type }};
         const FunctionType pFunction = (const FunctionType)( result.pFunction );
 {% if invocation.return_type == "void" %}
         pFunction( &result.context, args... );
@@ -141,32 +115,20 @@ struct __invoke_impl
 {% else if invocation.explicit_operation == "Start" %}
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // Start
-        static thread_local mega::runtime::invocation::Start function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::Start function( id );
         return function( context );
     }
 {% else if invocation.explicit_operation == "Move" %}
     template< typename T >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context, T& interfaceRef ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // Move
-        static thread_local mega::runtime::invocation::Move function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::Move function( id );
         function( context, interfaceRef );
     }
 {% else if invocation.explicit_operation == "GetContext" %}
     inline {{ invocation.return_type }} operator()( {{ invocation.context }}& context ) const
     {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // GetContext
-        static thread_local mega::runtime::invocation::Get function( g_unit_name, id );
+        static thread_local mega::runtime::Invocation::Get function( id );
         return function( context );
     }
 {% else if invocation.explicit_operation == "Range" %}
@@ -189,45 +151,46 @@ static ResultType invoke_impl( Context& context, Args... args )
 {
     return __invoke_impl< ResultType, Context, TypePath, Operation >()( context, args... );
 }
-
+/*
 template< typename TObject >
 static TObject mega_new()
 {
-    static thread_local mega::runtime::operators::New function( g_unit_name, TObject::ID );
+    static thread_local mega::runtime::operators::New function( TObject::ID );
     return function();
 }
 
 template< typename TObject >
 static TObject mega_remote_new( mega::MPO mpo )
 {
-    static thread_local mega::runtime::operators::RemoteNew function( g_unit_name, TObject::ID );
+    static thread_local mega::runtime::operators::RemoteNew function( TObject::ID );
     return function( mpo );
 }
 
 template< typename TObject >
 static void mega_delete( const TObject& context )
 {
-    static thread_local mega::runtime::operators::Delete function( g_unit_name, TObject::ID );
+    static thread_local mega::runtime::operators::Delete function( TObject::ID );
     function( context );
 }
 
 template< typename To, typename From >
 static To mega_cast( const mega::Pointer& from )
 {
-    static thread_local mega::runtime::operators::Cast function( g_unit_name, To::ID );
+    static thread_local mega::runtime::operators::Cast function( To::ID );
     return function( from );
 }
 
 template< typename Context >
 static bool mega_active( const Context& context )
 {
-    static thread_local mega::runtime::operators::Active function( g_unit_name, Context::ID );
+    static thread_local mega::runtime::operators::Active function( Context::ID );
     return function( context );
 }
 
 template< typename Context >
 static bool mega_enabled( const Context& context )
 {
-    static thread_local mega::runtime::operators::Enabled function( g_unit_name, Context::ID );
+    static thread_local mega::runtime::operators::Enabled function( Context::ID );
     return function( context );
 }
+*/

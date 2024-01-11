@@ -21,6 +21,8 @@
 #ifndef GUARD_2023_December_30_symbol_resolving_session
 #define GUARD_2023_December_30_symbol_resolving_session
 
+#include "mega/values/compilation/reserved_symbols.hpp"
+
 #include "session.hpp"
 
 namespace clang
@@ -46,14 +48,14 @@ public:
 
     virtual unsigned int getSymbolID( const std::string& strIdentifier ) const override
     {
-        const auto result = mega::getOperationName( strIdentifier );
-        if( result == mega::HIGHEST_OPERATION_TYPE )
+        mega::interface::SymbolID symbolID;
+        if( mega::interface::getReservedSymbolIDMaybe( strIdentifier, symbolID ) )
         {
-            return 0;
+            return symbolID.getValue();
         }
         else
         {
-            return result;
+            return 0;
         }
     }
 };

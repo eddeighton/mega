@@ -28,73 +28,6 @@
 
 namespace mega
 {
-
-enum OperationID : interface::SymbolID::ValueType
-{
-    id_Imp_NoParams = 1,
-    id_Imp_Params,
-    id_Move,
-    id_Get,
-    id_Range,
-    id_Remove,
-    id_Clear,
-    HIGHEST_OPERATION_TYPE
-};
-
-inline constexpr bool isOperationImplicit( OperationID operationType )
-{
-    return ( operationType == id_Imp_NoParams ) || ( operationType == id_Imp_Params );
-}
-
-inline constexpr bool isOperationArgs( OperationID operationType )
-{
-    switch( operationType )
-    {
-        case id_Imp_NoParams:
-            return false;
-        case id_Imp_Params:
-            return true;
-        case id_Move:
-            return true;
-        case id_Get:
-            return false;
-        case id_Range:
-            return false;
-
-        case id_Remove:
-            return false;
-        case id_Clear:
-            return false;
-
-        case HIGHEST_OPERATION_TYPE:
-            return false;
-        default:
-            return false;
-    }
-}
-
-inline constexpr bool isOperationType( interface::SymbolID id )
-{
-    return id.value < HIGHEST_OPERATION_TYPE;
-}
-
-inline constexpr bool isOperationEnumeration( OperationID id )
-{
-    switch( id )
-    {
-        case id_Range:
-            return true;
-        default:
-            return false;
-    }
-}
-
-enum ClangEGAttributeID : interface::SymbolID::ValueType
-{
-    id_MegaPointer = HIGHEST_OPERATION_TYPE,
-    id_MegaSymbolPath
-};
-
 enum ExplicitOperationID : interface::SymbolID::ValueType
 {
     id_exp_Read,
@@ -113,11 +46,6 @@ enum ExplicitOperationID : interface::SymbolID::ValueType
     id_exp_Range,
     HIGHEST_EXPLICIT_OPERATION_TYPE
 };
-
-using OperationIDStringArray = std::array< std::string, HIGHEST_OPERATION_TYPE >;
-OperationID                   getOperationName( const std::string& strName );
-const std::string&            getOperationString( OperationID op );
-const OperationIDStringArray& getOperationStrings();
 
 using ExplicitOperationIDStringArray = std::array< std::string, HIGHEST_EXPLICIT_OPERATION_TYPE >;
 const std::string&                    getExplicitOperationString( ExplicitOperationID op );

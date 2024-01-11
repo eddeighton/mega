@@ -29,7 +29,7 @@ namespace Concrete
 
     object InterObjectEdge : Edge -> HyperGraphAnalysis::Model
     {
-        ref< Link >                     counterpart;
+        ref< Data::Link >               counterpart;
         value< mega::CardinalityRange > cardinality;
         value< bool >                   polymorphic;
     }
@@ -56,23 +56,35 @@ namespace Concrete
         array< ref< Edge > > in_edges  -> HyperGraphAnalysis::Model;
     }
 
-    object ActivationBitSet : Node -> ConcreteStage::Concrete
+    namespace Data
     {
-        value< mega::U64 > number_of_bits -> AutomataStage::AutomataAnalysis;
-    }
+        object Field : Node -> ConcreteStage::Concrete
+        {
+        }
+        
+        object Dimension : Field -> ConcreteStage::Concrete
+        {
+            ref< Interface::UserDimension > dimension;
+        }
 
-    object Link : Node -> ConcreteStage::Concrete
-    {
-    }
+        object ActivationBitSet : Field -> ConcreteStage::Concrete
+        {
+            value< mega::U64 > number_of_bits -> AutomataStage::AutomataAnalysis;
+        }
 
-    object UserLink : Link -> ConcreteStage::Concrete
-    {
-        ref< Interface::UserLink > user_link;
-    }
+        object Link : Field -> ConcreteStage::Concrete
+        {
+        }
 
-    object OwnershipLink : Link -> ConcreteStage::Concrete
-    {
-        array< ref< Interface::OwningLink > > owners -> HyperGraphAnalysis::Model;
+        object UserLink : Link -> ConcreteStage::Concrete
+        {
+            ref< Interface::UserLink > user_link;
+        }
+
+        object OwnershipLink : Link -> ConcreteStage::Concrete
+        {
+            array< ref< Interface::OwningLink > > owners -> HyperGraphAnalysis::Model;
+        }
     }
 
     object Context : Node -> ConcreteStage::Concrete
@@ -94,6 +106,11 @@ namespace Concrete
         array< ref< Functions::EventDispatch > >        dispatches      -> ClangTraitsStage::Traits;
 
         opt< ref< Decision::DecisionProcedure > > transition_decision -> DecisionsStage::Decisions;
+    }
+
+    object Function : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Function > function;
     }
 
     object State : Context -> ConcreteStage::Concrete
@@ -120,10 +137,10 @@ namespace Concrete
 
     object Object : Context -> ConcreteStage::Concrete
     {
-        ref< Interface::Object >        object;
-        array< ref< Decider > >         deciders;
-        late< ref< ActivationBitSet > > activation_bitset;
-        late< ref< OwnershipLink > >    ownership;
+        ref< Interface::Object >                object;
+        array< ref< Decider > >                 deciders;
+        late< ref< Data::ActivationBitSet > >   activation_bitset;
+        late< ref< Data::OwnershipLink > >      ownership;
 
         ref< Automata::Vertex >             automata_root       -> AutomataStage::AutomataAnalysis;
         array< ref< Automata::Vertex > >    automata_tests      -> AutomataStage::AutomataAnalysis;
@@ -134,200 +151,4 @@ namespace Concrete
         array< ref< Automata::TruthAssignment > >  truth_table         -> DecisionsStage::Decisions;
         array< ref< Automata::Vertex > >           variable_vertices   -> DecisionsStage::Decisions;
     }
-
-    /*
-
-    namespace Dimensions
-    {
-        object User : Graph::Vertex -> ConcreteStage::Concrete
-        {
-            ref< Concrete::Context >            parent_context;
-            ref< Interface::DimensionTrait >    interface_dimension;
-
-            ref< MemoryLayout::Part >   part    -> MemoryStage::MemoryLayout;
-            value< mega::U64 >          offset  -> MemoryStage::MemoryLayout;
-        }
-
-        // HyperGraph
-        object Link : Graph::Vertex -> ConcreteStage::Concrete
-        {
-            ref< Concrete::Context >    parent_context;
-            ref< Interface::LinkTrait > interface_link;
-            late< ref< LinkType > >     link_type;
-
-            ref< HyperGraph::Relation > relation    -> HyperGraphAnalysisRollout::PerSourceModel;
-            value< bool >               owning      -> HyperGraphAnalysisRollout::PerSourceModel;
-            value< bool >               owned       -> HyperGraphAnalysisRollout::PerSourceModel;
-            value< bool >               source      -> HyperGraphAnalysisRollout::PerSourceModel;
-            value< bool >               singular    -> HyperGraphAnalysisRollout::PerSourceModel;
-
-            ref< MemoryLayout::Part >  part     -> MemoryStage::MemoryLayout;
-            value< mega::U64 >         offset   -> MemoryStage::MemoryLayout;
-        }
-
-        object UserLink : Link -> ConcreteStage::Concrete
-        {
-            ref< Interface::UserLinkTrait > interface_user_link;
-        }
-
-        object OwnershipLink : Link -> ConcreteStage::Concrete
-        {
-            ref< Interface::OwnershipLinkTrait > interface_owner_link;
-        }
-
-        object LinkType -> ConcreteStage::Concrete
-        {
-            ref< Concrete::Context >    parent_context;
-            ref< Link >                 link;
-
-            ref< MemoryLayout::Part >  part     -> MemoryStage::MemoryLayout;
-            value< mega::U64 >         offset   -> MemoryStage::MemoryLayout;
-        }
-
-        // State machine
-        object Bitset : Graph::Vertex -> ConcreteStage::Concrete
-        {
-            ref< Concrete::Object > parent_object;
-            ref< Interface::CompilerDimensionTrait > interface_compiler_dimension;
-
-            ref< MemoryLayout::Part >   part            -> MemoryStage::MemoryLayout;
-            value< mega::U64 >          offset          -> MemoryStage::MemoryLayout;
-            value< mega::U64 >          number_of_bits  -> AutomataStage::AutomataAnalysis;
-        }
-
-        object Configuration : Bitset -> ConcreteStage::Concrete
-        {
-        }
-
-        object Activation : Bitset -> ConcreteStage::Concrete
-        {
-        }
-
-        object Enablement : Bitset -> ConcreteStage::Concrete
-        {
-        }
-
-        object History : Bitset -> ConcreteStage::Concrete
-        {
-        }
-    }
-
-    object ContextGroup : Graph::Vertex -> ConcreteStage::Concrete
-    {
-        array< ref< Context > > children;
-    }
-
-    object Context : ContextGroup -> ConcreteStage::Concrete
-    {
-        late< opt< ref< Object > > >        concrete_object;
-        ref< ContextGroup >                 parent;
-        ref< Interface::IContext >          interface;
-        array< ref< Interface::IContext > > inheritance;
-
-        value< mega::Instance > local_size -> MemoryStage::MemoryLayout;
-        value< mega::Instance > total_size -> MemoryStage::MemoryLayout;
-    }
-
-    object Interupt : Context -> ConcreteStage::Concrete
-    {
-        ref< Interface::Interupt >      interface_interupt;
-        array< ref< Action > >          completions;
-
-        array< ref< Derivation::Root > >                    transition          -> OperationsStage::Operations;
-        array< ref< Operations::EventDispatch > >           event_dispatches    -> OperationsStage::Operations;
-
-        late< array< ref< Derivation::Root > > >            events              -> OperationsStage::Operations;
-        late< opt< ref< Decision::DecisionProcedure > > >   transition_decision -> OperationsStage::Operations;
-    }
-
-    object Requirement : Interupt -> ConcreteStage::Concrete
-    {
-    }
-
-    object Function : Context -> ConcreteStage::Concrete
-    {
-        ref< Interface::Function > interface_function;
-    }
-
-    object Decider : Context -> ConcreteStage::Concrete
-    {
-        ref< Interface::Decider > interface_decider;
-
-        array< ref< Derivation::Root > > variables -> OperationsStage::Operations;
-    }
-
-    object UserDimensionContext : Context  -> ConcreteStage::Concrete
-    {
-        array< ref< Dimensions::User > >    dimensions;
-        array< ref< Dimensions::Link > >    links;
-        array< ref< Dimensions::Bitset > >  bitsets;
-    }
-
-    object Namespace : UserDimensionContext -> ConcreteStage::Concrete
-    {
-        ref< Interface::Namespace > interface_namespace;
-    }
-
-    object State : UserDimensionContext -> ConcreteStage::Concrete
-    {
-        ref< Interface::State >         interface_state;
-        array< ref< Requirement > >     requirements;
-        array< ref< Action > >          completions;
-
-        ref< Automata::Vertex > automata_vertex -> AutomataStage::AutomataAnalysis;
-
-        array< ref< Derivation::Root > >                    transition          -> OperationsStage::Operations;
-        late< opt< ref< Decision::DecisionProcedure > > >   transition_decision -> OperationsStage::Operations;
-    }
-
-    object Action : State -> ConcreteStage::Concrete
-    {
-        ref< Interface::Action >        interface_action;
-        late< opt< ref< Context > > >   completion_handler;
-    }
-
-    object Component : State -> ConcreteStage::Concrete
-    {
-        ref< Interface::Component > interface_component;
-    }
-
-    object Event : UserDimensionContext -> ConcreteStage::Concrete
-    {
-        ref< Interface::Event > interface_event;
-    }
-
-    object Object : UserDimensionContext -> ConcreteStage::Concrete
-    {
-        ref< Interface::Object > interface_object;
-
-        late< ref< Dimensions::OwnershipLink > > ownership_link;
-        late< ref< Dimensions::Configuration > > configuration;
-        late< ref< Dimensions::Activation >    > activation;
-        late< ref< Dimensions::Enablement >    > enablement;
-        late< ref< Dimensions::History >       > history;
-
-        array< ref< MemoryLayout::Buffer > > buffers -> MemoryStage::MemoryLayout;
-
-        array< ref< UserDimensionContext > > link_contexts -> HyperGraphAnalysisRollout::PerSourceModel;
-
-        ref< Automata::Vertex >             automata_root       -> AutomataStage::AutomataAnalysis;
-        array< ref< Automata::Vertex > >    automata_tests      -> AutomataStage::AutomataAnalysis;
-        array< ref< Automata::Enum > >      automata_enums      -> AutomataStage::AutomataAnalysis;
-        value< mega::U32 >                  total_bitset_index  -> AutomataStage::AutomataAnalysis;
-        value< mega::U32 >                  total_switch_index  -> AutomataStage::AutomataAnalysis;
-
-        array< ref< Decider > >                    deciders            -> OperationsStage::Operations;
-        array< ref< Automata::TruthAssignment > >  truth_table         -> OperationsStage::Operations;
-        array< ref< Automata::Vertex > >           variable_vertices   -> OperationsStage::Operations;
-    }
-    
-    object MemoryMappedObject : Object -> GlobalMemoryStageRollout::GlobalMemoryRollout
-    {
-        ref< MemoryLayout::MemoryMap > memory_map;
-    }
-
-    object Root : ContextGroup -> ConcreteStage::Concrete
-    {
-        ref< Interface::Root > interface_root;
-    }*/
 }

@@ -22,7 +22,6 @@
 
 #include "mega/values/compilation/interface/symbol_id.hpp"
 #include "mega/values/compilation/interface/type_id.hpp"
-#include "mega/values/compilation/operation_id.hpp"
 #include "mega/values/compilation/invocation_id.hpp"
 
 #include "common/clang_warnings.hpp"
@@ -80,7 +79,6 @@ QualType getMultiIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclCo
                                 const clang::QualType& interfaceType, ::mega::U64 szTargetTypes,
                                 const char* pszIteratorTypeName );
 
-QualType getVoidType( ASTContext* pASTContext );
 QualType getBooleanType( ASTContext* pASTContext );
 QualType getIntType( ASTContext* pASTContext );
 QualType getUIntType( ASTContext* pASTContext );
@@ -90,6 +88,10 @@ QualType getUIntType( ASTContext* pASTContext );
 /*
 QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName, DeclContext*& pDeclContext,
 SourceLocation& loc, bool bLast );*/
+
+QualType makeVoidType( ASTContext* pASTContext );
+QualType makeUIntType( ASTContext* pASTContext );
+QualType makeMegaPointerType( ASTContext* pASTContext, Sema* pSema, const std::vector< mega::interface::TypeID >& typeIDs );
 
 bool getContextTypeIDs( ASTContext* pASTContext, QualType contextType, mega::InvocationID::TypeIDArray& contextTypes );
 

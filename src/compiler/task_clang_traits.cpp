@@ -181,14 +181,7 @@ solveTransitions( Database& database, Parser::TypeDecl::Transitions* pTransition
 
 struct GraphInfo
 {
-    // std::map< Interface::UserLink*, HyperGraph::NonOwningRelation* > nonOwning;
-    //  std::multimap< Interface::UserLink*, Concrete::OwnershipLink* > owners;
-    //  std::multimap< Concrete::OwnershipLink*, Interface::UserLink* > owned;
-
     GraphInfo( HyperGraph::Graph* pGraph )
-    //: nonOwning( pGraph->get_non_owning_relations() )
-    // , owners( pGraph->get_owning_relation()->get_owners() )
-    // , owned( pGraph->get_owning_relation()->get_owned() )
     {
     }
 };
@@ -275,7 +268,7 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, G
                     VERIFY_RTE( pLastOr );
 
                     // the And MUST be on a link vertex
-                    auto pConcreteLink = db_cast< Concrete::Link >( pTargetAnd->get_vertex() );
+                    auto pConcreteLink = db_cast< Concrete::Data::Link >( pTargetAnd->get_vertex() );
                     VERIFY_RTE( pConcreteLink );
 
                     // edge should be single edge to the inter object target type
@@ -589,11 +582,11 @@ public:
                 << generateCPPType( database, pNode, pNode->get_arguments()->get_cpp_fragments()->get_elements() )
                 << ");";
 
-            auto pCPPDataType = database.construct< Interface::CPP::FunctionType >(
+            auto pCPPFunctionType = database.construct< Interface::CPP::FunctionType >(
                 Interface::CPP::FunctionType::Args{ Interface::CPP::Type::Args{ pNode } } );
 
             database.construct< Interface::Function >(
-                Interface::Function::Args{ pNode, pCPPDataType } );
+                Interface::Function::Args{ pNode, pCPPFunctionType } );
 
             return true;
         }

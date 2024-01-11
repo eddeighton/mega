@@ -66,8 +66,8 @@ namespace HyperGraph
 
     object OwningRelation : Relation -> HyperGraphAnalysis::Model
     {
-        multimap< ref< Interface::OwningLink >, ref< Concrete::OwnershipLink > > owners;
-        multimap< ref< Concrete::OwnershipLink >, ref< Interface::OwningLink > > owned;
+        multimap< ref< Interface::OwningLink >, ref< Concrete::Data::OwnershipLink > > owners;
+        multimap< ref< Concrete::Data::OwnershipLink >, ref< Interface::OwningLink > > owned;
     }
 
     object NonOwningRelation : Relation -> HyperGraphAnalysis::Model

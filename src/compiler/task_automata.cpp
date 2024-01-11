@@ -380,8 +380,8 @@ public:
             database.construct< Concrete::Object >(
                 { Concrete::Object::Args{ pObject, pRoot, tests, enums, totalBits, switchIndex } } );
 
-            database.construct< Concrete::ActivationBitSet >(
-                Concrete::ActivationBitSet::Args{ pObject->get_activation_bitset(), totalBits } );
+            database.construct< Concrete::Data::ActivationBitSet >(
+                Concrete::Data::ActivationBitSet::Args{ pObject->get_activation_bitset(), totalBits } );
         }
 
         const task::FileHash fileHashCode = database.save_AutomataAnalysis_to_temp();

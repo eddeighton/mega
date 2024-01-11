@@ -95,45 +95,72 @@ public:
         }
     }
 
+    using TypeInfoMap = std::map< std::string, Interface::CPP::TypeInfo* >;
+
     struct Visitor : Interface::Visitor
     {
         Database&             database;
         ASTContext*           pASTContext;
         Sema*                 pSema;
         ItaniumMangleContext* pMangle;
+        TypeInfoMap&          typeInfoMap;
 
         DeclContext*   pDeclContext = nullptr;
         SourceLocation loc;
 
-        Visitor( Database& database, ASTContext* pASTContext, Sema* pSema, ItaniumMangleContext* pMangle )
+        Visitor( Database&             database,
+                 ASTContext*           pASTContext,
+                 Sema*                 pSema,
+                 ItaniumMangleContext* pMangle,
+                 TypeInfoMap&          typeInfoMap )
             : database( database )
             , pASTContext( pASTContext )
             , pSema( pSema )
             , pMangle( pMangle )
+            , typeInfoMap( typeInfoMap )
         {
         }
 
         virtual ~Visitor() = default;
+
+        Interface::CPP::TypeInfo* getOrCreateTypeInfo( QualType traitType ) const
+        {
+            const std::string strCanonical = traitType.getCanonicalType().getAsString();
+
+            auto iFind = typeInfoMap.find( strCanonical );
+            if( iFind != typeInfoMap.end() )
+            {
+                return iFind->second;
+            }
+            else
+            {
+                std::string strMangle;
+                {
+                    llvm::raw_string_ostream os( strMangle );
+                    pMangle->mangleTypeName( traitType, os );
+                }
+
+                std::ostringstream osTraitName;
+                {
+                    osTraitName << '_' << typeInfoMap.size();
+                }
+
+                auto pTypeInfo = database.construct< Interface::CPP::TypeInfo >(
+                    Interface::CPP::TypeInfo::Args{ strCanonical, strMangle, osTraitName.str() } );
+
+                typeInfoMap.insert( { strCanonical, pTypeInfo } );
+
+                return pTypeInfo;
+            }
+        }
 
         virtual bool visit( Interface::UserDimension* pNode ) const
         {
             QualType traitType
                 = getTypeTrait( pASTContext, pSema, pDeclContext, loc, pNode->get_symbol()->get_token() );
 
-            const std::string strCanonical = traitType.getCanonicalType().getAsString();
-            std::string       strMangle;
-            {
-                llvm::raw_string_ostream os( strMangle );
-                pMangle->mangleTypeName( traitType, os );
-            }
-
-            CLANG_PLUGIN_LOG( "Found: " << Interface::getKind( pNode ) << " " << Interface::fullTypeName( pNode )
-                                        << " with type: " << strCanonical );
-
-            auto pTypeInfo = database.construct< Interface::CPP::TypeInfo >(
-                Interface::CPP::TypeInfo::Args{ strCanonical, strMangle } );
             database.construct< Interface::CPP::DataType >(
-                Interface::CPP::DataType::Args{ pNode->get_cpp_data_type(), pTypeInfo } );
+                Interface::CPP::DataType::Args{ pNode->get_cpp_data_type(), getOrCreateTypeInfo( traitType ) } );
 
             return true;
         }
@@ -143,18 +170,8 @@ public:
             QualType traitType
                 = getTypeTrait( pASTContext, pSema, pDeclContext, loc, pNode->get_symbol()->get_token() );
 
-            const std::string strCanonical = traitType.getCanonicalType().getAsString();
-            std::string       strMangle;
-            {
-                llvm::raw_string_ostream os( strMangle );
-                pMangle->mangleTypeName( traitType, os );
-            }
-
-            auto pTypeInfo = database.construct< Interface::CPP::TypeInfo >(
-                Interface::CPP::TypeInfo::Args{ strCanonical, strMangle } );
-
             database.construct< Interface::CPP::DataType >(
-                Interface::CPP::DataType::Args{ pNode->get_cpp_data_type(), pTypeInfo } );
+                Interface::CPP::DataType::Args{ pNode->get_cpp_data_type(), getOrCreateTypeInfo( traitType ) } );
 
             return true;
         }
@@ -170,32 +187,13 @@ public:
             auto pClangFunctionType = traitType->getPointeeType()->getAs< clang::FunctionProtoType >();
             VERIFY_RTE( pClangFunctionType );
 
-            Interface::CPP::TypeInfo* pReturnTypeInfo = nullptr;
-            {
-                auto              returnType   = pClangFunctionType->getReturnType();
-                const std::string strCanonical = returnType.getCanonicalType().getAsString();
-                std::string       strMangle;
-                {
-                    llvm::raw_string_ostream os( strMangle );
-                    pMangle->mangleTypeName( returnType, os );
-                }
-                pReturnTypeInfo = database.construct< Interface::CPP::TypeInfo >(
-                    Interface::CPP::TypeInfo::Args{ strCanonical, strMangle } );
-            }
+            Interface::CPP::TypeInfo* pReturnTypeInfo = getOrCreateTypeInfo( pClangFunctionType->getReturnType() );
 
             std::vector< Interface::CPP::TypeInfo* > parameterTypeInfos;
             {
                 for( auto paramType : pClangFunctionType->getParamTypes() )
                 {
-                    const std::string strCanonical = paramType.getCanonicalType().getAsString();
-                    std::string       strMangle;
-                    {
-                        llvm::raw_string_ostream os( strMangle );
-                        pMangle->mangleTypeName( paramType, os );
-                    }
-                    auto pParameterType = database.construct< Interface::CPP::TypeInfo >(
-                        Interface::CPP::TypeInfo::Args{ strCanonical, strMangle } );
-                    parameterTypeInfos.push_back( pParameterType );
+                    parameterTypeInfos.push_back( getOrCreateTypeInfo( paramType.getCanonicalType() ) );
                 }
             }
 
@@ -207,9 +205,13 @@ public:
         virtual bool visit( Interface::IContext* pNode ) const { return true; }
     };
 
-    bool recurse( Interface::Node* pNode, DeclContext* pDeclContext, ItaniumMangleContext* pMangle, SourceLocation loc )
+    bool recurse( Interface::Node*      pNode,
+                  DeclContext*          pDeclContext,
+                  ItaniumMangleContext* pMangle,
+                  SourceLocation        loc,
+                  TypeInfoMap&          typeInfoMap )
     {
-        Visitor visitor{ m_database, pASTContext, pSema, pMangle };
+        Visitor visitor{ m_database, pASTContext, pSema, pMangle, typeInfoMap };
 
         visitor.pDeclContext = pDeclContext;
         visitor.loc          = loc;
@@ -232,7 +234,7 @@ public:
 
             for( Interface::Node* pChildNode : pNode->get_children() )
             {
-                if( !recurse( pChildNode, result.pDeclContext, pMangle, result.loc ) )
+                if( !recurse( pChildNode, result.pDeclContext, pMangle, result.loc, typeInfoMap ) )
                 {
                     return false;
                 }
@@ -249,10 +251,12 @@ public:
             DeclContext*   pDeclContext = pASTContext->getTranslationUnitDecl();
             auto           pMangle      = ItaniumMangleContext::create( *pASTContext, pASTContext->getDiagnostics() );
 
+            TypeInfoMap typeInfoMap;
+
             Interface::Root* pRoot = m_database.one< Interface::Root >( m_environment.project_manifest() );
             for( Interface::Node* pNode : pRoot->get_children() )
             {
-                if( !recurse( pNode, pDeclContext, pMangle, loc ) )
+                if( !recurse( pNode, pDeclContext, pMangle, loc, typeInfoMap ) )
                 {
                     bSuccess = false;
                     break;

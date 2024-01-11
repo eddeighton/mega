@@ -29,11 +29,11 @@ static inline mega::interface::TypeID getInterfaceTypeID( const Concrete::Node* 
     {
         return pNode->get_node_opt().value()->get_interface_id()->get_type_id();
     }
-    else if( db_cast< Concrete::OwnershipLink >( pNode ) )
+    else if( db_cast< Concrete::Data::OwnershipLink >( pNode ) )
     {
         return mega::interface::OWNER_TYPE_ID;
     }
-    else if( db_cast< Concrete::ActivationBitSet >( pNode ) )
+    else if( db_cast< Concrete::Data::ActivationBitSet >( pNode ) )
     {
         return mega::interface::STATE_TYPE_ID;
     }
@@ -49,11 +49,11 @@ static inline std::string getKind( const Concrete::Node* pNode )
     {
         return Interface::getKind( pNode->get_node_opt().value() );
     }
-    else if( db_cast< Concrete::OwnershipLink >( pNode ) )
+    else if( db_cast< Concrete::Data::OwnershipLink >( pNode ) )
     {
         return mega::EG_OWNER;
     }
-    else if( db_cast< Concrete::ActivationBitSet >( pNode ) )
+    else if( db_cast< Concrete::Data::ActivationBitSet >( pNode ) )
     {
         return mega::EG_STATE;
     }

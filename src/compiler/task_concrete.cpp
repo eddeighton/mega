@@ -211,6 +211,11 @@ public:
                 database.construct< Concrete::Event >(
                     Concrete::Event::Args{ Concrete::Context::Args{ pCNode, pIContext }, pEvent } );
             }
+            else if( auto pFunction = db_cast< Interface::Function >( pIContext ) )
+            {
+                database.construct< Concrete::Function >( Concrete::Function::Args{
+                    Concrete::Context::Args{ pCNode, pIContext }, pFunction } );
+            }
             else if( auto pAction = db_cast< Interface::Action >( pIContext ) )
             {
                 database.construct< Concrete::Action >( Concrete::Action::Args{
@@ -240,17 +245,17 @@ public:
 
                 // Activation Bitset
                 {
-                    auto pActivationBitSet = database.construct< Concrete::ActivationBitSet >(
-                        Concrete::ActivationBitSet::Args{ Concrete::Node::Args{
-                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false } } );
+                    auto pActivationBitSet = database.construct< Concrete::Data::ActivationBitSet >(
+                        Concrete::Data::ActivationBitSet::Args{ Concrete::Data::Field::Args{ Concrete::Node::Args{
+                            Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false } } } );
                     pParentObject->set_activation_bitset( pActivationBitSet );
                     pParentObject->push_back_children( pActivationBitSet );
                 }
 
                 // Ownership Link
                 {
-                    auto pOwnershipLink = database.construct< Concrete::OwnershipLink >(
-                        Concrete::OwnershipLink::Args{ Concrete::Link::Args{ Concrete::Node::Args{
+                    auto pOwnershipLink = database.construct< Concrete::Data::OwnershipLink >(
+                        Concrete::Data::OwnershipLink::Args{ Concrete::Data::Link::Args{ Concrete::Node::Args{
                             Concrete::NodeGroup::Args{ {} }, pParentObject, std::nullopt, false } } } );
                     pParentObject->set_ownership( pOwnershipLink );
                     pParentObject->push_back_children( pOwnershipLink );
@@ -263,8 +268,13 @@ public:
         }
         else if( auto pIUserLink = db_cast< Interface::UserLink >( pINode ) )
         {
-            auto pUserLink = database.construct< Concrete::UserLink >(
-                Concrete::UserLink::Args{ Concrete::Link::Args{ pCNode }, pIUserLink } );
+            auto pUserLink = database.construct< Concrete::Data::UserLink >( Concrete::Data::UserLink::Args{
+                Concrete::Data::Link::Args{ Concrete::Data::Field::Args{ pCNode } }, pIUserLink } );
+        }
+        else if( auto pIUserDimension = db_cast< Interface::UserDimension >( pINode ) )
+        {
+            auto pUserLink = database.construct< Concrete::Data::Dimension >(
+                Concrete::Data::Dimension::Args{ Concrete::Data::Field::Args{ pCNode }, pIUserDimension } );
         }
         else
         {

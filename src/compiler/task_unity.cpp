@@ -310,7 +310,7 @@ public:
             std::vector< UnityAnalysis::DataBinding* > dataBindings;
             std::vector< UnityAnalysis::LinkBinding* > linkBindings;
             {
-                for( Concrete::Link* pLink : pRootObject->get_all_links() )
+                for( Concrete::Data::Link* pLink : pRootObject->get_all_links() )
                 {
                     std::ostringstream osTypeName;
                     osTypeName << Interface::printIContextFullType( pLink->get_link() );
@@ -401,7 +401,7 @@ public:
         DimMap       dimMap;
 
         // THROW_TODO;
-        /*using LinkMap      = std::multimap< Concrete::Object*, Concrete::Link* >;
+        /*using LinkMap      = std::multimap< Concrete::Object*, Concrete::Data::Link* >;
         LinkMap      linkMap;
         {
             for( const auto& [ _, pConcreteType ] : pSymbolTable->get_concrete_type_ids() )
@@ -413,7 +413,7 @@ public:
                     {
                         objectVector.push_back( pObject );
                     }
-                    else if( Concrete::Link* pLink = db_cast< Concrete::Link >( pContext ) )
+                    else if( Concrete::Data::Link* pLink = db_cast< Concrete::Data::Link >( pContext ) )
                     {
                         auto obj = pLink->get_concrete_object();
                         if( obj.has_value() )
@@ -485,17 +485,17 @@ public:
                     }
                 }
                 // THROW_TODO;
-                /*std::map< Concrete::Link*, UnityAnalysis::LinkBinding* > linkBindings;
+                /*std::map< Concrete::Data::Link*, UnityAnalysis::LinkBinding* > linkBindings;
                 {
                     for( UnityAnalysis::LinkBinding* pLinkBinding : pObjectBinding->get_linkBindings() )
                     {
                         const TypeID interfaceTypeID = pLinkBinding->get_interfaceTypeID();
 
-                        Concrete::Link* pFoundLink = nullptr;
+                        Concrete::Data::Link* pFoundLink = nullptr;
                         for( auto i = linkMap.lower_bound( pObject ), iEnd = linkMap.upper_bound( pObject ); i != iEnd;
                              ++i )
                         {
-                            Concrete::Link* pLink = i->second;
+                            Concrete::Data::Link* pLink = i->second;
 
                             bool bFound = false;
                             for( Interface::IContext* pInherited : pLink->get_inheritance() )

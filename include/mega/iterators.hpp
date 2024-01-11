@@ -23,7 +23,6 @@
 #ifndef EG_ITERATORS_02_05_2019
 #define EG_ITERATORS_02_05_2019
 
-#include "mega/values/compilation/operation_id.hpp"
 #include "mega/clock.hpp"
 
 #include <array>

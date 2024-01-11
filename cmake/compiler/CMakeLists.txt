@@ -61,12 +61,6 @@ set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/configuration.hpp
     ${MEGA_API_DIR}/compiler/build_report.hpp
 
-    # reusable code generators
-    ${MEGA_API_DIR}/compiler/generator_utility.hpp
-    ${MEGA_API_DIR}/compiler/generator_interface.hpp
-    ${MEGA_API_DIR}/compiler/generator_operations.hpp
-    ${MEGA_API_DIR}/compiler/generator_implementation.hpp
-
     # reusable
     ${MEGA_API_DIR}/compiler/common_ancestor.hpp
     ${MEGA_API_DIR}/compiler/concrete.hpp
@@ -112,12 +106,6 @@ link_common( compiler_config )
 # dynamically loaded module that implements the compiler pipeline
 set( JINJA_TEMPLATES 
 	${MEGA_SRC_DIR}/compiler/templates/impl.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/initialiser.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/operations_externs.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/python_wrapper.jinja 
-    ${MEGA_SRC_DIR}/compiler/templates/context.jinja 
 	)
 
 set( COMPILER_TASKS

@@ -21,22 +21,18 @@
 #ifndef GUARD_2023_December_26_typed_pointer
 #define GUARD_2023_December_26_typed_pointer
 
-#include "mega/values/compilation/operation_id.hpp"
 #include "mega/values/compilation/interface/type_id.hpp"
-#include "mega/values/compilation/interface/symbol_id.hpp"
 
 #include "mega/values/runtime/pointer.hpp"
 
 #include "mega/values/clang/result_type.hpp"
+#include "mega/values/clang/attribute_id.hpp"
 
-template< mega::interface::TypeID::ValueType... InterfaceTypeID >
-class [[clang::eg_type( mega::id_MegaPointer )]] __mega_ptr;
+template< typename Context, typename TypePath, typename Operation, typename... Args >
+static void invoke_impl_void( Context& context, Args... args );
 
-template< typename ContextType, typename TypePath, typename Operation, typename... Args >
-void invoke_impl_void( ContextType, Args... args );
-
-template< typename ContextType, typename TypePath, typename Operation, typename... Args >
-typename mega::result_type< ContextType, TypePath, Operation >::Type invoke_impl( ContextType, Args... );
+template< typename ResultType, typename Context, typename TypePath, typename Operation, typename... Args >
+static ResultType invoke_impl( Context& context, Args... args );
 
 template< mega::interface::TypeID::ValueType... InterfaceTypeID >
 class [[clang::eg_type( mega::id_MegaPointer )]] __mega_ptr : public mega::Pointer

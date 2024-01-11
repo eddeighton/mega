@@ -22,10 +22,11 @@
 
 #include "mega/values/compilation/interface/symbol_id.hpp"
 #include "mega/values/compilation/interface/type_id.hpp"
-#include "mega/values/compilation/operation_id.hpp"
+#include "mega/values/compilation/interface/symbol_id.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/serialisation.hpp"
+#include "common/hash.hpp"
 
 #include <utility>
 #include <array>
@@ -44,33 +45,42 @@ public:
 
     TypeIDArray   m_context;
     SymbolIDArray m_symbols;
-    OperationID   m_operation = HIGHEST_OPERATION_TYPE;
+    bool          m_bHasParams = false;
+
+    struct Hash
+    {
+        inline std::size_t operator()( const InvocationID& value ) const
+        {
+            return common::Hash( value.m_context, value.m_symbols, value.m_bHasParams ).get();
+        }
+    };
 
     constexpr inline InvocationID() = default;
 
-    constexpr inline explicit InvocationID( interface::TypeID context, SymbolIDArray symbols, OperationID operationID )
+    constexpr inline explicit InvocationID( interface::TypeID context, SymbolIDArray symbols, bool bHasParams )
         : m_context( { context } )
         , m_symbols( std::move( symbols ) )
-        , m_operation( operationID )
+        , m_bHasParams( bHasParams )
     {
     }
 
-    constexpr inline explicit InvocationID( TypeIDArray context, SymbolIDArray symbols, OperationID operationID )
+    constexpr inline explicit InvocationID( TypeIDArray context, SymbolIDArray symbols, bool bHasParams )
         : m_context( std::move( context ) )
         , m_symbols( std::move( symbols ) )
-        , m_operation( operationID )
+        , m_bHasParams( bHasParams )
     {
     }
 
     constexpr inline bool operator==( const InvocationID& cmp ) const
     {
-        return ( m_context == cmp.m_context ) && ( m_symbols == cmp.m_symbols ) && ( m_operation == cmp.m_operation );
+        return ( m_context == cmp.m_context ) && ( m_symbols == cmp.m_symbols ) && ( m_bHasParams == cmp.m_bHasParams );
     }
+
     constexpr inline bool operator<( const InvocationID& cmp ) const
     {
         return ( m_context != cmp.m_context )   ? ( m_context < cmp.m_context )
                : ( m_symbols != cmp.m_symbols ) ? ( m_symbols < cmp.m_symbols )
-                                                : ( m_operation < cmp.m_operation );
+                                                : ( m_bHasParams < cmp.m_bHasParams );
     }
 
     template < class Archive >
@@ -80,13 +90,13 @@ public:
         {
             archive& boost::serialization::make_nvp( "context", m_context );
             archive& boost::serialization::make_nvp( "symbols", m_symbols );
-            archive& boost::serialization::make_nvp( "operation", m_operation );
+            archive& boost::serialization::make_nvp( "bHasParams", m_bHasParams );
         }
         else
         {
             archive& m_context;
             archive& m_symbols;
-            archive& m_operation;
+            archive& m_bHasParams;
         }
     }
 };
@@ -111,7 +121,7 @@ inline std::ostream& operator<<( std::ostream& os, const mega::InvocationID& inv
         os << symbol;
     }
 
-    os << getOperationString( invocationID.m_operation );
+    os << std::boolalpha << invocationID.m_bHasParams;
 
     return os;
 }

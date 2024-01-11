@@ -95,7 +95,7 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
             for( auto j = owners.upper_bound( i->first ); i != j; ++i )
             {
                 Interface::UserLink*     pLink  = i->first;
-                Concrete::OwnershipLink* pOwned = i->second;
+                Concrete::Data::OwnershipLink* pOwned = i->second;
                 ownersTable.m_rows.push_back(
                     { Line{ Interface::fullTypeName( pLink ) }, Line{ pLink->get_interface_id()->get_type_id() },
                       Line{ Concrete::fullTypeName( pOwned ) }, Line{ pOwned->get_concrete_id()->get_type_id() } } );
@@ -115,7 +115,7 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
         {
             for( auto j = owned.upper_bound( i->first ); i != j; ++i )
             {
-                Concrete::OwnershipLink* pLink  = i->first;
+                Concrete::Data::OwnershipLink* pLink  = i->first;
                 Interface::UserLink*     pOwner = i->second;
                 ownedTable.m_rows.push_back(
                     { Line{ Concrete::fullTypeName( pLink ) }, Line{ pLink->get_concrete_id()->get_type_id() },

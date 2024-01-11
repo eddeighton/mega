@@ -27,11 +27,11 @@ static const std::string getIdentifier( const Node* pNode )
     {
         return pNode->get_node_opt().value()->get_symbol()->get_token();
     }
-    else if( db_cast< Concrete::OwnershipLink >( pNode ) )
+    else if( db_cast< Concrete::Data::OwnershipLink >( pNode ) )
     {
         return mega::EG_OWNER;
     }
-    else if( db_cast< Concrete::ActivationBitSet >( pNode ) )
+    else if( db_cast< Concrete::Data::ActivationBitSet >( pNode ) )
     {
         return mega::EG_STATE;
     }

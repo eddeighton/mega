@@ -42,24 +42,26 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/runtime/function_cache.hpp
     ${MEGA_API_DIR}/runtime/function_provider.hpp
     ${MEGA_API_DIR}/runtime/function_ptr.hpp
-    ${MEGA_API_DIR}/runtime/functor_cpp.hxx
     ${MEGA_API_DIR}/runtime/functor_dispatch.hpp
-    ${MEGA_API_DIR}/runtime/functor_id.hxx
     ${MEGA_API_DIR}/runtime/mangle.hpp
     ${MEGA_API_DIR}/runtime/orc.hpp
     ${MEGA_API_DIR}/runtime/runtime.hpp
     ${MEGA_API_DIR}/runtime/symbol.hpp
+
+    ${MEGA_API_DIR}/runtime/functor_id.hxx
+    ${MEGA_API_DIR}/runtime/functor_cpp.hxx
 )
 
 
 set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/runtime/clang.cpp
     #${MEGA_SRC_DIR}/runtime/component_manager.cpp
-    ${MEGA_SRC_DIR}/runtime/functor_cpp.cxx
-    ${MEGA_SRC_DIR}/runtime/functor_dispatch.cxx
     ${MEGA_SRC_DIR}/runtime/orc.cpp
     ${MEGA_SRC_DIR}/runtime/runtime.cpp
     ${MEGA_SRC_DIR}/runtime/symbols.cpp
+
+    ${MEGA_SRC_DIR}/runtime/functor_dispatch.cxx
+    ${MEGA_SRC_DIR}/runtime/functor_cpp.cxx
 )
 
 add_library( runtime

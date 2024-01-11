@@ -21,9 +21,8 @@
 #ifndef GUARD_2023_December_29_symbol_path
 #define GUARD_2023_December_29_symbol_path
 
-#include "mega/values/compilation/operation_id.hpp"
 #include "mega/values/compilation/interface/symbol_id.hpp"
-
+#include "mega/values/clang/attribute_id.hpp"
 
 template< mega::interface::SymbolID::ValueType... symbols >
 struct [[clang::eg_type( mega::id_MegaSymbolPath )]] __mega_symbol_path

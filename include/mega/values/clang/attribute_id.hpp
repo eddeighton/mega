@@ -17,3 +17,21 @@
 //  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
+
+#ifndef GUARD_2024_January_10_attribute_id
+#define GUARD_2024_January_10_attribute_id
+
+namespace mega
+{
+
+enum ClangEGAttributeID
+{
+    id_MegaPointer,
+    id_MegaSymbolPath,
+    id_OPERATION_IMP_NOPARAMS,
+    id_OPERATION_IMP_PARAMS
+};
+
+}
+
+#endif // GUARD_2024_January_10_attribute_id

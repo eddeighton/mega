@@ -45,7 +45,6 @@ set( MEGA_VALUES_COMMON_HEADERS
     ${MEGA_VALUES_DIR}/runtime.h
     ${MEGA_VALUES_DIR}/native_types.h
 
-    ${MEGA_VALUES_DIR}/hash.hpp
     ${MEGA_VALUES_DIR}/native_types.hpp
     ${MEGA_VALUES_DIR}/native_types.hxx
     ${MEGA_VALUES_DIR}/native_types_io.hpp
@@ -83,14 +82,15 @@ set( MEGA_VALUES_COMPILATION_HEADERS
     ${MEGA_VALUES_COMPILATION_DIR}/anon_symbols.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/cardinality.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/compilation_configuration.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/explicit_operation_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/hyper_graph.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/icontext_flags.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/invocation_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/megastructure_installation.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/modes.hpp
-    ${MEGA_VALUES_COMPILATION_DIR}/operation_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/operator_id.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/ownership.hpp
+    ${MEGA_VALUES_COMPILATION_DIR}/reserved_symbols.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/size_alignment.hpp   
     ${MEGA_VALUES_COMPILATION_DIR}/source_location.hpp
     ${MEGA_VALUES_COMPILATION_DIR}/symbol_table.hpp
@@ -100,23 +100,26 @@ set( MEGA_VALUES_COMPILATION_HEADERS
 set( MEGA_VALUES_COMPILATION_SRC
 
     ${MEGA_VALUES_COMPILATION_DIR}/anon_symbols.cpp
+    ${MEGA_VALUES_COMPILATION_DIR}/explicit_operation_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/hyper_graph.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/icontext_flags.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/megastructure_installation.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/modes.cpp
-    ${MEGA_VALUES_COMPILATION_DIR}/operation_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/operator_id.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/ownership.cpp
+    ${MEGA_VALUES_COMPILATION_DIR}/reserved_symbols.cpp
+    ${MEGA_VALUES_COMPILATION_DIR}/symbol_table.cpp
     ${MEGA_VALUES_COMPILATION_DIR}/tool_chain_hash.cpp
 
 )
 
 set( MEGA_VALUES_CLANG_DIR ${MEGA_VALUES_DIR}/clang )
 set( MEGA_VALUES_CLANG_HEADERS
+    ${MEGA_VALUES_CLANG_DIR}/attribute_id.hpp
+    ${MEGA_VALUES_CLANG_DIR}/mega_pointer.hpp
     ${MEGA_VALUES_CLANG_DIR}/operation_id_types.hpp
     ${MEGA_VALUES_CLANG_DIR}/result_type.hpp
     ${MEGA_VALUES_CLANG_DIR}/symbol_path.hpp
-    ${MEGA_VALUES_CLANG_DIR}/mega_pointer.hpp
 )
 # NOTE: MEGA_VALUES_CLANG_HEADERS NOTE added to lib
 
@@ -137,6 +140,7 @@ set( MEGA_VALUES_RUNTIME_HEADERS
     ${MEGA_VALUES_RUNTIME_DIR}/pointer.hpp
     ${MEGA_VALUES_RUNTIME_DIR}/timestamp.hpp
 )
+
 set( MEGA_VALUES_RUNTIME_SRC
 )
 

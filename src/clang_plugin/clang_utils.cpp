@@ -19,7 +19,7 @@
 
 #include "clang_utils.hpp"
 
-#include "mega/values/compilation/operation_id.hpp"
+#include "mega/values/compilation/reserved_symbols.hpp"
 
 #include "mega/common_strings.hpp"
 
@@ -622,10 +622,6 @@ QualType getMultiIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclCo
     return QualType();
 }
 
-QualType getVoidType( ASTContext* pASTContext )
-{
-    return pASTContext->VoidTy;
-}
 QualType getBooleanType( ASTContext* pASTContext )
 {
     return pASTContext->BoolTy;
@@ -633,10 +629,6 @@ QualType getBooleanType( ASTContext* pASTContext )
 QualType getIntType( ASTContext* pASTContext )
 {
     return pASTContext->IntTy;
-}
-QualType getUIntType( ASTContext* pASTContext )
-{
-    return pASTContext->UnsignedIntTy;
 }
 
 */
@@ -680,6 +672,66 @@ QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTy
 }
 */
 
+QualType makeVoidType( ASTContext* pASTContext )
+{
+    return pASTContext->VoidTy;
+}
+QualType makeUIntType( ASTContext* pASTContext )
+{
+    return pASTContext->UnsignedIntTy;
+}
+
+QualType makeMegaPointerType( ASTContext* pASTContext, Sema* pSema,
+                              const std::vector< mega::interface::TypeID >& typeIDs )
+{
+    IdentifierInfo* pIdentifierInfo = pASTContext->getEGPointerName();
+
+    SourceLocation loc;
+    LookupResult   result( *pSema, pIdentifierInfo, loc, Sema::LookupAnyName );
+
+    if( pSema->LookupQualifiedName( result, pASTContext->getTranslationUnitDecl() ) )
+    {
+        if( auto pDecl = llvm::dyn_cast< ClassTemplateDecl >( result.getFoundDecl() ) )
+        {
+            loc = pDecl->getTemplatedDecl()->getBeginLoc();
+            TemplateArgumentListInfo TemplateArgs( loc, loc );
+
+            for( const auto& typeID : typeIDs )
+            {
+                const llvm::APInt integerValue = llvm::APInt( 32, typeID.getValue() );
+
+                // auto pExpr = IntegerLiteral::Create( *pASTContext, integerValue,
+                //                                     pASTContext->UnsignedIntTy,
+                //                                     loc );
+
+                // ParsedTemplateArgument Arg(ParsedTemplateArgument::NonType, pExpr, loc );
+
+                // if (Arg.isInvalid() ||
+                //     (Arg.getKind() != ParsedTemplateArgument::NonType))
+                // {
+                //     return QualType();
+                // }
+
+                const llvm::APSInt intValue = llvm::APSInt( integerValue );
+                TemplateArgument   templateArgument( *pASTContext, intValue, pASTContext->UnsignedIntTy );
+                TemplateArgs.addArgument( TemplateArgumentLoc(
+                    templateArgument, pASTContext->getTrivialTypeSourceInfo( pASTContext->UnsignedIntTy, loc ) ) );
+            }
+
+            // for( QualType qt : typeParameters )
+            // {
+            //     TemplateArgs.addArgument(
+            //         TemplateArgumentLoc( TemplateArgument( qt ), pASTContext->getTrivialTypeSourceInfo( qt, loc ) )
+            //         );
+            // }
+
+            TemplateName templateName( pDecl );
+            return pSema->CheckTemplateIdType( templateName, loc, TemplateArgs );
+        }
+    }
+    return {};
+}
+
 bool getContextTypeIDs( ASTContext* pASTContext, QualType contextType, mega::InvocationID::TypeIDArray& contextTypes )
 {
     std::size_t szIndex = 0;
@@ -703,7 +755,7 @@ bool getContextTypeIDs( ASTContext* pASTContext, QualType contextType, mega::Inv
                      pIter != pIterEnd;
                      ++pIter )
                 {
-                    THROW_TODO;
+                    return false;
                 }
                 return bSuccess;
             }
@@ -768,7 +820,7 @@ bool getContextTypeIDs( ASTContext* pASTContext, QualType contextType, mega::Inv
                     }
                     else if( arg.getKind() == TemplateArgument::Type )
                     {
-                        THROW_TODO;
+                        return false;
                     }
                     else
                     {
@@ -784,7 +836,7 @@ bool getContextTypeIDs( ASTContext* pASTContext, QualType contextType, mega::Inv
         }
         else
         {
-            THROW_TODO;
+            return false;
         }
     }
     else
@@ -914,96 +966,18 @@ const IdentifierInfo* getOperationIdentifier( ASTContext* pASTContext, const std
 }
 const IdentifierInfo* getImplicitNoParamsOperation( ASTContext* pASTContext )
 {
-    return getOperationIdentifier( pASTContext, mega::getOperationString( mega::id_Imp_NoParams ) );
+    return getOperationIdentifier(
+        pASTContext, mega::interface::getReservedSymbol( mega::interface::OPERATION_IMP_NOPARAMS ) );
 }
 const IdentifierInfo* getImplicitParamsOperation( ASTContext* pASTContext )
 {
-    return getOperationIdentifier( pASTContext, mega::getOperationString( mega::id_Imp_Params ) );
+    return getOperationIdentifier(
+        pASTContext, mega::interface::getReservedSymbol( mega::interface::OPERATION_IMP_PARAMS ) );
 }
 } // namespace
 
 const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters )
 {
-    /*QualType              canonicalType = ty.getCanonicalType();
-    const IdentifierInfo* pBaseTypeID   = canonicalType.getBaseTypeIdentifier();
-
-    if( !pBaseTypeID )
-        return nullptr;
-
-    if( pBaseTypeID == pASTContext->getEGSymbolPathName() )
-    {
-        const Type* pType = canonicalType.getTypePtr();
-
-        if( const TemplateSpecializationType* pTemplateType = canonicalType->getAs< TemplateSpecializationType >() )
-        {
-            if( pTemplateType->getNumArgs() == 0U )
-                return nullptr;
-
-            const TemplateArgument& lastTemplateArg = pTemplateType->getArg( pTemplateType->getNumArgs() - 1U );
-            QualType                t               = lastTemplateArg.getAsType();
-            return getOperationID( pASTContext, t, bHasParameters );
-        }
-        else if( const DependentTemplateSpecializationType* pDependentTemplateType
-                 = llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
-        {
-            if( pTemplateType->getNumArgs() == 0U )
-                return nullptr;
-            const TemplateArgument& lastTemplateArg = pTemplateType->getArg( pTemplateType->getNumArgs() - 1U );
-            QualType                t               = lastTemplateArg.getAsType();
-            return getOperationID( pASTContext, t, bHasParameters );
-        }
-        else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
-        {
-            const CXXRecordDecl* pRecordDecl = llvm::dyn_cast< CXXRecordDecl >( pRecordType->getDecl() );
-            if( !pRecordDecl )
-                return nullptr;
-
-            const auto* Spec = llvm::dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl );
-            if( !Spec )
-                return nullptr;
-
-            const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
-            if( Args.size() == 0U )
-                return nullptr;
-
-            const TemplateArgument& lastTemplateArg = Args[ Args.size() - 1U ];
-
-            if( lastTemplateArg.getKind() == TemplateArgument::Pack )
-            {
-                const TemplateArgument& lastTemplatePackArg = lastTemplateArg.pack_elements().back();
-
-
-                auto integral = lastTemplatePackArg.getAsIntegral();
-                mega::SymbolID::ValueType symbol = static_cast< mega::SymbolID::ValueType >( integral.getExtValue() );
-
-                //QualType t = lastTemplatePackArg.getNonTypeTemplateArgumentType()
-                //t.
-
-
-                QualType                t                   = lastTemplatePackArg.getAsType();
-                return getOperationID( pASTContext, t, bHasParameters );
-            }
-            else if( lastTemplateArg.getKind() == TemplateArgument::Type )
-            {
-                QualType t = lastTemplateArg.getAsType();
-                return getOperationID( pASTContext, t, bHasParameters );
-            }
-            else
-            {
-                return nullptr;
-            }
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
-
-    if( ::mega::getOperationName( pBaseTypeID->getName().str() ) != ::mega::HIGHEST_OPERATION_TYPE )
-    {
-        return getOperationIdentifier( pASTContext, pBaseTypeID->getName().str() );
-    }
-    else */
     if( bHasParameters )
     {
         return getImplicitParamsOperation( pASTContext );

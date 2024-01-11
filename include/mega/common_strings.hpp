@@ -24,6 +24,7 @@
 
 namespace mega
 {
+static const char* EG_ROOT = "Root";
 static const char* EG_OWNER = "Owner";
 static const char* EG_STATE = "State";
 } // namespace mega

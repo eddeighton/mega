@@ -298,7 +298,7 @@ static void precedence( Derivation::Edge* pEdge )
                     break;
                 case ::mega::EdgeType::eLink:
                     // do not give ownership link precedence
-                    if( !db_cast< Concrete::OwnershipLink >( pGraphEdge->get_target() ) )
+                    if( !db_cast< Concrete::Data::OwnershipLink >( pGraphEdge->get_target() ) )
                     {
                         pEdge->set_precedence( 1 );
                     }

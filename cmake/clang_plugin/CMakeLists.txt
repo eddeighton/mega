@@ -63,6 +63,7 @@ import_clang( clang_plugin )
 
 ENDIF()
 
+target_link_libraries( clang_plugin mega_values )
 target_link_libraries( clang_plugin database )
 target_link_libraries( clang_plugin invocation )
 

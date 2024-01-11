@@ -203,6 +203,18 @@ public:
             {
                 recurse( database, pNode, printer, includedNodes );
             }
+
+            // generate type info traits
+            printer.line() << "namespace " << mega::MEGA_TRAITS;
+            printer.line() << "{";
+
+            for( auto pTypeInfo : database.many< Interface::CPP::TypeInfo >( m_manifestFilePath ) )
+            {
+                printer.line() << "  using " << pTypeInfo->get_trait_name() << " = " << pTypeInfo->get_canonical() << ";";
+            }
+
+            printer.line() << "}";
+            printer.line();
         }
 
         if( boost::filesystem::updateFileIfChanged( m_environment.FilePath( cppDeclsHeader ), osInterface.str() ) )

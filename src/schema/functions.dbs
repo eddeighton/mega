@@ -44,8 +44,8 @@ namespace Functions
 
         object Dimension : ReturnType -> ObjectStage::Obj
         {
-            array< ref< Interface::Aggregate > >    dimensions;
-            value< bool >                           homogeneous;
+            array< ref< Interface::UserDimension > >    dimensions;
+            value< bool >                               homogeneous;
         }
 
         object Function : ReturnType -> ObjectStage::Obj

@@ -21,8 +21,9 @@
 
 #include "database/ObjectStage.hxx"
 
-#include "mega/values/compilation/operation_id.hpp"
+#include "mega/values/compilation/invocation_id.hpp"
 #include "mega/values/compilation/hyper_graph.hpp"
+#include "mega/values/compilation/reserved_symbols.hpp"
 
 #include "mega/common_strings.hpp"
 #include "mega/make_unique_without_reorder.hpp"
@@ -58,11 +59,11 @@ namespace
 
 using InvocationPolicy = ObjectStage::Invocation::InterObjectDerivationPolicy;
 
-void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationID& id,
-                       std::vector< Concrete::Node* >& contextTypes, InvocationPolicy::Spec& spec )
+std::optional< mega::interface::SymbolID > fromInvocationID( const SymbolTables&             symbolTables,
+                                                             const mega::InvocationID&       id,
+                                                             std::vector< Concrete::Node* >& contextTypes,
+                                                             InvocationPolicy::Spec&         spec )
 {
-    std::optional< mega::OperationID > operationIDOpt;
-
     for( const interface::TypeID& interfaceTypeID : id.m_context )
     {
         if( interfaceTypeID.valid() )
@@ -85,19 +86,21 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
     }
     VERIFY_RTE_MSG( !contextTypes.empty(), "Invocation has no context" );
 
+    std::optional< mega::interface::SymbolID > operationIDOpt;
     for( const interface::SymbolID& symbolID : id.m_symbols )
     {
         std::vector< Concrete::Node* > pathElement;
+        if( symbolID != interface::NULL_SYMBOL_ID )
         {
-            if( isOperationType( symbolID ) )
+            if( interface::isOperationType( symbolID ) )
             {
-                VERIFY_RTE_MSG( !operationIDOpt.has_value(), "Operation ID defined twice" );
-                operationIDOpt = static_cast< mega::OperationID >( symbolID.getValue() );
+                VERIFY_RTE_MSG( !operationIDOpt.has_value(), "Operation ID defined twice in invocation: " << id );
+                operationIDOpt = symbolID;
             }
             else
             {
                 auto iFind = symbolTables.symbolIDMap.find( symbolID );
-                VERIFY_RTE( iFind != symbolTables.symbolIDMap.end() );
+                VERIFY_RTE_MSG( iFind != symbolTables.symbolIDMap.end(), "Failed to locate symbol: " << symbolID );
                 auto pSymbol = iFind->second;
 
                 for( auto pInterfaceID : pSymbol->get_interfaceIDs() )
@@ -117,9 +120,7 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
             spec.path.emplace_back( std::move( pathElement ) );
         }
     }
-
-    VERIFY_RTE_MSG( !operationIDOpt.has_value() || ( id.m_operation == operationIDOpt.value() ),
-                    "Mismatching operation type in invocation: " << id );
+    return operationIDOpt;
 }
 
 class OperationBuilder
@@ -129,30 +130,16 @@ class OperationBuilder
 
     enum TargetType
     {
-        eObjects,
-        eComponents,
-        eStates,
-        eDeciders,
-        eFunctions,
-        eEvents,
-        eUserDimensions,
-        eLinkDimensions,
+#define OPERATION_CONTEXT( CONCRETE_TYPE, NAME ) e_##NAME,
+#include "operation_contexts.hxx"
+#undef OPERATION_CONTEXT
         eUNSET
     } m_targetType
         = eUNSET;
 
-    // clang-format off
-    // std::vector< Concrete::Object*              > objects;
-    // std::vector< Concrete::Component*           > components;
-    // std::vector< Concrete::State*               > states;
-    // std::vector< Concrete::Decider*             > deciders;
-    // std::vector< Concrete::Function*            > functions;
-    // std::vector< Concrete::Namespace*           > namespaces;
-    // std::vector< Concrete::Event*               > events;
-    // std::vector< Concrete::Interupt*            > interupts;
-    // std::vector< Concrete::Dimensions::User*    > userDimensions;
-    // std::vector< Concrete::Dimensions::Link*    > linkDimensions;
-    // clang-format on
+#define OPERATION_CONTEXT( CONCRETE_TYPE, NAME ) std::vector< Concrete::CONCRETE_TYPE* > NAME;
+#include "operation_contexts.hxx"
+#undef OPERATION_CONTEXT
 
     void findOperationVertices( Derivation::Node* pNode, std::vector< Concrete::Node* >& vertices )
     {
@@ -180,105 +167,49 @@ class OperationBuilder
         std::vector< Concrete::Node* > operationContexts;
         findOperationVertices( m_pInvocation->get_derivation(), operationContexts );
 
-        THROW_TODO;
-        /*for( auto pVert : operationContexts )
+        for( auto pVert : operationContexts )
         {
-            if( auto p = db_cast< Concrete::Object >( pVert ) )
+            if( false )
             {
-                objects.push_back( p );
-                VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eObjects ),
-                                "Conflicting target types for invocation: " << m_pInvocation->get_id() );
-                m_targetType = eObjects;
             }
-            else if( auto p = db_cast< Concrete::Component >( pVert ) )
-            {
-                components.push_back( p );
-                VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eComponents ),
-                                "Conflicting target types for invocation: " << m_pInvocation->get_id() );
-                m_targetType = eComponents;
-            }
-            else if( auto p = db_cast< Concrete::State >( pVert ) )
-            {
-                states.push_back( p );
-                VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eStates ),
-                                "Conflicting target types for invocation: " << m_pInvocation->get_id() );
-                m_targetType = eStates;
-            }
-            else if( auto p = db_cast< Concrete::Decider >( pVert ) )
-            {
-                deciders.push_back( p );
-                VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eDeciders ),
-                                "Conflicting target types for invocation: " << m_pInvocation->get_id() );
-                m_targetType = eDeciders;
-            }
-            else if( auto p = db_cast< Concrete::Function >( pVert ) )
-            {
-                functions.push_back( p );
-                VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eFunctions ),
-                                "Conflicting target types for invocation: " << m_pInvocation->get_id() );
-                m_targetType = eFunctions;
-            }
-            else if( auto p = db_cast< Concrete::Namespace >( pVert ) )
-            {
-                namespaces.push_back( p );
-            }
-            else if( auto p = db_cast< Concrete::Event >( pVert ) )
-            {
-                events.push_back( p );
-                VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eEvents ),
-                                "Conflicting target types for invocation: " << m_pInvocation->get_id() );
-                m_targetType = eEvents;
-            }
-            else if( auto p = db_cast< Concrete::Interupt >( pVert ) )
-            {
-                interupts.push_back( p );
-            }
-            else if( auto p = db_cast< Concrete::Dimensions::User >( pVert ) )
-            {
-                userDimensions.push_back( p );
-                VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eUserDimensions ),
-                                "Conflicting target types for invocation: " << m_pInvocation->get_id() );
-                m_targetType = eUserDimensions;
-            }
-            else if( auto p = db_cast< Concrete::Dimensions::Link >( pVert ) )
-            {
-                linkDimensions.push_back( p );
-                VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == eLinkDimensions ),
-                                "Conflicting target types for invocation: " << m_pInvocation->get_id() );
-                m_targetType = eLinkDimensions;
-            }
-        }*/
 
-        // VERIFY_RTE_MSG( namespaces.empty(), "Invalid invocation on namespace: " << m_pInvocation->get_id() );
-        // VERIFY_RTE_MSG( interupts.empty(), "Invalid invocation on interupt: " << m_pInvocation->get_id() );
+#define OPERATION_CONTEXT( CONCRETE_TYPE, NAME )                                                  \
+    else if( auto p = db_cast< Concrete::CONCRETE_TYPE >( pVert ) )                               \
+    {                                                                                             \
+        NAME.push_back( p );                                                                      \
+        VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == e_##NAME ),               \
+                        "Conflicting target types for invocation: " << m_pInvocation->get_id() ); \
+        m_targetType = e_##NAME;                                                                  \
+    }
+#include "operation_contexts.hxx"
+#undef OPERATION_CONTEXT
+            else
+            {
+                THROW_RTE( "Unsupported invocation target type: " << Concrete::fullTypeName( pVert )
+                                                                  << " in invocation: " << m_pInvocation->get_id() );
+            }
+        }
+
         VERIFY_RTE_MSG( m_targetType != eUNSET, "No targe type for invocation: " << m_pInvocation->get_id() );
-
-        std::set< std::string > dimensionTypes;
-        // for( auto pDim : userDimensions )
-        // {
-        //     dimensionTypes.insert( pDim->get_interface_dimension()->get_canonical_type() );
-        // }
     }
 
     void buildNoParams()
     {
-        THROW_TODO;
-        /*switch( m_targetType )
+        using namespace ObjectStage::Functions;
+
+        switch( m_targetType )
         {
-            case eObjects:
-                THROW_RTE( "Implicit invocation cannot be on object context" );
+            case e_objects:
+                THROW_RTE( "No params invocation cannot be on object context" );
                 break;
-            case eComponents:
-                THROW_RTE( "Implicit invocation cannot be on component context" );
-                break;
-            case eStates:
+            case e_states:
             {
                 // return type is the started state
                 {
                     std::vector< Interface::IContext* > contexts;
                     for( auto pConcrete : states )
                     {
-                        contexts.push_back( pConcrete->get_interface() );
+                        contexts.push_back( pConcrete->get_state() );
                     }
                     contexts = make_unique_without_reorder( contexts );
                     m_pInvocation->set_return_type( m_database.construct< ReturnTypes::Context >(
@@ -289,29 +220,16 @@ class OperationBuilder
                 m_pInvocation->set_explicit_operation( id_exp_Start );
             }
             break;
-            case eDeciders:
+            case e_functions:
             {
                 // return type is the function return type
                 {
-                    m_pInvocation->set_return_type( m_database.construct< ReturnTypes::Bool >(
-                        ReturnTypes::Bool::Args{ ReturnTypes::ReturnType::Args{} } ) );
-                }
-
-                m_database.construct< Call >( Call::Args{ m_pInvocation } );
-                m_pInvocation->set_explicit_operation( id_exp_Call );
-            }
-            break;
-            case eFunctions:
-            {
-                // return type is the function return type
-                {
-                    std::vector< Interface::Function* > contexts;
-                    std::set< std::string >             types;
+                    std::vector< Interface::Function* >   contexts;
+                    std::set< Interface::CPP::TypeInfo* > types;
                     for( auto pConcrete : functions )
                     {
-                        contexts.push_back( pConcrete->get_interface_function() );
-                        types.insert(
-                            pConcrete->get_interface_function()->get_return_type_trait()->get_canonical_type() );
+                        contexts.push_back( pConcrete->get_function() );
+                        types.insert( pConcrete->get_function()->get_cpp_function_type()->get_return_type_info() );
                     }
                     const bool bHomogenous = ( types.size() == 1 ) ? true : false;
                     contexts               = make_unique_without_reorder( contexts );
@@ -323,14 +241,14 @@ class OperationBuilder
                 m_pInvocation->set_explicit_operation( id_exp_Call );
             }
             break;
-            case eEvents:
+            case e_events:
             {
                 // return type is the signaled event
                 {
                     std::vector< Interface::IContext* > contexts;
                     for( auto pConcrete : events )
                     {
-                        contexts.push_back( pConcrete->get_interface() );
+                        contexts.push_back( pConcrete->get_event() );
                     }
                     contexts = make_unique_without_reorder( contexts );
                     m_pInvocation->set_return_type( m_database.construct< ReturnTypes::Context >(
@@ -341,17 +259,17 @@ class OperationBuilder
                 m_pInvocation->set_explicit_operation( id_exp_Signal );
             }
             break;
-            case eUserDimensions:
+            case e_dimensions:
             {
                 // return type is the read dimensions
                 {
-                    std::vector< Interface::DimensionTrait* > contexts;
-                    std::set< std::string >                   types;
-                    for( auto pConcrete : userDimensions )
+                    std::vector< Interface::UserDimension* > contexts;
+                    std::set< Interface::CPP::TypeInfo* >    types;
+                    for( auto pConcrete : dimensions )
                     {
-                        auto pDimensionTrait = pConcrete->get_interface_dimension();
-                        contexts.push_back( pDimensionTrait );
-                        types.insert( pDimensionTrait->get_canonical_type() );
+                        auto pUserDimension = pConcrete->get_dimension();
+                        contexts.push_back( pUserDimension );
+                        types.insert( pUserDimension->get_cpp_data_type()->get_type_info() );
                     }
                     const bool bHomogenous = ( types.size() == 1 ) ? true : false;
                     contexts               = make_unique_without_reorder( contexts );
@@ -363,47 +281,30 @@ class OperationBuilder
                 m_pInvocation->set_explicit_operation( id_exp_Read );
             }
             break;
-            case eLinkDimensions:
+            case e_links:
             {
                 // return type is the target of the link
                 {
                     std::vector< Interface::IContext* > targets;
                     bool                                bSingular = true;
-                    for( auto pConcrete : linkDimensions )
+                    for( auto pConcrete : links )
                     {
                         bool bFound = false;
                         for( auto pGraphEdge : pConcrete->get_out_edges() )
                         {
-                            switch( pGraphEdge->get_type().get() )
+                            if( auto pInterObjectEdge = db_cast< Concrete::InterObjectEdge >( pGraphEdge ) )
                             {
-                                case EdgeType::eInterObjectNonOwner:
-                                case EdgeType::eInterObjectOwner:
-                                case EdgeType::eInterObjectParent:
-                                {
-                                    // VERIFY_RTE( !bFound );
-                                    auto pTargetContext
-                                        = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
-                                    VERIFY_RTE( pTargetContext );
-                                    auto pParentContext = pTargetContext->get_parent_context();
-                                    targets.push_back( pParentContext->get_interface() );
-                                    bFound = true;
-                                }
-                                break;
-
-                                case EdgeType::eInterObjectNonOwner:
-                                case EdgeType::eInterObjectOwner:
-                                case EdgeType::eInterObjectParent:
+                                if( pInterObjectEdge->get_cardinality().isNonSingular() )
                                 {
                                     bSingular = false;
-                                    // VERIFY_RTE( !bFound );
-                                    auto pTargetContext
-                                        = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
-                                    VERIFY_RTE( pTargetContext );
-                                    auto pParentContext = pTargetContext->get_parent_context();
-                                    targets.push_back( pParentContext->get_interface() );
-                                    bFound = true;
                                 }
-                                break;
+                                Concrete::Node* pTargetContext   = pGraphEdge->get_target();
+                                auto            interfaceNodeOpt = pTargetContext->get_node_opt();
+                                VERIFY_RTE( interfaceNodeOpt.has_value() );
+                                auto pIContext = db_cast< Interface::IContext >( interfaceNodeOpt.value() );
+                                VERIFY_RTE( pIContext );
+                                targets.push_back( pIContext );
+                                bFound = true;
                             }
                         }
                         VERIFY_RTE( bFound );
@@ -427,41 +328,28 @@ class OperationBuilder
                 m_pInvocation->set_explicit_operation( id_exp_Link_Read );
             }
             break;
-            case eUNSET:
             default:
-                UNREACHABLE;
+                THROW_RTE( "Unsupported invocation target type in invocation: " << m_pInvocation->get_id() );
                 break;
-        }*/
+        }
     }
 
     void buildParams()
     {
-        THROW_TODO;
-        /*switch( m_targetType )
+        using namespace ObjectStage::Functions;
+
+        switch( m_targetType )
         {
-            case eObjects:
-                THROW_RTE( "Implicit invocation cannot be on object context" );
-                break;
-            case eComponents:
-                THROW_RTE( "Implicit invocation cannot be on component context" );
-                break;
-            case eStates:
-                THROW_RTE( "Start operation cannot have parameters" );
-                break;
-            case eDeciders:
-                THROW_RTE( "Decider cannot be invoked" );
-                break;
-            case eFunctions:
+            case e_functions:
             {
                 // return type is the function return type
                 {
-                    std::vector< Interface::Function* > contexts;
-                    std::set< std::string >             types;
+                    std::vector< Interface::Function* >   contexts;
+                    std::set< Interface::CPP::TypeInfo* > types;
                     for( auto pConcrete : functions )
                     {
-                        contexts.push_back( pConcrete->get_interface_function() );
-                        types.insert(
-                            pConcrete->get_interface_function()->get_return_type_trait()->get_canonical_type() );
+                        contexts.push_back( pConcrete->get_function() );
+                        types.insert( pConcrete->get_function()->get_cpp_function_type()->get_return_type_info() );
                     }
                     const bool bHomogenous = ( types.size() == 1 ) ? true : false;
                     contexts               = make_unique_without_reorder( contexts );
@@ -473,53 +361,49 @@ class OperationBuilder
                 m_pInvocation->set_explicit_operation( id_exp_Call );
             }
             break;
-            case eEvents:
-            {
-                THROW_RTE( "Event operation cannot have parameters" );
-            }
-            break;
-            case eUserDimensions:
+            case e_dimensions:
             {
                 // return the context of the write
+                std::set< Interface::CPP::TypeInfo* >    types;
+                std::vector< Interface::UserDimension* > userDimensions;
+                std::vector< Interface::IContext* >      contexts;
                 {
-                    std::vector< Interface::IContext* > contexts;
-                    for( auto pConcrete : userDimensions )
+                    for( auto pConcrete : dimensions )
                     {
-                        contexts.push_back( pConcrete->get_parent_context()->get_interface() );
+                        auto pUserDimension = pConcrete->get_dimension();
+                        userDimensions.push_back( pUserDimension );
+                        auto pParent = db_cast< Interface::IContext >( pUserDimension->get_parent() );
+                        contexts.push_back( pParent );
+                        types.insert( pUserDimension->get_cpp_data_type()->get_type_info() );
                     }
-                    contexts = make_unique_without_reorder( contexts );
+                    userDimensions = make_unique_without_reorder( userDimensions );
+                    contexts       = make_unique_without_reorder( contexts );
                     m_pInvocation->set_return_type( m_database.construct< ReturnTypes::Context >(
                         ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                 }
                 // parameter type
                 ReturnTypes::Dimension* pParameterType = nullptr;
                 {
-                    std::vector< Interface::DimensionTrait* > contexts;
-                    std::set< std::string >                   types;
-                    for( auto pConcrete : userDimensions )
-                    {
-                        auto pDimensionTrait = pConcrete->get_interface_dimension();
-                        contexts.push_back( pDimensionTrait );
-                        types.insert( pDimensionTrait->get_canonical_type() );
-                    }
                     const bool bHomogenous = ( types.size() == 1 ) ? true : false;
-                    contexts               = make_unique_without_reorder( contexts );
                     pParameterType         = m_database.construct< ReturnTypes::Dimension >(
-                        ReturnTypes::Dimension::Args{ ReturnTypes::ReturnType::Args{}, contexts, bHomogenous } );
+                        ReturnTypes::Dimension::Args{ ReturnTypes::ReturnType::Args{}, userDimensions, bHomogenous } );
                 }
 
                 m_database.construct< Write >( Write::Args{ m_pInvocation, pParameterType } );
                 m_pInvocation->set_explicit_operation( id_exp_Write );
             }
             break;
-            case eLinkDimensions:
+            case e_links:
             {
                 // return the context of the write
                 {
                     std::vector< Interface::IContext* > contexts;
-                    for( auto pConcrete : linkDimensions )
+                    for( auto pConcrete : links )
                     {
-                        contexts.push_back( pConcrete->get_parent_context()->get_interface() );
+                        auto interfaceNodeOpt = pConcrete->get_node_opt();
+                        VERIFY_RTE( interfaceNodeOpt.has_value() );
+                        auto pContext = db_cast< Interface::IContext >( interfaceNodeOpt.value()->get_parent() );
+                        contexts.push_back( pContext );
                     }
                     contexts = make_unique_without_reorder( contexts );
                     m_pInvocation->set_return_type( m_database.construct< ReturnTypes::Context >(
@@ -530,11 +414,10 @@ class OperationBuilder
                 m_pInvocation->set_explicit_operation( id_exp_Link_Add );
             }
             break;
-            case eUNSET:
             default:
-                UNREACHABLE;
+                THROW_RTE( "Unsupported invocation target type in invocation: " << m_pInvocation->get_id() );
                 break;
-        }*/
+        }
     }
 
     void buildGet()
@@ -645,7 +528,7 @@ class OperationBuilder
                 break;
             case eUNSET:
             default:
-                UNREACHABLE;
+                THROW_RTE( "Unsupported invocation target type in invocation: " << m_pInvocation->get_id() );
                 break;
         }*/
     }
@@ -655,27 +538,6 @@ class OperationBuilder
         THROW_TODO;
         /*switch( m_targetType )
         {
-            case eObjects:
-                THROW_RTE( "Cannot remove an object" );
-                break;
-            case eComponents:
-                THROW_RTE( "Cannot remove a component" );
-                break;
-            case eStates:
-                THROW_RTE( "Cannot remove a state" );
-                break;
-            case eDeciders:
-                THROW_RTE( "Cannot remove a decider" );
-                break;
-            case eFunctions:
-                THROW_RTE( "Cannot remove a function" );
-                break;
-            case eEvents:
-                THROW_RTE( "Cannot remove an event" );
-                break;
-            case eUserDimensions:
-                THROW_RTE( "Cannot remove a dimension" );
-                break;
             case eLinkDimensions:
             {
                 // parameter type
@@ -711,7 +573,7 @@ class OperationBuilder
             break;
             case eUNSET:
             default:
-                UNREACHABLE;
+                THROW_RTE( "Unsupported invocation target type in invocation: " << m_pInvocation->get_id() );
                 break;
         }*/
     }
@@ -721,27 +583,6 @@ class OperationBuilder
         THROW_TODO;
         /*switch( m_targetType )
         {
-            case eObjects:
-                THROW_RTE( "Cannot clear an object" );
-                break;
-            case eComponents:
-                THROW_RTE( "Cannot clear a component" );
-                break;
-            case eStates:
-                THROW_RTE( "Cannot clear a state" );
-                break;
-            case eDeciders:
-                THROW_RTE( "Cannot clear a decider" );
-                break;
-            case eFunctions:
-                THROW_RTE( "Cannot clear a function" );
-                break;
-            case eEvents:
-                THROW_RTE( "Cannot clear an event" );
-                break;
-            case eUserDimensions:
-                THROW_RTE( "Cannot clear a dimension" );
-                break;
             case eLinkDimensions:
             {
                 // return the context of the write
@@ -762,7 +603,7 @@ class OperationBuilder
             break;
             case eUNSET:
             default:
-                UNREACHABLE;
+                THROW_RTE( "Unsupported invocation target type in invocation: " << m_pInvocation->get_id() );
                 break;
         }*/
     }
@@ -770,21 +611,6 @@ class OperationBuilder
     void buildMove()
     {
         THROW_TODO;
-        switch( m_targetType )
-        {
-            case eObjects:
-            case eComponents:
-            case eStates:
-            case eDeciders:
-            case eFunctions:
-            case eEvents:
-            case eUserDimensions:
-            case eLinkDimensions:
-            case eUNSET:
-            default:
-                UNREACHABLE;
-                break;
-        }
         // m_database.construct< Move >( Move::Args{ m_pInvocation } );
         // m_pInvocation->set_explicit_operation( id_exp_Move );
     }
@@ -792,21 +618,6 @@ class OperationBuilder
     void buildRange()
     {
         THROW_TODO;
-        switch( m_targetType )
-        {
-            case eObjects:
-            case eComponents:
-            case eStates:
-            case eDeciders:
-            case eFunctions:
-            case eEvents:
-            case eUserDimensions:
-            case eLinkDimensions:
-            case eUNSET:
-            default:
-                UNREACHABLE;
-                break;
-        }
         // m_database.construct< Range >( Range::Args{ m_pInvocation } );
         // m_pInvocation->set_explicit_operation( id_exp_Range );
     }
@@ -824,49 +635,13 @@ public:
 
         m_pInvocation->set_explicit_operation( HIGHEST_EXPLICIT_OPERATION_TYPE );
 
-        switch( m_pInvocation->get_id().m_operation )
+        if( m_pInvocation->get_id().m_bHasParams )
         {
-            case mega::id_Imp_NoParams:
-            {
-                buildNoParams();
-            }
-            break;
-            case mega::id_Imp_Params:
-            {
-                buildParams();
-            }
-            break;
-            case mega::id_Move:
-            {
-                buildMove();
-            }
-            break;
-            case mega::id_Get:
-            {
-                buildGet();
-            }
-            break;
-            case mega::id_Range:
-            {
-                buildRange();
-            }
-            break;
-            case mega::id_Remove:
-            {
-                buildRemove();
-            }
-            break;
-            case mega::id_Clear:
-            {
-                buildClear();
-            }
-            break;
-            default:
-            case mega::HIGHEST_OPERATION_TYPE:
-            {
-                THROW_RTE( "Unknown implicit operation type" );
-            }
-            break;
+            buildParams();
+        }
+        else
+        {
+            buildNoParams();
         }
 
         VERIFY_RTE_MSG( m_pInvocation->get_explicit_operation() != HIGHEST_EXPLICIT_OPERATION_TYPE,
@@ -880,9 +655,10 @@ Functions::Invocation* compileInvocation( Database& database, const SymbolTables
                                           const mega::InvocationID& id )
 {
     // determine the derivation of the invocationID
-    std::vector< Concrete::Node* > contextTypes;
-    InvocationPolicy::Spec         derivationSpec;
-    fromInvocationID( symbolTables, id, contextTypes, derivationSpec );
+    std::vector< Concrete::Node* >             contextTypes;
+    InvocationPolicy::Spec                     derivationSpec;
+    std::optional< mega::interface::SymbolID > operationSymbolOpt
+        = fromInvocationID( symbolTables, id, contextTypes, derivationSpec );
 
     // solve the context free derivation
     InvocationPolicy               policy( database );

@@ -26,7 +26,7 @@
 
 #include "mega/values/compilation/invocation_id.hpp"
 #include "mega/common_strings.hpp"
-#include "mega/values/compilation/operation_id.hpp"
+#include "mega/values/compilation/explicit_operation_id.hpp"
 
 namespace OperationsStage
 {
