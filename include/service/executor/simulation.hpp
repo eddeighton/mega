@@ -43,7 +43,7 @@ namespace mega::service
 
 class Executor;
 
-class Simulation : public ExecutorRequestLogicalThread, public MPOContext
+class Simulation : public ExecutorRequestLogicalThread, public runtime::MPOContext
 {
 public:
     using Ptr = std::shared_ptr< Simulation >;
@@ -61,25 +61,30 @@ public:
     virtual network::enrole::Request_Encoder getRootEnroleRequest() override;
     virtual network::stash::Request_Encoder  getRootStashRequest() override;
     virtual network::memory::Request_Encoder getDaemonMemoryRequest() override;
-    virtual network::sim::Request_Encoder    getMPOSimRequest( MPO mpo ) override;
+    virtual network::sim::Request_Encoder    getMPOSimRequest( runtime::MPO mpo ) override;
     virtual network::memory::Request_Sender  getLeafMemoryRequest() override;
     virtual network::jit::Request_Sender     getLeafJITRequest() override;
 
     // network::sim::Impl
-    virtual void      SimErrorCheck( boost::asio::yield_context& yield_ctx ) override;
-    virtual Snapshot  SimObjectSnapshot( const Pointer& object, boost::asio::yield_context& ) override;
-    virtual Pointer SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& ) override;
-    virtual Snapshot  SimSnapshot( const MPO&, boost::asio::yield_context& ) override;
-    virtual TimeStamp SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& ) override;
-    virtual TimeStamp SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& ) override;
-    virtual void
-    SimLockRelease( const MPO&, const MPO&, const network::Transaction&, boost::asio::yield_context& ) override;
-    virtual MPO  SimCreate( boost::asio::yield_context& ) override;
-    virtual void SimDestroy( boost::asio::yield_context& ) override;
-    virtual void SimDestroyBlocking( boost::asio::yield_context& ) override;
+    virtual void     SimErrorCheck( boost::asio::yield_context& yield_ctx ) override;
+    virtual Snapshot SimObjectSnapshot( const runtime::PointerNet& object, boost::asio::yield_context& ) override;
+    virtual runtime::PointerHeap SimAllocate( const concrete::ObjectID& objectTypeID,
+                                          boost::asio::yield_context& ) override;
+    virtual Snapshot         SimSnapshot( const runtime::MPO&, boost::asio::yield_context& ) override;
+    virtual runtime::TimeStamp
+    SimLockRead( const runtime::MPO&, const runtime::MPO&, boost::asio::yield_context& ) override;
+    virtual runtime::TimeStamp
+                         SimLockWrite( const runtime::MPO&, const runtime::MPO&, boost::asio::yield_context& ) override;
+    virtual void         SimLockRelease( const runtime::MPO&,
+                                         const runtime::MPO&,
+                                         const network::Transaction&,
+                                         boost::asio::yield_context& ) override;
+    virtual runtime::MPO SimCreate( boost::asio::yield_context& ) override;
+    virtual void         SimDestroy( boost::asio::yield_context& ) override;
+    virtual void         SimDestroyBlocking( boost::asio::yield_context& ) override;
 
     // network::leaf_exe::Impl
-    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
@@ -124,7 +129,6 @@ private:
     std::optional< network::ReceivedMessage > m_simCreateMsgOpt;
     bool                                      m_bShuttingDown = false;
     std::optional< MsgTraits::Msg >           m_blockDestroyMsgOpt;
-
 };
 
 } // namespace mega::service

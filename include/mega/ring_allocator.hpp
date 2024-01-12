@@ -169,9 +169,9 @@ template < typename TInstanceType, mega::U64 _Size >
 class RingAllocator
 {
 public:
-    using FreeList                  = boost::circular_buffer< TInstanceType >;
-    using InstanceType              = TInstanceType;
-    static const mega::U64 Size     = _Size;
+    using FreeList              = boost::circular_buffer< TInstanceType >;
+    using InstanceType          = TInstanceType;
+    static const mega::U64 Size = _Size;
 
     inline RingAllocator()
         : m_free( Size )
@@ -184,9 +184,9 @@ public:
     inline void reset()
     {
         m_free.clear();
-        for ( mega::U64 sz = 0; sz != Size; ++sz )
+        for( typename InstanceType::ValueType sz = 0; sz != Size; ++sz )
         {
-            m_free.push_back( sz );
+            m_free.push_back( InstanceType{ sz } );
         }
     }
 
@@ -216,15 +216,16 @@ public:
         std::sort( freeOwners.begin(), freeOwners.end() );
         auto iter = freeOwners.begin();
         // calculate the inverse of the free
-        for ( mega::U64 id = 0U; id != Size; ++id )
+        for( typename InstanceType::ValueType id = 0U; id != Size; ++id )
         {
-            if ( ( iter != freeOwners.end() ) && ( *iter == id ) )
+            InstanceType value{ id };
+            if( ( iter != freeOwners.end() ) && ( *iter == value ) )
             {
                 ++iter;
             }
             else
             {
-                allocated.push_back( id );
+                allocated.push_back( value );
             }
         }
         return allocated;
@@ -233,10 +234,7 @@ public:
 private:
     FreeList m_free;
 };
-/*
-template < Instance _Size >
-using InstanceAllocator = RingAllocator< Instance, _Size >;
-*/
+
 } // namespace mega
 
 #endif // EG_ALLOCATORS_GUARD_20_JULY_2020

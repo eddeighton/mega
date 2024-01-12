@@ -27,7 +27,7 @@
 namespace mega::service
 {
 
-RootSimulation::RootSimulation( Root& root, const network::LogicalThreadID& logicalthreadID, mega::MP leafMP )
+RootSimulation::RootSimulation( Root& root, const network::LogicalThreadID& logicalthreadID, mega::runtime::MP leafMP )
     : RootRequestLogicalThread( root, logicalthreadID )
     , m_leafMP( leafMP )
 {
@@ -44,7 +44,7 @@ network::Message RootSimulation::dispatchInBoundRequest( const network::Message&
 void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootSimulation::SimStart leaf mp: {}", m_leafMP );
-    mega::MPO simulationMPO = m_root.m_mpoManager.newOwner( m_leafMP, getID() );
+    mega::runtime::MPO simulationMPO = m_root.m_mpoManager.newOwner( m_leafMP, getID() );
     SPDLOG_TRACE( "RootSimulation::SimStart: {}", simulationMPO );
 
     {

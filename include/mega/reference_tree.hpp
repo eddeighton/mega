@@ -26,16 +26,16 @@
 
 namespace mega
 {
-
+/*
 struct ReferenceTraits
 {
-    using Reference = Pointer;
-    using Object    = Pointer;
+    using Reference = runtime::Pointer;
+    using Object    = runtime::Pointer;
 };
 
 template < typename Instantiation, typename Visitor >
 using ReferenceTreeTraversal = TreeTraversal< ReferenceTraits, Instantiation, Visitor >;
-
+*/
 } // namespace mega
 
 #endif // GUARD_2023_September_07_reference_tree

@@ -163,14 +163,14 @@ network::Message LeafRequestLogicalThread::ReportDaemon( const network::Message&
 }
 
 // network::mpo::Impl
-network::Message LeafRequestLogicalThread::MPRoot( const network::Message&     request, const mega::MP&,
+network::Message LeafRequestLogicalThread::MPRoot( const network::Message&     request, const mega::runtime::MP&,
                                                    boost::asio::yield_context& yield_ctx )
 {
     // ignor the passed MP and use the leaf MP
     SPDLOG_TRACE( "LeafRequestLogicalThread::MPRoot: {}", m_leaf.m_mp );
     return getMPOUpSender( yield_ctx ).MPRoot( request, m_leaf.m_mp );
 }
-network::Message LeafRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message LeafRequestLogicalThread::MPDown( const network::Message& request, const mega::runtime::MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( mp == m_leaf.getMP() );
@@ -193,7 +193,7 @@ network::Message LeafRequestLogicalThread::MPDown( const network::Message& reque
             THROW_RTE( "Unknown node type" );
     }
 }
-network::Message LeafRequestLogicalThread::MPUp( const network::Message& request, const mega::MP& mp,
+network::Message LeafRequestLogicalThread::MPUp( const network::Message& request, const mega::runtime::MP& mp,
                                                  boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::MPUp: {} {}", mp, request.getName() );
@@ -207,7 +207,7 @@ network::Message LeafRequestLogicalThread::MPUp( const network::Message& request
     }
 }
 
-network::Message LeafRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
+network::Message LeafRequestLogicalThread::MPODown( const network::Message& request, const mega::runtime::MPO& mpo,
                                                     boost::asio::yield_context& yield_ctx )
 {
     ASSERT_MSG( m_leaf.m_mpos.count( mpo ), "MPODown leaf does not contain mpo: " << mpo );
@@ -229,7 +229,7 @@ network::Message LeafRequestLogicalThread::MPODown( const network::Message& requ
             THROW_RTE( "Unknown node type" );
     }
 }
-network::Message LeafRequestLogicalThread::MPOUp( const network::Message& request, const mega::MPO& mpo,
+network::Message LeafRequestLogicalThread::MPOUp( const network::Message& request, const mega::runtime::MPO& mpo,
                                                   boost::asio::yield_context& yield_ctx )
 {
     if( m_leaf.m_mpos.count( mpo ) )
@@ -337,7 +337,7 @@ network::Message LeafRequestLogicalThread::RootExe( const network::Message&     
     }
 }
 
-void LeafRequestLogicalThread::RootSimRun( const MPO& mpo,
+void LeafRequestLogicalThread::RootSimRun( const runtime::MPO& mpo,
                                            boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::RootSimRun {}", mpo );

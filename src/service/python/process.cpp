@@ -30,7 +30,7 @@
 namespace mega::service::python
 {
 
-PythonProcess::PythonProcess( PythonModule& module, mega::MP mp )
+PythonProcess::PythonProcess( PythonModule& module, mega::runtime::MP mp )
     : m_module( module )
     , m_mp( mp )
 {
@@ -43,7 +43,7 @@ std::vector< PythonMPO > PythonProcess::getMPOs() const
     std::vector< PythonMPO > result;
     {
         auto mpos = m_module.rootRequest< network::enrole::Request_Encoder >().EnroleGetMPO( m_mp );
-        for( mega::MPO mpo : mpos )
+        for( mega::runtime::MPO mpo : mpos )
         {
             result.emplace_back( PythonMPO( m_module, mpo ) );
         }

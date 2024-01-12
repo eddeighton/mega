@@ -32,35 +32,35 @@
 
 namespace mega
 {
-
+/*
 struct MPORealToLogicalVisitor
 {
-    mega::Pointer m_root;
+    mega::runtime::Pointer m_root;
 
-    MPORealToLogicalVisitor( const mega::Pointer& root )
+    MPORealToLogicalVisitor( const mega::runtime::Pointer& root )
         : m_root( root )
     {
     }
-    MPORealToLogicalVisitor( const MPO& mpo )
-        : m_root( mega::Pointer::make_root( mpo ) )
+    MPORealToLogicalVisitor( const runtime::MPO& mpo )
+        : m_root( mega::runtime::Pointer::make_root( mpo ) )
     {
     }
 
-    using LogicalToReal = std::unordered_map< mega::LogicalObject, mega::Pointer, mega::LogicalObject::Hash >;
-    using RealToLogical = std::unordered_map< mega::Pointer, mega::LogicalObject, mega::Pointer::Hash >;
+    using LogicalToReal = std::unordered_map< mega::LogicalObject, mega::runtime::Pointer, mega::LogicalObject::Hash >;
+    using RealToLogical = std::unordered_map< mega::runtime::Pointer, mega::LogicalObject, mega::runtime::Pointer::Hash >;
     LogicalToReal m_logicalToReal;
     RealToLogical m_realToLogical;
 
-    inline mega::Pointer fromLogical( const LogicalPointer& logicalRef ) const
+    inline mega::runtime::Pointer fromLogical( const LogicalPointer& logicalRef ) const
     {
         auto iFind = m_logicalToReal.find( LogicalPointer::toLogicalObject( logicalRef ) );
         VERIFY_RTE_MSG( iFind != m_logicalToReal.end(), "Failed to locate logical object" );
         return Pointer::make( iFind->second, logicalRef.typeInstance );
     }
 
-    inline LogicalObject toLogicalObject( const Pointer& ref )
+    inline LogicalObject toLogicalObject( const runtime::Pointer& ref )
     {
-        const Pointer objectRef = ref.getObjectAddress();
+        const runtime::Pointer objectRef = ref.getObjectAddress();
         auto            iFind     = m_realToLogical.find( objectRef );
         if( iFind != m_realToLogical.end() )
         {
@@ -156,7 +156,7 @@ inline void traverse( Traversal& traversal )
     //     ++iterator;
     // }
 }
-
+*/
 } // namespace mega
 
 #endif // GUARD_2023_September_01_mpo_visitor

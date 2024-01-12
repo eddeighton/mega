@@ -46,11 +46,11 @@
             ],
             "fields": [
                 {
-                    "type": "mega::Pointer",
+                    "type": "mega::runtime::PointerHeap",
                     "name": "Source"
                 },
                 {
-                    "type": "mega::Pointer",
+                    "type": "mega::runtime::PointerHeap",
                     "name": "Target"
                 },
                 {
@@ -69,7 +69,7 @@
             "enums": [],
             "fields": [
                 {
-                    "type": "mega::Pointer",
+                    "type": "mega::runtime::PointerHeap",
                     "name": "Ref"
                 }
             ],
@@ -97,7 +97,7 @@
             ],
             "fields": [
                 {
-                    "type": "mega::Pointer",
+                    "type": "mega::runtime::PointerHeap",
                     "name": "Ref"
                 }
             ],
@@ -113,7 +113,7 @@
             ],
             "fields": [
                 {
-                    "type": "mega::Pointer",
+                    "type": "mega::runtime::PointerHeap",
                     "name": "Ref"
                 }
             ],

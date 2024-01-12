@@ -26,7 +26,7 @@
 
 namespace mega
 {
-
+/*
 struct LogicalReferenceTraits
 {
     using Reference = LogicalPointer;
@@ -35,7 +35,7 @@ struct LogicalReferenceTraits
 
 template < typename Instantiation, typename Visitor >
 using LogicalTreeTraversal = TreeTraversal< LogicalReferenceTraits, Instantiation, Visitor >;
-
+*/
 
 } // namespace mega
 

@@ -72,9 +72,9 @@ public:
                                                boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
-    virtual network::Message MPDown( const network::Message& request, const mega::MP& mp,
+    virtual network::Message MPDown( const network::Message& request, const mega::runtime::MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPODown( const network::Message& request, const mega::MPO& mpo,
+    virtual network::Message MPODown( const network::Message& request, const mega::runtime::MPO& mpo,
                                       boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl

@@ -31,17 +31,17 @@ class LeafRequestLogicalThread;
 class MPOLifetime
 {
 public:
-    MPOLifetime( Leaf& leaf, LeafRequestLogicalThread& logicalthread, const MPO& mpo,
+    MPOLifetime( Leaf& leaf, LeafRequestLogicalThread& logicalthread, const runtime::MPO& mpo,
                  boost::asio::yield_context& yield_ctx );
     ~MPOLifetime();
 
-    const MPO& getMPO() const { return m_mpo; }
+    const runtime::MPO& getMPO() const { return m_mpo; }
 
 private:
     Leaf&                       m_leaf;
     LeafRequestLogicalThread&   m_logicalthread;
     boost::asio::yield_context& m_yield_ctx;
-    MPO                         m_mpo;
+    runtime::MPO                m_mpo;
 };
 
 } // namespace mega::service

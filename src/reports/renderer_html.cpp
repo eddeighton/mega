@@ -669,7 +669,7 @@ void renderContainer( Args& args, const Container& container, std::ostream& os )
         void operator()( const Graph& graph ) const { renderGraph( args, graph, os ); }
     } visitor{ args, os };
 
-    boost::apply_visitor( visitor, container );
+    std::visit( visitor, container );
 }
 
 void renderReport( Args&                                    args,

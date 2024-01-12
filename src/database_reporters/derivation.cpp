@@ -28,7 +28,8 @@
 
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/concrete/type_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
 
 #include "mega/common_strings.hpp"
 
@@ -236,8 +237,8 @@ mega::reports::Container DerivationReporter::generate( const mega::reports::URL&
     Branch files{ { "Files"s } };
     files.m_elements.push_back( legend() );
 
-    std::map< TypeID, std::size_t >      objectIDs;
-    std::multimap< TypeID, std::size_t > objectGroups;
+    std::map< concrete::TypeID, std::size_t >      objectIDs;
+    std::multimap< concrete::TypeID, std::size_t > objectGroups;
     for( const mega::io::megaFilePath& sourceFilePath : m_args.manifest.getMegaSourceFiles() )
     {
         Database database( m_args.environment, sourceFilePath );

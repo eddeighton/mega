@@ -26,26 +26,34 @@
 
 C_RUNTIME_START
 
-using c_symbol_id = struct _c_symbol_id
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_symbol_id
 {
     c_u32 value;
-};
+} c_symbol_id;
 
-using c_interface_object_id = struct _c_interface_object_id
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_interface_object_id
 {
     c_u16 value;
-};
+} c_interface_object_id;
 
-using c_interface_sub_object_id = struct _c_interface_sub_object_id
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_interface_sub_object_id
 {
     c_u16 value;
-};
+} c_interface_sub_object_id;
 
-using c_interface_type_id = struct _c_interface_type_id
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_interface_type_id
 {
     c_interface_sub_object_id sub_object_id;
     c_interface_object_id     object_id;
-};
+} c_interface_type_id;
 
 #ifdef __cplusplus
 constexpr
@@ -77,11 +85,13 @@ constexpr
     return c_interface_type_id{ ( c_u16 )( i ), ( c_u16 )( i >> 16 ) };
 }
 
-using c_interface_relation_id = struct _c_interface_relation_id
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_interface_relation_id
 {
     c_interface_type_id lower;
     c_interface_type_id upper;
-};
+} c_interface_relation_id;
 
 #ifdef __cplusplus
 constexpr
@@ -101,7 +111,8 @@ constexpr
     inline c_u64
     c_interface_relation_id_as_int( c_interface_relation_id id )
 {
-    return ( (c_u64)c_interface_type_id_as_int( id.lower ) ) + ( (c_u64)c_interface_type_id_as_int( id.upper ) << 32 );
+    return ( ( c_u64 )c_interface_type_id_as_int( id.lower ) )
+           + ( ( c_u64 )c_interface_type_id_as_int( id.upper ) << 32 );
 }
 
 #ifdef __cplusplus
@@ -112,7 +123,6 @@ constexpr
 {
     return c_interface_relation_id_make( ( c_u32 )( i >> 32 ), ( c_u32 )( i ) );
 }
-
 
 C_RUNTIME_END
 #endif // GUARD_2023_December_12_inline

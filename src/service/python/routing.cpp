@@ -130,38 +130,38 @@ network::Message PythonRequestLogicalThread::PythonDaemon( const network::Messag
     return getPythonRequest( yield_ctx ).PythonDaemon( request );
 }
 
-network::Message PythonRequestLogicalThread::MPRoot( const network::Message& request, const mega::MP& mp,
+network::Message PythonRequestLogicalThread::MPRoot( const network::Message& request, const mega::runtime::MP& mp,
                                                      boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
     return rq.MPRoot( request, mp );
 }
 
-network::Message PythonRequestLogicalThread::MPUp( const network::Message& request, const mega::MP& mp,
+network::Message PythonRequestLogicalThread::MPUp( const network::Message& request, const mega::runtime::MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
     return rq.MPUp( request, mp );
 }
 
-network::Message PythonRequestLogicalThread::MPOUp( const network::Message& request, const mega::MPO& mpo,
+network::Message PythonRequestLogicalThread::MPOUp( const network::Message& request, const mega::runtime::MPO& mpo,
                                                     boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
     return rq.MPOUp( request, mpo );
 }
 
-network::Message PythonRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message PythonRequestLogicalThread::MPDown( const network::Message& request, const mega::runtime::MP& mp,
                                                      boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( mega::MP( m_python.getMPO() ) == mp );
+    VERIFY_RTE( mega::runtime::MP( m_python.getMPO() ) == mp );
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
-network::Message PythonRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
+network::Message PythonRequestLogicalThread::MPODown( const network::Message& request, const mega::runtime::MPO& mpo,
                                                       boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( mega::MPO( m_python.getMPO() ) == mpo );
+    VERIFY_RTE( mega::runtime::MPO( m_python.getMPO() ) == mpo );
     return dispatchInBoundRequest( request, yield_ctx );
 }
 

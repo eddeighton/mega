@@ -59,7 +59,6 @@ target_link_options( plugin_fake PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 target_link_libraries( plugin_fake executorLib )
-target_link_libraries( plugin_fake mega_mangle )
 
 set_target_properties( plugin_fake PROPERTIES FOLDER service )
 

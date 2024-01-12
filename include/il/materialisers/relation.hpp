@@ -44,11 +44,11 @@ struct Relation
     
     class Functions
     {
-        void Make( mega::Pointer& source, mega::Pointer& target );
-        void Break( mega::Pointer& source, mega::Pointer& target );
-        void Reset( mega::Pointer& ref );
-        void Size( mega::Pointer& ref );
-        void Get( mega::Pointer& ref );
+        void Make( mega::runtime::Pointer& source, mega::runtime::Pointer& target );
+        void Break( mega::runtime::Pointer& source, mega::runtime::Pointer& target );
+        void Reset( mega::runtime::Pointer& ref );
+        void Size( mega::runtime::Pointer& ref );
+        void Get( mega::runtime::Pointer& ref );
     };
 };
 

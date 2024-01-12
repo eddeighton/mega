@@ -98,7 +98,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             auto dotCount = std::count_if( strMPO.begin(), strMPO.end(), []( char c ) { return c == '.'; } );
             if( dotCount == 2 )
             {
-                mega::MPO mpo;
+                mega::runtime::MPO mpo;
                 {
                     std::istringstream is( strMPO );
                     is >> mpo;
@@ -107,7 +107,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             }
             else if( dotCount < 2 )
             {
-                mega::MP mp;
+                mega::runtime::MP mp;
                 {
                     std::istringstream is( strMPO );
                     is >> mp;

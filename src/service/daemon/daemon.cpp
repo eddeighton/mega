@@ -102,7 +102,7 @@ void Daemon::getGeneralStatusReport( const mega::reports::URL& url, mega::report
     report.m_elements.push_back( table );
 }
 
-void Daemon::onLeafDisconnect( mega::MP leafMP )
+void Daemon::onLeafDisconnect( mega::runtime::MP leafMP )
 {
     m_server.unLabelConnection( leafMP );
 
@@ -110,10 +110,10 @@ void Daemon::onLeafDisconnect( mega::MP leafMP )
 
     class DaemonLeafDisconnect : public DaemonRequestLogicalThread
     {
-        mega::MP m_leafMP;
+        mega::runtime::MP m_leafMP;
 
     public:
-        DaemonLeafDisconnect( Daemon& daemon, mega::MP leafMP )
+        DaemonLeafDisconnect( Daemon& daemon, mega::runtime::MP leafMP )
             : DaemonRequestLogicalThread( daemon, daemon.createLogicalThreadID() )
             , m_leafMP( leafMP )
         {

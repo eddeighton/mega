@@ -156,14 +156,14 @@ void Root::saveConfig()
     }
 }
 
-void Root::setStartupUUIDMP( const std::string& strUUID, MP mp )
+void Root::setStartupUUIDMP( const std::string& strUUID, runtime::MP mp )
 {
     m_startupUUIDs[ strUUID ] = mp;
 }
 
-std::optional< MP > Root::getAndResetStartupUUID( const std::string& strUUID )
+std::optional< runtime::MP > Root::getAndResetStartupUUID( const std::string& strUUID )
 {
-    std::optional< MP > result;
+    std::optional< runtime::MP > result;
 
     auto iFind = m_startupUUIDs.find( strUUID );
     if( iFind != m_startupUUIDs.end() )
@@ -175,7 +175,7 @@ std::optional< MP > Root::getAndResetStartupUUID( const std::string& strUUID )
     return result;
 }
 
-void Root::onDaemonDisconnect( mega::MachineID machineID )
+void Root::onDaemonDisconnect( runtime::MachineID machineID )
 {
     SPDLOG_TRACE( "Root::onDaemonDisconnect {}", machineID );
     m_server.unLabelConnection( machineID );

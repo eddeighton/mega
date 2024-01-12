@@ -44,10 +44,12 @@ Runtime::Runtime( const boost::filesystem::path& tempDir, const MegastructureIns
 void Runtime::loadProgram( const service::Program& program )
 {
     // if existing program then migrate...
-    const auto                     programManifest = service::Environment::load( program );
-    std::unique_ptr< JITDatabase > pNewDatabase    = std::make_unique< JITDatabase >( programManifest.getDatabase() );
+    const auto programManifest = service::Environment::load( program );
+
+    std::unique_ptr< JITDatabase > pNewDatabase = std::make_unique< JITDatabase >( programManifest.getDatabase() );
 
     m_pDatabase.swap( pNewDatabase );
+
     m_program = program;
 }
 void Runtime::unloadProgram()

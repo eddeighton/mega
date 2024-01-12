@@ -57,19 +57,19 @@ public:
 
     network::Sender::Ptr getLeafSender() { return m_host.getLeafSender(); }
 
-    MPO getMPO() const
+    runtime::MPO getMPO() const
     {
         VERIFY_RTE( m_mpo.has_value() );
         return m_mpo.value();
     }
-    void setMPO( MPO mpo ) { m_mpo = mpo; }
+    void setMPO( runtime::MPO mpo ) { m_mpo = mpo; }
 
 private:
-    network::Log               m_log;
-    boost::asio::io_context    m_io_context;
-    network::ReceiverChannel   m_receiverChannel;
-    Host                       m_host;
-    std::optional< mega::MPO > m_mpo;
+    network::Log                  m_log;
+    boost::asio::io_context       m_io_context;
+    network::ReceiverChannel      m_receiverChannel;
+    Host                          m_host;
+    std::optional< runtime::MPO > m_mpo;
 };
 
 } // namespace mega::service

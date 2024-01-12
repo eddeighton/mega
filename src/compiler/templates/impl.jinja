@@ -160,7 +160,7 @@ static TObject mega_new()
 }
 
 template< typename TObject >
-static TObject mega_remote_new( mega::MPO mpo )
+static TObject mega_remote_new( mega::runtime::MPO mpo )
 {
     static thread_local mega::runtime::operators::RemoteNew function( TObject::ID );
     return function( mpo );

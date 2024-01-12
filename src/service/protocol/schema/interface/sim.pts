@@ -25,37 +25,37 @@ msg SimErrorCheck
 
 msg SimObjectSnapshot
 {
-    request( Pointer object );
+    request( runtime::PointerNet object );
     response( Snapshot snapshot );
 }
 
 msg SimAllocate
 {
-    request( TypeID objectTypeID );
-    response( Pointer result );
+    request( concrete::ObjectID objectTypeID );
+    response( runtime::PointerHeap result );
 }
 
 msg SimSnapshot // TODO
 {
-    request( MPO mpo );
+    request( runtime::MPO mpo );
     response( Snapshot snapshot );
 }
 
 msg SimLockRead
 {
-    request( MPO requestingMPO, MPO targetMPO );
-    response( TimeStamp lockCycle );
+    request( runtime::MPO requestingMPO, runtime::MPO targetMPO );
+    response( runtime::TimeStamp lockCycle );
 }
 
 msg SimLockWrite
 {
-    request( MPO requestingMPO, MPO targetMPO );
-    response( TimeStamp lockCycle );
+    request( runtime::MPO requestingMPO, runtime::MPO targetMPO );
+    response( runtime::TimeStamp lockCycle );
 }
 
 msg SimLockRelease
 {
-    request( MPO requestingMPO, MPO targetMPO, network::Transaction transaction );
+    request( runtime::MPO requestingMPO, runtime::MPO targetMPO, network::Transaction transaction );
     response();
 }
 
@@ -67,19 +67,19 @@ msg SimRegister
 
 msg SimUnregister
 {
-    request( MPO mpo );
+    request( runtime::MPO mpo );
     response();
 }
 
 msg SimClock
 {
-    request( MPO mpo, log::Range range );
+    request( runtime::MPO mpo, event::Range range );
     response( network::ClockTick clockTick );
 }
 
 msg SimMoveComplete
 {
-    request( MPO mpo );
+    request( runtime::MPO mpo );
     response();
 }
 
@@ -92,7 +92,7 @@ msg SimMove
 msg SimCreate
 {
     request();
-    response( MPO mpo );
+    response( runtime::MPO mpo );
 }
 
 msg SimStart

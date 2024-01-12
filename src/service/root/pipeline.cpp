@@ -36,7 +36,7 @@ RootPipelineLogicalThread::RootPipelineLogicalThread( Root& root, const network:
 }
 
 network::Message RootPipelineLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
-                                                             boost::asio::yield_context& yield_ctx )
+                                                                    boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
     if( result = network::pipeline::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )

@@ -60,9 +60,9 @@ public:
     // ProcessClock
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
-    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) override;
-    virtual bool unrequestClock( network::LogicalThreadBase* pSender, MPO mpo ) override;
-    virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo ) override;
+    virtual void requestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo, event::Range range ) override;
+    virtual bool unrequestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo ) override;
+    virtual void requestMove( network::LogicalThreadBase* pSender, runtime::MPO mpo ) override;
 
     const network::LogicalThreadID& getLogicalThreadID() const { return m_logicalThreadID; }
 
@@ -89,11 +89,11 @@ public:
 private:
     network::LogicalThreadID     m_logicalThreadID;
     MessageChannel               m_channel;
-    mega::service::Executor      m_executor;
+    service::Executor            m_executor;
     U64                          m_databaseHashcode = 0U; // MUST BE zero for interop to do nothing
     std::string                  m_strDatabasePath;
-    mega::TimeStamp              m_cycle = 0;
-    float                        m_ct    = 0.0f;
+    runtime::TimeStamp           m_cycle;
+    float                        m_ct = 0.0f;
     PluginStateMachine< Plugin > m_stateMachine;
 };
 } // namespace mega::service

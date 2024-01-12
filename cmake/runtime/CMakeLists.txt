@@ -45,11 +45,13 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/runtime/functor_dispatch.hpp
     ${MEGA_API_DIR}/runtime/mangle.hpp
     ${MEGA_API_DIR}/runtime/orc.hpp
-    ${MEGA_API_DIR}/runtime/runtime.hpp
-    ${MEGA_API_DIR}/runtime/symbol.hpp
+    ${MEGA_API_DIR}/runtime/context.hpp
 
     ${MEGA_API_DIR}/runtime/functor_id.hxx
     ${MEGA_API_DIR}/runtime/functor_cpp.hxx
+
+
+    # ${MEGA_API_DIR}/service/protocol/common/mpo_context_interface.hpp  
 )
 
 
@@ -58,7 +60,7 @@ set( RUNTIME_SOURCE
     #${MEGA_SRC_DIR}/runtime/component_manager.cpp
     ${MEGA_SRC_DIR}/runtime/orc.cpp
     ${MEGA_SRC_DIR}/runtime/runtime.cpp
-    ${MEGA_SRC_DIR}/runtime/symbols.cpp
+    ${MEGA_SRC_DIR}/runtime/context.cpp
 
     ${MEGA_SRC_DIR}/runtime/functor_dispatch.cxx
     ${MEGA_SRC_DIR}/runtime/functor_cpp.cxx
@@ -75,11 +77,10 @@ set_target_properties( runtime PROPERTIES FOLDER service )
 include_directories( runtime ${MEGA_API_DIR}/runtime )
 
 target_link_libraries( runtime database )
-#target_link_libraries( runtime orc )
 target_link_libraries( runtime invocation )
-target_link_libraries( runtime protocol )
 target_link_libraries( runtime frontend )
 target_link_libraries( runtime backend )
+target_link_libraries( runtime log )
 
 # target_link_options( runtime PUBLIC -export-dynamic )
 # set_property(TARGET runtime PROPERTY C_VISIBILITY_PRESET hidden)

@@ -116,9 +116,7 @@ add_custom_command(
     )
 
 set( MEGA_PROTOCOL_COMMON_HEADERS
-    ${MEGA_API_DIR}/service/protocol/common/context.hpp  
     ${MEGA_API_DIR}/service/protocol/common/logical_thread_base.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/mpo_context_interface.hpp  
     ${MEGA_API_DIR}/service/protocol/common/received_message.hpp  
     ${MEGA_API_DIR}/service/protocol/common/sender_ref.hpp
     ${MEGA_API_DIR}/service/protocol/common/sender.hpp  
@@ -127,7 +125,6 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
 	)
 
 set( MEGA_PROTOCOL_COMMON_SOURCE
-    ${MEGA_SRC_DIR}/service/protocol/common/context.cpp  
     ${MEGA_SRC_DIR}/service/protocol/common/logical_thread_base.cpp  
     ${MEGA_SRC_DIR}/service/protocol/common/transaction.cpp
     )
@@ -145,6 +142,7 @@ target_link_libraries( protocol mega_values )
 target_link_libraries( protocol pipeline )
 target_link_libraries( protocol log )
 target_link_libraries( protocol reports )
+target_link_libraries( protocol event )
 
 IF( ${WIN32} )
 

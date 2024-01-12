@@ -67,9 +67,9 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        if constexpr( ::boost::serialization::IsXMLArchive< Archive >::value )
         {
-            archive& boost::serialization::make_nvp( "interface_object_id", value );
+            archive& ::boost::serialization::make_nvp( "interface_object_id", value );
         }
         else
         {

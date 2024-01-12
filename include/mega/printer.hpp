@@ -137,7 +137,7 @@ public:
         line( os, "nam", pszType, ref );
         os << "\n";
     }
-    void on_dimension( const char* pszType, const LogicalPointer& ref, const mega::Any& value )
+    void on_dimension( const char* pszType, const LogicalPointer& ref, const mega::runtime::Any& value )
     {
         line( os, "dim", pszType, ref );
         os << " " << value << "\n";

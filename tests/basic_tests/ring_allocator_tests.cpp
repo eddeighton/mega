@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include <gtest/gtest.h>
 
 #include "mega/ring_allocator.hpp"
@@ -25,22 +24,27 @@
 #include <set>
 #include <algorithm>
 #include <random>
+#include <limits>
+
+static constexpr auto MAX_PROCESS_PER_MACHINE = std::numeric_limits< runtime::ProcessID::ValueType >::max();
+static constexpr auto MAX_OWNER_PER_PROCESS   = std::numeric_limits< runtime::OwnerID::ValueType >::max();
+
+using ProcessAllocator = RingAllocator< mega::runtime::ProcessID, MAX_PROCESS_PER_MACHINE >;
+using OwnerAllocator   = RingAllocator< mega::runtime::OwnerID, MAX_OWNER_PER_PROCESS >;
 
 TEST( Allocator, RingReturnsZeroFirst )
 {
-    static constexpr mega::U64 CAPACITY = 16;
-    using AllocatorType                   = mega::RingAllocator< mega::U64, CAPACITY >;
+    using AllocatorType = OwnerAllocator;
 
     AllocatorType alloc;
     ASSERT_TRUE( alloc.empty() );
-    ASSERT_EQ( alloc.allocate(), 0U );
+    ASSERT_EQ( alloc.allocate(), mega::runtime::OwnerID{} );
     ASSERT_TRUE( !alloc.full() );
 }
 
 TEST( Allocator, Ring )
 {
-    static constexpr mega::U64 CAPACITY = 16;
-    using AllocatorType                   = mega::RingAllocator< mega::U64, CAPACITY >;
+    using AllocatorType = OwnerAllocator;
 
     AllocatorType alloc;
     ASSERT_TRUE( alloc.empty() );
@@ -48,11 +52,10 @@ TEST( Allocator, Ring )
     std::random_device randomDevice;
     std::mt19937       randNumGen( randomDevice() );
 
-    std::set< mega::U64 > allocated;
-    for ( int i = 0; i < CAPACITY; ++i )
+    std::set< mega::runtime::OwnerID > allocated;
+    for( int i = 0; i < MAX_OWNER_PER_PROCESS; ++i )
     {
-        mega::U64 s = alloc.allocate();
-
+        mega::runtime::OwnerID s = alloc.allocate();
         ASSERT_TRUE( allocated.insert( s ).second );
     }
     ASSERT_TRUE( alloc.full() );
@@ -60,19 +63,17 @@ TEST( Allocator, Ring )
     std::vector< mega::U64 > shuffled( allocated.begin(), allocated.end() );
     std::shuffle( shuffled.begin(), shuffled.end(), randNumGen );
 
-    for ( int i : shuffled )
+    for( auto i : shuffled )
     {
         ASSERT_TRUE( !alloc.empty() );
         alloc.free( i );
     }
-
     ASSERT_TRUE( alloc.empty() );
 }
 
 TEST( Allocator, Ring2 )
 {
-    static constexpr mega::U64 CAPACITY = 64;
-    using AllocatorType                   = mega::RingAllocator< mega::U64, CAPACITY >;
+    using AllocatorType = OwnerAllocator;
 
     AllocatorType alloc;
     ASSERT_TRUE( alloc.empty() );
@@ -82,13 +83,13 @@ TEST( Allocator, Ring2 )
 
     std::set< mega::U64 > allocated;
 
-    for ( int j = 0; j < 5; ++j )
+    for( int j = 0; j < 5; ++j )
     {
         // allocate half
         {
-            for ( int i = 0; ( i < CAPACITY / 2 ) && !alloc.full(); ++i )
+            for( int i = 0; ( i < MAX_OWNER_PER_PROCESS / 2 ) && !alloc.full(); ++i )
             {
-                mega::U64 s = alloc.allocate();
+                auto s = alloc.allocate();
                 ASSERT_TRUE( allocated.insert( s ).second );
             }
         }
@@ -98,17 +99,17 @@ TEST( Allocator, Ring2 )
             std::vector< mega::U64 > shuffled( allocated.begin(), allocated.end() );
             std::shuffle( shuffled.begin(), shuffled.end(), randNumGen );
 
-            for ( int i = 0; i < CAPACITY / 2; ++i )
+            for( int i = 0; i < MAX_OWNER_PER_PROCESS / 2; ++i )
             {
                 ASSERT_TRUE( !alloc.empty() );
-                mega::U64 v = shuffled[ i ];
+                auto v = shuffled[ i ];
                 alloc.free( v );
                 allocated.erase( v );
             }
         }
     }
 
-    for ( int i : allocated )
+    for( auto i : allocated )
     {
         ASSERT_TRUE( !alloc.empty() );
         alloc.free( i );

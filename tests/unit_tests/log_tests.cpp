@@ -468,12 +468,12 @@ TEST_F( BasicLogTest, LogMsgMany_ )
     {
         if ( ( iCounter != 0 ) && ( iCounter % msgsPerCycle == 0 ) )
         {
-            const mega::TimeStamp   lastCycle         = log.getTimeStamp();
+            const mega::runtime::TimeStamp   lastCycle         = log.getTimeStamp();
             const mega::event::Offset oldOffset         = log.get( mega::event::TrackID::Log, lastCycle );
             const mega::event::Offset expectedNewOffset = log.get( mega::event::TrackID::Log );
 
             log.cycle();
-            const mega::TimeStamp   newCycle  = log.getTimeStamp();
+            const mega::runtime::TimeStamp   newCycle  = log.getTimeStamp();
             const mega::event::Offset newOffset = log.get( mega::event::TrackID::Log, newCycle );
 
             ASSERT_EQ( newOffset, expectedNewOffset )
@@ -497,7 +497,7 @@ TEST_F( BasicLogTest, LogMsgMany_ )
 
     log.cycle();
 
-    const mega::TimeStamp finalTimeStamp = ( testMsgs.size() / msgsPerCycle );
+    const mega::runtime::TimeStamp finalTimeStamp = ( testMsgs.size() / msgsPerCycle );
     ASSERT_EQ( log.getTimeStamp(), finalTimeStamp );
 
     {
@@ -511,7 +511,7 @@ TEST_F( BasicLogTest, LogMsgMany_ )
 
     {
         auto iIter = testMsgs.begin();
-        for ( mega::TimeStamp timeStamp = 0; timeStamp != finalTimeStamp; timeStamp++ )
+        for ( mega::runtime::TimeStamp timeStamp = 0; timeStamp != finalTimeStamp; timeStamp++ )
         {
             int  iCounter = 0;
             auto i = log.logBegin( timeStamp ), iEnd = log.logBegin( timeStamp + 1 );

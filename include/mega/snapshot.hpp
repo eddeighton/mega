@@ -42,24 +42,24 @@ public:
         : m_timeStamp( 0U )
     {
     }
-    Snapshot( mega::TimeStamp timeStamp )
+    Snapshot( mega::runtime::TimeStamp timeStamp )
         : m_timeStamp( timeStamp )
     {
     }
 
-    TimeStamp           getTimeStamp() const { return m_timeStamp; }
+    runtime::TimeStamp  getTimeStamp() const { return m_timeStamp; }
     const Buffer&       getBuffer() const { return m_buffer; }
     const IndexVector&  getObjects() const { return m_objects; }
     const AddressTable& getTable() const { return m_table; }
 
     AddressTable& getTable() { return m_table; }
-    void setTimeStamp( TimeStamp timeStamp ) { m_timeStamp = timeStamp; }
-    void setBuffer( const Buffer& buffer ) { m_buffer = buffer; }
+    void          setTimeStamp( runtime::TimeStamp timeStamp ) { m_timeStamp = timeStamp; }
+    void          setBuffer( const Buffer& buffer ) { m_buffer = buffer; }
 
-    void beginObject( const Pointer& ref ) { m_objects.push_back( m_table.refToIndex( ref ) ); }
+    void beginObject( const runtime::Pointer& ref ) { m_objects.push_back( m_table.refToIndex( ref ) ); }
 
-    const AddressTable::Index& refToIndex( const Pointer& ref ) { return m_table.refToIndex( ref ); }
-    void remap( const AddressTable::Index& index, const Pointer& ref ) { m_table.remap( index, ref ); }
+    const AddressTable::Index& refToIndex( const runtime::Pointer& ref ) { return m_table.refToIndex( ref ); }
+    void remap( const AddressTable::Index& index, const runtime::Pointer& ref ) { m_table.remap( index, ref ); }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -71,10 +71,10 @@ public:
     }
 
 private:
-    AddressTable m_table;
-    TimeStamp    m_timeStamp;
-    IndexVector  m_objects;
-    Buffer       m_buffer;
+    AddressTable       m_table;
+    runtime::TimeStamp m_timeStamp;
+    IndexVector        m_objects;
+    Buffer             m_buffer;
 };
 
 } // namespace mega

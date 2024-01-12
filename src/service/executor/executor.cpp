@@ -69,7 +69,6 @@ Executor::Executor( boost::asio::io_context& io_context, network::Log log, U64 n
     }*/
 }
 
-
 Executor::~Executor()
 {
     try
@@ -224,7 +223,7 @@ void Executor::getSimulations( std::vector< std::shared_ptr< Simulation > >& sim
         simulations.push_back( pSim );
     }
 }
-std::shared_ptr< Simulation > Executor::getSimulation( const mega::MPO& mpo ) const
+std::shared_ptr< Simulation > Executor::getSimulation( const runtime::MPO& mpo ) const
 {
     ReadLock lock( m_mutex );
     auto     iFind = m_simulations.find( mpo );
@@ -236,8 +235,8 @@ std::shared_ptr< Simulation > Executor::getSimulation( const mega::MPO& mpo ) co
         return Simulation::Ptr{};
 }
 
-mega::MPO Executor::createSimulation( network::LogicalThread&     callingLogicalThread,
-                                      boost::asio::yield_context& yield_ctx )
+runtime::MPO Executor::createSimulation( network::LogicalThread&     callingLogicalThread,
+                                         boost::asio::yield_context& yield_ctx )
 {
     Simulation::Ptr pSimulation;
     {
@@ -251,7 +250,7 @@ mega::MPO Executor::createSimulation( network::LogicalThread&     callingLogical
     }
 
     network::sim::Request_Sender rq( callingLogicalThread, pSimulation, yield_ctx );
-    const mega::MPO              simMPO = rq.SimCreate();
+    const runtime::MPO           simMPO = rq.SimCreate();
     SPDLOG_TRACE( "Executor::createSimulation SimCreate returned {}", simMPO );
     {
         WriteLock lock( m_mutex );
@@ -271,7 +270,7 @@ void Executor::logicalthreadCompleted( network::LogicalThreadBase::Ptr pLogicalT
     if( Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( pLogicalThread ) )
     {
         // if the simulation failed to construct then the mpo will not be initialised yet so check
-        const mega::Pointer root = pSim->getThisRoot();
+        const mega::runtime::PointerHeap root = pSim->getThisRoot();
         if( root.valid() )
         {
             WriteLock lock( m_mutex );

@@ -19,18 +19,18 @@
 
 msg MPODestroyed
 {
-    request( MPO mpo );
+    request( runtime::MPO mpo );
     response();
 }
 
 msg NetworkToHeap
 {
-    request( Pointer ref, TimeStamp lockCycle );
-    response( Pointer ref );
+    request( runtime::PointerNet ref, runtime::TimeStamp lockCycle );
+    response( runtime::PointerHeap ref );
 }
 
 msg NetworkAllocate
 {
-    request( MPO parent, TypeID objectTypeID, TimeStamp lockCycle );
-    response( Pointer ref );
+    request( runtime::MPO parent, concrete::ObjectID objectTypeID, runtime::TimeStamp lockCycle );
+    response( runtime::PointerNet ref );
 }

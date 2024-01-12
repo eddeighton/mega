@@ -53,7 +53,6 @@ target_link_options( report PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 target_link_libraries( report executorLib )
-target_link_libraries( report mega_mangle )
 target_link_libraries( report reports )
 target_link_libraries( report reporters )
 target_link_libraries( report database_reporters )

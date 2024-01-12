@@ -29,7 +29,7 @@
 namespace mega::service
 {
 
-MPOLifetime::MPOLifetime( Leaf& leaf, LeafRequestLogicalThread& logicalthread, const MPO& mpo,
+MPOLifetime::MPOLifetime( Leaf& leaf, LeafRequestLogicalThread& logicalthread, const runtime::MPO& mpo,
                           boost::asio::yield_context& yield_ctx )
     : m_leaf( leaf )
     , m_logicalthread( logicalthread )

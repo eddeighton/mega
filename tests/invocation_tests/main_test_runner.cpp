@@ -61,8 +61,7 @@ int inner_main( int argc, char* argv[] )
     std::string             strFilter, strXSL;
     int                     iRepeats = 1;
     bool                    bWait = false, bDebug = false, bReport = false, bCOut = false, bBreak = false;
-    boost::filesystem::path clangPlugin, parserDll, megaCompiler, megaExecutor, clangCompiler, databaseDll, jit,
-        megaMangle, leaf;
+    boost::filesystem::path clangPlugin, parserDll, megaCompiler, megaExecutor, clangCompiler, databaseDll, jit, leaf;
     std::string strCPPFlags, strCPPDefines, strIncludeDirectories;
 
     namespace bpo = boost::program_options;
@@ -89,7 +88,6 @@ int inner_main( int argc, char* argv[] )
         ( "database_dll",   bpo::value< boost::filesystem::path >( &databaseDll ),      "Database DLL Path" )
 
         ( "jit",            bpo::value< boost::filesystem::path >( &jit ),              "Jit Path" )
-        ( "mega_mangle",    bpo::value< boost::filesystem::path >( &megaMangle ),       "Mega Mangle Path" )
         ( "leaf",           bpo::value< boost::filesystem::path >( &leaf ),             "Leaf Path" )
 
         ( "cpp_flags",      bpo::value< std::string >( &strCPPFlags ),                  "C++ Compiler Flags" )
@@ -128,7 +126,6 @@ int inner_main( int argc, char* argv[] )
         VERIFY_RTE_MSG( boost::filesystem::exists( clangPlugin ), "File not found clangPlugin at : " << clangPlugin.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( databaseDll ), "File not found databaseDll at : " << databaseDll.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( jit ), "File not found jit at : " << jit.string() );
-        VERIFY_RTE_MSG( boost::filesystem::exists( megaMangle ), "File not found megaMangle at : " << megaMangle.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( leaf ), "File not found leaf at : " << leaf.string() );
         // clang-format on
 
@@ -137,7 +134,7 @@ int inner_main( int argc, char* argv[] )
 
         g_toolChain
             = mega::utilities::ToolChain( strClangVersion, szDatabaseVersion, parserDll, megaCompiler, megaExecutor,
-                                          clangCompiler, clangPlugin, databaseDll, jit, megaMangle, leaf );
+                                          clangCompiler, clangPlugin, databaseDll, jit, leaf );
     }
 
     {

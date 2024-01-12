@@ -38,6 +38,11 @@ class Instance : public c_concrete_instance
 public:
     using ValueType = U16;
 
+    struct Hash
+    {
+        inline U64 operator()( const Instance& ref ) const noexcept { return ref.getValue(); }
+    };
+
     constexpr inline Instance()
         : c_concrete_instance{ 0U }
     {
@@ -53,8 +58,8 @@ public:
     {
     }
 
-    constexpr inline Instance( const Instance& cpy )     = default;
-    constexpr inline Instance( Instance&& cpy )          = default;
+    constexpr inline Instance( const Instance& cpy )            = default;
+    constexpr inline Instance( Instance&& cpy )                 = default;
     constexpr inline Instance& operator=( const Instance& cpy ) = default;
 
     constexpr inline ValueType getValue() const { return value; }
@@ -79,7 +84,7 @@ public:
 
 static_assert( sizeof( Instance ) == sizeof( Instance::ValueType ), "Invalid Instance Size" );
 
-inline constexpr Instance operator ""_CI( unsigned long long int value )
+inline constexpr Instance operator""_CI( unsigned long long int value )
 {
     return Instance{ static_cast< Instance::ValueType >( value ) };
 }
@@ -93,7 +98,7 @@ inline std::ostream& operator<<( std::ostream& os, const Instance& instance )
 
 inline std::istream& operator>>( std::istream& is, Instance& instance )
 {
-    U16 value;
+    Instance::ValueType value;
     is >> value;
     instance = Instance{ value };
     return is;

@@ -80,8 +80,8 @@ public:
     // std::optional< task::FileHash > getUnityDBHashCode() const { return m_unityDatabaseHashCode; }
     // HeapMemory&            getHeapMemory();
 
-    mega::MP               getMP() const { return m_mp; }
-    std::set< mega::MPO >& getMPOs() { return m_mpos; }
+    runtime::MP               getMP() const { return m_mp; }
+    std::set< runtime::MPO >& getMPOs() { return m_mpos; }
 
     runtime::Runtime& getRuntime()
     {
@@ -102,8 +102,8 @@ private:
     network::Client                            m_client;
     WorkGuardType                              m_work_guard;
     std::thread                                m_io_thread;
-    mega::MP                                   m_mp;
-    std::set< mega::MPO >                      m_mpos;
+    runtime::MP                                m_mp;
+    std::set< runtime::MPO >                   m_mpos;
     std::optional< MegastructureInstallation > m_megastructureInstallationOpt;
     std::unique_ptr< runtime::Runtime >        m_pRuntime;
 };

@@ -23,8 +23,9 @@
 
 #include "mega/iterator.hpp"
 #include "mega/values/native_types.hpp"
-#include "mega/values/compilation/type_id.hpp"
-#include "mega/values/compilation/type_instance.hpp"
+#include "mega/values/compilation/concrete/type_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
+#include "mega/values/compilation/concrete/type_id_instance.hpp"
 #include "mega/values/runtime/any.hpp"
 
 namespace mega
@@ -68,11 +69,11 @@ struct ReferenceTraits
     }
     Reference
     {
-        static Reference make( Object, TypeInstance );
+        static Reference make( Object, concrete::TypeIDInstance );
     }
 };
 */
-
+/*
 template < typename ReferenceTraits, typename Instantiation, typename Visitor >
 class TreeTraversal : public TraversalVisitor
 {
@@ -96,7 +97,7 @@ class TreeTraversal : public TraversalVisitor
     Instantiation& m_instantiation;
     Visitor&       m_visitor;
 
-    inline Reference getReference( const TypeInstance& typeInstance ) const
+    inline Reference getReference( const concrete::TypeIDInstance& typeInstance ) const
     {
         const auto& objectFrame = std::get< ObjectFrame >( m_stack.back() );
         return Reference::make( objectFrame.object, typeInstance );
@@ -115,14 +116,14 @@ public:
 private:
     TypeID start() const override { return std::get< ObjectFrame >( m_stack.back() ).object.getType(); }
 
-    void on_object_start( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_object_start( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         ASSERT( !m_stack.empty() );
         ASSERT( std::get< ObjectFrame >( m_stack.back() ).object.getType() == typeInstance.type );
         m_visitor.on_object_start( pszType, getReference( typeInstance ) );
     }
 
-    std::optional< TypeID > on_object_end( const char* pszType, const TypeInstance& typeInstance ) override
+    std::optional< TypeID > on_object_end( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         ASSERT( !m_stack.empty() );
         ASSERT_MSG( std::get< ObjectFrame >( m_stack.back() ).object.getType() == typeInstance.type,
@@ -145,40 +146,40 @@ private:
         }
     }
 
-    void on_component_start( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_component_start( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_component_start( pszType, getReference( typeInstance ) );
     }
-    void on_component_end( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_component_end( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_component_end( pszType, getReference( typeInstance ) );
     }
-    void on_action_start( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_action_start( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_action_start( pszType, getReference( typeInstance ) );
     }
-    void on_action_end( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_action_end( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_action_end( pszType, getReference( typeInstance ) );
     }
-    void on_state_start( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_state_start( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_state_start( pszType, getReference( typeInstance ) );
     }
-    void on_state_end( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_state_end( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_state_end( pszType, getReference( typeInstance ) );
     }
-    void on_event_start( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_event_start( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_event_start( pszType, getReference( typeInstance ) );
     }
-    void on_event_end( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_event_end( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_event_end( pszType, getReference( typeInstance ) );
     }
 
-    void on_link_start( const char* pszType, const TypeInstance& typeInstance, bool bOwning, bool bOwned ) override
+    void on_link_start( const char* pszType, const concrete::TypeIDInstance& typeInstance, bool bOwning, bool bOwned ) override
     {
         ASSERT( !m_stack.empty() );
 
@@ -191,7 +192,7 @@ private:
         m_visitor.on_link_start( pszType, linkRef, bOwning, bOwned );
     }
 
-    std::optional< TypeID > on_link_end( const char* pszType, const TypeInstance& typeInstance, bool bOwning, bool bOwned ) override
+    std::optional< TypeID > on_link_end( const char* pszType, const concrete::TypeIDInstance& typeInstance, bool bOwning, bool bOwned ) override
     {
         ASSERT( !m_stack.empty() );
 
@@ -215,32 +216,32 @@ private:
         }
     }
 
-    void on_interupt( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_interupt( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_interupt( pszType, getReference( typeInstance ) );
     }
 
-    void on_function( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_function( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_function( pszType, getReference( typeInstance ) );
     }
 
-    void on_decider( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_decider( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_decider( pszType, getReference( typeInstance ) );
     }
 
-    void on_namespace( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_namespace( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         m_visitor.on_namespace( pszType, getReference( typeInstance ) );
     }
 
-    void on_dimension( const char* pszType, const TypeInstance& typeInstance ) override
+    void on_dimension( const char* pszType, const concrete::TypeIDInstance& typeInstance ) override
     {
         const Reference ref = getReference( typeInstance );
         m_visitor.on_dimension( pszType, ref, m_instantiation.read( ref ) );
     }
-};
+};*/
 } // namespace mega
 
 #endif // GUARD_2023_September_07_tree_traversal

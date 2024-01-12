@@ -35,48 +35,51 @@
 
 #include "log/log.hpp"
 
-namespace mega
+namespace mega::runtime
 {
+/*
 namespace runtime
 {
 MPO getThisMPO()
 {
-    return getMPOContext()->getThisMPO();
+return getMPOContext()->getThisMPO();
 }
 void networkToHeap( Pointer& ref )
 {
-    getMPOContext()->networkToHeap( ref );
+getMPOContext()->networkToHeap( ref );
 }
 void readLock( Pointer& ref )
 {
-    getMPOContext()->readLock( ref );
+getMPOContext()->readLock( ref );
 }
 void writeLock( Pointer& ref )
 {
-    getMPOContext()->writeLock( ref );
+getMPOContext()->writeLock( ref );
 }
 Pointer allocate( mega::TypeID objectType )
 {
-    return getMPOContext()->allocate( objectType );
+return getMPOContext()->allocate( objectType );
 }
 Pointer allocateRemote( const MPO& remote, mega::TypeID objectType )
 {
-    return getMPOContext()->allocateRemote( remote, objectType );
+return getMPOContext()->allocateRemote( remote, objectType );
 }
 void* log()
 {
-    return &getMPOContext()->getLog();
+return &getMPOContext()->getLog();
 }
 } // namespace runtime
+*/
 
 Cycle::~Cycle()
 {
     try
     {
-        if( auto pContext = getMPOContext() )
+        THROW_TODO;
+        /*if( auto pContext = getMPOContext() )
         {
             pContext->cycleComplete();
-        }
+        }*/
     }
     catch( mega::runtime::RuntimeException& ex )
     {
@@ -88,19 +91,20 @@ Cycle::~Cycle()
     }
 }
 
-Pointer MPOContext::getRoot( MPO mpo )
+runtime::PointerNet MPOContext::getRoot( runtime::MPO mpo )
 {
     if( m_root.getMPO() == mpo )
     {
-        return m_root;
+        return m_root.getPointerNet();
     }
     else
     {
-        return Pointer::make_root( mpo );
+        THROW_TODO;
+        // return Pointer::make_root( mpo );
     }
 }
 
-MPO MPOContext::constructMPO( MP machineProcess )
+runtime::MPO MPOContext::constructMPO( runtime::MP machineProcess )
 {
     network::sim::Request_Encoder request(
         [ mpoRequest = getMPRequest(), machineProcess ]( const network::Message& msg ) mutable
@@ -109,15 +113,15 @@ MPO MPOContext::constructMPO( MP machineProcess )
     return request.SimCreate();
 }
 
-MP MPOContext::constructExecutor( MachineID daemonMachineID )
+runtime::MP MPOContext::constructExecutor( runtime::MachineID daemonMachineID )
 {
     network::enrole::Request_Encoder request( [ mpoRequest = getMPRequest() ]( const network::Message& msg ) mutable
-                                              { return mpoRequest.MPRoot( msg, MP{} ); },
+                                              { return mpoRequest.MPRoot( msg, runtime::MP{} ); },
                                               m_logicalthreadIDRef );
     return request.EnroleCreateExecutor( daemonMachineID );
 }
 
-void MPOContext::destroyExecutor( MP mp )
+void MPOContext::destroyExecutor( runtime::MP mp )
 {
     network::enrole::Request_Encoder request( [ mpoRequest = getMPRequest(), mp ]( const network::Message& msg ) mutable
                                               { return mpoRequest.MPUp( msg, mp ); },
@@ -125,28 +129,30 @@ void MPOContext::destroyExecutor( MP mp )
     return request.EnroleDestroy();
 }
 
-Pointer MPOContext::allocate( TypeID objectTypeID )
+runtime::PointerHeap MPOContext::allocate( concrete::ObjectID objectTypeID )
 {
     THROW_TODO;
     /*VERIFY_RTE_MSG( m_pMemoryManager, "Memory manager not instantiated" );
 
     Pointer allocated = m_pMemoryManager->New( objectTypeID );
     m_pLog->record(
-        mega::event::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::event::Structure::eConstruct ) );
+        mega::event::Structure::Write( allocated, allocated.getPointerNet(), 0, mega::event::Structure::eConstruct )
+    );
 
     return allocated;*/
 }
 
-Pointer MPOContext::allocateRemote( const MPO& remote, TypeID objectTypeID )
+runtime::PointerNet MPOContext::allocateRemote( const runtime::MPO& remote, concrete::ObjectID objectTypeID )
 {
-    Pointer allocated;
+    runtime::PointerNet allocated;
     if( remote == getThisMPO() )
     {
-        allocated = allocate( objectTypeID );
+        auto local = allocate( objectTypeID );
+        allocated  = local.getPointerNet();
     }
     else
     {
-        TimeStamp lockCycle = m_lockTracker.isWrite( remote );
+        runtime::TimeStamp lockCycle = m_lockTracker.isWrite( remote );
         if( lockCycle == 0U )
         {
             lockCycle = getMPOSimRequest( remote ).SimLockWrite( getThisMPO(), remote );
@@ -160,7 +166,7 @@ Pointer MPOContext::allocateRemote( const MPO& remote, TypeID objectTypeID )
 }
 
 // networkToHeap ONLY called when MPO matches
-void MPOContext::networkToHeap( Pointer& ref )
+runtime::PointerHeap MPOContext::networkToHeap( const runtime::PointerNet& ref )
 {
     THROW_TODO;
     /*SPDLOG_TRACE( "MPOContext::networkToHeap: {}", ref );
@@ -173,15 +179,15 @@ void MPOContext::networkToHeap( Pointer& ref )
         ref = m_pMemoryManager->networkToHeap( ref );
     }*/
 }
-
-void MPOContext::readLock( Pointer& ref )
+/*
+void MPOContext::readLock( runtime::Pointer& ref )
 {
     SPDLOG_TRACE( "MPOContext::readLock: {}", ref );
 
     VERIFY_RTE_MSG( ref.getMPO() != getThisMPO(), "readLock used when matching MPO" );
 
     // acquire lock if required and get lock cycle
-    TimeStamp lockCycle = m_lockTracker.isRead( ref.getMPO() );
+    runtime::TimeStamp lockCycle = m_lockTracker.isRead( ref.getMPO() );
     if( lockCycle == 0U )
     {
         lockCycle = getMPOSimRequest( ref.getMPO() ).SimLockRead( getThisMPO(), ref.getMPO() );
@@ -195,13 +201,13 @@ void MPOContext::readLock( Pointer& ref )
     }
 }
 
-void MPOContext::writeLock( Pointer& ref )
+void MPOContext::writeLock( runtime::Pointer& ref )
 {
     SPDLOG_TRACE( "MPOContext::writeLock: {}", ref );
 
     VERIFY_RTE_MSG( ref.getMPO() != getThisMPO(), "writeLock used when matching MPO" );
 
-    TimeStamp lockCycle = m_lockTracker.isWrite( ref.getMPO() );
+    runtime::TimeStamp lockCycle = m_lockTracker.isWrite( ref.getMPO() );
     if( lockCycle == 0U )
     {
         lockCycle = getMPOSimRequest( ref.getMPO() ).SimLockWrite( getThisMPO(), ref.getMPO() );
@@ -214,8 +220,8 @@ void MPOContext::writeLock( Pointer& ref )
         ref = getLeafMemoryRequest().NetworkToHeap( ref, lockCycle );
     }
 }
-
-void MPOContext::createRoot( const mega::MPO& mpo )
+*/
+void MPOContext::createRoot( const runtime::MPO& mpo )
 {
     // initialise event log
     {
@@ -234,14 +240,13 @@ void MPOContext::createRoot( const mega::MPO& mpo )
         }
         std::ostringstream os;
         {
-            os << "events/ev_" << mpo.getMachineID() << "-" << mpo.getProcessID() << "-"
-               << static_cast< mega::U32 >( mpo.getOwnerID() ) << "_" << m_logicalthreadIDRef << "/";
+            os << "events/ev_" << mpo << "_" << m_logicalthreadIDRef << "/";
         }
 
         const boost::filesystem::path eventLogFolder = logFolder / os.str();
         SPDLOG_TRACE( "MPOContext::createRoot: mpo: {} event log: {}", mpo, eventLogFolder.string() );
 
-        m_pLog                 = std::make_unique< log::FileStorage >( eventLogFolder, false );
+        m_pLog                 = std::make_unique< event::FileStorage >( eventLogFolder, false );
         m_pTransactionProducer = std::make_unique< network::TransactionProducer >( *m_pLog );
     }
 
@@ -269,9 +274,10 @@ void MPOContext::createRoot( const mega::MPO& mpo )
         // instantiate the root
         //m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
         VERIFY_RTE_MSG( m_root.valid(), "Root allocation failed" );
-        SPDLOG_INFO( "Created Root: {} net: {}", m_root.getObjectAddress(), m_root.getNetworkAddress() );
+        SPDLOG_INFO( "Created Root: {} net: {}", m_root.getObjectAddress(), m_root.getPointerNet() );
         m_pLog->record(
-            mega::event::Structure::Write( m_root, m_root.getNetworkAddress(), 0, mega::event::Structure::eConstruct ) );
+            mega::event::Structure::Write( m_root, m_root.getPointerNet(), 0, mega::event::Structure::eConstruct )
+    );
     }
     else
     {
@@ -383,7 +389,7 @@ void MPOContext::cycleComplete()
                 }
                 m_pMemoryManager->Delete( deleteRef );
                 m_pLog->record( mega::event::Structure::Write(
-                    deleteRef, deleteRef.getNetworkAddress(), 0, mega::event::Structure::eDestruct ) );
+                    deleteRef, deleteRef.getPointerNet(), 0, mega::event::Structure::eDestruct ) );
             }
         }
     }*/
@@ -431,7 +437,7 @@ void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::T
     // clang-format off
     table.m_rows.push_back( { Line{ "         MPO: "s }, Line{ m_mpo.value() } } );
     table.m_rows.push_back( { Line{ "   Root Heap: "s }, Line{ m_root } } );
-    table.m_rows.push_back( { Line{ "    Root Net: "s }, Line{ m_root.getNetworkAddress() } } );
+    table.m_rows.push_back( { Line{ "    Root Net: "s }, Line{ m_root.getPointerNet() } } );
     table.m_rows.push_back( { Line{ "        Tick: "s }, Line{ std::to_string( getLog().getTimeStamp() ) } } );
     table.m_rows.push_back( { Line{ "  Start Time: "s }, Line{ common::printTimeStamp( m_systemStartTime ) } } );
     table.m_rows.push_back( { Line{ "Elapsed Time: "s }, Line{ common::printDuration( getElapsedTime() ) } } );
@@ -456,14 +462,14 @@ void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::T
     if( bDoBasicReport )
     {
         {
-            Table                   logTable;
-            const log::IndexRecord& iter = getLog().getIterator();
-            for( auto i = 0; i != log::toInt( log::TrackID::TOTAL ); ++i )
+            Table                     logTable;
+            const event::IndexRecord& iter = getLog().getIterator();
+            for( auto i = 0; i != event::toInt( event::TrackID::TOTAL ); ++i )
             {
-                if( auto amt = iter.get( log::TrackID( i ) ).get(); amt > 0 )
+                if( auto amt = iter.get( event::TrackID( i ) ).get(); amt > 0 )
                 {
-                    logTable.m_rows.push_back( { Line{ log::toName( log::TrackID( i ) ) },
-                                                 Line{ std::to_string( iter.get( log::TrackID( i ) ).get() ) } } );
+                    logTable.m_rows.push_back( { Line{ event::toName( event::TrackID( i ) ) },
+                                                 Line{ std::to_string( iter.get( event::TrackID( i ) ).get() ) } } );
                 }
             }
             table.m_rows.push_back( { Line{ "         Log: "s }, logTable } );
@@ -492,4 +498,4 @@ void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::T
     }
 }
 
-} // namespace mega
+} // namespace mega::runtime

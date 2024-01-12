@@ -66,7 +66,7 @@ public:
         base::load( value );
     }
 
-    inline void load( ::mega::Pointer& ref )
+    inline void load( ::mega::runtime::PointerNet& ref )
     {
         ::mega::AddressTable::Index index;
         base::load( index );
@@ -99,9 +99,9 @@ public:
         base::save( value );
     }
 
-    inline void save( const ::mega::Pointer& ref ) { base::save( m_snapshot.refToIndex( ref ) ); }
+    inline void save( const ::mega::runtime::Pointer& ref ) { base::save( m_snapshot.refToIndex( ref ) ); }
 
-    void beginObject( const ::mega::Pointer& ref ) { m_snapshot.beginObject( ref ); }
+    void beginObject( const ::mega::runtime::Pointer& ref ) { m_snapshot.beginObject( ref ); }
 
     ::mega::Snapshot& getSnapshot() { return m_snapshot; }
 
@@ -116,12 +116,12 @@ BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::SnapshotOArchive )
 
 namespace boost::serialization
 {
-inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::Pointer& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::runtime::Pointer& value, const unsigned int version )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::Pointer& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::runtime::Pointer& value, const unsigned int version )
 {
     ar.save( value );
 }
@@ -190,7 +190,7 @@ public:
         m_archive& value;
     }
 
-    inline const Snapshot& makeSnapshot( TimeStamp timestamp )
+    inline const Snapshot& makeSnapshot( runtime::TimeStamp timestamp )
     {
         Snapshot& snapshot = m_archive.getSnapshot();
         snapshot.setTimeStamp( timestamp );
@@ -198,7 +198,7 @@ public:
         return snapshot;
     }
 
-    void beginObject( const Pointer& ref ) { m_archive.beginObject( ref ); }
+    void beginObject( const runtime::Pointer& ref ) { m_archive.beginObject( ref ); }
 
 private:
     boost::interprocess::basic_vectorbuf< Buffer > m_oVecStream;

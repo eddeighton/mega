@@ -96,7 +96,7 @@ target_link_libraries( executorLib network )
 target_link_libraries( executorLib leaf )
 target_link_libraries( executorLib pipeline )
 target_link_libraries( executorLib database )
-#target_link_libraries( executorLib orc )
+target_link_libraries( executorLib event )
 target_link_libraries( executorLib log )
 
 
@@ -122,7 +122,6 @@ ENDIF( ${WIN32} )
 
 target_link_libraries( executor executorLib )
 target_link_libraries( executor reporters )
-target_link_libraries( executor mega_mangle )
 
 set_target_properties( executor PROPERTIES FOLDER service )
 

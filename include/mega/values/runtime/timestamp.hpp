@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_December_11_timestamp
 #define GUARD_2023_December_11_timestamp
 
-#include "mega/values/runtime/time_stamp.h"
+#include "mega/values/runtime/inline.h"
 
 #include "mega/values/native_types.hpp"
 
@@ -30,7 +30,7 @@
 #include <limits>
 #include <ostream>
 
-namespace mega
+namespace mega::runtime
 {
 class TimeStamp : public c_time_stamp
 {
@@ -76,6 +76,6 @@ public:
         }
     }
 };
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // GUARD_2023_December_11_timestamp

@@ -27,7 +27,8 @@
 
 #include "mega/values/service/program.hpp"
 
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/concrete/type_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
 #include "mega/values/runtime/pointer.hpp"
 
 #include <pybind11/pybind11.h>

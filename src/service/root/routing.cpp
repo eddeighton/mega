@@ -19,7 +19,6 @@
 
 #include "request.hpp"
 
-
 #include "root.hpp"
 
 #include "log/log.hpp"
@@ -39,7 +38,7 @@ RootRequestLogicalThread::~RootRequestLogicalThread()
 }
 
 network::Message RootRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
-                                                            boost::asio::yield_context& yield_ctx )
+                                                                   boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::dispatchInBoundRequest {}", msg );
     network::Message result;
@@ -166,12 +165,12 @@ network::Message RootRequestLogicalThread::DaemonRoot( const network::Message&  
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
-network::Message RootRequestLogicalThread::MPRoot( const network::Message& request, const MP& mp,
+network::Message RootRequestLogicalThread::MPRoot( const network::Message& request, const runtime::MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
     return dispatchInBoundRequest( request, yield_ctx );
 }
-network::Message RootRequestLogicalThread::MPDown( const network::Message& request, const MP& mp,
+network::Message RootRequestLogicalThread::MPDown( const network::Message& request, const runtime::MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
     if( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( mp.getMachineID() ) )
@@ -185,13 +184,13 @@ network::Message RootRequestLogicalThread::MPDown( const network::Message& reque
     }
     UNREACHABLE;
 }
-network::Message RootRequestLogicalThread::MPUp( const network::Message& request, const MP& mp,
+network::Message RootRequestLogicalThread::MPUp( const network::Message& request, const runtime::MP& mp,
                                                  boost::asio::yield_context& yield_ctx )
 {
     return MPDown( request, mp, yield_ctx );
 }
 network::Message RootRequestLogicalThread::MPODown( const network::Message&     request,
-                                                    const MPO&                  mpo,
+                                                    const runtime::MPO&         mpo,
                                                     boost::asio::yield_context& yield_ctx )
 {
     if( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( mpo.getMachineID() ) )
@@ -205,14 +204,15 @@ network::Message RootRequestLogicalThread::MPODown( const network::Message&     
     }
     UNREACHABLE;
 }
-network::Message RootRequestLogicalThread::MPOUp( const network::Message& request, const MPO& mpo,
+network::Message RootRequestLogicalThread::MPOUp( const network::Message& request, const runtime::MPO& mpo,
                                                   boost::asio::yield_context& yield_ctx )
 {
     return MPODown( request, mpo, yield_ctx );
 }
 
-TimeStamp RootRequestLogicalThread::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
-                                                 boost::asio::yield_context& yield_ctx )
+runtime::TimeStamp RootRequestLogicalThread::SimLockRead( const runtime::MPO&         requestingMPO,
+                                                          const runtime::MPO&         targetMPO,
+                                                          boost::asio::yield_context& yield_ctx )
 {
     if( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO.getMachineID() ) )
     {
@@ -226,8 +226,9 @@ TimeStamp RootRequestLogicalThread::SimLockRead( const MPO& requestingMPO, const
     UNREACHABLE;
 }
 
-TimeStamp RootRequestLogicalThread::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
-                                                  boost::asio::yield_context& yield_ctx )
+runtime::TimeStamp RootRequestLogicalThread::SimLockWrite( const runtime::MPO&         requestingMPO,
+                                                           const runtime::MPO&         targetMPO,
+                                                           boost::asio::yield_context& yield_ctx )
 {
     if( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO.getMachineID() ) )
     {
@@ -241,8 +242,8 @@ TimeStamp RootRequestLogicalThread::SimLockWrite( const MPO& requestingMPO, cons
     UNREACHABLE;
 }
 
-void RootRequestLogicalThread::SimLockRelease( const MPO&                  requestingMPO,
-                                               const MPO&                  targetMPO,
+void RootRequestLogicalThread::SimLockRelease( const runtime::MPO&         requestingMPO,
+                                               const runtime::MPO&         targetMPO,
                                                const network::Transaction& transaction,
                                                boost::asio::yield_context& yield_ctx )
 {

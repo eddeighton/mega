@@ -117,15 +117,15 @@ public:
                                            boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
-    virtual network::Message MPRoot( const network::Message& request, const MP& mp,
+    virtual network::Message MPRoot( const network::Message& request, const runtime::MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPDown( const network::Message& request, const MP& mp,
+    virtual network::Message MPDown( const network::Message& request, const runtime::MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPUp( const network::Message& request, const MP& mp,
+    virtual network::Message MPUp( const network::Message& request, const runtime::MP& mp,
                                    boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPODown( const network::Message& request, const MPO& mpo,
+    virtual network::Message MPODown( const network::Message& request, const runtime::MPO& mpo,
                                       boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPOUp( const network::Message& request, const MPO& mpo,
+    virtual network::Message MPOUp( const network::Message& request, const runtime::MPO& mpo,
                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::daemon_leaf::Impl
@@ -134,7 +134,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void             RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void             RootSimRun( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
 
@@ -166,16 +166,17 @@ public:
     }
 
     // network::memory::Impl
-    virtual void      MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-    virtual Pointer NetworkToHeap( const Pointer& ref, const TimeStamp& lockCycle,
-                                     boost::asio::yield_context& yield_ctx ) override;
-    virtual Pointer NetworkAllocate( const MPO& parent, const TypeID& objectTypeID, const TimeStamp& lockCycle,
-                                       boost::asio::yield_context& yield_ctx ) override;
+    virtual void MPODestroyed( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual runtime::PointerHeap NetworkToHeap( const runtime::PointerNet& ref, const runtime::TimeStamp& lockCycle,
+                                                boost::asio::yield_context& yield_ctx ) override;
+    virtual runtime::PointerNet  NetworkAllocate( const runtime::MPO& parent, const concrete::ObjectID& objectTypeID,
+                                                  const runtime::TimeStamp&   lockCycle,
+                                                  boost::asio::yield_context& yield_ctx ) override;
 
     // public network::jit::Impl
-    virtual void   ExecuteJIT( const runtime::RuntimeFunctor& func, boost::asio::yield_context& yield_ctx ) override;
-    virtual TypeID GetInterfaceTypeID( const mega::TypeID&         concreteTypeID,
-                                       boost::asio::yield_context& yield_ctx ) override;
+    virtual void ExecuteJIT( const runtime::RuntimeFunctor& func, boost::asio::yield_context& yield_ctx ) override;
+    virtual interface::TypeID GetInterfaceTypeID( const concrete::TypeID&     concreteTypeID,
+                                                  boost::asio::yield_context& yield_ctx ) override;
 
     // network::host::Impl
     virtual void SaveSnapshot( boost::asio::yield_context& yield_ctx ) override;

@@ -31,6 +31,7 @@
 #include <vector>
 #include <ostream>
 #include <optional>
+#include <variant>
 
 namespace mega::reports
 {
@@ -43,7 +44,7 @@ class Multiline;
 class Branch;
 class Table;
 class Graph;
-using Container       = boost::variant< Line, Multiline, Branch, Table, Graph >;
+using Container       = std::variant< Line, Multiline, Branch, Table, Graph >;
 using ContainerVector = std::vector< Container >;
 
 /***

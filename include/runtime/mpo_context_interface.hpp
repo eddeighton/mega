@@ -18,19 +18,22 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_December_07_process_id_h
-#define GUARD_2023_December_07_process_id_h
+#ifndef GUARD_2023_January_11_mpo_context_interface
+#define GUARD_2023_January_11_mpo_context_interface
 
-#include "mega/values/runtime.h"
-#include "mega/values/native_types.h"
+#include "mega/values/runtime/pointer.hpp"
 
-C_RUNTIME_START
-
-typedef struct _c_process_id
+namespace mega::runtime
 {
-    c_u16 value;
-} c_process_id;
+/*
+MPO     getThisMPO();
+runtime::PointerHeap networkToHeap( const runtime::PointerNet& ref )
+void    readLock( Pointer& ref );
+void    writeLock( Pointer& ref );
+Pointer allocate( concrete::ObjectID objectType );
+Pointer allocateRemote( const MPO& remote, mega::TypeID objectType );
+void*   log();
+*/
+} // namespace mega::runtime
 
-C_RUNTIME_END
-
-#endif //GUARD_2023_December_07_process_id_h
+#endif // GUARD_2023_January_11_mpo_context_interface

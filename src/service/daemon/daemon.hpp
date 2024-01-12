@@ -50,12 +50,12 @@ public:
     void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
 
 private:
-    void onLeafDisconnect( mega::MP mp );
+    void onLeafDisconnect( mega::runtime::MP mp );
 
-    network::Log             m_log;
-    network::Client          m_rootClient;
-    network::Server          m_server;
-    MachineID                m_machineID;
+    network::Log       m_log;
+    network::Client    m_rootClient;
+    network::Server    m_server;
+    runtime::MachineID m_machineID;
 };
 
 } // namespace mega::service

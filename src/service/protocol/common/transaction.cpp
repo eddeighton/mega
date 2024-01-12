@@ -20,7 +20,7 @@
 
 #include "service/protocol/common/transaction.hpp"
 
-#include "log/log.hpp"
+#include "event/file_log.hpp"
 
 namespace mega::network
 {
@@ -34,33 +34,33 @@ TransactionProducer::TransactionProducer( mega::event::FileStorage& log )
 void TransactionProducer::generateStructure( MPOTransactions& transactions, UnparentedSet& unparented,
                                              MovedObjects& movedObjects )
 {
-    using RecordType                        = log::Structure::Read;
-    log::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-    log::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
+    using RecordType                          = event::Structure::Read;
+    event::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
+    event::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
     for( ; iter != iterEnd; ++iter )
     {
         const RecordType r = *iter;
         switch( r.getType() )
         {
-            case log::Structure::eConstruct:
+            case event::Structure::eConstruct:
             {
                 // do nothing
             }
             break;
-            case log::Structure::eDestruct:
+            case event::Structure::eDestruct:
             {
                 // do nothing
             }
             break;
-            case log::Structure::eMake:
+            case event::Structure::eMake:
             {
                 transactions[ r.getSource().getMPO() ].push_back( r );
             }
             break;
-            case log::Structure::eBreak:
+            case event::Structure::eBreak:
             {
-                ASSERT( r.getSource().valid() );
-                ASSERT( r.getTarget().valid() );
+                // ASSERT( r.getSource().valid() );
+                // ASSERT( r.getTarget().valid() );
 
                 ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
                 transactions[ r.getSource().getMPO() ].push_back( r );
@@ -69,18 +69,20 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
                 {
                     unparented.insert( r.getSource().getObjectAddress() );
                 }*/
-                if( r.getTarget().getRefCount() == 0U )
-                {
-                    unparented.insert( r.getTarget().getObjectAddress() );
-                }
+
+                THROW_TODO;
+                // if( r.getTarget().getRefCount() == 0U )
+                // {
+                //     unparented.insert( r.getTarget().getObjectAddress() );
+                // }
             }
             break;
-            case log::Structure::eMove:
+            case event::Structure::eMove:
             {
                 // transactions[ r.getSource().getMPO() ].push_back( r );
 
                 // prevent locally deleting the object
-                //unparented.erase( r.getSource().getObjectAddress() );
+                // unparented.erase( r.getSource().getObjectAddress() );
                 movedObjects.insert( { r.getTarget().getMPO(), { r.getSource(), r.getTarget() } } );
             }
             break;
@@ -94,9 +96,9 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
 }
 void TransactionProducer::generateEvent( MPOTransactions& transactions )
 {
-    using RecordType                        = log::Event::Read;
-    log::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-    log::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
+    using RecordType                          = event::Event::Read;
+    event::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
+    event::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
     for( ; iter != iterEnd; ++iter )
     {
         const RecordType r = *iter;
@@ -105,9 +107,9 @@ void TransactionProducer::generateEvent( MPOTransactions& transactions )
 }
 void TransactionProducer::generateTransition( MPOTransactions& transactions )
 {
-    using RecordType                        = log::Transition::Read;
-    log::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-    log::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
+    using RecordType                          = event::Transition::Read;
+    event::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
+    event::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
     for( ; iter != iterEnd; ++iter )
     {
         const RecordType r = *iter;
@@ -116,9 +118,9 @@ void TransactionProducer::generateTransition( MPOTransactions& transactions )
 }
 void TransactionProducer::generateMemory( MPOTransactions& transactions )
 {
-    using RecordType                        = log::Memory::Read;
-    log::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-    log::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
+    using RecordType                          = event::Memory::Read;
+    event::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
+    event::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
     for( ; iter != iterEnd; ++iter )
     {
         const RecordType r = *iter;

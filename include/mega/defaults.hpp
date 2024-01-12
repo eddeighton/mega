@@ -21,15 +21,10 @@
 #ifndef GUARD_2023_March_26_defaults
 #define GUARD_2023_March_26_defaults
 
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
 
 #include "common/assert_verify.hpp"
-
-#include <boost/serialization/unordered_map.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/variant.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/nvp.hpp>
+#include "common/serialisation.hpp"
 
 #include <unordered_map>
 #include <map>
@@ -44,7 +39,7 @@ namespace mega
 class Defaults
 {
     // clang-format off
-    using Variant = boost::variant
+    using Variant = std::variant
     < 
         int, 
         float, 
@@ -56,11 +51,11 @@ class Defaults
     >;
     // clang-format on
     // using Table = std::unordered_map< TypeID, Variant, TypeID::Hash >;
-    using Table = std::map< TypeID, Variant >;
+    using Table = std::map< interface::TypeID, Variant >;
 
 public:
     template < typename T >
-    void set( TypeID typeID, const T& value )
+    void set( interface::TypeID typeID, const T& value )
     {
         VERIFY_RTE_MSG(
             m_table.find( typeID ) == m_table.end(), "Attempted to override existing element at: " << typeID );
@@ -68,7 +63,7 @@ public:
     }
 
     template < typename T >
-    const T& get( TypeID typeID )
+    const T& get( interface::TypeID typeID )
     {
         auto iFind = m_table.find( typeID );
         VERIFY_RTE_MSG( iFind != m_table.end(), "Failed to locate default value for typeID: " << typeID );

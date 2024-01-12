@@ -18,17 +18,17 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "service/protocol/common/context.hpp"
+#include "runtime/context.hpp"
 
 #include "common/assert_verify.hpp"
 
+namespace mega::runtime
+{
+
 namespace
 {
-static thread_local mega::MPOContext* g_pMPOContext = nullptr;
+static thread_local MPOContext* g_pMPOContext = nullptr;
 } // namespace
-
-namespace mega
-{
 
 Context* Context::get()
 {

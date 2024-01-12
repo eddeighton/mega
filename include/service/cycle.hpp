@@ -20,7 +20,7 @@
 #ifndef CYCLE_5_JAN_2023
 #define CYCLE_5_JAN_2023
 
-namespace mega
+namespace mega::runtime
 {
 
 class Cycle

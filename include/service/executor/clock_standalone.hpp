@@ -42,7 +42,7 @@ class ProcessClockStandalone : public ProcessClock
         bool                        m_bWaitingForClockResponse;
         network::LogicalThreadBase* m_pSender;
     };
-    using MPOMap = std::unordered_map< MPO, State, MPO::Hash >;
+    using MPOMap = std::unordered_map< runtime::MPO, State, runtime::MPO::Hash >;
 
     using ClockType    = std::chrono::steady_clock;
     using Tick         = ClockType::time_point;
@@ -56,16 +56,16 @@ public:
     ProcessClockStandalone( boost::asio::io_context& ioContext, FloatTickDuration tickRate );
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
-    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range ) override;
-    virtual bool unrequestClock( network::LogicalThreadBase* pSender, MPO mpo ) override;
-    virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo ) override;
+    virtual void requestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo, event::Range ) override;
+    virtual bool unrequestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo ) override;
+    virtual void requestMove( network::LogicalThreadBase* pSender, runtime::MPO mpo ) override;
 
 private:
     void registerMPOImpl( network::SenderRef sender );
     void unregisterMPOImpl( network::SenderRef sender );
-    void requestMoveImpl( network::LogicalThreadBase* pSender, MPO mpo );
-    void requestClockImpl( network::LogicalThreadBase* pSender, MPO mpo );
-    bool unrequestClockImpl( network::LogicalThreadBase* pSender, MPO mpo );
+    void requestMoveImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo );
+    void requestClockImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo );
+    bool unrequestClockImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo );
     void checkClock();
     void clock();
     void issueMove();

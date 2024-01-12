@@ -43,7 +43,7 @@ HTTPLogicalThread::HTTPLogicalThread( Report&                         report,
                                       const network::LogicalThreadID& logicalthreadID,
                                       boost::asio::ip::tcp::socket&   socket )
     : ReportRequestLogicalThread( report, logicalthreadID )
-    , mega::MPOContext( getID() )
+    , runtime::MPOContext( getID() )
     , m_report( report )
     , m_tcpStream( std::move( socket ) )
 {
@@ -93,7 +93,7 @@ network::memory::Request_Encoder HTTPLogicalThread::getDaemonMemoryRequest()
              getID() };
 }
 
-network::sim::Request_Encoder HTTPLogicalThread::getMPOSimRequest( mega::MPO mpo )
+network::sim::Request_Encoder HTTPLogicalThread::getMPOSimRequest( runtime::MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
@@ -124,7 +124,7 @@ void HTTPLogicalThread::run( boost::asio::yield_context& yield_ctx )
     SPDLOG_TRACE( "REPORT HTTPLogicalThread: run" );
     network::sim::Request_Encoder request(
         [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-        { return rootRequest.MPRoot( msg, mega::MP{} ); },
+        { return rootRequest.MPRoot( msg, mega::runtime::MP{} ); },
         getID() );
     request.SimStart();
 
@@ -248,12 +248,11 @@ void HTTPLogicalThread::spawnTCPStream()
     );
 }
 
-void HTTPLogicalThread::RootSimRun( const mega::MPO&            mpo,
-                                    boost::asio::yield_context& yield_ctx )
+void HTTPLogicalThread::RootSimRun( const mega::runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     m_mpo = mpo;
 
-    setMPOContext( this );
+    runtime::setMPOContext( this );
     m_pYieldContext = &yield_ctx;
 
     boost::beast::error_code ec;
@@ -310,7 +309,7 @@ void HTTPLogicalThread::RootSimRun( const mega::MPO&            mpo,
 
                                 // Send the response
                                 {
-                                    mega::_MPOContextStack _mpoStack;
+                                    mega::runtime::_MPOContextStack _mpoStack;
                                     boost::beast::async_write( m_tcpStream, std::move( httpMsg ), yield_ctx[ ec ] );
                                 }
 
@@ -343,7 +342,7 @@ void HTTPLogicalThread::RootSimRun( const mega::MPO&            mpo,
     m_tcpStream.socket().shutdown( boost::asio::ip::tcp::socket::shutdown_send, ec );
 
     m_pYieldContext = nullptr;
-    resetMPOContext();
+    runtime::resetMPOContext();
 }
 
 boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( const network::HTTPRequestData& httpRequest,
@@ -481,13 +480,13 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
         }
         std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
         {
-            if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
+            if( auto pTypeID = std::get_if< mega::interface::TypeID >( &value ) )
             {
                 URL url = m_url;
                 url.set_fragment( mega::reports::toString( value ) );
                 return url;
             }
-            else if( auto pMPO = boost::get< mega::MPO >( &value ) )
+            else if( auto pMPO = std::get_if< mega::runtime::MPO >( &value ) )
             {
                 URL url = m_url;
                 url.set_fragment( mega::reports::toString( value ) );

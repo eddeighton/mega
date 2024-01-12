@@ -27,7 +27,7 @@ namespace mega::service
 class RootSimulation : public RootRequestLogicalThread
 {
 public:
-    RootSimulation( Root& root, const network::LogicalThreadID& logicalthreadID, mega::MP leafMP );
+    RootSimulation( Root& root, const network::LogicalThreadID& logicalthreadID, mega::runtime::MP leafMP );
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
@@ -35,7 +35,7 @@ public:
     virtual void SimStart( boost::asio::yield_context& yield_ctx ) override;
 
 private:
-    mega::MP m_leafMP;
+    mega::runtime::MP m_leafMP;
 };
 
 } // namespace mega::service

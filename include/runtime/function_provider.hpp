@@ -30,10 +30,9 @@
 namespace mega
 {
 
-class MPOContext;
-
 namespace runtime
 {
+class MPOContext;
 class FunctorID;
 
 class FunctionProvider

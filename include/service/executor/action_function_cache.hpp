@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_February_04_scheduler
 #define GUARD_2023_February_04_scheduler
 
-#include "service/protocol/common/context.hpp"
+#include "runtime/context.hpp"
 #include "runtime/function_provider.hpp"
 
 #include "mega/coroutine.hpp"

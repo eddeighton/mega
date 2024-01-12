@@ -165,7 +165,7 @@ public:
         , m_pLLJit( ExitOnErr( llvm::orc::LLJITBuilder().create() ) )
     {
         // ensure symbols available for megastructure libs
-        {
+        /*{
             m_pLLJit->getMainJITDylib().addGenerator( ExitOnErr( llvm::orc::DynamicLibrarySearchGenerator::Load(
                 m_megastructureInstallation.getToolchain().megaManglePath.string().c_str(),
                 m_pLLJit->getDataLayout().getGlobalPrefix() ) ) );
@@ -173,7 +173,7 @@ public:
             m_pLLJit->getMainJITDylib().addGenerator( ExitOnErr( llvm::orc::DynamicLibrarySearchGenerator::Load(
                 m_megastructureInstallation.getToolchain().leafPath.string().c_str(),
                 m_pLLJit->getDataLayout().getGlobalPrefix() ) ) );
-        }
+        }*/
 
         m_pLLJit->getMainJITDylib().addGenerator(
             ExitOnErr( llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(

@@ -30,7 +30,6 @@
 #include "type_system.hpp"
 
 #include "mega/values/compilation/invocation_id.hpp"
-#include "mega/mangle/python_mangle.hpp"
 
 #include "runtime/exception.hpp"
 
@@ -137,7 +136,7 @@ public:
     // Megastructure Execution
     void          shutdown();
     void          run_one();
-    TimeStamp     cycle();
+    runtime::TimeStamp     cycle();
     PythonRoot    getRoot();
     PythonMachine getMachine( std::string strID = "" );
     PythonProcess getProcess( std::string strID = "" );

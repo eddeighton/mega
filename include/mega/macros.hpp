@@ -24,7 +24,7 @@
 #include "mega/values/native_types_io.hpp"
 #include "mega/values/runtime/maths_types_io.hpp"
 
-#include "service/protocol/common/context.hpp"
+#include "runtime/context.hpp"
 #include "event/file_log.hpp"
 #endif
 

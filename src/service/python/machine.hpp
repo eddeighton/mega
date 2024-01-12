@@ -35,13 +35,14 @@ class PythonModule;
 class PythonMachine
 {
 public:
-    PythonMachine( PythonModule& module, mega::MachineID machineID );
+    PythonMachine( PythonModule& module, runtime::MachineID machineID );
 
     std::vector< PythonProcess > getProcesses() const;
-    PythonProcess createExecutor() const;
+    PythonProcess                createExecutor() const;
+
 private:
-    PythonModule&   m_module;
-    mega::MachineID m_machineID;
+    PythonModule&      m_module;
+    runtime::MachineID m_machineID;
 };
 } // namespace mega::service::python
 

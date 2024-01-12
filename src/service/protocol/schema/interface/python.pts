@@ -20,8 +20,8 @@
 
 msg PythonGetInterfaceTypeID
 {
-    request( mega::TypeID concreteTypeID );
-    response( mega::TypeID interfaceTypeID );
+    request( mega::concrete::TypeID concreteTypeID );
+    response( mega::interface::TypeID interfaceTypeID );
 }
 
 msg PythonExecuteJIT
@@ -33,7 +33,7 @@ msg PythonExecuteJIT
 msg PythonCycle
 {
     request();
-    response( TimeStamp lockCycle );
+    response( runtime::TimeStamp lockCycle );
 }
 
 msg PythonFunctor

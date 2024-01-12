@@ -61,7 +61,6 @@ target_link_options( plugin PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 target_link_libraries( plugin executorLib )
-target_link_libraries( plugin mega_mangle )
 
 set_target_properties( plugin PROPERTIES FOLDER service )
 
@@ -96,7 +95,6 @@ target_link_options( plugin_test PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 target_link_libraries( plugin_test plugin )
-target_link_libraries( plugin_test mega_mangle )
 
 set_target_properties( plugin_test PROPERTIES FOLDER service )
 

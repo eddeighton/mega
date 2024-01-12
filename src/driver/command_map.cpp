@@ -21,7 +21,8 @@
 #include "database/FinalStage.hxx"
 
 #include "mega/defaults.hpp"
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/concrete/type_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
 
 #include "log/log.hpp"
 

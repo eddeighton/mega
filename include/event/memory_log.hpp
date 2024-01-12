@@ -21,7 +21,8 @@
 #ifndef GUARD_2023_July_31_memory_log
 #define GUARD_2023_July_31_memory_log
 
-#include "mega/values/native_types.hpp"
+#include "mega/values/runtime/timestamp.hpp"
+
 #include "event/offset.hpp"
 #include "event/records.hxx"
 #include "event/buffer.hpp"
@@ -64,7 +65,8 @@ public:
 
     void cycle()
     {
-        ++m_timestamp;
+        m_timestamp = runtime::TimeStamp{ m_timestamp.getValue() + 1 };
+
         BufferType*             pBuffer = m_index.getBuffer( IndexType::toBufferIndex( m_timestamp ) );
         const InterBufferOffset offset  = pBuffer->write( &m_iterator, IndexType::RecordSize );
         ASSERT( offset.get() % IndexType::RecordSize == 0U );
@@ -76,9 +78,9 @@ public:
     }
 
 protected:
-    TimeStamp   m_timestamp = 0U;
-    IndexRecord m_iterator;
-    IndexType   m_index;
+    runtime::TimeStamp m_timestamp;
+    IndexRecord        m_iterator;
+    IndexType          m_index;
 };
 } // namespace impl
 

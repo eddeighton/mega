@@ -21,16 +21,11 @@
 #ifndef GUARD_2023_November_27_inline_types_h
 #define GUARD_2023_November_27_inline_types_h
 
+// NOTE: This file is used to specify inline types to the il_gen analysis
+
 #include "native_types.h"
-
-#include "mega/values/compilation/interface/inline.h"
-#include "mega/values/compilation/concrete/inline.h"
-
-#include "mega/values/runtime/time_stamp.h"
-#include "mega/values/runtime/pointer.h"
-#include "mega/values/runtime/machine_id.h"
-#include "mega/values/runtime/allocation_id.h"
-#include "mega/values/runtime/process_id.h"
-#include "mega/values/runtime/owner_id.h"
+#include "compilation/interface/inline.h"
+#include "compilation/concrete/inline.h"
+#include "runtime/inline.h"
 
 #endif //GUARD_2023_November_27_inline_types_h

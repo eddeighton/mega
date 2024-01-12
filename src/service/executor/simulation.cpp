@@ -30,7 +30,7 @@
 
 #include "service/network/logical_thread.hpp"
 
-#include "service/protocol/common/context.hpp"
+#include "runtime/context.hpp"
 
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/stash.hxx"
@@ -93,7 +93,7 @@ network::memory::Request_Encoder Simulation::getDaemonMemoryRequest()
              { return leafRequest.ExeDaemon( msg ); },
              getID() };
 }
-network::sim::Request_Encoder Simulation::getMPOSimRequest( MPO mpo )
+network::sim::Request_Encoder Simulation::getMPOSimRequest( runtime::MPO mpo )
 {
     return { [ leafRequest = getMPRequest(), mpo ]( const network::Message& msg ) mutable
              { return leafRequest.MPOUp( msg, mpo ); },
@@ -127,15 +127,15 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
         m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
 
-        log::FileIterator< log::Event::Read >      m_iter_events      = m_pLog->begin< log::Event::Read >();
-        log::FileIterator< log::Transition::Read > m_iter_transitions = m_pLog->begin< log::Transition::Read >();
-        log::FileIterator< log::Structure::Read >  m_iter_structure   = m_pLog->begin< log::Structure::Read >();
+        event::FileIterator< event::Event::Read >      m_iter_events      = m_pLog->begin< event::Event::Read >();
+        event::FileIterator< event::Transition::Read > m_iter_transitions = m_pLog->begin< event::Transition::Read >();
+        event::FileIterator< event::Structure::Read >  m_iter_structure   = m_pLog->begin< event::Structure::Read >();
 
-        //ActionFunctionCache   actionFunctionCache;
-        //DecisionFunctionCache decisionFunctionCache;
+        // ActionFunctionCache   actionFunctionCache;
+        // DecisionFunctionCache decisionFunctionCache;
 
-        TimeStamp cycle     = getLog().getTimeStamp();
-        TimeStamp lastCycle = cycle;
+        runtime::TimeStamp cycle     = getLog().getTimeStamp();
+        runtime::TimeStamp lastCycle = cycle;
 
         while( !m_stateMachine.isTerminated() )
         {
@@ -180,7 +180,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 {
                     // process all events
                     {
-                        for( ; m_iter_events != m_pLog->end< log::Event::Read >(); ++m_iter_events )
+                        for( ; m_iter_events != m_pLog->end< event::Event::Read >(); ++m_iter_events )
                         {
                             const auto& event = *m_iter_events;
                             THROW_TODO;
@@ -188,13 +188,13 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                             // switch( event.getType() )
                             // {
-                            //     case log::Event::eComplete:
+                            //     case event::Event::eComplete:
                             //         SPDLOG_TRACE( "Got completion event: {}", event.getRef() );
                             //         break;
-                            //     case log::Event::eStart:
+                            //     case event::Event::eStart:
                             //         SPDLOG_TRACE( "Got start event: {}", event.getRef() );
                             //         break;
-                            //     case log::Event::eSignal:
+                            //     case event::Event::eSignal:
                             //         SPDLOG_TRACE( "Got signal event: {}", event.getRef() );
                             //         break;
                             //     default:
@@ -207,7 +207,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     // process all transitions
                     /*{
-                        for( ; m_iter_transitions != m_pLog->end< log::Transition::Read >(); ++m_iter_transitions )
+                        for( ; m_iter_transitions != m_pLog->end< event::Transition::Read >(); ++m_iter_transitions )
                         {
                             const auto& transition = *m_iter_transitions;
                             auto ref = transition.getRef();
@@ -245,7 +245,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                 auto pAction = actionFunctionCache.getActionFunction( actionContext.getType() );
 
                                 //SPDLOG_TRACE( "SIM: executing: {}", actionContext );
-                                
+
                                 mega::ActionCoroutine actionCoroutine = pAction( &actionContext );
                                 while( !actionCoroutine.done() )
                                 {
@@ -282,7 +282,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     // process all structure records
                     {
-                        for( ; m_iter_structure != m_pLog->end< log::Structure::Read >(); ++m_iter_structure )
+                        for( ; m_iter_structure != m_pLog->end< event::Structure::Read >(); ++m_iter_structure )
                         {
                             const auto& structure = *m_iter_structure;
 
@@ -432,7 +432,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
         // send request to root to start - will get request back to run
         network::sim::Request_Encoder request(
             [ rootRequest = ExecutorRequestLogicalThread::getMPRequest( yield_ctx ) ](
-                const network::Message& msg ) mutable { return rootRequest.MPRoot( msg, MP{} ); },
+                const network::Message& msg ) mutable { return rootRequest.MPRoot( msg, runtime::MP{} ); },
             getID() );
         request.SimStart();
         SPDLOG_TRACE( "SIM::run complete" );
@@ -463,7 +463,7 @@ void Simulation::SimErrorCheck( boost::asio::yield_context& yield_ctx )
     THROW_RTE( "Simulation::SimErrorCheck: " << getThisMPO() );
 }
 
-Snapshot Simulation::SimObjectSnapshot( const Pointer& object, boost::asio::yield_context& yield_ctx )
+Snapshot Simulation::SimObjectSnapshot( const runtime::PointerNet& object, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimObjectSnapshot: {} {}", getThisMPO(), object );
     QueueStackDepth queueMsgs( m_queueStack );
@@ -482,7 +482,7 @@ Snapshot Simulation::SimObjectSnapshot( const Pointer& object, boost::asio::yiel
     return archive.makeSnapshot( getLog().getTimeStamp() );*/
 }
 
-Pointer Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& )
+runtime::PointerHeap Simulation::SimAllocate( const concrete::ObjectID& objectTypeID, boost::asio::yield_context& )
 {
     THROW_TODO;
 
@@ -490,40 +490,40 @@ Pointer Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_
     QueueStackDepth queueMsgs( m_queueStack );
     Pointer       allocated = m_pMemoryManager->New( objectTypeID );
     getLog().record(
-        mega::event::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::event::Structure::eConstruct ) );
-    return allocated.getHeaderAddress();*/
+        mega::event::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::event::Structure::eConstruct )
+    ); return allocated.getHeaderAddress();*/
 }
 
-Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx )
+Snapshot Simulation::SimSnapshot( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimSnapshot: {}", mpo );
     THROW_TODO;
     return Snapshot{ getLog().getTimeStamp() };
 }
 
-TimeStamp Simulation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
-                                   boost::asio::yield_context& yield_ctx )
+runtime::TimeStamp Simulation::SimLockRead( const runtime::MPO& requestingMPO, const runtime::MPO& targetMPO,
+                                            boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimLockRead: {} {}", requestingMPO, targetMPO );
     if( m_stateMachine.isTerminated() )
     {
-        return 0U;
+        return {};
     }
     return getLog().getTimeStamp();
 }
 
-TimeStamp Simulation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
-                                    boost::asio::yield_context& yield_ctx )
+runtime::TimeStamp Simulation::SimLockWrite( const runtime::MPO& requestingMPO, const runtime::MPO& targetMPO,
+                                             boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimLockWrite: {} {}", requestingMPO, targetMPO );
     if( m_stateMachine.isTerminated() )
     {
-        return 0U;
+        return {};
     }
     return getLog().getTimeStamp();
 }
 
-void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
+void Simulation::SimLockRelease( const runtime::MPO& requestingMPO, const runtime::MPO& targetMPO,
                                  const network::Transaction& transaction, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimLockRelease: {} {}", requestingMPO, targetMPO );
@@ -538,7 +538,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
     }
 }
 
-MPO Simulation::SimCreate( boost::asio::yield_context& )
+runtime::MPO Simulation::SimCreate( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimCreate" );
 
@@ -551,19 +551,19 @@ MPO Simulation::SimCreate( boost::asio::yield_context& )
     return m_mpo.value();
 }
 
-void Simulation::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void Simulation::RootSimRun( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::RootSimRun: {}", mpo );
 
     // now start running the simulation
-    setMPOContext( this );
+    runtime::setMPOContext( this );
     m_pYieldContext = &yield_ctx;
 
     createRoot( mpo );
 
     runSimulation( yield_ctx );
 
-    resetMPOContext();
+    runtime::resetMPOContext();
 
     m_bShuttingDown = true;
 
@@ -602,8 +602,8 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         status.setLogIterator( getLog().getIterator() );
         status.setLogFolder( getLog().getLogFolderPath().string() );
 
-        using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
-        using MPOVec          = std::vector< MPO >;
+        using MPOTimeStampVec = std::vector< std::pair< runtime::MPO, runtime::TimeStamp > >;
+        using MPOVec          = std::vector< runtime::MPO >;
         if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
             status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
         if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
@@ -627,7 +627,7 @@ mega::reports::Container Simulation::GetReport( const mega::reports::URL&       
     using namespace std::string_literals;
     Table table;
     table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );
-    MPOContext::getBasicReport( url, table );
+    runtime::MPOContext::getBasicReport( url, table );
 
     {
         Table locks{ { "Lock Type"s, "MPO"s } };

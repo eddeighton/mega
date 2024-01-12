@@ -32,7 +32,7 @@ class PythonModule;
 class PythonMPO
 {
 public:
-    PythonMPO( PythonModule& module, mega::MPO mpo );
+    PythonMPO( PythonModule& module, mega::runtime::MPO mpo );
 
     mega::Pointer getRoot() const;
     mega::Pointer new_( mega::SubType interfaceTypeID ) const;
@@ -40,7 +40,7 @@ public:
 
 private:
     PythonModule& m_module;
-    mega::MPO     m_mpo;
+    mega::runtime::MPO     m_mpo;
 };
 } // namespace mega::service::python
 

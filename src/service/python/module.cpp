@@ -447,7 +447,7 @@ void PythonModule::run_one()
         ;
 }
 
-TimeStamp PythonModule::cycle()
+runtime::TimeStamp PythonModule::cycle()
 {
     return pythonRequest().PythonCycle();
 }

@@ -44,7 +44,7 @@
 #include <bitset>
 
 // dummy implementation of MPOContext
-namespace mega
+namespace mega::runtime
 {
 class MPOContext
 {

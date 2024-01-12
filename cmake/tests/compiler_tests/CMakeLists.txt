@@ -135,7 +135,6 @@ add_dependencies( run_compiler_tests compiler_tests )
 #		--clang_plugin $<TARGET_FILE:clang_plugin>
 #		--database $<TARGET_FILE:database>
 #		--jit $<TARGET_FILE:jit>
-#		--mega_mangle $<TARGET_FILE:mega_mangle>
 #		--leaf $<TARGET_FILE:leaf>
 #
 #		--cpp_flags \"${CLANG_CXX_FLAGS_STR}\"

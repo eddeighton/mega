@@ -137,16 +137,16 @@ inline std::istream& operator>>( std::istream& is, Pointer& ref )
 namespace boost::serialization
 {
 /*
-inline void serialize( boost::archive::xml_iarchive& ar, ::mega::MP& value, const unsigned int version )
+inline void serialize( boost::archive::xml_iarchive& ar, ::mega::runtime::MP& value, const unsigned int version )
 {
     ::mega::U32 machine{};
     ::mega::U32 process{};
     ar&         boost::serialization::make_nvp( "machine", machine );
     ar&         boost::serialization::make_nvp( "process", process );
-    value = ::mega::MP( machine, process );
+    value = ::mega::runtime::MP( machine, process );
 }
 
-inline void serialize( boost::archive::xml_oarchive& ar, ::mega::MP& value, const unsigned int version )
+inline void serialize( boost::archive::xml_oarchive& ar, ::mega::runtime::MP& value, const unsigned int version )
 {
     ::mega::U32 machine = value.getMachineID();
     ::mega::U32 process = value.getProcessID();
@@ -154,7 +154,7 @@ inline void serialize( boost::archive::xml_oarchive& ar, ::mega::MP& value, cons
     ar&         boost::serialization::make_nvp( "process", process );
 }
 
-inline void serialize( boost::archive::xml_iarchive& ar, ::mega::MPO& value, const unsigned int version )
+inline void serialize( boost::archive::xml_iarchive& ar, ::mega::runtime::MPO& value, const unsigned int version )
 {
     ::mega::U32 machine{};
     ::mega::U32 process{};
@@ -162,10 +162,10 @@ inline void serialize( boost::archive::xml_iarchive& ar, ::mega::MPO& value, con
     ar&         boost::serialization::make_nvp( "machine", machine );
     ar&         boost::serialization::make_nvp( "process", process );
     ar&         boost::serialization::make_nvp( "owner", owner );
-    value = ::mega::MPO( machine, process, owner );
+    value = ::mega::runtime::MPO( machine, process, owner );
 }
 
-inline void serialize( boost::archive::xml_oarchive& ar, ::mega::MPO& value, const unsigned int version )
+inline void serialize( boost::archive::xml_oarchive& ar, ::mega::runtime::MPO& value, const unsigned int version )
 {
     ::mega::U32 machine = value.getMachineID();
     ::mega::U32 process = value.getProcessID();
@@ -194,7 +194,7 @@ inline void serialize( boost::archive::xml_iarchive& ar, ::mega::Pointer& ref, c
     else
     {
         ::mega::AllocationID allocationID{};
-        ::mega::MPO          mpo{};
+        ::mega::runtime::MPO          mpo{};
         ::mega::TypeInstance typeInstance{};
 
         ar& boost::serialization::make_nvp( "allocationID", allocationID );
@@ -221,7 +221,7 @@ inline void serialize( boost::archive::xml_oarchive& ar, ::mega::Pointer& ref, c
     {
         ::mega::AllocationID allocationID = ref.getAllocationID();
         ar&                  boost::serialization::make_nvp( "allocationID", allocationID );
-        ::mega::MPO          mpo = ref.getMPO();
+        ::mega::runtime::MPO          mpo = ref.getMPO();
         ar&                  boost::serialization::make_nvp( "mpo", mpo );
         ::mega::TypeInstance typeInstance = ref.getTypeInstance();
         ar&                  boost::serialization::make_nvp( "type_instance", typeInstance );
@@ -230,22 +230,22 @@ inline void serialize( boost::archive::xml_oarchive& ar, ::mega::Pointer& ref, c
 
 // binary
 
-inline void serialize( boost::archive::binary_iarchive& ar, ::mega::MP& value, const unsigned int version )
+inline void serialize( boost::archive::binary_iarchive& ar, ::mega::runtime::MP& value, const unsigned int version )
 {
     ::mega::U32 machine{};
     ::mega::U32 process{};
     ar&         machine;
     ar&         process;
-    value = ::mega::MP( machine, process );
+    value = ::mega::runtime::MP( machine, process );
 }
 
-inline void serialize( boost::archive::binary_oarchive& ar, ::mega::MP& value, const unsigned int version )
+inline void serialize( boost::archive::binary_oarchive& ar, ::mega::runtime::MP& value, const unsigned int version )
 {
     ar&( ::mega::U32 )value.getMachineID();
     ar&( ::mega::U32 )value.getProcessID();
 }
 
-inline void serialize( boost::archive::binary_iarchive& ar, ::mega::MPO& value, const unsigned int version )
+inline void serialize( boost::archive::binary_iarchive& ar, ::mega::runtime::MPO& value, const unsigned int version )
 {
     ::mega::U32 machine{};
     ::mega::U32 process{};
@@ -253,10 +253,10 @@ inline void serialize( boost::archive::binary_iarchive& ar, ::mega::MPO& value, 
     ar&         machine;
     ar&         process;
     ar&         owner;
-    value = ::mega::MPO( machine, process, owner );
+    value = ::mega::runtime::MPO( machine, process, owner );
 }
 
-inline void serialize( boost::archive::binary_oarchive& ar, ::mega::MPO& value, const unsigned int version )
+inline void serialize( boost::archive::binary_oarchive& ar, ::mega::runtime::MPO& value, const unsigned int version )
 {
     ar&( ::mega::U32 )value.getMachineID();
     ar&( ::mega::U32 )value.getProcessID();
@@ -281,7 +281,7 @@ inline void serialize( boost::archive::binary_iarchive& ar, ::mega::Pointer& ref
     else
     {
         ::mega::AllocationID allocationID{};
-        ::mega::MPO          mpo{};
+        ::mega::runtime::MPO          mpo{};
         ::mega::TypeInstance typeInstance{};
 
         ar& allocationID;

@@ -56,7 +56,8 @@ void getDatabaseReporterIDs( std::vector< reports::ReporterID >& reportIDs )
 #undef REPORTER
 }
 
-mega::reports::Container generateCompilationReport( const mega::reports::URL& url, CompilationReportArgs args )
+std::optional< mega::reports::Container > generateCompilationReport( const mega::reports::URL& url,
+                                                                     CompilationReportArgs     args )
 {
     if( mega::reporters::isCompilationReportType( url ) )
     {

@@ -50,7 +50,7 @@ class Terminal : public network::LogicalThreadManager
     friend class TerminalRequestLogicalThread;
 
 public:
-    Terminal( network::Log log, short daemonPortNumber = mega::network::MegaDaemonPort() );
+    Terminal( network::Log log, short daemonPortNumber = network::MegaDaemonPort() );
     ~Terminal();
 
     void shutdown();
@@ -62,19 +62,19 @@ public:
     void                      ClearStash();
     network::Status           GetNetworkStatus();
     pipeline::PipelineResult  PipelineRun( const pipeline::Configuration& pipelineConfig );
-    mega::MP                  ExecutorCreate( mega::MachineID daemonMachineID );
-    void                      ExecutorDestroy( const mega::MP& mp );
-    mega::MPO                 SimCreate( const mega::MP& mp );
-    void                      SimDestroy( const mega::MPO& mpo );
-    TimeStamp                 SimRead( const mega::MPO& from, const mega::MPO& to );
-    TimeStamp                 SimWrite( const mega::MPO& from, const mega::MPO& to );
-    void                      SimRelease( const mega::MPO& from, const mega::MPO& to );
-    std::string               PingMP( const mega::MP& mp, const std::string& strMsg );
-    std::string               PingMPO( const mega::MPO& mpo, const std::string& strMsg );
-    void                      SimErrorCheck( const mega::MPO& mpo );
-    void                      ProgramLoad( const mega::service::Program& program, const mega::MP& mp );
-    void                      ProgramUnload( const mega::MP& mp );
-    mega::service::Program    ProgramGet( const mega::MP& mp );
+    runtime::MP               ExecutorCreate( runtime::MachineID daemonMachineID );
+    void                      ExecutorDestroy( const runtime::MP& mp );
+    runtime::MPO              SimCreate( const runtime::MP& mp );
+    void                      SimDestroy( const runtime::MPO& mpo );
+    runtime::TimeStamp        SimRead( const runtime::MPO& from, const runtime::MPO& to );
+    runtime::TimeStamp        SimWrite( const runtime::MPO& from, const runtime::MPO& to );
+    void                      SimRelease( const runtime::MPO& from, const runtime::MPO& to );
+    std::string               PingMP( const runtime::MP& mp, const std::string& strMsg );
+    std::string               PingMPO( const runtime::MPO& mpo, const std::string& strMsg );
+    void                      SimErrorCheck( const runtime::MPO& mpo );
+    void                      ProgramLoad( const service::Program& program, const runtime::MP& mp );
+    void                      ProgramUnload( const runtime::MP& mp );
+    service::Program          ProgramGet( const runtime::MP& mp );
 
     network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
 
@@ -84,8 +84,8 @@ private:
         network::LogicalThread&, network::Sender::Ptr, boost::asio::yield_context& yield_ctx ) >;
 
     RouterFactory makeTermRoot();
-    RouterFactory makeMP( mega::MP mp );
-    RouterFactory makeMPO( mega::MPO mpo );
+    RouterFactory makeMP( runtime::MP mp );
+    RouterFactory makeMPO( runtime::MPO mpo );
 
     network::Message routeGenericRequest( const network::LogicalThreadID& logicalthreadID,
                                           const network::Message&         message,
@@ -101,7 +101,7 @@ private:
     }
 
     template < typename RequestType >
-    RequestType getMPRequest( mega::MP mp )
+    RequestType getMPRequest( runtime::MP mp )
     {
         const network::LogicalThreadID logicalthreadID;
         using namespace std::placeholders;
@@ -110,7 +110,7 @@ private:
     }
 
     template < typename RequestType >
-    RequestType getMPORequest( mega::MPO mpo )
+    RequestType getMPORequest( runtime::MPO mpo )
     {
         const network::LogicalThreadID logicalthreadID;
         using namespace std::placeholders;

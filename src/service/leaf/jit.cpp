@@ -71,7 +71,8 @@ void LeafRequestLogicalThread::ExecuteJIT( const runtime::RuntimeFunctor& func, 
     func( m_leaf.getRuntime(), stashProvider );
 }
 
-TypeID LeafRequestLogicalThread::GetInterfaceTypeID( const mega::TypeID& concreteTypeID, boost::asio::yield_context& )
+interface::TypeID LeafRequestLogicalThread::GetInterfaceTypeID( const concrete::TypeID& concreteTypeID,
+                                                                boost::asio::yield_context& )
 {
     THROW_TODO;
     // VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );

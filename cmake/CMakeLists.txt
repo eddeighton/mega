@@ -117,21 +117,19 @@ add_subdirectory(database_reporters)
 
 add_subdirectory(event)
 
-# 
-# add_subdirectory(runtime)
-# 
+add_subdirectory(runtime)
+
 # add_subdirectory(map)
 # add_subdirectory(schematic)
-# 
-# add_subdirectory(service)
 
-# 
+add_subdirectory(service)
+
 add_subdirectory(driver)
-# 
+
 # add_subdirectory(editor)
-# 
+
 add_subdirectory(tests)
-# 
+
 add_subdirectory(toolchain)
 
 # # install scripts

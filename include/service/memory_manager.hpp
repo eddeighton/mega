@@ -130,6 +130,7 @@ public:
     inline AllocationID getAllocationID() const { return m_allocationIDCounter; }
     inline U64          getAllocationCount() const { return m_heapMap.size(); }
 
+    runtime::PointerHeap networkToHeap( const runtime::PointerNet& ref )
     inline Pointer networkToHeap( const Pointer& networkAddress ) const
     {
         ASSERT( networkAddress.isNetworkAddress() );

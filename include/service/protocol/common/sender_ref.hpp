@@ -21,8 +21,10 @@
 #ifndef GUARD_2023_March_21_sender_ref
 #define GUARD_2023_March_21_sender_ref
 
+#include "mega/values/compilation/concrete/type_id.hpp"
+#include "mega/values/runtime/timestamp.hpp"
 #include "mega/values/runtime/mpo.hpp"
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/native_types.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -36,8 +38,8 @@ class LogicalThreadBase;
 struct ClockTick
 {
 public:
-    mega::TimeStamp m_cycle = {};
-    mega::F32       m_ct = {}, m_dt = {};
+    mega::runtime::TimeStamp m_cycle = {};
+    mega::F32                m_ct = {}, m_dt = {};
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -55,13 +57,13 @@ public:
         THROW_RTE( "Attempted to serialize SenderRef" );
     }
 
-    MPO                m_mpo;
+    runtime::MPO       m_mpo;
     LogicalThreadBase* m_pSender;
 
     struct AllocatorBase
     {
-        TypeID type  = {};
-        void*  pBase = nullptr;
+        concrete::TypeID type  = {};
+        void*            pBase = nullptr;
     };
     static constexpr U64 MAX_ALLOCATORS = 8;
     using AllocatorBaseArray            = std::array< AllocatorBase, MAX_ALLOCATORS >;

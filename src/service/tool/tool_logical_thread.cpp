@@ -28,7 +28,7 @@ ToolMPOLogicalThread::ToolMPOLogicalThread( Tool&                           tool
                                             const network::LogicalThreadID& logicalthreadID,
                                             Tool::Functor&&                 functor )
     : ToolRequestLogicalThread( tool, logicalthreadID )
-    , mega::MPOContext( getID() )
+    , runtime::MPOContext( getID() )
     , m_tool( tool )
     , m_functor( functor )
 {
@@ -69,7 +69,7 @@ network::memory::Request_Encoder ToolMPOLogicalThread::getDaemonMemoryRequest()
              { return leafRequest.ToolDaemon( msg ); },
              getID() };
 }
-network::sim::Request_Encoder ToolMPOLogicalThread::getMPOSimRequest( MPO mpo )
+network::sim::Request_Encoder ToolMPOLogicalThread::getMPOSimRequest( runtime::MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
@@ -98,7 +98,7 @@ void ToolMPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
     SPDLOG_TRACE( "TOOL: run function" );
     network::sim::Request_Encoder request(
         [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-        { return rootRequest.MPRoot( msg, mega::MP{} ); },
+        { return rootRequest.MPRoot( msg, mega::runtime::MP{} ); },
         getID() );
     request.SimStart();
     SPDLOG_TRACE( "TOOL: run complete" );
@@ -107,11 +107,11 @@ void ToolMPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
     m_tool.runComplete();
 }
 
-void ToolMPOLogicalThread::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void ToolMPOLogicalThread::RootSimRun( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     m_tool.setMPO( mpo );
 
-    setMPOContext( this );
+    runtime::setMPOContext( this );
     m_pYieldContext = &yield_ctx;
 
     // note the runtime will query getThisMPO while creating the root
@@ -123,7 +123,7 @@ void ToolMPOLogicalThread::RootSimRun( const MPO& mpo, boost::asio::yield_contex
     SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", mpo );
 
     m_pYieldContext = nullptr;
-    resetMPOContext();
+    runtime::resetMPOContext();
 }
 
 network::Status ToolMPOLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
@@ -147,8 +147,8 @@ network::Status ToolMPOLogicalThread::GetStatus( const std::vector< network::Sta
         status.setMPO( m_tool.getMPO() );
         status.setDescription( m_tool.getProcessName() );
 
-        using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
-        using MPOVec          = std::vector< MPO >;
+        using MPOTimeStampVec = std::vector< std::pair< runtime::MPO, runtime::TimeStamp > >;
+        using MPOVec          = std::vector< runtime::MPO >;
         if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
             status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
         if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )

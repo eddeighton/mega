@@ -140,14 +140,15 @@ public:
 
             mega::io::Manifest manifest( m_environment, m_environment.project_manifest() );
 
-            const Container result = generateCompilationReport( url, CompilationReportArgs{ manifest, m_environment } );
-            VERIFY_RTE_MSG( !result.empty(), "Failed to generate any report for: " << url.c_str() );
+            std::optional< Container > resultOpt
+                = generateCompilationReport( url, CompilationReportArgs{ manifest, m_environment } );
+            VERIFY_RTE_MSG( !resultOpt.has_value(), "Failed to generate any report for: " << url.c_str() );
 
             HTMLRenderer::JavascriptShortcuts shortcuts;
             HTMLRenderer                      renderer( g_report_templatesDir, shortcuts, true );
 
             std::ostringstream os;
-            renderer.render( result, os );
+            renderer.render( resultOpt.value(), os );
 
             boost::filesystem::updateFileIfChanged( resultFile, os.str() );
         }

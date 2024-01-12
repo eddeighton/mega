@@ -29,19 +29,21 @@
 
 namespace mega
 {
-namespace log
-{
 
+// forward declare the event log
+namespace event
+{
 template < class BufferFactory >
 class Storage;
-
 namespace impl
 {
 class FileBufferFactory;
 }
-
 using FileStorage = Storage< impl::FileBufferFactory >;
-} // namespace log
+} // namespace event
+
+namespace runtime
+{
 
 class Context
 {
@@ -55,18 +57,18 @@ public:
     virtual MachineProcessIDVector getProcesses( MachineID machineID ) = 0;
     virtual MPOVector              getMPO( MP machineProcess )         = 0;
 
-    virtual MPO             getThisMPO()                                   = 0;
-    virtual mega::Pointer getThisRoot()                                  = 0;
-    virtual mega::Pointer getRoot( MPO mpo )                             = 0;
-    virtual MPO             constructMPO( MP machineProcess )              = 0;
-    virtual MP              constructExecutor( MachineID daemonMachineID ) = 0;
-    virtual void            destroyExecutor( MP mp )                       = 0;
+    virtual MPO         getThisMPO()                                   = 0;
+    virtual PointerHeap getThisRoot()                                  = 0;
+    virtual PointerNet  getRoot( MPO mpo )                             = 0;
+    virtual MPO         constructMPO( MP machineProcess )              = 0;
+    virtual MP          constructExecutor( MachineID daemonMachineID ) = 0;
+    virtual void        destroyExecutor( MP mp )                       = 0;
 
-    virtual void jit( runtime::RuntimeFunctor func ) = 0;
-    virtual void yield()                             = 0;
+    virtual void jit( RuntimeFunctor func ) = 0;
+    virtual void yield()                    = 0;
 
-    // log
-    virtual log::FileStorage& getLog() = 0;
+    // event
+    virtual event::FileStorage& getLog() = 0;
 
     static Context* get();
 };
@@ -87,6 +89,7 @@ struct _MPOContextStack
     inline ~_MPOContextStack() { setMPOContext( _pMPOContext_ ); }
 };
 
+} // namespace runtime
 } // namespace mega
 
 #endif // MPO_CONTEXT_SEPT_18_2022

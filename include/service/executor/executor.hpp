@@ -50,7 +50,7 @@ class Executor : public network::LogicalThreadManager
     friend class Platform;
     friend class PlayerNetwork;
 
-    using SimulationMap = std::unordered_map< mega::MPO, std::shared_ptr< Simulation >, mega::MPO::Hash >;
+    using SimulationMap = std::unordered_map< mega::runtime::MPO, std::shared_ptr< Simulation >, mega::runtime::MPO::Hash >;
 
 public:
     Executor( boost::asio::io_context& io_context,
@@ -75,8 +75,8 @@ public:
     network::Sender::Ptr getLeafSender() { return m_player.getLeafSender(); }
 
     void                          getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const;
-    std::shared_ptr< Simulation > getSimulation( const mega::MPO& mpo ) const;
-    mega::MPO createSimulation( network::LogicalThread& callingLogicalThread, boost::asio::yield_context& yield_ctx );
+    std::shared_ptr< Simulation > getSimulation( const mega::runtime::MPO& mpo ) const;
+    mega::runtime::MPO createSimulation( network::LogicalThread& callingLogicalThread, boost::asio::yield_context& yield_ctx );
     void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );
     void      logicalthreadCompleted( network::LogicalThreadBase::Ptr pLogicalThread ) override;
 

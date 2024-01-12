@@ -20,13 +20,15 @@
 #ifndef LOG_28_MAY_2022
 #define LOG_28_MAY_2022
 
-#include "mega/values/compilation/invocation_id.hpp"
-#include "mega/values/compilation/interface/type_id.hpp"
-#include "mega/values/compilation/concrete/sub_object_id_instance.hpp"
-#include "mega/values/compilation/concrete/type_id_instance.hpp"
-#include "mega/values/runtime/pointer.hpp"
-#include "mega/values/service/logical_thread_id.hpp"
-#include "mega/values/service/program.hpp"
+// #include "mega/values/compilation/invocation_id.hpp"
+// #include "mega/values/compilation/interface/type_id.hpp"
+// #include "mega/values/compilation/concrete/sub_object_id_instance.hpp"
+// #include "mega/values/compilation/concrete/type_id_instance.hpp"
+// #include "mega/values/runtime/pointer.hpp"
+// #include "mega/values/service/logical_thread_id.hpp"
+// #include "mega/values/service/program.hpp"
+
+#include "reports/value.hpp"
 
 #include "common/time.hpp"
 
@@ -132,9 +134,9 @@ inline void logLinesSuccessFail( const std::string strMsg, bool bSuccess, const 
 
 } // namespace mega::network
 
-/*
 namespace fmt
 {
+
 template <>
 struct formatter< mega::network::LogTime >
 {
@@ -157,112 +159,33 @@ struct formatter< mega::network::LogTime >
     }
 };
 
-template <>
-struct formatter< mega::network::LogicalThreadID >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    inline auto format( const mega::network::LogicalThreadID& logicalthreadID, FormatContext& ctx )
-        -> decltype( ctx.out() )
-    {
-        std::ostringstream os;
-        os << logicalthreadID;
-        return fmt::format_to( ctx.out(), "{}", os.str() );
-    }
-};
+#define MEGA_VALUE_TYPE( TypeName )                                                              \
+    template <>                                                                                  \
+    struct formatter< TypeName >                                                                 \
+    {                                                                                            \
+        constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() )             \
+        {                                                                                        \
+            return ctx.begin();                                                                  \
+        }                                                                                        \
+        template < typename FormatContext >                                                      \
+        inline auto format( const TypeName& value, FormatContext& ctx ) -> decltype( ctx.out() ) \
+        {                                                                                        \
+            return fmt::format_to( ctx.out(), "{}", mega::reports::toString( value ) );          \
+        }                                                                                        \
+    };
+#include "reports/value.hxx"
+#undef MEGA_VALUE_TYPE
 
 template <>
-struct formatter< mega::service::Program >
+struct formatter< mega::reports::Value >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    inline auto format( const mega::service::Program& program, FormatContext& ctx )
-        -> decltype( ctx.out() )
+    inline auto format( const mega::reports::Value& value, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        std::ostringstream os;
-        os << program;
-        return fmt::format_to( ctx.out(), "{}", os.str() );
-    }
-};
-
-template <>
-struct formatter< mega::interface::TypeID >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    inline auto format( const mega::TypeID& typeID, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        std::ostringstream os;
-        os << typeID;
-        return fmt::format_to( ctx.out(), "{}", os.str() );
-    }
-};
-
-template <>
-struct formatter< mega::TypeInstance >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    inline auto format( const mega::TypeInstance& typeInstance, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        std::ostringstream os;
-        os << typeInstance;
-        return fmt::format_to( ctx.out(), "{}", os.str() );
-    }
-};
-
-template <>
-struct formatter< mega::MP >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    inline auto format( const mega::MP& mp, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        std::ostringstream os;
-        os << mp;
-        return fmt::format_to( ctx.out(), "{}", os.str() );
-    }
-};
-
-template <>
-struct formatter< mega::MPO >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    inline auto format( const mega::MPO& mpo, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        std::ostringstream os;
-        os << mpo;
-        return fmt::format_to( ctx.out(), "{}", os.str() );
-    }
-};
-
-template <>
-struct formatter< mega::Pointer >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    inline auto format( const mega::Pointer& ref, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        std::ostringstream os;
-        os << ref;
-        return fmt::format_to( ctx.out(), "{}", os.str() );
-    }
-};
-
-template <>
-struct formatter< mega::InvocationID >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    inline auto format( const mega::InvocationID& invocationID, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        std::ostringstream os;
-        os << invocationID;
-        return fmt::format_to( ctx.out(), "{}", os.str() );
+        return fmt::format_to( ctx.out(), "{}", mega::reports::toString( value ) );
     }
 };
 
 } // namespace fmt
-*/
 #endif // LOG_28_MAY_2022

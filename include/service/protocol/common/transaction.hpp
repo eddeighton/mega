@@ -45,10 +45,10 @@ class Transaction
 public:
     struct Out
     {
-        std::vector< log::Structure::DataIO >  m_structure;
-        std::vector< log::Memory::DataIO >     m_memory;
-        std::vector< log::Event::DataIO >      m_event;
-        std::vector< log::Transition::DataIO > m_transition;
+        std::vector< event::Structure::DataIO >  m_structure;
+        std::vector< event::Memory::DataIO >     m_memory;
+        std::vector< event::Event::DataIO >      m_event;
+        std::vector< event::Transition::DataIO > m_transition;
 
         template < typename Archive >
         inline void serialize( Archive& ar, const unsigned int )
@@ -59,25 +59,28 @@ public:
             ar& m_transition;
         }
 
-        inline void push_back( const log::Structure::Read& read )
+        inline void push_back( const event::Structure::Read& read )
         {
-            log::Structure::DataIO record{ { read.getSource().getNetworkAddress(), read.getTarget().getNetworkAddress(),
-                                             read.getRelation(), read.getType() } };
+            THROW_TODO; // DataIO contains PointerHeap - how to convert to PointerNet
+            // if DataIO is generated
+            event::Structure::DataIO record{ { read.getSource(),
+                                               read.getTarget(), read.getRelation(),
+                                               read.getType() } };
             m_structure.emplace_back( record );
         }
-        inline void push_back( const log::Memory::Read& read )
+        inline void push_back( const event::Memory::Read& read )
         {
-            log::Memory::DataIO record{ { read.getRef().getNetworkAddress() }, std::string{ read.getData() } };
+            event::Memory::DataIO record{ { read.getRef() }, std::string{ read.getData() } };
             m_memory.emplace_back( record );
         }
-        inline void push_back( const log::Event::Read& read )
+        inline void push_back( const event::Event::Read& read )
         {
-            log::Event::DataIO record{ { read.getRef().getNetworkAddress(), read.getType() } };
+            event::Event::DataIO record{ { read.getRef(), read.getType() } };
             m_event.emplace_back( record );
         }
-        inline void push_back( const log::Transition::Read& read )
+        inline void push_back( const event::Transition::Read& read )
         {
-            log::Transition::DataIO record{ { read.getRef().getNetworkAddress() } };
+            event::Transition::DataIO record{ { read.getRef() } };
             m_transition.emplace_back( record );
         }
     };
@@ -86,10 +89,10 @@ public:
 
     struct In
     {
-        std::vector< log::Structure::DataIO >  m_structure;
-        std::vector< log::Memory::DataIO >     m_memory;
-        std::vector< log::Event::DataIO >      m_event;
-        std::vector< log::Transition::DataIO > m_transition;
+        std::vector< event::Structure::DataIO >  m_structure;
+        std::vector< event::Memory::DataIO >     m_memory;
+        std::vector< event::Event::DataIO >      m_event;
+        std::vector< event::Transition::DataIO > m_transition;
 
         template < typename Archive >
         inline void serialize( Archive& ar, const unsigned int )
@@ -140,9 +143,10 @@ public:
 class TransactionProducer
 {
 public:
-    using MPOTransactions = std::map< MPO, Transaction::Out >;
-    using UnparentedSet   = std::unordered_set< Pointer, Pointer::Hash >;
-    using MovedObjects    = std::unordered_map< MPO, std::pair< Pointer, Pointer >, MPO::Hash >;
+    using MPOTransactions = std::map< runtime::MPO, Transaction::Out >;
+    using UnparentedSet   = std::unordered_set< runtime::PointerHeap, runtime::PointerHeap::Hash >;
+    using MovedObjects
+        = std::unordered_map< runtime::MPO, std::pair< runtime::PointerHeap, runtime::PointerHeap >, runtime::MPO::Hash >;
 
     TransactionProducer( mega::event::FileStorage& log );
 

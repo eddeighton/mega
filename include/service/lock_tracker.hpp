@@ -28,11 +28,11 @@ namespace mega::service
 {
 class LockTracker
 {
-    using MPOLockMap = std::map< MPO, TimeStamp >;
+    using MPOLockMap = std::map< runtime::MPO, runtime::TimeStamp >;
 
 public:
-    TimeStamp isRead( MPO mpo ) const 
-    { 
+    runtime::TimeStamp isRead( runtime::MPO mpo ) const
+    {
         auto iFind = m_reads.find( mpo );
         if( iFind != m_reads.end() )
         {
@@ -41,19 +41,19 @@ public:
         return isWrite( mpo );
     }
 
-    TimeStamp isWrite( MPO mpo ) const 
-    { 
+    runtime::TimeStamp isWrite( runtime::MPO mpo ) const
+    {
         auto iFind = m_writes.find( mpo );
         if( iFind != m_writes.end() )
         {
             return iFind->second;
         }
-        return 0U;
+        return {};
     }
 
-    TimeStamp getLockCycle( MPO mpo )
+    runtime::TimeStamp getLockCycle( runtime::MPO mpo )
     {
-        TimeStamp writeTime = isWrite( mpo );
+        runtime::TimeStamp writeTime = isWrite( mpo );
         if( writeTime == 0U )
         {
             writeTime = isRead( mpo );
@@ -61,7 +61,7 @@ public:
         return writeTime;
     }
 
-    void onRead( MPO mpo, TimeStamp lockCycle )
+    void onRead( runtime::MPO mpo, runtime::TimeStamp lockCycle )
     {
         if( !isWrite( mpo ) )
         {
@@ -69,13 +69,13 @@ public:
         }
     }
 
-    void onWrite( MPO mpo, TimeStamp lockCycle )
+    void onWrite( runtime::MPO mpo, runtime::TimeStamp lockCycle )
     {
         m_reads.erase( mpo );
         m_writes.insert( { mpo, lockCycle } );
     }
 
-    void onRelease( MPO mpo )
+    void onRelease( runtime::MPO mpo )
     {
         m_reads.erase( mpo );
         m_writes.erase( mpo );

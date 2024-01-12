@@ -73,8 +73,8 @@ struct MemoryStatus
             archive& typeID;
             archive& status;
         }
-        TypeID          typeID;
-        AllocatorStatus status;
+        concrete::TypeID typeID;
+        AllocatorStatus  status;
     };
     using TypedAllocatorStatusArray = std::vector< TypedAllocatorStatus >;
     TypedAllocatorStatusArray m_allocators;
@@ -118,24 +118,25 @@ struct JITStatus
 
 class Status
 {
-    inline MPO toMPO() const
+    // convert to MPO for comparison only
+    inline runtime::MPO toMPO() const
     {
-        MPO mpoIsh;
+        runtime::MPO mpoIsh;
         if( getMPO().has_value() )
         {
             mpoIsh = getMPO().value();
         }
         else if( getMP().has_value() )
         {
-            mpoIsh = MPO( getMP().value(), OwnerID{} );
+            mpoIsh = runtime::MPO( getMP().value().getMachineID(), getMP().value().getProcessID(), runtime::OwnerID{} );
         }
         else if( getMachineID().has_value() )
         {
-            mpoIsh = MPO{ getMachineID().value(), ProcessID{}, OwnerID{} };
+            mpoIsh = runtime::MPO{ getMachineID().value(), runtime::ProcessID{}, runtime::OwnerID{} };
         }
         else
         {
-            mpoIsh = MPO{ 0, 0, 0 };
+            mpoIsh = runtime::MPO{};
         }
         return mpoIsh;
     }
@@ -158,37 +159,49 @@ public:
                    []( const Status& left, const Status& right ) -> bool { return left.toMPO() < right.toMPO(); } );
     }
 
-    const std::optional< MachineID >&              getMachineID() const { return m_machineID; }
-    const std::optional< MP >&                     getMP() const { return m_mp; }
-    const std::optional< MPO >&                    getMPO() const { return m_mpo; }
+    const std::optional< runtime::MachineID >&     getMachineID() const { return m_machineID; }
+    const std::optional< runtime::MP >&            getMP() const { return m_mp; }
+    const std::optional< runtime::MPO >&           getMPO() const { return m_mpo; }
     const std::vector< network::LogicalThreadID >& getLogicalThreads() const { return m_logicalthreadIDs; }
-    const std::optional< log::IndexRecord >&       getLogIterator() const { return m_logIterator; }
+    const std::optional< event::IndexRecord >&     getLogIterator() const { return m_logIterator; }
     const std::optional< std::string >&            getLogFolder() const { return m_strLogFolder; }
     const std::optional< network::MemoryStatus >&  getMemory() const { return m_memory; }
 
-    const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getReads() const { return m_reads; }
-    const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getWrites() const { return m_writes; }
-    const std::optional< std::vector< MPO > >&                         getReaders() const { return m_readers; }
-    const std::optional< MPO >&                                        getWriter() const { return m_writer; }
+    const std::optional< std::vector< std::pair< runtime::MPO, runtime::TimeStamp > > >& getReads() const
+    {
+        return m_reads;
+    }
+    const std::optional< std::vector< std::pair< runtime::MPO, runtime::TimeStamp > > >& getWrites() const
+    {
+        return m_writes;
+    }
+    const std::optional< std::vector< runtime::MPO > >& getReaders() const { return m_readers; }
+    const std::optional< runtime::MPO >&                getWriter() const { return m_writer; }
 
     const std::string&  getDescription() const { return m_description; }
     const StatusVector& getChildren() const { return m_childStatus; }
 
-    void setMachineID( MachineID machineID ) { m_machineID = machineID; }
-    void setMP( MP mp ) { m_mp = mp; }
-    void setMPO( MPO mpo ) { m_mpo = mpo; }
+    void setMachineID( runtime::MachineID machineID ) { m_machineID = machineID; }
+    void setMP( runtime::MP mp ) { m_mp = mp; }
+    void setMPO( runtime::MPO mpo ) { m_mpo = mpo; }
     void setLogicalThreadID( const std::vector< network::LogicalThreadID >& logicalthreads )
     {
         m_logicalthreadIDs = logicalthreads;
     }
-    void setLogIterator( const log::IndexRecord& iterator ) { m_logIterator = iterator; }
+    void setLogIterator( const event::IndexRecord& iterator ) { m_logIterator = iterator; }
     void setLogFolder( const std::string& strLogFolder ) { m_strLogFolder = strLogFolder; }
     void setMemory( network::MemoryStatus memoryStatus ) { m_memory = memoryStatus; }
 
-    void setReads( const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& value ) { m_reads = value; }
-    void setWrites( const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& value ) { m_writes = value; }
-    void setReaders( const std::optional< std::vector< MPO > >& value ) { m_readers = value; }
-    void setWriter( const std::optional< MPO >& value ) { m_writer = value; }
+    void setReads( const std::optional< std::vector< std::pair< runtime::MPO, runtime::TimeStamp > > >& value )
+    {
+        m_reads = value;
+    }
+    void setWrites( const std::optional< std::vector< std::pair< runtime::MPO, runtime::TimeStamp > > >& value )
+    {
+        m_writes = value;
+    }
+    void setReaders( const std::optional< std::vector< runtime::MPO > >& value ) { m_readers = value; }
+    void setWriter( const std::optional< runtime::MPO >& value ) { m_writer = value; }
 
     void setDescription( const std::string& strDescription ) { m_description = strDescription; }
 
@@ -213,18 +226,18 @@ public:
     }
 
 private:
-    std::optional< MachineID >              m_machineID;
-    std::optional< MP >                     m_mp;
-    std::optional< MPO >                    m_mpo;
+    std::optional< runtime::MachineID >     m_machineID;
+    std::optional< runtime::MP >            m_mp;
+    std::optional< runtime::MPO >           m_mpo;
     std::vector< network::LogicalThreadID > m_logicalthreadIDs;
-    std::optional< log::IndexRecord >       m_logIterator;
+    std::optional< event::IndexRecord >     m_logIterator;
     std::optional< std::string >            m_strLogFolder;
     std::optional< network::MemoryStatus >  m_memory;
 
-    std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_reads;
-    std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_writes;
-    std::optional< std::vector< MPO > >                         m_readers;
-    std::optional< MPO >                                        m_writer;
+    std::optional< std::vector< std::pair< runtime::MPO, runtime::TimeStamp > > > m_reads;
+    std::optional< std::vector< std::pair< runtime::MPO, runtime::TimeStamp > > > m_writes;
+    std::optional< std::vector< runtime::MPO > >                                  m_readers;
+    std::optional< runtime::MPO >                                                 m_writer;
 
     std::string  m_description;
     StatusVector m_childStatus;

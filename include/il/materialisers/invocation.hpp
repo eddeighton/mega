@@ -44,19 +44,19 @@ struct Invocation
 
     class Functions
     {
-        void* read( mega::Pointer& ref );
-        mega::Pointer write( mega::Pointer& ref, void* pData );
-        void* LinkRead( mega::Pointer& ref );
-        mega::Pointer LinkAdd( mega::Pointer& ref, mega::Pointer& target );
-        mega::Pointer LinkRemove( mega::Pointer& ref, mega::Pointer& target );
-        mega::Pointer LinkClear( mega::Pointer& ref );
-        mega::runtime::CallResult Call( mega::Pointer& ref );
-        mega::Pointer Start( mega::Pointer& ref );
-        mega::Pointer Move( mega::Pointer& ref );
-        mega::Pointer Get( mega::Pointer& ref );
+        void*                     Read( mega::runtime::Pointer& ref );
+        mega::runtime::Pointer    Write( mega::runtime::Pointer& ref, void* pData );
+        void*                     LinkRead( mega::runtime::Pointer& ref );
+        mega::runtime::Pointer    LinkAdd( mega::runtime::Pointer& ref, mega::runtime::Pointer& target );
+        mega::runtime::Pointer    LinkRemove( mega::runtime::Pointer& ref, mega::runtime::Pointer& target );
+        mega::runtime::Pointer    LinkClear( mega::runtime::Pointer& ref );
+        mega::runtime::CallResult Call( mega::runtime::Pointer& ref );
+        mega::runtime::Pointer    Start( mega::runtime::Pointer& ref );
+        mega::runtime::Pointer    Move( mega::runtime::Pointer& ref );
+        mega::runtime::Pointer    Get( mega::runtime::Pointer& ref );
     };
 };
 
-}
+} // namespace mega::materialiser
 
-#endif //GUARD_2024_January_11_invocation
+#endif // GUARD_2024_January_11_invocation

@@ -29,7 +29,7 @@ namespace mega::service
 {
 
 // network::memory::Impl
-void DaemonRequestLogicalThread::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void DaemonRequestLogicalThread::MPODestroyed( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     for( auto pCon : m_daemon.m_server.getConnections() )
     {
@@ -38,8 +38,7 @@ void DaemonRequestLogicalThread::MPODestroyed( const MPO& mpo, boost::asio::yiel
     }
 }
 
-void DaemonRequestLogicalThread::RootSimRun( const MPO& mpo,
-                                             boost::asio::yield_context& yield_ctx )
+void DaemonRequestLogicalThread::RootSimRun( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::RootSimRun: {}", mpo );
 
@@ -57,11 +56,12 @@ void DaemonRequestLogicalThread::RootSimRun( const MPO& mpo,
     }
 }
 
-TimeStamp DaemonRequestLogicalThread::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
-                                                   boost::asio::yield_context& yield_ctx )
+runtime::TimeStamp DaemonRequestLogicalThread::SimLockRead( const runtime::MPO&         requestingMPO,
+                                                            const runtime::MPO&         targetMPO,
+                                                            boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::SimLockRead from: {} to: {}", requestingMPO, targetMPO );
-    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMPO.getMP() ) )
     {
         ASSERT( m_daemon.m_machineID == targetMPO.getMachineID() );
         network::sim::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
@@ -76,11 +76,12 @@ TimeStamp DaemonRequestLogicalThread::SimLockRead( const MPO& requestingMPO, con
     }
 }
 
-TimeStamp DaemonRequestLogicalThread::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
-                                                    boost::asio::yield_context& yield_ctx )
+runtime::TimeStamp DaemonRequestLogicalThread::SimLockWrite( const runtime::MPO&         requestingMPO,
+                                                             const runtime::MPO&         targetMPO,
+                                                             boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::SimLockWrite from: {} to: {}", requestingMPO, targetMPO );
-    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMPO.getMP() ) )
     {
         network::sim::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
         return sender.SimLockWrite( requestingMPO, targetMPO );
@@ -92,13 +93,13 @@ TimeStamp DaemonRequestLogicalThread::SimLockWrite( const MPO& requestingMPO, co
     }
 }
 
-void DaemonRequestLogicalThread::SimLockRelease( const MPO&                  requestingMPO,
-                                                 const MPO&                  targetMPO,
+void DaemonRequestLogicalThread::SimLockRelease( const runtime::MPO&         requestingMPO,
+                                                 const runtime::MPO&         targetMPO,
                                                  const network::Transaction& transaction,
                                                  boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::SimLockRelease from: {} to: {}", requestingMPO, targetMPO );
-    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMPO.getMP() ) )
     {
         network::sim::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
         return sender.SimLockRelease( requestingMPO, targetMPO, transaction );

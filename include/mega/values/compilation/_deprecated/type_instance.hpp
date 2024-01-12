@@ -46,6 +46,13 @@ public:
     {
     }
 
+    struct Hash
+    {
+        inline U64 operator()( const TypeInstance& ref ) const noexcept 
+        { 
+            return ref.getValue(); 
+        }
+    };
     // constexpr explicit TypeInstance( TypeID::ValueType _type, Instance _instance )
     //     : type( _type )
     //     , instance( _instance )

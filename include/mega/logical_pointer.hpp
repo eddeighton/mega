@@ -22,39 +22,41 @@
 #define GUARD_2023_September_02_logical_reference
 
 #include "mega/values/native_types.hpp"
-#include "mega/values/compilation/type_instance.hpp"
+#include "mega/values/compilation/concrete/type_id_instance.hpp"
 
 namespace mega
 {
 
 struct LogicalObject
 {
-    U64    id;
-    TypeID type;
+    U64              id;
+    concrete::TypeID type;
 
-    inline TypeID getType() const { return type; }
+    inline concrete::TypeID getType() const { return type; }
 
     struct Hash
     {
-        inline U64 operator()( const LogicalObject& ref ) const noexcept { return ref.id + ref.type.getSymbolID(); }
+        inline U64 operator()( const LogicalObject& ref ) const noexcept
+        {
+            return ref.id + concrete::TypeID::Hash()( ref.type );
+        }
     };
 
     inline bool operator==( const LogicalObject& cmp ) const { return ( id == cmp.id ) && ( type == cmp.type ); }
-
 };
 
 struct LogicalPointer
 {
-    U64          id;
-    TypeInstance typeInstance;
+    U64                      id;
+    concrete::TypeIDInstance typeInstance;
 
-    inline TypeInstance getTypeInstance() const { return typeInstance; }
+    inline concrete::TypeIDInstance getTypeInstance() const { return typeInstance; }
 
     struct Hash
     {
         inline U64 operator()( const LogicalPointer& ref ) const noexcept
         {
-            return ref.id + ref.typeInstance.instance + ref.typeInstance.type.getSymbolID();
+            return ref.id + concrete::TypeIDInstance::Hash()( ref.typeInstance );
         }
     };
 
@@ -63,14 +65,15 @@ struct LogicalPointer
         return ( id == cmp.id ) && ( typeInstance == cmp.typeInstance );
     }
 
-    static inline LogicalPointer make( const LogicalObject& logicalObject, const TypeInstance& typeInstance )
+    static inline LogicalPointer make( const LogicalObject& logicalObject, const concrete::TypeIDInstance& typeInstance )
     {
         return { logicalObject.id, typeInstance };
     }
 
     static inline LogicalObject toLogicalObject( const LogicalPointer& ref )
     {
-        return { ref.id, TypeID::make_object_from_typeID( ref.typeInstance.type ) };
+        THROW_TODO;
+        // return { ref.id, TypeID::make_object_from_typeID( ref.typeInstance.type ) };
     }
 };
 

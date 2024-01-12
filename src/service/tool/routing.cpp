@@ -36,7 +36,7 @@ ToolRequestLogicalThread::~ToolRequestLogicalThread()
 }
 
 network::Message ToolRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
-                                                            boost::asio::yield_context& yield_ctx )
+                                                                   boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
     if( result = network::leaf_tool::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
@@ -76,9 +76,9 @@ network::Message ToolRequestLogicalThread::RootAllBroadcast( const network::Mess
                         {
                             SPDLOG_TRACE(
                                 "ToolRequestLogicalThread::RootAllBroadcast to logical thread: {}", pThread->getID() );
-                            auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
+                            auto& msg = network::status::MSG_GetStatus_Request::get( request );
                             network::status::Request_Sender rq( *this, pThread, yield_ctx );
-                            const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
+                            const network::Message responseWrapper = network::status::MSG_GetStatus_Response::make(
                                 request.getLogicalThreadID(),
                                 network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) } );
                             responses.push_back( responseWrapper );
@@ -88,9 +88,9 @@ network::Message ToolRequestLogicalThread::RootAllBroadcast( const network::Mess
                         {
                             SPDLOG_TRACE(
                                 "ToolRequestLogicalThread::RootAllBroadcast to logical thread: {}", pThread->getID() );
-                            auto&                           msg = network::report::MSG_GetReport_Request::get( request );
+                            auto& msg = network::report::MSG_GetReport_Request::get( request );
                             network::report::Request_Sender rq( *this, pThread, yield_ctx );
-                            const network::Message          responseWrapper = network::report::MSG_GetReport_Response::make(
+                            const network::Message responseWrapper = network::report::MSG_GetReport_Response::make(
                                 request.getLogicalThreadID(),
                                 network::report::MSG_GetReport_Response{ rq.GetReport( msg.url, msg.report ) } );
                             responses.push_back( responseWrapper );
@@ -113,17 +113,17 @@ network::Message ToolRequestLogicalThread::RootAllBroadcast( const network::Mess
     return dispatchInBoundRequest( aggregateRequest, yield_ctx );
 }
 
-network::Message ToolRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message ToolRequestLogicalThread::MPDown( const network::Message& request, const mega::runtime::MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( MP( m_tool.getMPO() ) == mp );
+    VERIFY_RTE( m_tool.getMPO().getMP() == mp );
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
-network::Message ToolRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
+network::Message ToolRequestLogicalThread::MPODown( const network::Message& request, const mega::runtime::MPO& mpo,
                                                     boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( MPO( m_tool.getMPO() ) == mpo );
+    VERIFY_RTE( m_tool.getMPO() == mpo );
     return dispatchInBoundRequest( request, yield_ctx );
 }
 

@@ -93,15 +93,15 @@ public:
 
 public:
     // READ interface
-    Range getRange( TimeStamp timestamp ) const
+    Range getRange( runtime::TimeStamp timestamp ) const
     {
         if( timestamp <= BufferFactory::m_timestamp )
         {
             const IndexRecord* pStart = getIndexRecord( timestamp );
             const IndexRecord* pEnd   = getIndexRecord( BufferFactory::m_timestamp );
 
-            return Range{ getTrackRange< Structure::Read >( pStart, pEnd ),
-                          getTrackRange< Memory::Read >( pStart, pEnd ) };
+            return Range{
+                getTrackRange< Structure::Read >( pStart, pEnd ), getTrackRange< Memory::Read >( pStart, pEnd ) };
         }
         else
         {
@@ -116,7 +116,7 @@ public:
         return BufferFactory::m_iterator.get( trackID );
     }
 
-    Offset get( TrackID trackID, TimeStamp timestamp ) const
+    Offset get( TrackID trackID, runtime::TimeStamp timestamp ) const
     {
         if( timestamp <= BufferFactory::m_timestamp )
         {
@@ -139,7 +139,7 @@ public:
         return { getTrack( RecordType::TRACKID ), position.get< RecordType::TRACKID >() };
     }
     template < typename RecordType >
-    inline Iterator< BufferFactory, RecordType > begin( TimeStamp timestamp ) const
+    inline Iterator< BufferFactory, RecordType > begin( runtime::TimeStamp timestamp ) const
     {
         return { getTrack( RecordType::TRACKID ), get( RecordType::TRACKID, timestamp ) };
     }
@@ -150,7 +150,7 @@ public:
     }
 
     // access current time stamp
-    inline TimeStamp getTimeStamp() const { return BufferFactory::m_timestamp; }
+    inline runtime::TimeStamp getTimeStamp() const { return BufferFactory::m_timestamp; }
 
     // access current index
     inline const IndexRecord& getIterator() const { return BufferFactory::m_iterator; }
@@ -187,11 +187,10 @@ private:
         }
     }
 
-    const IndexRecord* getIndexRecord( TimeStamp timestamp ) const
+    const IndexRecord* getIndexRecord( runtime::TimeStamp timestamp ) const
     {
-        const BufferType* pBuffer
-            = BufferFactory::m_index.getBuffer( IndexType::toBufferIndex( timestamp ) );
-        const void* pData = pBuffer->read( IndexType::toInterBufferOffset( timestamp ) );
+        const BufferType* pBuffer = BufferFactory::m_index.getBuffer( IndexType::toBufferIndex( timestamp ) );
+        const void*       pData   = pBuffer->read( IndexType::toInterBufferOffset( timestamp ) );
         return reinterpret_cast< const IndexRecord* >( pData );
     }
 

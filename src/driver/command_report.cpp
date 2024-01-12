@@ -160,9 +160,9 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 mega::io::ArchiveEnvironment environment( datbaseArchive );
                 mega::io::Manifest           manifest( environment, environment.project_manifest() );
 
-                const Container result
+                const std::optional< Container > resultOpt
                     = mega::reporters::generateCompilationReport( url, CompilationReportArgs{ manifest, environment } );
-                VERIFY_RTE_MSG( !result.empty(), "Failed to generate any report for: " << url.c_str() );
+                VERIFY_RTE_MSG( !resultOpt.has_value(), "Failed to generate any report for: " << url.c_str() );
 
                 struct Linker : mega::reports::Linker
                 {
@@ -187,7 +187,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 HTMLRenderer                      renderer( templateDir, shortcuts, bClearTempFiles );
 
                 std::ostringstream os;
-                renderer.render( result, linker, os );
+                renderer.render( resultOpt.value(), linker, os );
 
                 try
                 {

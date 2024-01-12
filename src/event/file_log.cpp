@@ -106,10 +106,10 @@ void FileBufferFactory::loadIterator()
 
         BufferType::Ptr pBuffer = std::make_unique< BufferType >( *this, i->second, i->first );
 
-        m_timestamp = TimeStamp{ static_cast< TimeStamp::ValueType >( IndexType::RecordsPerFile * i->first.get() ) };
+        m_timestamp = runtime::TimeStamp{
+            static_cast< runtime::TimeStamp::ValueType >( IndexType::RecordsPerFile * i->first.get() ) };
         bool bFirst = true;
-        for( InterBufferOffset offset = 0; offset != InterBufferOffset{ LogFileSize };
-                offset += IndexType::RecordSize )
+        for( InterBufferOffset offset = 0; offset != InterBufferOffset{ LogFileSize }; offset += IndexType::RecordSize )
         {
             auto pRecord = reinterpret_cast< const IndexRecord* >( pBuffer->read( offset ) );
             if( *pRecord < m_iterator )
@@ -123,7 +123,7 @@ void FileBufferFactory::loadIterator()
             }
             else
             {
-                m_timestamp = TimeStamp{ m_timestamp.getValue() + 1 };
+                m_timestamp = runtime::TimeStamp{ m_timestamp.getValue() + 1 };
             }
             m_iterator = *pRecord;
         }

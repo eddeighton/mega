@@ -356,10 +356,10 @@ public:
     }
     virtual void run( const MatchFinder::MatchResult& Result )
     {
-        if( auto pRecordDecl = Result.Nodes.getNodeAs< clang::CXXRecordDecl >( "types" ) )
+        if( auto pRecordDecl = Result.Nodes.getNodeAs< clang::RecordDecl >( "types" ) )
         {
-            auto namespaces = detectNamespace( pRecordDecl );
-            if( !namespaces.empty() && namespaces.front() == "mega" )
+            // auto namespaces = detectNamespace( pRecordDecl );
+            // if( !namespaces.empty() && namespaces.front() == "mega" )
             {
                 auto type = pRecordDecl->getASTContext().getTypeDeclType( pRecordDecl );
                 try
@@ -648,7 +648,7 @@ void parseInline( const boost::filesystem::path& filePath, Model& model )
     finder.addMatcher( functionMatcher, &functionCallback );
 
     InlineTypeCallback typeCallback( model );
-    DeclarationMatcher typeMatcher = cxxRecordDecl().bind( "types" );
+    DeclarationMatcher typeMatcher = recordDecl().bind( "types" );
     finder.addMatcher( typeMatcher, &typeCallback );
 
     tool.run( newFrontendActionFactory( &finder ).get() );

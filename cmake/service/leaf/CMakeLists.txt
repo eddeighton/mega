@@ -68,6 +68,7 @@ target_precompile_headers( leaf REUSE_FROM mega_pch )
 target_link_libraries( leaf protocol )
 target_link_libraries( leaf network )
 target_link_libraries( leaf runtime )
+target_link_libraries( leaf event )
 target_link_libraries( leaf log )
 target_link_libraries( leaf reporters )
 

@@ -18,31 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_December_11_support
-#define GUARD_2023_December_11_support
-
-namespace mega::runtime
-{
-//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
-//  Author: Edward Deighton
-//  License: Please see license.txt in the project root folder.
-
-//  Use and copying of this software and preparation of derivative works
-//  based upon this software are permitted. Any copy of this software or
-//  of any derivative work must include the above copyright notice, this
-//  paragraph and the one after it.  Any distribution of this software or
-//  derivative works must comply with all applicable laws.
-
-//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
-//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
-//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
-//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
-//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
-//  OF THE POSSIBILITY OF SUCH DAMAGES.
-
-#include "traits.hpp"
+#include "extern.h"
 
 #include "mega/values/runtime/pointer.hpp"
 
@@ -55,7 +31,7 @@ namespace mega::runtime
 
 #include "event/file_log.hpp"
 
-#include "service/protocol/common/context.hpp"
+#include "runtime/context.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -91,52 +67,43 @@ void new_bitset_( void* pData, void* pBlockStart, void* pBlockEnd )
     new( pData ) BitSet{ pStart, pEnd };
 }
 
-void structure_make( const mega::Pointer& source, const mega::Pointer& target, mega::U64 relationID )
+void structure_make( const mega::runtime::PointerHeap& source, const mega::runtime::PointerHeap& target, mega::U64 relationID )
 {
-    VERIFY_RTE_MSG( source.isHeap(), "structure_make passed network address in source " );
-    VERIFY_RTE_MSG( target.isHeap(), "structure_make passed network address in target " );
     mega::event::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::event::Structure::Write( source, target, relationID, mega::event::Structure::eMake ) );
 }
 
-void structure_break( const mega::Pointer& source, const mega::Pointer& target, mega::U64 relationID )
+void structure_break( const mega::runtime::PointerHeap& source, const mega::runtime::PointerHeap& target, mega::U64 relationID )
 {
-    VERIFY_RTE_MSG( source.isHeap(), "structure_break passed network address in source " );
-    VERIFY_RTE_MSG( target.isHeap(), "structure_break passed network address in target " );
     mega::event::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::event::Structure::Write( source, target, relationID, mega::event::Structure::eBreak ) );
 }
 
-void structure_move( const mega::Pointer& source, const mega::Pointer& target, mega::U64 relationID )
+void structure_move( const mega::runtime::PointerHeap& source, const mega::runtime::PointerHeap& target, mega::U64 relationID )
 {
-    VERIFY_RTE_MSG( source.isHeap(), "structure_move passed network address in source" );
-    // VERIFY_RTE_MSG( target.isHeap(), "structure_move passed network address in target" );
     mega::event::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::event::Structure::Write( source, target, relationID, mega::event::Structure::eMove ) );
 }
 
-void action_start( const mega::Pointer& source )
+void action_start( const mega::runtime::PointerHeap& source )
 {
-    VERIFY_RTE_MSG( source.isHeap(), "action_start passed network address " );
     mega::event::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::event::Event::Write( source, mega::event::Event::eStart ) );
 }
 
-void action_complete( const mega::Pointer& source )
+void action_complete( const mega::runtime::PointerHeap& source )
 {
-    VERIFY_RTE_MSG( source.isHeap(), "action_start passed network address " );
     mega::event::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::event::Event::Write( source, mega::event::Event::eComplete ) );
 }
 
-void event_signal( const mega::Pointer& event )
+void event_signal( const mega::runtime::PointerHeap& event )
 {
-    VERIFY_RTE_MSG( event.isHeap(), "event_signal passed network address " );
     mega::event::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::event::Event::Write( event, mega::event::Event::eSignal ) );
 }
 
-void transition( const mega::Pointer& t )
+void transition( const mega::runtime::PointerHeap& t )
 {
     mega::event::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::event::Transition::Write( t ) );
@@ -144,6 +111,7 @@ void transition( const mega::Pointer& t )
 
 /////////////////////////////////////////////////////////////
 // const Pointer vector
+/*
 bool ref_vector_empty( void* pData )
 {
     const ReferenceVector& vec = reify< ReferenceVector >( pData );
@@ -155,7 +123,7 @@ mega::U64 ref_vector_get_size( void* pData )
     auto& vec = reify< ReferenceVector >( pData );
     return vec.size();
 }
-mega::U64 ref_vector_find( void* pData, const mega::Pointer& ref )
+mega::U64 ref_vector_find( void* pData, const mega::runtime::Pointer& ref )
 {
     THROW_TODO;
     // const ReferenceVector& vec   = reify< ReferenceVector >( pData );
@@ -163,14 +131,14 @@ mega::U64 ref_vector_find( void* pData, const mega::Pointer& ref )
     // return std::distance( vec.cbegin(), iFind );
 }
 
-mega::Pointer& ref_vector_back( void* pData )
+mega::runtime::Pointer& ref_vector_back( void* pData )
 {
     ReferenceVector& vec = reify< ReferenceVector >( pData );
     VERIFY_RTE_MSG( !vec.empty(), "ref_vector_back called on empty vector" );
     return vec.back();
 }
 
-mega::Pointer& ref_vector_get_at( void* pData, mega::U64 index )
+mega::runtime::Pointer& ref_vector_get_at( void* pData, mega::U64 index )
 {
     auto& vec = reify< ReferenceVector >( pData );
     VERIFY_RTE( index < vec.size() );
@@ -182,11 +150,12 @@ mega::concrete::TypeID& type_vector_get_at( void* pData, mega::U64 index )
     auto& vec = reify< LinkTypeVector >( pData );
     VERIFY_RTE( index < vec.size() );
     return vec[ index ];
-}
+}*/
 
 /////////////////////////////////////////////////////////////
 // non-const Pointer vector
-void ref_vector_remove( void* pData, const mega::Pointer& ref )
+/*
+void ref_vector_remove( void* pData, const mega::runtime::Pointer& ref )
 {
     THROW_TODO;
     // auto& vec   = reify< ReferenceVector >( pData );
@@ -212,7 +181,7 @@ void ref_vector_pop( void* pData )
     vec.pop_back();
 }
 
-void ref_vector_add( void* pData, const mega::Pointer& ref )
+void ref_vector_add( void* pData, const mega::runtime::Pointer& ref )
 {
     THROW_TODO;
     // auto& vec = reify< ReferenceVector >( pData );
@@ -220,7 +189,7 @@ void ref_vector_add( void* pData, const mega::Pointer& ref )
 }
 
 /////////////////////////////////////////////////////////////
-void ref_vectors_remove( void* pData1, void* pData2, const mega::Pointer& ref )
+void ref_vectors_remove( void* pData1, void* pData2, const mega::runtime::Pointer& ref )
 {
     THROW_TODO;
     // auto& refs  = reify< ReferenceVector >( pData1 );
@@ -232,7 +201,7 @@ void ref_vectors_remove( void* pData1, void* pData2, const mega::Pointer& ref )
     //     refs.erase( iFind );
     // }
 }
-void ref_vectors_add( void* pData1, void* pData2, const mega::Pointer& ref, const mega::concrete::TypeID& type )
+void ref_vectors_add( void* pData1, void* pData2, const mega::runtime::Pointer& ref, const mega::concrete::TypeID& type )
 {
     THROW_TODO;
     // auto& refs  = reify< ReferenceVector >( pData1 );
@@ -246,10 +215,11 @@ void ref_vectors_remove_at( void* pData1, void* pData2, mega::U64 index )
     auto& types = reify< LinkTypeVector >( pData2 );
     refs.erase( refs.begin() + index );
     types.erase( types.begin() + index );
-}
+}*/
 
 /////////////////////////////////////////////////////////////
 // bitset routines
+/*
 bool bitset_test( void* pBitset, mega::U32 index )
 {
     auto& bitset = reify< mega::BitSet >( pBitset );
@@ -266,47 +236,47 @@ void bitset_unset( void* pBitset, mega::U32 position, mega::U32 length )
 {
     auto& bitset = reify< mega::BitSet >( pBitset );
     bitset.set( position, length, false );
-}
+}*/
 
 /////////////////////////////////////////////////////////////
 /*
-void xml_save_begin_structure( const mega::Pointer& ref, void* pSerialiser )
+void xml_save_begin_structure( const mega::runtime::Pointer& ref, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
     archive.beginStructure( ref.getNetworkAddress() );
 }
-void xml_save_end_structure( const mega::Pointer& ref, void* pSerialiser )
+void xml_save_end_structure( const mega::runtime::Pointer& ref, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
     archive.endStructure( ref.getNetworkAddress() );
 }
-void xml_save_begin_data( const mega::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_save_begin_data( const mega::runtime::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
     archive.beginData( pszName, bIsObject, ref.getNetworkAddress() );
 }
-void xml_save_end_data( const mega::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_save_end_data( const mega::runtime::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
     archive.endData( pszName, bIsObject, ref.getNetworkAddress() );
 }*/
 /*
-void xml_load_begin_structure( const mega::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_load_begin_structure( const mega::runtime::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
     archive.beginStructure( pszName, bIsObject, ref.getNetworkAddress() );
 }
-void xml_load_end_structure( const mega::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_load_end_structure( const mega::runtime::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
     archive.endStructure( pszName, bIsObject, ref.getNetworkAddress() );
 }
-void xml_load_begin_data( const mega::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_load_begin_data( const mega::runtime::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
     archive.beginData( pszName, bIsObject, ref.getNetworkAddress() );
 }
-void xml_load_end_data( const mega::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_load_end_data( const mega::runtime::Pointer& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
     archive.endData( pszName, bIsObject, ref.getNetworkAddress() );
@@ -318,7 +288,7 @@ bool xml_is_tag( const char* pszTag, void* pSerialiser )
     return archive.is_tag( pszTag );
 }
 
-void xml_load_allocation( const mega::Pointer& ref, void* pSerialiser )
+void xml_load_allocation( const mega::runtime::Pointer& ref, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
     archive.allocation( ref.getNetworkAddress() );
@@ -451,4 +421,3 @@ void iterator_dimension( void* pIterator, const char* pszType, mega::concrete::T
 
 }
 
-#endif //GUARD_2023_December_11_support

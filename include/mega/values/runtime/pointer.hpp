@@ -20,71 +20,23 @@
 #ifndef MEGA_REFERENCE_18_SEPT_2022
 #define MEGA_REFERENCE_18_SEPT_2022
 
-#include "mega/values/runtime/pointer.h"
+#include "mega/values/runtime/inline.h"
 
 #include "mega/values/native_types.hpp"
 
 #include "mega/values/compilation/concrete/type_id_instance.hpp"
 
+#include "mega/values/runtime/allocation_id.hpp"
+#include "mega/values/runtime/machine_id.hpp"
+#include "mega/values/runtime/mp.hpp"
 #include "mega/values/runtime/mpo.hpp"
 
+
+#include "common/serialisation.hpp"
 #include "common/assert_verify.hpp"
 
-#ifdef DEBUG
-// #define ASSERT_IS_HEAP                                            \
-//     do                                                            \
-//     {                                                             \
-//         if( !this->isHeapAddress() )                              \
-//             throw "Mega Reference Error.  Expected heap address"; \
-//     } while( ( void )0, 0 )
-
-#else // DEBUG
-#define ASSERT_IS_HEAP
-#endif
-
-namespace mega
+namespace mega::runtime
 {
-
-// using HeapAddress                         = void*; // recheck numeric_limits if change
-// static constexpr HeapAddress NULL_ADDRESS = nullptr;
-// 
-// #ifndef MEGAJIT
-// static_assert( sizeof( HeapAddress ) == 8U, "Invalid HeapAddress Size" );
-// static_assert( sizeof( HeapAddress ) == sizeof( U64 ), "Invalid HeapAddress Size" );
-// #endif
-// 
-// using AllocationID = U16;
-// using Flags        = U8;
-
-// constexpr static const AllocationID ROOT_OBJECT_ID = 0;
-
-// enum FlagsType : U8 // check reference_io if change
-// {
-//     HEAP_ADDRESS    = 0,
-//     NETWORK_ADDRESS = 1
-// };
-/*
-struct ObjectHeaderBase
-{
-    c_pointer_net m_networkAddress;
-    TimeStamp m_lockCycle = 0U;
-    RefCount  m_refCount  = 0U;
-};
- */
- 
-class PointerHeap : public c_pointer_heap
-{
-public:
-
-    struct Hash
-    {
-        inline U64 operator()( const c_pointer_heap& ptr ) const noexcept
-        {
-            const U64* p = reinterpret_cast< const U64* >( &ptr );
-            return *p + *( p + 1 );
-        }
-    };
-};
 
 class PointerNet : public c_pointer_net
 {
@@ -97,45 +49,133 @@ public:
             return *p + *( p + 1 );
         }
     };
+
+    inline AllocationID getAllocationID() const { return AllocationID{ m_allocationID }; }
+
+    inline MachineID getMachineID() const { return MachineID{ m_machineID }; }
+
+    inline ProcessID getProcessID() const { return ProcessID{ m_processID }; }
+
+    inline OwnerID getOwnerID() const { return OwnerID{ m_ownerID }; }
+
+    inline MP getMP() const { return MP{ m_machineID, m_processID }; }
+
+    inline MPO getMPO() const { return MPO{ m_machineID, m_processID, m_ownerID }; }
+
+    inline concrete::TypeID getTypeID() const { return concrete::TypeID{ m_type.type_id }; }
+
+    inline concrete::Instance getInstance() const { return concrete::Instance{ m_type.instance }; }
+
+    inline concrete::TypeIDInstance getTypeIDInstance() const { return concrete::TypeIDInstance{ m_type }; }
+
+    bool operator<( const PointerNet& cmp ) const
+    {
+        THROW_TODO;
+    }
+    bool operator==( const PointerNet& cmp ) const
+    {
+        THROW_TODO;
+    }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            THROW_TODO;
+            //archive& boost::serialization::make_nvp( "value", m_value );
+        }
+        else
+        {
+            THROW_TODO;
+            //archive& m_value;
+        }
+    }
+};
+inline std::ostream& operator<<( std::ostream& os, const PointerNet& ref )
+{
+    THROW_TODO;
+}
+
+class PointerHeap : public c_pointer_heap
+{
+public:
+    struct Hash
+    {
+        inline U64 operator()( const c_pointer_heap& ptr ) const noexcept
+        {
+            const U64* p = reinterpret_cast< const U64* >( &ptr );
+            return *p + *( p + 1 );
+        }
+    };
+
+    inline bool valid() const
+    {
+        THROW_TODO;
+    }
+
+    inline PointerNet getPointerNet() const { return PointerNet{ m_header->m_pointer_net }; }
+
+    inline AllocationID getAllocationID() const { return AllocationID{ m_header->m_pointer_net.m_allocationID }; }
+
+    inline MachineID getMachineID() const { return MachineID{ m_header->m_pointer_net.m_machineID }; }
+
+    inline ProcessID getProcessID() const { return ProcessID{ m_header->m_pointer_net.m_processID }; }
+
+    inline OwnerID getOwnerID() const { return OwnerID{ m_header->m_pointer_net.m_ownerID }; }
+
+    inline MP getMP() const { return MP{ m_header->m_pointer_net.m_machineID, m_header->m_pointer_net.m_processID }; }
+
+    inline MPO getMPO() const
+    {
+        return MPO{ m_header->m_pointer_net.m_machineID, m_header->m_pointer_net.m_processID,
+                    m_header->m_pointer_net.m_ownerID };
+    }
+
+    inline concrete::TypeID getTypeID() const { return concrete::TypeID{ m_type.type_id }; }
+
+    inline concrete::Instance getInstance() const { return concrete::Instance{ m_type.instance }; }
+
+    inline concrete::TypeIDInstance getTypeIDInstance() const { return concrete::TypeIDInstance{ m_type }; }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            THROW_TODO;
+            //archive& boost::serialization::make_nvp( "value", m_value );
+        }
+        else
+        {
+            THROW_TODO;
+            //archive& m_value;
+        }
+    }
 };
 
+inline std::ostream& operator<<( std::ostream& os, const PointerHeap& ref )
+{
+    THROW_TODO;
+}
 class Pointer : public c_pointer
 {
-
 public:
+    inline bool isHeap() const { return value.heap.m_flags == 0; }
+    inline bool isNetwork() const { return !isHeap(); }
 
-    inline bool isHeap() const
-    {
-        return value.heap.m_flags == 0;
-    }
-    inline bool isNetwork() const
-    {
-        return !isHeap();
-    }
+    PointerHeap& heap() { return *reinterpret_cast< PointerHeap* >( &value.heap ); }
+    PointerNet&  net() { return *reinterpret_cast< PointerNet* >( &value.net ); }
 
-    PointerHeap& heap()
-    {
-        return *reinterpret_cast< PointerHeap* >( &value.heap );
-    }
-    PointerNet& net()
-    {
-        return *reinterpret_cast< PointerNet* >( &value.net );
-    }
+    const PointerHeap& heap() const { return *reinterpret_cast< const PointerHeap* >( &value.heap ); }
 
-    const PointerHeap& heap() const
-    {
-        return *reinterpret_cast< const PointerHeap* >( &value.heap );
-    }
+    const PointerNet& net() const { return *reinterpret_cast< const PointerNet* >( &value.net ); }
 
-    const PointerNet& net() const
-    {
-        return *reinterpret_cast< const PointerNet* >( &value.net );
-    }
-
-    struct Hash
+    /*struct Hash
     {
         inline U64 operator()( const Pointer& ptr ) const noexcept
         {
+            // THROW_TODO;
             if( ptr.isHeap() )
             {
                 return PointerHeap::Hash()( ptr.heap() );
@@ -145,171 +185,15 @@ public:
                 return PointerNet::Hash()( ptr.net() );
             }
         }
-    };
-    
-    inline bool operator==( const Pointer& cmp ) const
-    {
-        throw "TODO";
-    }
-    inline bool operator<( const Pointer& cmp ) const
-    {
-        throw "TODO";
-    }
-    inline bool valid() const
-    {
-        throw "TODO";
-    }
-/*
-    const PointerHeap& getHeapPointer() const
-    {
-        if( isHeap() )
-        {
-            return *this;
-        }
-        else
-        {
-            return networkToHeap( *this );
-        }
-    }
+    };*/
 
-    const PointerNet& getNetworkPointer() const
-    {
-        if( isNetwork() )
-        {
-            return *this;
-        }
-        else if( getHeap() != nullptr )
-        {
-            return reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_networkAddress;
-        }
-        else
-        {
-            static const PointerNet nullref;
-            return nullref;
-        }
-    }
-*/
-    // heap only
-    // constexpr inline HeapAddress getHeap() const
-    // {
-    //     ASSERT_IS_HEAP;
-    //     return prc.m_heap;
-    // }
+    inline bool operator==( const Pointer& cmp ) const { throw "TODO"; }
+    inline bool operator<( const Pointer& cmp ) const { throw "TODO"; }
+    inline bool valid() const { throw "TODO"; }
 
-    // inline const reference& getHeaderAddress() const;
-    // inline reference        getNetworkAddress() const;
-    // inline reference        getObjectAddress() const;
-    // inline RefCount getRefCount() const;
-    // inline void     decRefCount() const;
-    // inline void     incRefCount() const;
-    // inline TimeStamp getLockCycle() const;
-    // inline void      setLockCycle( TimeStamp lockCycle );
-
-    // network - can access via heap header
-    // constexpr inline AllocationID getAllocationID() const;
-    // constexpr inline MPO          getMPO() const;
-    // constexpr inline MP           getMP() const;
-    // constexpr inline MachineID    getMachineID() const;
-    // constexpr inline ProcessID    getProcessID() const;
-
-    // common to both
-    // constexpr inline Flags        getFlags() const { return prc.m_flags; }
-    // constexpr inline TypeID       getType() const { return prc.m_type.type; }
-    // constexpr inline Instance     getInstance() const { return prc.m_type.instance; }
-    // constexpr inline TypeInstance getTypeInstance() const { return prc.m_type; }
-    // constexpr inline bool         isHeapAddress() const { return prc.m_flags == HEAP_ADDRESS; }
-    // constexpr inline bool         isNetworkAddress() const { return prc.m_flags == NETWORK_ADDRESS; }
-    // constexpr inline bool         valid() const { return getTypeInstance().valid(); }
-
-    // constexpr reference()
-    //     : net{ 0U, 0U, 0U, 0U, NETWORK_ADDRESS, TypeInstance{} }
-    // {
-    // }
-    // constexpr explicit reference( TypeInstance typeInstance, HeapAddress heap )
-    //     : prc{ heap, 0U, HEAP_ADDRESS, typeInstance }
-    // {
-    // }
-    // constexpr explicit reference( TypeInstance typeInstance, MPO mpo, AllocationID allocationID )
-    //     : net{ allocationID, mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID(), NETWORK_ADDRESS, typeInstance }
-    // {
-    // }
-    // static constexpr inline reference make_root( MPO mpo )
-    // {
-    //     return reference{ TypeInstance::make_root(), mpo, ROOT_OBJECT_ID };
-    // }
-    // static constexpr inline reference make( const reference& other, TypeInstance typeInstance )
-    // {
-    //     if( other.isHeapAddress() )
-    //     {
-    //         return reference{ typeInstance, other.getHeap() };
-    //     }
-    //     else
-    //     {
-    //         return reference{ typeInstance, other.getMPO(), other.getAllocationID() };
-    //     }
-    // }
-    // constexpr inline bool operator==( const reference& cmp ) const
-    // {
-    //     // clang-format off
-    //     if( isHeapAddress() && cmp.isHeapAddress() )
-    //     {
-    //         return prc.m_heap == cmp.prc.m_heap &&
-    //                prc.m_flags == cmp.prc.m_flags &&
-    //                prc.m_type == cmp.prc.m_type;
-    //     }
-    //     else if( isNetworkAddress() && cmp.isNetworkAddress() )
-    //     {
-    //         return net.m_allocationID == cmp.net.m_allocationID &&
-    //                net.m_machineID == cmp.net.m_machineID &&
-    //                net.m_processID == cmp.net.m_processID &&
-    //                net.m_ownerID == cmp.net.m_ownerID &&
-    //                net.m_flags == cmp.net.m_flags &&
-    //                net.m_type == cmp.net.m_type;
-    //     }
-    //     else if( isNetworkAddress() )
-    //     {
-    //         return this->operator==( cmp.getNetworkAddress() );
-    //     }
-    //     else
-    //     {
-    //         return getNetworkAddress().operator==( cmp );
-    //     }
-    //     // clang-format on
-    // }
-    // constexpr inline bool operator!=( const reference& cmp ) const { return !( *this == cmp ); }
-
-    // constexpr inline bool operator<( const reference& cmp ) const
-    // {
-    //     // clang-format off
-    //     //if( isHeapAddress() && cmp.isHeapAddress() )
-    //     //{
-    //     //    return ( prc.m_heap     != cmp.prc.m_heap  )    ?   ( prc.m_heap        < cmp.prc.m_heap        ) : 
-    //     //           ( prc.m_flags    != cmp.prc.m_flags )    ?   ( prc.m_flags       < cmp.prc.m_flags       ) : 
-    //     //                                                        ( prc.m_type        < cmp.prc.m_type        ) ;
-    //     //}
-    //     //else 
-    //     if( isNetworkAddress() && cmp.isNetworkAddress() )
-    //     {
-    //         // important to compare MPO first - since this is used by some algorithms 
-    //         return ( net.m_machineID      != cmp.net.m_machineID )      ? ( net.m_machineID     < cmp.net.m_machineID ) :
-    //                ( net.m_processID      != cmp.net.m_processID )      ? ( net.m_processID     < cmp.net.m_processID ) :
-    //                ( net.m_ownerID        != cmp.net.m_ownerID )        ? ( net.m_ownerID       < cmp.net.m_ownerID ) :
-    //                ( net.m_allocationID   != cmp.net.m_allocationID )   ? ( net.m_allocationID  < cmp.net.m_allocationID ) :
-    //                ( net.m_flags          != cmp.net.m_flags )          ? ( net.m_flags         < cmp.net.m_flags ) :
-    //                                                                       ( net.m_type          < cmp.net.m_type );
-    //     }
-    //     else if( isNetworkAddress() )
-    //     {
-    //         return this->operator<( cmp.getNetworkAddress() );
-    //     }
-    //     else
-    //     {
-    //         return getNetworkAddress().operator<( cmp );
-    //     }
-    //     // clang-format on
-    // }
+    inline Pointer getNetworkAddress() const { THROW_TODO; }
+    inline Pointer getHeapAddress() const { THROW_TODO; }
 };
-
 
 inline std::istream& operator>>( std::istream& is, Pointer& ref )
 {
@@ -324,133 +208,6 @@ inline std::ostream& operator<<( std::ostream& os, const std::vector< Pointer >&
 {
     THROW_TODO;
 }
-/*
-struct ObjectHeaderBase
-{
-    reference m_networkAddress;
-    TimeStamp m_lockCycle = 0U;
-    RefCount  m_refCount  = 0U;
-};
-
-inline RefCount reference::getRefCount() const
-{
-    return reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_refCount;
-}
-
-inline void reference::decRefCount() const
-{
-    --reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_refCount;
-}
-
-inline void reference::incRefCount() const
-{
-    ++reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_refCount;
-}
-
-inline TimeStamp reference::getLockCycle() const
-{
-    return reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_lockCycle;
-}
-
-inline void reference::setLockCycle( TimeStamp lockCycle )
-{
-    reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_lockCycle = lockCycle;
-}
-
-inline const reference& reference::getHeaderAddress() const
-{
-    if( isNetworkAddress() )
-    {
-        return *this;
-    }
-    else if( getHeap() != nullptr )
-    {
-        return reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_networkAddress;
-    }
-    else
-    {
-        static const reference nullref;
-        return nullref;
-    }
-}
-
-inline reference reference::getNetworkAddress() const
-{
-    if( isNetworkAddress() )
-    {
-        return *this;
-    }
-    else if( getHeap() != nullptr )
-    {
-        return make( reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_networkAddress, getTypeInstance() );
-    }
-    else
-    {
-        return make( reference{}, getTypeInstance() );
-    }
-}
-
-inline reference reference::getObjectAddress() const
-{
-    return reference::make( *this, TypeInstance::make_object( getType() ) );
-}
-
-constexpr inline AllocationID reference::getAllocationID() const
-{
-    if( isNetworkAddress() )
-    {
-        return net.m_allocationID;
-    }
-    else
-    {
-        return getHeaderAddress().getAllocationID();
-    }
-}
-constexpr inline MPO reference::getMPO() const
-{
-    if( isNetworkAddress() )
-    {
-        return MPO{ net.m_machineID, net.m_processID, net.m_ownerID };
-    }
-    else
-    {
-        return getHeaderAddress().getMPO();
-    }
-}
-constexpr inline MP reference::getMP() const
-{
-    if( isNetworkAddress() )
-    {
-        return MP{ net.m_machineID, net.m_processID };
-    }
-    else
-    {
-        return getHeaderAddress().getMP();
-    }
-}
-constexpr inline MachineID reference::getMachineID() const
-{
-    if( isNetworkAddress() )
-    {
-        return net.m_machineID;
-    }
-    else
-    {
-        return getHeaderAddress().getMachineID();
-    }
-}
-constexpr inline ProcessID reference::getProcessID() const
-{
-    if( isNetworkAddress() )
-    {
-        return net.m_processID;
-    }
-    else
-    {
-        return getHeaderAddress().getProcessID();
-    }
-}*/
-
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // MEGA_REFERENCE_18_SEPT_2022

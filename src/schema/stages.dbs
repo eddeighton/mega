@@ -245,7 +245,6 @@ stage ObjectStage
     global accessor array< ref< Components::Component > >;
 }
 
-
 stage DecisionsStage
 {
     source .manifest;
@@ -262,4 +261,14 @@ stage DecisionsStage
     global accessor array< ref< Concrete::Object > >;
     global accessor array< ref< Concrete::Interupt > >;
     global accessor array< ref< Concrete::State > >;
+}
+
+stage FinalStage
+{
+    source .manifest;
+    source .mega;
+    source .cpp;
+
+    dependency DecisionsStage;
+
 }

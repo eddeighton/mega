@@ -30,13 +30,13 @@
 namespace mega::service
 {
 
-MPO ExecutorRequestLogicalThread::SimCreate( boost::asio::yield_context& yield_ctx )
+runtime::MPO ExecutorRequestLogicalThread::SimCreate( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "ExecutorRequestLogicalThread::SimCreate {}", getID() );
     return m_executor.createSimulation( *this, yield_ctx );
 }
 
-network::Message ExecutorRequestLogicalThread::MPODown( const network::Message& request, const MPO& mpo,
+network::Message ExecutorRequestLogicalThread::MPODown( const network::Message& request, const runtime::MPO& mpo,
                                                         boost::asio::yield_context& yield_ctx )
 {
     if( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )

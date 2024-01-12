@@ -21,6 +21,12 @@
 #ifndef GUARD_2023_October_17_value
 #define GUARD_2023_October_17_value
 
+// check build system
+// #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+// #define BOOST_MPL_LIMIT_LIST_SIZE 30
+// #include <boost/mpl/list.hpp>
+// #undef BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+
 // #include "database/directories.hpp"
 // #include "database/manifest_data.hpp"
 // #include "database/component_info.hpp"
@@ -39,76 +45,53 @@
 #include "mega/values/compilation/concrete/type_id.hpp"
 
 #include "mega/values/compilation/compilation_configuration.hpp"
-#include "mega/values/compilation/megastructure_installation.hpp"
+#include "mega/values/compilation/icontext_flags.hpp"
 #include "mega/values/compilation/invocation_id.hpp"
+#include "mega/values/compilation/megastructure_installation.hpp"
 #include "mega/values/compilation/size_alignment.hpp"
 #include "mega/values/compilation/type_id_sequence.hpp"
-#include "mega/values/compilation/icontext_flags.hpp"
 
-#include "mega/values/runtime/pointer.hpp"
+#include "mega/values/runtime/mp.hpp"
 #include "mega/values/runtime/mpo.hpp"
+#include "mega/values/runtime/pointer.hpp"
+#include "mega/values/runtime/timestamp.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
 #include "mega/values/service/node.hpp"
-#include "mega/values/service/project.hpp"
 #include "mega/values/service/program.hpp"
+#include "mega/values/service/project.hpp"
 #include "mega/values/service/root_config.hpp"
 
-#include <boost/variant.hpp>
 #include <boost/filesystem/path.hpp>
 
+#include <variant>
 #include <string>
 
 namespace mega::reports
 {
 
-// clang-format off
-using Value = boost::variant
-< 
-    std::string, 
-    boost::filesystem::path,
+// using ValueTypeVector = boost::mpl::list<
+// 
+// #define MEGA_VALUE_TYPE( TypeName ) TypeName,
+// #include "reports/value.hxx"
+// #undef MEGA_VALUE_TYPE
+// 
+//     std::string, boost::filesystem::path >;
+// 
+// 
+// using Value = boost::make_variant_over< ValueTypeVector >::type;
 
-    // Database Types
-    // mega::io::Directories,
+using Value = std::variant<
 
-    // Compilation Types
-    interface::ObjectID, 
-    interface::RelationID, 
-    interface::SubObjectID, 
-    interface::SymbolID, 
-    interface::TypeID, 
+#define MEGA_VALUE_TYPE( TypeName ) TypeName,
+#include "reports/value.hxx"
+#undef MEGA_VALUE_TYPE
 
-    concrete::Instance,
-    // concrete::ObjectID,
-    // concrete::SubObjectIDInstance,
-    // concrete::SubObjectID,
-    concrete::TypeIDInstance,
-    concrete::TypeID,
-
-    //interface::TypeIDSequence,
-    //ConcreteTypeIDSequence,
-    // InvocationID, 
-    SizeAlignment,
-    MegastructureInstallation,
-    IContextFlags,
-
-    // Runtime Types
-    // MP,
-    // MPO,
-    // Pointer,
-
-    // Service Types
-    mega::network::LogicalThreadID,
-    mega::network::Node,
-    mega::service::Project,
-    mega::service::Program
-    //mega::network::RootConfig
-
->;
-// clang-format on
+std::string, boost::filesystem::path >;
 
 std::string toString( const Value& value );
 
 } // namespace mega::reports
+
 
 #endif // GUARD_2023_October_17_value

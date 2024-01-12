@@ -38,14 +38,14 @@ class AddressTable
 {
 public:
     using Index           = U64;
-    using IndexTable      = std::unordered_map< Pointer, Index, Pointer::Hash >;
-    using ReferenceVector = std::vector< Pointer >;
+    using IndexTable      = std::unordered_map< runtime::PointerNet, Index, runtime::PointerNet::Hash >;
+    using ReferenceVector = std::vector< runtime::PointerNet >;
 
     inline const IndexTable& getTable() const { return m_table; }
 
     // NOTE: ensure the object address is always mapped to index
     // besides underlying contexts of the object
-    inline const Index& refToIndex( const Pointer& maybeNetAddress )
+    inline const Index& refToIndex( const runtime::Pointer& maybeNetAddress )
     {
         THROW_TODO;
         /*if( maybeNetAddress.isHeap() )
@@ -71,7 +71,7 @@ public:
 
     // if the object has an index then store and index for the Pointer even if
     // it is a context of the object
-    inline std::optional< Index > refToIndexIfObjectExist( const Pointer& maybeNetAddress )
+    inline std::optional< Index > refToIndexIfObjectExist( const runtime::Pointer& maybeNetAddress )
     {
         THROW_TODO;
         /*const auto net = maybeNetAddress.getNetworkAddress();
@@ -93,13 +93,13 @@ public:
         return {};*/
     }
 
-    inline const Pointer& indexToRef( Index index ) const
+    inline const runtime::PointerNet& indexToRef( Index index ) const
     {
         ASSERT( index < m_references.size() );
         return m_references[ index ];
     }
 
-    inline void remap( const Index& index, const Pointer& ref )
+    inline void remap( const Index& index, const runtime::Pointer& ref )
     {
         THROW_TODO;
         /*const auto existing = indexToRef( index );

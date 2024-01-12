@@ -20,7 +20,7 @@
 #ifndef GUARD_2023_November_10_decision_function_cache
 #define GUARD_2023_November_10_decision_function_cache
 
-#include "service/protocol/common/context.hpp"
+#include "runtime/context.hpp"
 #include "runtime/function_provider.hpp"
 
 #include "mega/coroutine.hpp"

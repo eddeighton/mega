@@ -20,47 +20,47 @@
 msg EnroleDaemon
 {
     request();
-    response( MachineID daemonMachineID );
+    response( runtime::MachineID daemonMachineID );
 }
 
 msg EnroleLeafWithDaemon
 {
     request( std::string startupUUID, mega::network::Node type );
-    response( MP leafMP );
+    response( runtime::MP leafMP );
 }
 
 msg EnroleLeafWithRoot
 {
-    request( std::string startupUUID, MachineID daemonMachineID );
-    response( MP leafMP );
+    request( std::string startupUUID, runtime::MachineID daemonMachineID );
+    response( runtime::MP leafMP );
 }
 
 msg EnroleLeafDisconnect
 {
-    request( MP leafMP );
+    request( runtime::MP leafMP );
     response();
 }
 
 msg EnroleGetDaemons
 {
     request();
-    response( std::vector< mega::MachineID > daemons );
+    response( std::vector< runtime::MachineID > daemons );
 }
 msg EnroleGetProcesses
 {
-    request( mega::MachineID machineID );
-    response( std::vector< mega::MP > machineProcesses );
+    request( runtime::MachineID machineID );
+    response( std::vector< runtime::MP > machineProcesses );
 }
 msg EnroleGetMPO
 {
-    request( mega::MP machineProcess );
-    response( std::vector< mega::MPO > mpos );
+    request( runtime::MP machineProcess );
+    response( std::vector<runtime::MPO > mpos );
 }
 
 msg EnroleCreateExecutor
 {
-    request( MachineID daemonMachineID );
-    response( mega::MP executorMP );
+    request( runtime::MachineID daemonMachineID );
+    response( runtime::MP executorMP );
 }
 msg EnroleDestroy
 {

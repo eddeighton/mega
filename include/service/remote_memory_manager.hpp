@@ -130,7 +130,7 @@ public:
         m_usedHeapMemory += sizeAlignment.size;
 
         // establish the header including the network address, lock timestamp and shared ownership of allocator
-        const TimeStamp lockTime = 0U;
+        const runtime::TimeStamp lockTime = 0U;
 
         new( pHeapBuffer.get() ) ObjectHeader{ ObjectHeaderBase{ objectAddress, lockTime }, pAllocator };
 

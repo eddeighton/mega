@@ -70,14 +70,8 @@ set( MEGA_PYTHON_SOURCE
     ${MEGA_PYTHON_SRC_DIR}/status.cpp
     )
 
-set( MEGA_PYTHON_MANGLE
 
-    ${MEGA_API_DIR}/mega/mangle/python_mangle.hpp
-    ${MEGA_API_DIR}/mega/mangle/python_mangle_types.cxx
-    #${MEGA_API_DIR}/mega/mangle/python_mangle_allocators.cxx
-)
-
-add_library( megastructure SHARED ${MEGA_PYTHON_API} ${MEGA_PYTHON_SOURCE} ${MEGA_PYTHON_MANGLE} )
+add_library( megastructure SHARED ${MEGA_PYTHON_API} ${MEGA_PYTHON_SOURCE} )
 target_precompile_headers( megastructure REUSE_FROM mega_pch )
 
 ##############################################################
@@ -100,7 +94,6 @@ target_link_options( megastructure PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 target_link_libraries( megastructure executorLib )
-target_link_libraries( megastructure mega_mangle )
 target_link_libraries( megastructure reporters )
 
 set_target_properties( megastructure PROPERTIES FOLDER service )

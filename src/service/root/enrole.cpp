@@ -33,30 +33,30 @@ namespace mega::service
 {
 
 // network::enrole::Impl
-MachineID RootRequestLogicalThread::EnroleDaemon( boost::asio::yield_context& yield_ctx )
+runtime::MachineID RootRequestLogicalThread::EnroleDaemon( boost::asio::yield_context& yield_ctx )
 {
     auto pOriginalRequestResponseSender = getOriginatingStackResponseSender();
     VERIFY_RTE( pOriginalRequestResponseSender );
-    const MachineID machineID = m_root.m_mpoManager.newDaemon();
+    const runtime::MachineID machineID = m_root.m_mpoManager.newDaemon();
     SPDLOG_TRACE( "RootRequestLogicalThread::EnroleDaemon: {}", machineID );
     network::Server::Connection::Ptr pConnection = m_root.m_server.getConnection( pOriginalRequestResponseSender );
     pConnection->setDisconnectCallback( [ machineID, &root = m_root ]() { root.onDaemonDisconnect( machineID ); } );
 
     network::Server::Connection::Label label{ machineID };
-    VERIFY_RTE_MSG( std::get< MachineID >( label ) == machineID, "std::variant sucks!" );
+    VERIFY_RTE_MSG( std::get< runtime::MachineID >( label ) == machineID, "std::variant sucks!" );
 
     m_root.m_server.labelConnection( label, pConnection );
 
     return machineID;
 }
 
-MP RootRequestLogicalThread::EnroleLeafWithRoot( const std::string&          startupUUID,
-                                                 const MachineID&            machineID,
-                                                 boost::asio::yield_context& yield_ctx )
+runtime::MP RootRequestLogicalThread::EnroleLeafWithRoot( const std::string&          startupUUID,
+                                                          const runtime::MachineID&   machineID,
+                                                          boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::EnroleLeafWithRoot: {} {}", startupUUID, machineID );
 
-    const MP mp = m_root.m_mpoManager.newLeaf( machineID );
+    const runtime::MP mp = m_root.m_mpoManager.newLeaf( machineID );
 
     if( !startupUUID.empty() )
     {
@@ -66,7 +66,7 @@ MP RootRequestLogicalThread::EnroleLeafWithRoot( const std::string&          sta
     return mp;
 }
 
-void RootRequestLogicalThread::EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx )
+void RootRequestLogicalThread::EnroleLeafDisconnect( const runtime::MP& mp, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::EnroleLeafDisconnect {}", mp );
     const auto terminatedMPOS = m_root.m_mpoManager.leafDisconnected( mp );
@@ -76,32 +76,32 @@ void RootRequestLogicalThread::EnroleLeafDisconnect( const MP& mp, boost::asio::
     auto pConnection = m_root.m_server.getConnection( pOriginalRequestResponseSender );
     VERIFY_RTE( pConnection );
     VERIFY_RTE( pConnection->getLabel().has_value() );
-    VERIFY_RTE( std::get< MachineID >( pConnection->getLabel().value() ) == mp.getMachineID() );
+    VERIFY_RTE( std::get< runtime::MachineID >( pConnection->getLabel().value() ) == mp.getMachineID() );
 
     network::memory::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
-    for( MPO mpo : terminatedMPOS )
+    for( runtime::MPO mpo : terminatedMPOS )
     {
         sender.MPODestroyed( mpo );
     }
 }
 
-std::vector< MachineID > RootRequestLogicalThread::EnroleGetDaemons( boost::asio::yield_context& yield_ctx )
+std::vector< runtime::MachineID > RootRequestLogicalThread::EnroleGetDaemons( boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMachines();
 }
-std::vector< MP > RootRequestLogicalThread::EnroleGetProcesses( const MachineID&            machineID,
-                                                                boost::asio::yield_context& yield_ctx )
+std::vector< runtime::MP > RootRequestLogicalThread::EnroleGetProcesses( const runtime::MachineID&   machineID,
+                                                                         boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMachineProcesses( machineID );
 }
-std::vector< MPO > RootRequestLogicalThread::EnroleGetMPO( const MP&                   machineProcess,
-                                                           boost::asio::yield_context& yield_ctx )
+std::vector< runtime::MPO > RootRequestLogicalThread::EnroleGetMPO( const runtime::MP&          machineProcess,
+                                                                    boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMPO( machineProcess );
 }
 
-MP RootRequestLogicalThread::EnroleCreateExecutor( const MachineID&            daemonMachineID,
-                                                   boost::asio::yield_context& yield_ctx )
+runtime::MP RootRequestLogicalThread::EnroleCreateExecutor( const runtime::MachineID&   daemonMachineID,
+                                                            boost::asio::yield_context& yield_ctx )
 {
     network::Server::Connection::Label label{ daemonMachineID };
     auto                               pDaemonConnection = m_root.m_server.findConnection( label );

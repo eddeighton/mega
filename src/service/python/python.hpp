@@ -68,7 +68,7 @@ private:
     boost::asio::io_context&               m_io_context;
     network::ReceiverChannel               m_receiverChannel;
     Host                                   m_host;
-    std::optional< mega::MPO >             m_mpo;
+    std::optional< mega::runtime::MPO >             m_mpo;
     bool                                   m_bMPOInitialised = false;
 };
 } // namespace mega::service::python

@@ -37,7 +37,7 @@ DaemonRequestLogicalThread::~DaemonRequestLogicalThread()
 }
 
 network::Message DaemonRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
-                                                              boost::asio::yield_context& yield_ctx )
+                                                                     boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
     if( result = network::mpo::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
@@ -194,7 +194,7 @@ network::Message DaemonRequestLogicalThread::RootExe( const network::Message&   
 
 // network::mpo::Impl
 network::Message DaemonRequestLogicalThread::MPRoot( const network::Message&     request,
-                                                     const MP&                   mp,
+                                                     const runtime::MP&          mp,
                                                      boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient.getSender(), yield_ctx );
@@ -202,7 +202,7 @@ network::Message DaemonRequestLogicalThread::MPRoot( const network::Message&    
 }
 
 network::Message DaemonRequestLogicalThread::MPDown( const network::Message&     request,
-                                                     const MP&                   mp,
+                                                     const runtime::MP&          mp,
                                                      boost::asio::yield_context& yield_ctx )
 {
     network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp );
@@ -211,7 +211,7 @@ network::Message DaemonRequestLogicalThread::MPDown( const network::Message&    
     return sender.MPDown( request, mp );
 }
 
-network::Message DaemonRequestLogicalThread::MPUp( const network::Message& request, const MP& mp,
+network::Message DaemonRequestLogicalThread::MPUp( const network::Message& request, const runtime::MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp ) )
@@ -227,10 +227,10 @@ network::Message DaemonRequestLogicalThread::MPUp( const network::Message& reque
 }
 
 network::Message DaemonRequestLogicalThread::MPODown( const network::Message&     request,
-                                                      const MPO&                  mpo,
+                                                      const runtime::MPO&         mpo,
                                                       boost::asio::yield_context& yield_ctx )
 {
-    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( mpo ) ) )
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mpo.getMP() ) )
     {
         network::mpo::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
         return sender.MPODown( request, mpo );
@@ -242,10 +242,10 @@ network::Message DaemonRequestLogicalThread::MPODown( const network::Message&   
     }
 }
 network::Message DaemonRequestLogicalThread::MPOUp( const network::Message&     request,
-                                                    const MPO&                  mpo,
+                                                    const runtime::MPO&         mpo,
                                                     boost::asio::yield_context& yield_ctx )
 {
-    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( mpo ) ) )
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mpo.getMP() ) )
     {
         network::mpo::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
         return sender.MPODown( request, mpo );

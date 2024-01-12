@@ -24,9 +24,8 @@
 #include "service/network/end_point.hpp"
 #include "service/protocol/model/messages.hxx"
 
-#include "service/protocol/common/context.hpp"
-
 #include "runtime/exception.hpp"
+#include "runtime/context.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -312,7 +311,7 @@ InThreadLogicalThread::InThreadLogicalThread( LogicalThreadManager&  logicalthre
 
 ReceivedMessage InThreadLogicalThread::receive( boost::asio::yield_context& yield_ctx )
 {
-    mega::_MPOContextStack _mpoStack;
+    mega::runtime::_MPOContextStack _mpoStack;
     return m_channel.async_receive( yield_ctx );
 }
 
@@ -376,7 +375,7 @@ ConcurrentLogicalThread::ConcurrentLogicalThread( LogicalThreadManager&  logical
 
 ReceivedMessage ConcurrentLogicalThread::receive( boost::asio::yield_context& yield_ctx )
 {
-    mega::_MPOContextStack _mpoStack;
+    mega::runtime::_MPOContextStack _mpoStack;
     return m_channel.async_receive( yield_ctx );
 }
 

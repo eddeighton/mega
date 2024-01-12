@@ -25,6 +25,6 @@ msg ExecuteJIT
 
 msg GetInterfaceTypeID
 {
-    request( mega::TypeID concreteTypeID );
-    response( mega::TypeID interfaceTypeID );
+    request( mega::concrete::TypeID concreteTypeID );
+    response( mega::interface::TypeID interfaceTypeID );
 }

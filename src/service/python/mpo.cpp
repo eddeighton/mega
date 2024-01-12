@@ -29,7 +29,7 @@
 namespace mega::service::python
 {
 
-PythonMPO::PythonMPO( PythonModule& module, mega::MPO mpo )
+PythonMPO::PythonMPO( PythonModule& module, mega::runtime::MPO mpo )
     : m_module( module )
     , m_mpo( mpo )
 {

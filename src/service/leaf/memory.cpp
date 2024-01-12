@@ -38,7 +38,7 @@ namespace mega::service
 {
 
 // network::memory::Impl
-void LeafRequestLogicalThread::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::MPODestroyed( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     // THROW_TODO;
     /*if( m_leaf.m_pRemoteMemoryManager.get() )
@@ -47,12 +47,16 @@ void LeafRequestLogicalThread::MPODestroyed( const MPO& mpo, boost::asio::yield_
     }*/
 }
 
-Pointer LeafRequestLogicalThread::NetworkAllocate( const MPO& parent, const TypeID& objectTypeID,
-                                                    const TimeStamp& lockCycle, boost::asio::yield_context& yield_ctx )
+runtime::PointerNet LeafRequestLogicalThread::NetworkAllocate( const runtime::MPO&         parent,
+                                                               const concrete::ObjectID&   objectTypeID,
+                                                               const runtime::TimeStamp&   lockCycle,
+                                                               boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkAllocate: {} {}", parent, objectTypeID );
 
-    Pointer result;
+    THROW_TODO;
+    /*
+    PointerHeap result;
 
     if( MP( parent ) != m_leaf.m_mp )
     {
@@ -75,77 +79,80 @@ Pointer LeafRequestLogicalThread::NetworkAllocate( const MPO& parent, const Type
 
     // auto llvm = getLLVMCompiler( yield_ctx );
     // THROW_TODO;
-    // return m_leaf.m_pRemoteMemoryManager->networkToHeap( result, llvm );
+    // return m_leaf.m_pRemoteMemoryManager->networkToHeap( result, llvm );*/
 }
 
-Pointer LeafRequestLogicalThread::NetworkToHeap( const Pointer& ref, const TimeStamp& lockCycle,
-                                                  boost::asio::yield_context& yield_ctx )
+runtime::PointerHeap LeafRequestLogicalThread::NetworkToHeap( const runtime::PointerNet&  ref,
+                                                              const runtime::TimeStamp&   lockCycle,
+                                                              boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkToHeap: {} {}", ref, lockCycle );
 
-    // short circuit if already got it
-    if( ref.isHeapAddress() && ref.getLockCycle() == lockCycle )
-    {
-        return ref;
-    }
-
-    // auto llvm = getLLVMCompiler( yield_ctx );
-
-    // caller has called this because they ALREADY have appropriate read or write lock
-    Pointer heapAddress;
-    {
-        if( ref.isNetworkAddress() )
+    THROW_TODO;
+    /*
+        // short circuit if already got it
+        if( ref.isHeapAddress() && ref.getLockCycle() == lockCycle )
         {
-            // if not already heap address then get or construct heap object
-            THROW_TODO;
-            // heapAddress = m_leaf.m_pRemoteMemoryManager->networkToHeap( ref, llvm );
+            return ref;
         }
-        else
-        {
-            heapAddress = ref.getObjectAddress();
-        }
-    }
 
-    if( heapAddress.getLockCycle() != lockCycle )
-    {
-        if( heapAddress.getMP() != m_leaf.m_mp )
-        {
-            // re-aquire the object
-            network::sim::Request_Encoder simRequest{
-                [ leafRequest = getMPOUpSender( yield_ctx ), targetMPO = heapAddress.getMPO() ](
-                    const network::Message& msg ) mutable { return leafRequest.MPOUp( msg, targetMPO ); },
-                getID() };
+        // auto llvm = getLLVMCompiler( yield_ctx );
 
-            SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkToHeap: requesting snapshot for: {}",
-                          heapAddress.getHeaderAddress() );
-            Snapshot objectSnapshot = simRequest.SimObjectSnapshot( heapAddress.getHeaderAddress() );
-            ASSERT( objectSnapshot.getTimeStamp() == lockCycle );
-            SPDLOG_TRACE(
-                "LeafRequestLogicalThread::NetworkToHeap: got snapshot for: {}", heapAddress.getHeaderAddress() );
+        // caller has called this because they ALREADY have appropriate read or write lock
+        PointerHeap heapAddress;
+        {
+            if( ref.isNetworkAddress() )
             {
-                AddressTable& addressTable = objectSnapshot.getTable();
-                for( AddressTable::Index objectIndex : objectSnapshot.getObjects() )
-                {
-                    Pointer remoteAddress = addressTable.indexToRef( objectIndex );
-                    ASSERT( remoteAddress.isNetworkAddress() );
-
-                    THROW_TODO;
-                    // if( m_leaf.m_pRemoteMemoryManager->tryNetworkToHeap( remoteAddress ) )
-                    // {
-                    //     addressTable.remap( objectIndex, remoteAddress );
-                    // }
-                }
+                // if not already heap address then get or construct heap object
+                THROW_TODO;
+                // heapAddress = m_leaf.m_pRemoteMemoryManager->networkToHeap( ref, llvm );
             }
-
-            THROW_TODO;
-            // auto           allocator = m_leaf.getJIT().getAllocator( llvm, heapAddress.getType() );
-            // BinLoadArchive archive( objectSnapshot );
-            // allocator->getLoadBin()( heapAddress.getHeap(), &archive );
+            else
+            {
+                heapAddress = ref.getObjectAddress();
+            }
         }
-        heapAddress.setLockCycle( lockCycle );
-    }
 
-    return Pointer::make( heapAddress, ref.getTypeInstance() );
+        if( heapAddress.getLockCycle() != lockCycle )
+        {
+            if( heapAddress.getMP() != m_leaf.m_mp )
+            {
+                // re-aquire the object
+                network::sim::Request_Encoder simRequest{
+                    [ leafRequest = getMPOUpSender( yield_ctx ), targetMPO = heapAddress.getMPO() ](
+                        const network::Message& msg ) mutable { return leafRequest.MPOUp( msg, targetMPO ); },
+                    getID() };
+
+                SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkToHeap: requesting snapshot for: {}",
+                              heapAddress.getHeaderAddress() );
+                Snapshot objectSnapshot = simRequest.SimObjectSnapshot( heapAddress.getHeaderAddress() );
+                ASSERT( objectSnapshot.getTimeStamp() == lockCycle );
+                SPDLOG_TRACE(
+                    "LeafRequestLogicalThread::NetworkToHeap: got snapshot for: {}", heapAddress.getHeaderAddress() );
+                {
+                    AddressTable& addressTable = objectSnapshot.getTable();
+                    for( AddressTable::Index objectIndex : objectSnapshot.getObjects() )
+                    {
+                        Pointer remoteAddress = addressTable.indexToRef( objectIndex );
+                        ASSERT( remoteAddress.isNetworkAddress() );
+
+                        THROW_TODO;
+                        // if( m_leaf.m_pRemoteMemoryManager->tryNetworkToHeap( remoteAddress ) )
+                        // {
+                        //     addressTable.remap( objectIndex, remoteAddress );
+                        // }
+                    }
+                }
+
+                THROW_TODO;
+                // auto           allocator = m_leaf.getJIT().getAllocator( llvm, heapAddress.getType() );
+                // BinLoadArchive archive( objectSnapshot );
+                // allocator->getLoadBin()( heapAddress.getHeap(), &archive );
+            }
+            heapAddress.setLockCycle( lockCycle );
+        }
+
+        return Pointer::make( heapAddress, ref.getTypeInstance() );*/
 }
 
 } // namespace mega::service

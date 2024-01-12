@@ -27,9 +27,9 @@
 
 struct Clock
 {
-    static mega::TimeStamp cycle();
-    static mega::F32 ct();
-    static mega::F32 dt();
+    static mega::runtime::TimeStamp cycle();
+    static mega::F32                ct();
+    static mega::F32                dt();
 };
 
-#endif //GUARD_2022_September_30_clock
+#endif // GUARD_2022_September_30_clock

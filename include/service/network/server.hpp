@@ -49,7 +49,7 @@ public:
         using Strand             = boost::asio::strand< boost::asio::io_context::executor_type >;
 
     public:
-        using Label = std::variant< MachineID, MP, MPO >;
+        using Label = std::variant< runtime::MachineID, runtime::MP, runtime::MPO >;
         using Ptr   = std::shared_ptr< Connection >;
 
         Connection( Server& server, boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager );

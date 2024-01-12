@@ -125,12 +125,16 @@ set( MEGA_VALUES_CLANG_HEADERS
 
 set( MEGA_VALUES_RUNTIME_DIR ${MEGA_VALUES_DIR}/runtime )
 set( MEGA_VALUES_RUNTIME_HEADERS
-    ${MEGA_VALUES_RUNTIME_DIR}/allocation_id.h
-    ${MEGA_VALUES_RUNTIME_DIR}/machine_id.h
-    ${MEGA_VALUES_RUNTIME_DIR}/owner_id.h
-    ${MEGA_VALUES_RUNTIME_DIR}/pointer.h
-    ${MEGA_VALUES_RUNTIME_DIR}/process_id.h
-    ${MEGA_VALUES_RUNTIME_DIR}/time_stamp.h
+    ${MEGA_VALUES_RUNTIME_DIR}/inline.h
+
+    ${MEGA_VALUES_RUNTIME_DIR}/allocation_id.hpp
+
+    ${MEGA_VALUES_RUNTIME_DIR}/machine_id.hpp
+    ${MEGA_VALUES_RUNTIME_DIR}/process_id.hpp
+    ${MEGA_VALUES_RUNTIME_DIR}/owner_id.hpp
+
+    ${MEGA_VALUES_RUNTIME_DIR}/mp.hpp
+    ${MEGA_VALUES_RUNTIME_DIR}/mpo.hpp
 
     ${MEGA_VALUES_RUNTIME_DIR}/any_io.hpp
     ${MEGA_VALUES_RUNTIME_DIR}/any.hpp
@@ -249,3 +253,6 @@ add_library( mega_interface INTERFACE ${MEGA_LIBRARY} )
 set_target_properties( mega_interface PROPERTIES FOLDER service )
 
 install( FILES ${MEGA_LIBRARY} DESTINATION include/mega )
+
+install( TARGETS mega_interface EXPORT mega_interface DESTINATION bin)
+install( EXPORT mega_interface NAMESPACE MEGA:: FILE mega_interface-config.cmake DESTINATION share )

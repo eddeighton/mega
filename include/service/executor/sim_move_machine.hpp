@@ -36,11 +36,11 @@
 
 namespace mega::service
 {
-
+/*
 struct MoveVisitor : public TreeVisitor< Pointer >
 {
 };
-
+*/
 struct MoveMsgTraits : public MsgTraits
 {
     using MoveComplete = network::sim::MSG_SimMoveComplete_Response;
@@ -103,10 +103,11 @@ public:
 
         for( const auto& [ from, to ] : m_movedObjects )
         {
-            MPORealVisitor                                        reader( from );
-            MoveVisitor                                           writer;
-            ReferenceTreeTraversal< MPORealVisitor, MoveVisitor > traversal( reader, writer );
-            traverse( traversal );
+            THROW_TODO;
+            // MPORealVisitor                                        reader( from );
+            // MoveVisitor                                           writer;
+            // ReferenceTreeTraversal< MPORealVisitor, MoveVisitor > traversal( reader, writer );
+            // traverse( traversal );
         }
 
         m_movedObjects.clear();

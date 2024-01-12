@@ -76,7 +76,7 @@ public:
 
     void cycle()
     {
-        m_timestamp                     = TimeStamp{ m_timestamp.getValue() + 1 };
+        m_timestamp                     = runtime::TimeStamp{ m_timestamp.getValue() + 1 };
         BufferType*             pBuffer = m_index.getBuffer( IndexType::toBufferIndex( m_timestamp ) );
         const InterBufferOffset offset  = pBuffer->write( &m_iterator, IndexType::RecordSize );
         ASSERT( offset.get() % IndexType::RecordSize == 0U );
@@ -91,9 +91,9 @@ private:
     void loadIterator();
 
 protected:
-    TimeStamp   m_timestamp;
-    IndexRecord m_iterator;
-    IndexType   m_index;
+    runtime::TimeStamp m_timestamp;
+    IndexRecord        m_iterator;
+    IndexType          m_index;
 
 private:
     const boost::filesystem::path m_logFolderPath;

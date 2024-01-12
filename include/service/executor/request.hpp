@@ -87,9 +87,9 @@ public:
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
     // network::mpo::Impl
-    virtual network::Message MPODown( const network::Message& request, const MPO& mpo,
+    virtual network::Message MPODown( const network::Message& request, const runtime::MPO& mpo,
                                       boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPDown( const network::Message& request, const MP& mp,
+    virtual network::Message MPDown( const network::Message& request, const runtime::MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
@@ -111,7 +111,7 @@ public:
               boost::asio::yield_context&                                   yield_ctx ) override;
 
     // network::sim::Impl
-    virtual MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
+    virtual runtime::MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
     virtual void EnroleDestroy( boost::asio::yield_context& yield_ctx ) override;

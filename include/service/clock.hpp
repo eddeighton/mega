@@ -36,11 +36,11 @@ namespace mega::service
 class ProcessClock
 {
 public:
-    virtual void registerMPO( network::SenderRef sender )                                       = 0;
-    virtual void unregisterMPO( network::SenderRef sender )                                     = 0;
-    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) = 0;
-    virtual bool unrequestClock( network::LogicalThreadBase* pSender, MPO mpo )                 = 0;
-    virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo )                    = 0;
+    virtual void registerMPO( network::SenderRef sender )                                                  = 0;
+    virtual void unregisterMPO( network::SenderRef sender )                                                = 0;
+    virtual void requestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo, event::Range range ) = 0;
+    virtual bool unrequestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo )                   = 0;
+    virtual void requestMove( network::LogicalThreadBase* pSender, runtime::MPO mpo )                      = 0;
 };
 } // namespace mega::service
 

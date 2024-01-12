@@ -42,7 +42,7 @@ void handle_sigchld( int signum )
 }
 
 // dummy implementation of MPOContext
-namespace mega
+namespace mega::runtime
 {
 class MPOContext
 {

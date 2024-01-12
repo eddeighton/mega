@@ -23,6 +23,14 @@
 
 namespace mega::runtime
 {
+
+JITDatabase::JITDatabase( const boost::filesystem::path& projectDatabasePath )
+    : m_environment( projectDatabasePath )
+    , m_manifest( m_environment, m_environment.project_manifest() )
+    , m_database( m_environment, m_manifest.getManifestFilePath() )
+{
+}
+
 /*
 JITDatabase::JITDatabase( const boost::filesystem::path& projectDatabasePath )
     : m_environment( projectDatabasePath )

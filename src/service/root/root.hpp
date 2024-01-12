@@ -44,7 +44,7 @@ class Root : public network::LogicalThreadManager
     friend class RootRequestLogicalThread;
     friend class RootSimulation;
 
-    using StartupUUIDMap = std::map< std::string, MP >;
+    using StartupUUIDMap = std::map< std::string, runtime::MP >;
 
 public:
     Root( boost::asio::io_context& ioContext, network::Log log, const boost::filesystem::path& stashFolder,
@@ -56,8 +56,8 @@ public:
 
     MegastructureInstallation getMegastructureInstallation();
 
-    void                setStartupUUIDMP( const std::string& strUUID, MP mp );
-    std::optional< MP > getAndResetStartupUUID( const std::string& strUUID );
+    void                         setStartupUUIDMP( const std::string& strUUID, runtime::MP mp );
+    std::optional< runtime::MP > getAndResetStartupUUID( const std::string& strUUID );
 
     void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
 
@@ -65,7 +65,7 @@ private:
     void loadConfig();
     void saveConfig();
 
-    void onDaemonDisconnect( mega::MachineID machineID );
+    void onDaemonDisconnect( runtime::MachineID machineID );
 
 private:
     network::Log                               m_log;

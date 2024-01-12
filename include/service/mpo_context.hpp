@@ -25,14 +25,13 @@
 
 #include "environment/mpo_database.hpp"
 
-// #include "jit/functions.hpp"
+#include "runtime/context.hpp"
 
 #include "service/memory_manager.hpp"
 #include "service/lock_tracker.hpp"
 
 #include "log/log.hpp"
 
-#include "service/protocol/common/context.hpp"
 #include "mega/values/service/logical_thread_id.hpp"
 
 #include "service/protocol/model/mpo.hxx"
@@ -50,19 +49,19 @@
 
 #include <sstream>
 
-namespace mega
+namespace mega::runtime
 {
 
-class MPOContext : public Context
+class MPOContext : public runtime::Context
 {
 protected:
     const network::LogicalThreadID&                 m_logicalthreadIDRef;
-    std::optional< mega::MPO >                      m_mpo;
-    std::unique_ptr< log::FileStorage >             m_pLog;
+    std::optional< mega::runtime::MPO >             m_mpo;
+    std::unique_ptr< event::FileStorage >           m_pLog;
     mega::service::LockTracker                      m_lockTracker;
     std::unique_ptr< network::TransactionProducer > m_pTransactionProducer;
     boost::asio::yield_context*                     m_pYieldContext = nullptr;
-    Pointer                                       m_root;
+    runtime::PointerHeap                            m_root;
     std::unique_ptr< runtime::MPODatabase >         m_pDatabase;
     // std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
     network::TransactionProducer::MovedObjects m_movedObjects; // dependency to SimMoveMachine
@@ -76,13 +75,13 @@ public:
     {
     }
 
-    virtual network::mpo::Request_Sender     getMPRequest()              = 0;
-    virtual network::enrole::Request_Encoder getRootEnroleRequest()      = 0;
-    virtual network::stash::Request_Encoder  getRootStashRequest()       = 0;
-    virtual network::memory::Request_Encoder getDaemonMemoryRequest()    = 0;
-    virtual network::sim::Request_Encoder    getMPOSimRequest( MPO mpo ) = 0;
-    virtual network::memory::Request_Sender  getLeafMemoryRequest()      = 0;
-    virtual network::jit::Request_Sender     getLeafJITRequest()         = 0;
+    virtual network::mpo::Request_Sender     getMPRequest()                       = 0;
+    virtual network::enrole::Request_Encoder getRootEnroleRequest()               = 0;
+    virtual network::stash::Request_Encoder  getRootStashRequest()                = 0;
+    virtual network::memory::Request_Encoder getDaemonMemoryRequest()             = 0;
+    virtual network::sim::Request_Encoder    getMPOSimRequest( runtime::MPO mpo ) = 0;
+    virtual network::memory::Request_Sender  getLeafMemoryRequest()               = 0;
+    virtual network::jit::Request_Sender     getLeafJITRequest()                  = 0;
 
     //////////////////////////
     // mega::MPOContext
@@ -92,35 +91,38 @@ public:
         VERIFY_RTE( m_pYieldContext );
         return getRootEnroleRequest().EnroleGetDaemons();
     }
-    virtual MPOContext::MachineProcessIDVector getProcesses( MachineID machineID ) override
+    virtual MPOContext::MachineProcessIDVector getProcesses( runtime::MachineID machineID ) override
     {
         VERIFY_RTE( m_pYieldContext );
         return getRootEnroleRequest().EnroleGetProcesses( machineID );
     }
-    virtual MPOContext::MPOVector getMPO( MP machineProcess ) override
+    virtual MPOContext::MPOVector getMPO( runtime::MP machineProcess ) override
     {
         VERIFY_RTE( m_pYieldContext );
         return getRootEnroleRequest().EnroleGetMPO( machineProcess );
     }
 
     // mpo management
-    Pointer allocate( mega::TypeID objectType );
-    Pointer allocateRemote( const MPO& remote, mega::TypeID objectType );
-    void      networkToHeap( Pointer& ref );
-    void      readLock( Pointer& ref );
-    void      writeLock( Pointer& ref );
+    runtime::PointerHeap allocate( concrete::ObjectID objectType );
+    runtime::PointerNet  allocateRemote( const runtime::MPO& remote, concrete::ObjectID objectType );
+    runtime::PointerHeap networkToHeap( const runtime::PointerNet& ref );
 
-    virtual MPO             getThisMPO() override { return m_mpo.value(); }
-    virtual mega::Pointer getThisRoot() override { return m_root; }
-    virtual mega::Pointer getRoot( MPO mpo ) override;
-    virtual MPO             constructMPO( MP machineProcess ) override;
-    virtual MP              constructExecutor( MachineID daemonMachineID ) override;
-    virtual void            destroyExecutor( MP mp ) override;
-    virtual void            jit( runtime::RuntimeFunctor func ) override;
-    virtual void            yield() override;
+    /*
+    void                 readLock( runtime::PointerHeap& ref );
+    void                 writeLock( runtime::PointerHeap& ref );
+    */
 
-    // log
-    virtual log::FileStorage& getLog() override
+    virtual runtime::MPO         getThisMPO() override { return m_mpo.value(); }
+    virtual runtime::PointerHeap getThisRoot() override { return m_root; }
+    virtual runtime::PointerNet  getRoot( runtime::MPO mpo ) override;
+    virtual runtime::MPO         constructMPO( runtime::MP machineProcess ) override;
+    virtual runtime::MP          constructExecutor( runtime::MachineID daemonMachineID ) override;
+    virtual void                 destroyExecutor( runtime::MP mp ) override;
+    virtual void                 jit( runtime::RuntimeFunctor func ) override;
+    virtual void                 yield() override;
+
+    // event
+    virtual event::FileStorage& getLog() override
     {
         ASSERT( m_pLog );
         return *m_pLog;
@@ -134,7 +136,7 @@ public:
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
 protected:
-    void createRoot( const mega::MPO& mpo );
+    void createRoot( const runtime::MPO& mpo );
 };
 
 } // namespace mega

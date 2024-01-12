@@ -23,15 +23,16 @@
 #include "mega/values/runtime/pointer.hpp"
 #include "mega/clock.hpp"
 
-#include "service/protocol/common/context.hpp"
+#include "runtime/context.hpp"
 
 namespace mega
 {
+
 } // namespace mega
 
 // implement mega/clock.hpp
 /*
-mega::TimeStamp Clock::cycle() { return mega::Context::get()->cycle(); }
+mega::runtime::TimeStamp Clock::cycle() { return mega::Context::get()->cycle(); }
 mega::F32 Clock::ct() { return mega::Context::get()->ct(); }
 mega::F32 Clock::dt() { return mega::Context::get()->dt(); }
 */

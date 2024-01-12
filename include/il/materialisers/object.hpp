@@ -52,18 +52,18 @@ struct Object
 
     class Functions
     {
-        void                                constructor( void* pMemory );
-        void                                destructor( const mega::Pointer& ref, void* Buffer, bool LinkReset );
-        void                                binaryLoad( void* pMemory, mega::BinLoadArchive& archive );
-        void                                binarySave( void* pMemory, mega::BinSaveArchive& archive );
-        runtime::TypeErasedFunction         getFunction();
-        void                                unParent( const mega::Pointer& ref );
-        void                                traverse( Iterator& iterator );
-        mega::U64                           linkSize( const mega::Pointer& ref );
-        mega::Pointer                       linkGet( const mega::Pointer& ref, mega::U64 index );
-        mega::Any                           anyRead( const mega::Pointer& ref );
-        void                                anyWrite( const mega::Pointer& ref, mega::Any value );
-        mega::concrete::SubObjectIDInstance enumerate( const mega::Pointer& ref, mega::U32& iterator );
+        void                        constructor( void* pMemory );
+        void                        destructor( const mega::runtime::Pointer& ref, void* Buffer, bool LinkReset );
+        void                        binaryLoad( void* pMemory, mega::BinLoadArchive& archive );
+        void                        binarySave( void* pMemory, mega::BinSaveArchive& archive );
+        runtime::TypeErasedFunction getFunction();
+        void                        unParent( const mega::runtime::Pointer& ref );
+        void                        traverse( Iterator& iterator );
+        mega::U64                   linkSize( const mega::runtime::Pointer& ref );
+        mega::runtime::Pointer      linkGet( const mega::runtime::Pointer& ref, mega::U64 index );
+        mega::runtime::Any          anyRead( const mega::runtime::Pointer& ref );
+        void                        anyWrite( const mega::runtime::Pointer& ref, mega::runtime::Any value );
+        mega::concrete::SubObjectIDInstance enumerate( const mega::runtime::Pointer& ref, mega::U32& iterator );
     };
 };
 

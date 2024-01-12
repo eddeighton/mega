@@ -25,9 +25,9 @@
 
 #include <ostream>
 
-namespace mega
+namespace mega::runtime
 {
-std::ostream& operator<<( std::ostream& os, const mega::Any& value );
+std::ostream& operator<<( std::ostream& os, const Any& value );
 }
 
 #endif // GUARD_2023_September_02_any_io

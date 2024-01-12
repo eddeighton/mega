@@ -32,7 +32,6 @@
 
 #include "mega/values/compilation/invocation_id.hpp"
 
-#include "mega/mangle/python_mangle.hpp"
 #include "mega/iterator.hpp"
 #include "mega/logical_tree.hpp"
 #include "mega/printer.hpp"

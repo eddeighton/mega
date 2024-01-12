@@ -44,7 +44,7 @@ public:
     {
         inline U64 operator()( const TypeIDInstance& ref ) const noexcept
         {
-            return ref.getTypeID().getValue() + ref.getInstance().getValue();
+            return TypeID::Hash()( ref.getTypeID() ) + Instance::Hash()( ref.getInstance() );
         }
     };
 

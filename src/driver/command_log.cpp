@@ -64,7 +64,7 @@ struct Options
     }
 };
 
-void printLog( mega::event::FileStorage& log, const Options& options, mega::TimeStamp timestamp )
+void printLog( mega::event::FileStorage& log, const Options& options, mega::runtime::TimeStamp timestamp )
 {
     if( options.bShowLogRecords )
     {
@@ -211,7 +211,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 const auto rate    = std::chrono::milliseconds( static_cast< int >( fSeconds * 1000.0f ) );
                 using Milliseconds = decltype( rate );
 
-                mega::TimeStamp timestamp = 0;
+                mega::runtime::TimeStamp timestamp;
 
                 boost::asio::io_context   io;
                 boost::asio::steady_timer timer( io );
@@ -222,7 +222,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                     boost::asio::io_context&   io;
                     boost::asio::steady_timer& timer;
                     Milliseconds               rate;
-                    mega::TimeStamp&           timestamp;
+                    mega::runtime::TimeStamp&  timestamp;
                     boost::filesystem::path&   logFolderPath;
                     Options&                   options;
 

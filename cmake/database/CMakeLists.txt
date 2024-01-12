@@ -52,6 +52,7 @@ set( MEGA_DATABASE_STAGES
     ClangCompilationStage
     CPPSourceStage
     ObjectStage
+    FinalStage
 )
 
 set( DATABASE_SCHEMAS 

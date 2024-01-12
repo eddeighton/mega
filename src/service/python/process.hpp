@@ -35,7 +35,7 @@ class PythonModule;
 class PythonProcess
 {
 public:
-    PythonProcess( PythonModule& module, mega::MP mp );
+    PythonProcess( PythonModule& module, mega::runtime::MP mp );
 
     std::vector< PythonMPO > getMPOs() const;
 
@@ -44,7 +44,7 @@ public:
 
 private:
     PythonModule& m_module;
-    mega::MP      m_mp;
+    mega::runtime::MP      m_mp;
 };
 } // namespace mega::service::python
 

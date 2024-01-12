@@ -21,7 +21,7 @@
 #ifndef GUARD_2022_October_31_archive
 #define GUARD_2022_October_31_archive
 
-#include "mega/values/compilation/type_id.hpp"
+#include "mega/values/compilation/interface/type_id.hpp"
 
 #include "mega/values/runtime/pointer.hpp"
 #include "mega/values/runtime/maths_types.hpp"

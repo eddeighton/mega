@@ -26,7 +26,7 @@
 namespace mega::service
 {
 // network::enrole::Impl
-MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&               startupUUID,
+runtime::MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&               startupUUID,
                                                      const mega::network::Node& type,
                                                      boost::asio::yield_context&      yield_ctx )
 {
@@ -35,7 +35,7 @@ MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&         
     VERIFY_RTE( pConnection );
     pConnection->setType( type );
 
-    const mega::MP leafMP = getRootRequest< network::enrole::Request_Encoder >( yield_ctx )
+    const mega::runtime::MP leafMP = getRootRequest< network::enrole::Request_Encoder >( yield_ctx )
                                 .EnroleLeafWithRoot( startupUUID, m_daemon.m_machineID );
     SPDLOG_TRACE( "Leaf enroled as {}", leafMP );
 

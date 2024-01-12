@@ -39,7 +39,7 @@
 namespace mega::service::report
 {
 
-class HTTPLogicalThread : public ReportRequestLogicalThread, public mega::MPOContext
+class HTTPLogicalThread : public ReportRequestLogicalThread, public runtime::MPOContext
 {
 public:
     using Ptr = std::shared_ptr< HTTPLogicalThread >;
@@ -56,7 +56,7 @@ public:
     virtual network::enrole::Request_Encoder getRootEnroleRequest() override;
     virtual network::stash::Request_Encoder  getRootStashRequest() override;
     virtual network::memory::Request_Encoder getDaemonMemoryRequest() override;
-    virtual network::sim::Request_Encoder    getMPOSimRequest( mega::MPO mpo ) override;
+    virtual network::sim::Request_Encoder    getMPOSimRequest( runtime::MPO mpo ) override;
     virtual network::memory::Request_Sender  getLeafMemoryRequest() override;
     virtual network::jit::Request_Sender     getLeafJITRequest() override;
     virtual network::mpo::Request_Sender     getMPRequest() override;
@@ -77,8 +77,7 @@ public:
     virtual bool queue( const network::ReceivedMessage& msg ) override;
     void         run( boost::asio::yield_context& yield_ctx ) override;
 
-    virtual void
-    RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const mega::runtime::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     bool isRunning() const { return m_bRunning; }
     bool isRunComplete() const { return m_bRunComplete; }

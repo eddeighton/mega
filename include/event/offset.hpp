@@ -35,7 +35,7 @@ static const int LogFileIndexDigits = std::numeric_limits< U32 >::digits10 + 1;
 class BufferIndex
 {
 public:
-    inline BufferIndex()                                        = default;
+    inline BufferIndex()                                          = default;
     inline BufferIndex( const BufferIndex& fileIndex )            = default;
     inline BufferIndex& operator=( const BufferIndex& fileIndex ) = default;
     inline BufferIndex( U32 index )
@@ -60,7 +60,7 @@ private:
 class InterBufferOffset
 {
 public:
-    inline InterBufferOffset()                                           = default;
+    inline InterBufferOffset()                                             = default;
     inline InterBufferOffset( const InterBufferOffset& offset )            = default;
     inline InterBufferOffset& operator=( const InterBufferOffset& offset ) = default;
     inline InterBufferOffset( U64 offset )
@@ -113,7 +113,7 @@ private:
 class BufferOffset
 {
 public:
-    inline BufferOffset()                                          = default;
+    inline BufferOffset()                                            = default;
     inline BufferOffset( const BufferOffset& fileOffset )            = default;
     inline BufferOffset& operator=( const BufferOffset& fileOffset ) = default;
     inline BufferOffset( const Offset& offset )
@@ -123,7 +123,7 @@ public:
     }
     inline const BufferIndex&      getFileIndex() const { return m_fileIndex; }
     inline const InterBufferOffset getInterFileOffset() const { return m_offset; }
-    inline                       operator Offset() const { return Offset{ m_fileIndex, m_offset }; }
+    inline                         operator Offset() const { return Offset{ m_fileIndex, m_offset }; }
 
 private:
     BufferIndex       m_fileIndex = 0U;

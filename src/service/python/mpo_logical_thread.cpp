@@ -77,7 +77,7 @@ network::memory::Request_Encoder MPOLogicalThread::getDaemonMemoryRequest()
              getID() };
 }
 
-network::sim::Request_Encoder MPOLogicalThread::getMPOSimRequest( mega::MPO mpo )
+network::sim::Request_Encoder MPOLogicalThread::getMPOSimRequest( runtime::MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
@@ -149,7 +149,7 @@ void MPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
     SPDLOG_TRACE( "PYTHON MPOLogicalThread: run" );
     network::sim::Request_Encoder request(
         [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-        { return rootRequest.MPRoot( msg, mega::MP{} ); },
+        { return rootRequest.MPRoot( msg, mega::runtime::MP{} ); },
         getID() );
     request.SimStart();
 
@@ -158,12 +158,12 @@ void MPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
     m_bRunComplete = true;
 }
 
-void MPOLogicalThread::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+void MPOLogicalThread::RootSimRun( const mega::runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     m_mpo = mpo;
     m_python.setMPO( mpo );
 
-    setMPOContext( this );
+    runtime::setMPOContext( this );
     m_pYieldContext = &yield_ctx;
 
     SPDLOG_TRACE( "PYTHON RootSimRun: Acquired mpo context: {}", mpo );
@@ -185,7 +185,7 @@ void MPOLogicalThread::RootSimRun( const mega::MPO& mpo, boost::asio::yield_cont
     SPDLOG_TRACE( "PYTHON RootSimRun: Releasing mpo context: {}", mpo );
 
     m_pYieldContext = nullptr;
-    resetMPOContext();
+    runtime::resetMPOContext();
 }
 
 TypeID MPOLogicalThread::PythonGetInterfaceTypeID( const TypeID& concreteTypeID, boost::asio::yield_context& )
@@ -200,7 +200,7 @@ void MPOLogicalThread::PythonExecuteJIT( const mega::runtime::RuntimeFunctor& fu
     getLeafJITRequest().ExecuteJIT( func );
 }
 
-TimeStamp MPOLogicalThread::PythonCycle( boost::asio::yield_context& )
+runtime::TimeStamp MPOLogicalThread::PythonCycle( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "MPOLogicalThread::PythonCycle" );
     cycleComplete();

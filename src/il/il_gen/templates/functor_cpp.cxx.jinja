@@ -22,7 +22,7 @@
 #include "service/stash_provider.hpp"
 
 #include "log/log.hpp"
-#include "service/protocol/common/context.hpp"
+#include "runtime/context.hpp"
 
 namespace
 {
@@ -36,7 +36,7 @@ void resolve( const mega::runtime::FunctorID& functorID, bool& resolving, void**
     {
         while( resolving )
         {
-            mega::Context::get()->yield();
+            mega::runtime::Context::get()->yield();
         }
         if( *pFunction == nullptr )
         {
@@ -45,7 +45,7 @@ void resolve( const mega::runtime::FunctorID& functorID, bool& resolving, void**
                 [ functorID, pFunction ]( mega::runtime::FunctionProvider& jit, mega::service::StashProvider& stashProvider )
                 { jit.getFunction( stashProvider, functorID, pFunction ); } );
             // NOTE: call to jit MAY return with THIS coroutine resumed in DIFFERENT thread!
-            mega::Context::get()->jit( functor );
+            mega::runtime::Context::get()->jit( functor );
             // when jit returns EITHER
             // 1. the thread has started here and NOT from beginning
             //      In this case resolving == false && pFunction == nullptr

@@ -19,7 +19,6 @@
 
 #include "service/terminal.hpp"
 
-
 #include "log/log.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
@@ -33,25 +32,25 @@ namespace driver
 namespace sim
 {
 
-mega::MachineID toMachineID( const std::string& strMachineID )
+mega::runtime::MachineID toMachineID( const std::string& strMachineID )
 {
-    mega::MachineID    machineID;
-    std::istringstream is( strMachineID );
+    mega::runtime::MachineID machineID;
+    std::istringstream       is( strMachineID );
     is >> machineID;
     return machineID;
 }
 
-mega::MP toMP( const std::string& strMP )
+mega::runtime::MP toMP( const std::string& strMP )
 {
-    mega::MP           mp;
+    mega::runtime::MP  mp;
     std::istringstream is( strMP );
     is >> mp;
     return mp;
 }
 
-mega::MPO toMPO( const std::string& strMPO )
+mega::runtime::MPO toMPO( const std::string& strMPO )
 {
-    mega::MPO          mpo;
+    mega::runtime::MPO mpo;
     std::istringstream is( strMPO );
     is >> mpo;
     return mpo;
@@ -100,16 +99,16 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         {
             if( std::count( strCreate.begin(), strCreate.end(), '.' ) == 0 )
             {
-                const mega::MachineID   daemonMachineID = toMachineID( strCreate );
-                mega::service::Terminal terminal( log );
-                const mega::MP          executorMP = terminal.ExecutorCreate( daemonMachineID );
+                const mega::runtime::MachineID daemonMachineID = toMachineID( strCreate );
+                mega::service::Terminal        terminal( log );
+                const mega::runtime::MP        executorMP = terminal.ExecutorCreate( daemonMachineID );
                 std::cout << executorMP << std::endl;
             }
             else if( std::count( strCreate.begin(), strCreate.end(), '.' ) == 1 )
             {
-                const mega::MP          executorMP = toMP( strCreate );
-                mega::service::Terminal terminal( log );
-                const mega::MPO         simMPO = terminal.SimCreate( executorMP );
+                const mega::runtime::MP  executorMP = toMP( strCreate );
+                mega::service::Terminal  terminal( log );
+                const mega::runtime::MPO simMPO = terminal.SimCreate( executorMP );
                 std::cout << simMPO << std::endl;
             }
             else
@@ -121,14 +120,14 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         {
             if( std::count( strDestroy.begin(), strDestroy.end(), '.' ) == 1 )
             {
-                const mega::MP          executorMP = toMP( strDestroy );
+                const mega::runtime::MP executorMP = toMP( strDestroy );
                 mega::service::Terminal terminal( log );
                 terminal.ExecutorDestroy( executorMP );
             }
             else if( std::count( strDestroy.begin(), strDestroy.end(), '.' ) == 2 )
             {
-                const mega::MPO         simMPO = toMPO( strDestroy );
-                mega::service::Terminal terminal( log );
+                const mega::runtime::MPO simMPO = toMPO( strDestroy );
+                mega::service::Terminal  terminal( log );
                 terminal.SimDestroy( simMPO );
             }
             else
@@ -139,33 +138,33 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         else if( !strRead.empty() )
         {
             VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
-            const mega::MPO         sourceMPO = toMPO( strID );
-            const mega::MPO         targetMPO = toMPO( strRead );
-            mega::service::Terminal terminal( log );
-            const mega::TimeStamp   lockCycle = terminal.SimRead( sourceMPO, targetMPO );
+            const mega::runtime::MPO       sourceMPO = toMPO( strID );
+            const mega::runtime::MPO       targetMPO = toMPO( strRead );
+            mega::service::Terminal        terminal( log );
+            const mega::runtime::TimeStamp lockCycle = terminal.SimRead( sourceMPO, targetMPO );
             std::cout << lockCycle << std::endl;
         }
         else if( !strWrite.empty() )
         {
             VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
-            const mega::MPO         sourceMPO = toMPO( strID );
-            const mega::MPO         targetMPO = toMPO( strWrite );
-            mega::service::Terminal terminal( log );
-            const mega::TimeStamp   lockCycle = terminal.SimWrite( sourceMPO, targetMPO );
+            const mega::runtime::MPO       sourceMPO = toMPO( strID );
+            const mega::runtime::MPO       targetMPO = toMPO( strWrite );
+            mega::service::Terminal        terminal( log );
+            const mega::runtime::TimeStamp lockCycle = terminal.SimWrite( sourceMPO, targetMPO );
             std::cout << lockCycle << std::endl;
         }
         else if( !strRelease.empty() )
         {
             VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
-            const mega::MPO         sourceMPO = toMPO( strID );
-            const mega::MPO         targetMPO = toMPO( strRelease );
-            mega::service::Terminal terminal( log );
+            const mega::runtime::MPO sourceMPO = toMPO( strID );
+            const mega::runtime::MPO targetMPO = toMPO( strRelease );
+            mega::service::Terminal  terminal( log );
             terminal.SimRelease( sourceMPO, targetMPO );
         }
         else if( !strErrorCheck.empty() )
         {
-            const mega::MPO         targetMPO = toMPO( strErrorCheck );
-            mega::service::Terminal terminal( log );
+            const mega::runtime::MPO targetMPO = toMPO( strErrorCheck );
+            mega::service::Terminal  terminal( log );
             try
             {
                 terminal.SimErrorCheck( targetMPO );

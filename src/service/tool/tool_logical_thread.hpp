@@ -34,7 +34,7 @@
 namespace mega::service
 {
 
-class ToolMPOLogicalThread : public ToolRequestLogicalThread, public mega::MPOContext
+class ToolMPOLogicalThread : public ToolRequestLogicalThread, public runtime::MPOContext
 {
     Tool&         m_tool;
     Tool::Functor m_functor;
@@ -51,13 +51,13 @@ public:
     virtual network::enrole::Request_Encoder getRootEnroleRequest() override;
     virtual network::stash::Request_Encoder  getRootStashRequest() override;
     virtual network::memory::Request_Encoder getDaemonMemoryRequest() override;
-    virtual network::sim::Request_Encoder    getMPOSimRequest( MPO mpo ) override;
+    virtual network::sim::Request_Encoder    getMPOSimRequest( runtime::MPO mpo ) override;
     virtual network::memory::Request_Sender  getLeafMemoryRequest() override;
     virtual network::jit::Request_Sender     getLeafJITRequest() override;
     virtual network::mpo::Request_Sender     getMPRequest() override;
 
     void         run( boost::asio::yield_context& yield_ctx ) override;
-    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     virtual network::Status          GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                 boost::asio::yield_context&           yield_ctx ) override;

@@ -56,7 +56,7 @@ struct TransactionMsgTraits : public MsgTraits
         }
     }
 
-    static inline const mega::MPO& getSimID( const Msg& msg )
+    static inline const mega::runtime::MPO& getSimID( const Msg& msg )
     {
         switch( getMsgID( msg ) )
         {
@@ -75,7 +75,7 @@ struct TransactionMsgTraits : public MsgTraits
 template < typename Simulation >
 class TransactionMachine : public TransactionMsgTraits
 {
-    using ID    = mega::MPO;
+    using ID    = mega::runtime::MPO;
     using IDSet = std::set< ID >;
 
     MsgVector           m_queue;
@@ -223,7 +223,7 @@ public:
     inline void status( network::Status& status )
     {
         if( const auto& readers = m_activeReads; !readers.empty() )
-            status.setReaders( std::vector< MPO >{ readers.begin(), readers.end() } );
+            status.setReaders( std::vector< runtime::MPO >{ readers.begin(), readers.end() } );
         if( const auto& writer = m_activeWrite; writer.has_value() )
             status.setWriter( writer.value() );
     }

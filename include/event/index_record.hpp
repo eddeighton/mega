@@ -60,7 +60,9 @@ public:
 
 private:
     std::array< Offset, toInt( TrackID::TOTAL ) > m_offsets;
+    static_assert( sizeof( std::array< Offset, toInt( TrackID::TOTAL ) > ) == 64 );
 };
+static_assert( sizeof( IndexRecord ) == 64 );
 
 } // namespace mega::event
 

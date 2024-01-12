@@ -164,17 +164,17 @@ public:
     {
     }
 
+    static_assert( sizeof( IndexRecord ) == 64U, "Unexpected record size" );
     static constexpr U64 RecordSize = sizeof( IndexRecord );
-    static_assert( RecordSize == 64U, "Unexpected record size" );
     static constexpr auto RecordsPerFile = LogFileSize / RecordSize;
 
-    static inline BufferIndex toBufferIndex( TimeStamp timeStamp ) noexcept
+    static inline BufferIndex toBufferIndex( runtime::TimeStamp timeStamp ) noexcept
     {
-        return BufferIndex{ static_cast< U32 >( timeStamp / RecordsPerFile ) };
+        return BufferIndex{ static_cast< U32 >( timeStamp.getValue() / RecordsPerFile ) };
     }
-    static inline InterBufferOffset toInterBufferOffset( TimeStamp timeStamp ) noexcept
+    static inline InterBufferOffset toInterBufferOffset( runtime::TimeStamp timeStamp ) noexcept
     {
-        return ( timeStamp % RecordsPerFile ) * RecordSize;
+        return ( timeStamp.getValue() % RecordsPerFile ) * RecordSize;
     }
 };
 

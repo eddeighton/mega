@@ -33,13 +33,13 @@ using __mega_vector = std::vector< T >;
 
 /*
 template< typename ReferenceType >
-inline mega::TimeStamp getTimestamp( mega::TypeID type, mega::Instance instance );
+inline mega::runtime::TimeStamp getTimestamp( mega::TypeID type, mega::Instance instance );
 
 template< typename ReferenceType >
 inline mega::ActionState getState( mega::TypeID type, mega::Instance instance );
 
 template< typename ReferenceType >
-inline mega::TimeStamp getStopCycle( mega::TypeID type, mega::Instance instance );
+inline mega::runtime::TimeStamp getStopCycle( mega::TypeID type, mega::Instance instance );
 
 template< typename ReferenceType >
 inline bool isActionActive( mega::TypeID type, mega::Instance instance )

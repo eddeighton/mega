@@ -26,7 +26,7 @@ namespace mega::reports
 std::string toString( const Value& value )
 {
     std::ostringstream osValue;
-    boost::apply_visitor( [ & ]( const auto& arg ) { osValue << arg; }, value );
+    std::visit( [ & ]( const auto& arg ) { osValue << arg; }, value );
     return osValue.str();
 }
 

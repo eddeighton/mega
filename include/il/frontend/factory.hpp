@@ -53,6 +53,17 @@ public:
     FunctionDefinition generate_Relation_Reset( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
     FunctionDefinition generate_Relation_Size( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
     FunctionDefinition generate_Relation_Get( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+
+    FunctionDefinition generate_Invocation_Read( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Invocation_Write( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Invocation_LinkRead( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Invocation_LinkAdd( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Invocation_LinkRemove( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Invocation_LinkClear( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Invocation_Call( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Invocation_Start( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Invocation_Move( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
+    FunctionDefinition generate_Invocation_Get( runtime::JITDatabase& db, const runtime::FunctorID& functorID );
 };
 } // namespace mega::il
 

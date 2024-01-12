@@ -23,7 +23,7 @@
 
 #include "mega/values/native_types.hpp"
 
-namespace mega
+namespace mega::runtime
 {
 
 class Any

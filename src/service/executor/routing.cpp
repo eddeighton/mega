@@ -139,7 +139,7 @@ network::Message ExecutorRequestLogicalThread::RootExe( const network::Message& 
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
-network::Message ExecutorRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message ExecutorRequestLogicalThread::MPDown( const network::Message& request, const mega::runtime::MP& mp,
                                                        boost::asio::yield_context& yield_ctx )
 {
     return dispatchInBoundRequest( request, yield_ctx );

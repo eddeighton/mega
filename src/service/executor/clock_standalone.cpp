@@ -26,7 +26,6 @@
 #include "service/protocol/common/logical_thread_base.hpp"
 #include "service/protocol/model/messages.hxx"
 
-
 #include <future>
 
 namespace mega::service
@@ -54,12 +53,12 @@ void ProcessClockStandalone::unregisterMPO( network::SenderRef sender )
     boost::asio::post( m_strand, [ this, sender ]() { unregisterMPOImpl( sender ); } );
 }
 
-void ProcessClockStandalone::requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range )
+void ProcessClockStandalone::requestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo, event::Range )
 {
     boost::asio::post( m_strand, [ this, pSender, mpo ]() { requestClockImpl( pSender, mpo ); } );
 }
 
-bool ProcessClockStandalone::unrequestClock( network::LogicalThreadBase* pSender, MPO mpo )
+bool ProcessClockStandalone::unrequestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo )
 {
     std::promise< bool > promise;
     std::future< bool >  fut = promise.get_future();
@@ -72,7 +71,7 @@ bool ProcessClockStandalone::unrequestClock( network::LogicalThreadBase* pSender
     return fut.get();
 }
 
-void ProcessClockStandalone::requestMove( network::LogicalThreadBase* pSender, MPO mpo )
+void ProcessClockStandalone::requestMove( network::LogicalThreadBase* pSender, runtime::MPO mpo )
 {
     ProcessClockStandalone* pThis = this;
     boost::asio::post( m_strand, [ pThis, pSender, mpo ]() { pThis->requestMoveImpl( pSender, mpo ); } );
@@ -95,7 +94,7 @@ void ProcessClockStandalone::unregisterMPOImpl( network::SenderRef sender )
     checkClock();
 }
 
-void ProcessClockStandalone::requestMoveImpl( network::LogicalThreadBase* pSender, MPO mpo )
+void ProcessClockStandalone::requestMoveImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo )
 {
     {
         auto iFind = m_mpos.find( mpo );
@@ -106,7 +105,7 @@ void ProcessClockStandalone::requestMoveImpl( network::LogicalThreadBase* pSende
     checkClock();
 }
 
-void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSender, MPO mpo )
+void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo )
 {
     {
         auto iFind = m_mpos.find( mpo );
@@ -117,7 +116,7 @@ void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSend
     checkClock();
 }
 
-bool ProcessClockStandalone::unrequestClockImpl( network::LogicalThreadBase* pSender, MPO mpo )
+bool ProcessClockStandalone::unrequestClockImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo )
 {
     // allow to unrequest if there is any other thread waiting
     bool bOtherThreadWaiting = false;
@@ -182,10 +181,10 @@ void ProcessClockStandalone::checkClock()
 
 void ProcessClockStandalone::clock()
 {
-    Tick timeNow     = std::chrono::steady_clock::now();
-    m_clockTick.m_ct = FloatTickDuration( timeNow - m_startTimeStamp ).count();
-    m_clockTick.m_dt = FloatTickDuration( timeNow - m_lastTick ).count();
-    ++m_clockTick.m_cycle;
+    Tick timeNow        = std::chrono::steady_clock::now();
+    m_clockTick.m_ct    = FloatTickDuration( timeNow - m_startTimeStamp ).count();
+    m_clockTick.m_dt    = FloatTickDuration( timeNow - m_lastTick ).count();
+    m_clockTick.m_cycle = runtime::TimeStamp{ m_clockTick.m_cycle.getValue() + 1 };
 
     for( auto& [ _, state ] : m_mpos )
     {

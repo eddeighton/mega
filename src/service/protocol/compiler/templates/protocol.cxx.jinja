@@ -28,7 +28,8 @@
 #include "log/log.hpp"
 
 #include "service/protocol/common/sender.hpp"
-#include "service/protocol/common/context.hpp"
+
+#include "runtime/context.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -115,7 +116,7 @@ Request_Sender::Request_Sender( LogicalThread&              _logicalthread_,
             else
             {
                 // otherwise just send to the sender
-                mega::_MPOContextStack _mpoStack;
+                mega::runtime::_MPOContextStack _mpoStack;
                 if ( const boost::system::error_code ec = m_pSender->send( _msg_, m_yield_ctx ) )
                 {
                     THROW_RTE( "Error writing: " << ec.what() );

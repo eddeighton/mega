@@ -56,7 +56,7 @@ public:
     virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
     network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
-    MP                   getMP() const { return m_leaf.getMP(); }
+    runtime::MP          getMP() const { return m_leaf.getMP(); }
 
     int                                   getTimeoutSeconds() const { return m_iTimeoutSeconds; }
     const boost::asio::ip::tcp::endpoint& getHTTPEndPoint() const { return m_httpEndPoint; }

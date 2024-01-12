@@ -26,21 +26,27 @@
 
 C_RUNTIME_START
 
-using c_concrete_object_id = struct _c_concrete_object_id
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_concrete_object_id
 {
     c_u16 value;
-};
+} c_concrete_object_id;
 
-using c_concrete_sub_object_id = struct _c_concrete_sub_object_id
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_concrete_sub_object_id
 {
     c_u16 value;
-};
+} c_concrete_sub_object_id;
 
-using c_concrete_type_id = struct _c_concrete_type_id
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_concrete_type_id
 {
     c_concrete_sub_object_id sub_object_id;
     c_concrete_object_id     object_id;
-};
+} c_concrete_type_id;
 
 #ifdef __cplusplus
 constexpr
@@ -72,16 +78,20 @@ constexpr
     return c_concrete_type_id{ ( c_u16 )( i ), ( c_u16 )( i >> 16 ) };
 }
 
-using c_concrete_instance = struct _c_concrete_instance
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_concrete_instance
 {
     c_u16 value;
-};
+} c_concrete_instance;
 
-using c_concrete_sub_object_id_instance = struct _c_concrete_sub_object_id_instance
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+typedef struct _c_concrete_sub_object_id_instance
 {
     c_concrete_sub_object_id sub_object_id;
     c_concrete_instance      instance;
-};
+} c_concrete_sub_object_id_instance;
 
 #ifdef __cplusplus
 constexpr
@@ -113,12 +123,14 @@ constexpr
     return c_concrete_sub_object_id_instance{ ( c_u16 )( i ), ( c_u16 )( i >> 16 ) };
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 #pragma pack( 1 )
-using c_concrete_type_id_instance = struct _c_concrete_type_id_instance
+typedef struct _c_concrete_type_id_instance
 {
     c_concrete_type_id  type_id;
     c_concrete_instance instance;
-};
+} c_concrete_type_id_instance;
 #pragma pack()
 
 #ifdef __cplusplus

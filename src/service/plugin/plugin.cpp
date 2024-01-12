@@ -59,20 +59,20 @@ void Plugin::unregisterMPO( network::SenderRef sender )
     send( MSG_SimUnregister_Request::make( m_logicalThreadID, MSG_SimUnregister_Request{ sender.m_mpo } ) );
 }
 
-void Plugin::requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range )
+void Plugin::requestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo, event::Range range )
 {
     using namespace network::sim;
     send( MSG_SimClock_Request::make( m_logicalThreadID, MSG_SimClock_Request{ mpo, std::move( range ) } ) );
 }
 
-bool Plugin::unrequestClock( network::LogicalThreadBase* pSender, MPO mpo )
+bool Plugin::unrequestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo )
 {
     THROW_TODO;
     using namespace network::sim;
     // send( MSG_SimClock_Request::make( m_logicalThreadID, MSG_SimClock_Request{ mpo, std::move( range ) } ) );
 }
 
-void Plugin::requestMove( network::LogicalThreadBase* pSender, MPO mpo )
+void Plugin::requestMove( network::LogicalThreadBase* pSender, runtime::MPO mpo )
 {
     using namespace network::sim;
     THROW_TODO;

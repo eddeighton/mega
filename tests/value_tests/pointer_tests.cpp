@@ -27,20 +27,19 @@
 TEST( Pointer, Basic )
 {
     using namespace mega;
-
-    Pointer p;
+    // Pointer p;
 }
 
 /*
-mega::MP fromStr( const std::string& str )
+mega::runtime::MP fromStr( const std::string& str )
 {
     std::istringstream is( str );
-    mega::MP           mp;
+    mega::runtime::MP           mp;
     is >> mp;
     return mp;
 }
 
-std::string toStr( mega::MP mp )
+std::string toStr( mega::runtime::MP mp )
 {
     std::ostringstream os;
     os << mp;
@@ -50,11 +49,11 @@ std::string toStr( mega::MP mp )
 TEST( Pointer, MPIO )
 {
     // clang-format off
-    ASSERT_EQ( fromStr( "0.0" ), mega::MP( 0, 0 ) );
-    ASSERT_EQ( fromStr( "0.1" ), mega::MP( 0, 1 ) );
-    ASSERT_EQ( fromStr( "0.2" ), mega::MP( 0, 2 ) );
-    ASSERT_EQ( fromStr( "1.0" ), mega::MP( 1, 0 ) );
-    ASSERT_EQ( fromStr( "2.0" ), mega::MP( 2, 0 ) );
+    ASSERT_EQ( fromStr( "0.0" ), mega::runtime::MP( 0, 0 ) );
+    ASSERT_EQ( fromStr( "0.1" ), mega::runtime::MP( 0, 1 ) );
+    ASSERT_EQ( fromStr( "0.2" ), mega::runtime::MP( 0, 2 ) );
+    ASSERT_EQ( fromStr( "1.0" ), mega::runtime::MP( 1, 0 ) );
+    ASSERT_EQ( fromStr( "2.0" ), mega::runtime::MP( 2, 0 ) );
     // clang-format on
 }
 
@@ -78,7 +77,7 @@ TEST( Pointer, HeapAccess )
 TEST( Pointer, NetAccess )
 {
     using namespace mega;
-    mega::MPO       testMPO( 1, 2, 3 );
+    mega::runtime::MPO       testMPO( 1, 2, 3 );
     mega::Pointer h{ mega::TypeInstance{ mega::max_typeID_context, 123 }, testMPO, 4 };
 
     ASSERT_TRUE( h.isNetworkAddress() );
@@ -91,7 +90,7 @@ TEST( Pointer, NetAccess )
 TEST( Pointer, HeaderAccess )
 {
     mega::TypeInstance     typeInstance{ mega::max_typeID_context, 123 };
-    mega::MPO              testMPO( 1, 2, 3 );
+    mega::runtime::MPO              testMPO( 1, 2, 3 );
     mega::Pointer        networkAddress{ typeInstance, testMPO, 4 };
     mega::ObjectHeaderBase header{ networkAddress, 1U, 9 };
 
@@ -203,7 +202,7 @@ INSTANTIATE_TEST_SUITE_P( Pointer, PointerIOTest,
             PointerTestData{ mega::Pointer{} },
 
             // network address
-            PointerTestData{ mega::Pointer{ mega::TypeInstance{}, mega::MPO{}, mega::AllocationID{} } },
+            PointerTestData{ mega::Pointer{ mega::TypeInstance{}, mega::runtime::MPO{}, mega::AllocationID{} } },
             PointerTestData{ mega::max_net_ref },
             PointerTestData{ mega::min_net_ref },
 

@@ -26,6 +26,6 @@ msg RootAllBroadcast
 // special case for registering MPO and running simulation
 msg RootSimRun
 {
-    request( mega::MPO mpo );
+    request( mega::runtime::MPO mpo );
     response();
 }

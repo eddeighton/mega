@@ -69,11 +69,11 @@ set( NATIVE_FILES
 )
 
 set( INLINE_FILES
-	${MEGA_API_DIR}/mega/values/inline_types.h
+    ${MEGA_API_DIR}/mega/values/inline_types.h
 )
 
 set( EXTERN_FILES
-	${MEGA_API_DIR}/runtime/support.hpp
+	${MEGA_API_DIR}/runtime/extern.h
 )
 
 set( MATERIALISER_FILES
@@ -99,3 +99,5 @@ add_custom_target( run_il_gen
     SOURCES ${INLINE_FILES} ${EXTERN_FILES} ${TEMPLATE_FILES}
 )
 add_dependencies( run_il_gen il_gen )
+
+install( FILES ${MATERIALISER_FILES} DESTINATION include/il/materialisers )

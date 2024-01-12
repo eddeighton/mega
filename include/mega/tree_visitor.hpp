@@ -79,7 +79,7 @@ struct TreeVisitor
     void on_namespace( const char* pszType, const Reference& ref )
     {
     }
-    void on_dimension( const char* pszType, const Reference& ref, const mega::Any& value )
+    void on_dimension( const char* pszType, const Reference& ref, const mega::runtime::Any& value )
     {
     }
 };

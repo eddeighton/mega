@@ -33,9 +33,9 @@ namespace driver::project
 {
 namespace
 {
-mega::MP toMP( const std::string& strMP )
+mega::runtime::MP toMP( const std::string& strMP )
 {
-    mega::MP           mp;
+    mega::runtime::MP           mp;
     std::istringstream is( strMP );
     is >> mp;
     return mp;
@@ -101,20 +101,20 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             VERIFY_RTE_MSG(
                 boost::filesystem::exists( programFile ), "Failed to locate program at: " << programFile.string() );
 
-            const mega::MP mp = toMP( strLoad );
+            const mega::runtime::MP mp = toMP( strLoad );
 
             mega::service::Terminal terminal( log );
             terminal.ProgramLoad( program, mp );
         }
         else if( !strUnload.empty() )
         {
-            const mega::MP mp = toMP( strUnload );
+            const mega::runtime::MP mp = toMP( strUnload );
             mega::service::Terminal terminal( log );
             terminal.ProgramUnload( mp );
         }
         else if( !strGet.empty() )
         {
-            const mega::MP mp = toMP( strGet );
+            const mega::runtime::MP mp = toMP( strGet );
             mega::service::Terminal terminal( log );
             auto prog = terminal.ProgramGet( mp );
             std::cout << "MP: " << mp << " reports: " << prog << std::endl;

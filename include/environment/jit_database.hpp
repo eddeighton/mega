@@ -34,72 +34,74 @@
 #include "database/exception.hpp"
 #include "database/manifest_data.hpp"
 
-// #include "database/FinalStage.hxx"
-// #include "database/manifest.hxx"
+#include "database/FinalStage.hxx"
+#include "database/manifest.hxx"
 
 namespace mega::runtime
 {
-/*
 class JITDatabase
 {
-    using InterfaceTypeIDMap    = std::map< mega::TypeID, ::FinalStage::Symbols::interface::TypeID* >;
-    using ConcreteTypeIDMap     = std::map< TypeID, ::FinalStage::Symbols::concrete::TypeID* >;
-    using DynamicInvocationsMap = std::map< InvocationID, const ::FinalStage::Operations::Invocation* >;
+    // using InterfaceTypeIDMap    = std::map< mega::TypeID, ::FinalStage::Symbols::interface::TypeID* >;
+    // using ConcreteTypeIDMap     = std::map< TypeID, ::FinalStage::Symbols::concrete::TypeID* >;
+    // using DynamicInvocationsMap = std::map< InvocationID, const ::FinalStage::Operations::Invocation* >;
 
-    const FinalStage::Operations::Invocation* getExistingInvocation( const InvocationID& invocation ) const;
+    // const FinalStage::Operations::Invocation* getExistingInvocation( const InvocationID& invocation ) const;
 
 public:
     JITDatabase( const boost::filesystem::path& projectDatabasePath );
 
-    const io::ArchiveEnvironment& getEnvironment() const { return m_environment; }
-    const io::Manifest&           getManifest() const { return m_manifest; }
+    /*
+        const io::ArchiveEnvironment& getEnvironment() const { return m_environment; }
+        const io::Manifest&           getManifest() const { return m_manifest; }
 
-    FinalStage::HyperGraph::Relation* getRelation( const RelationID& relationID ) const;
-    using RelationMap = std::unordered_map< RelationID, FinalStage::HyperGraph::Relation*, RelationID::Hash >;
-    const RelationMap& getRelations() const { return m_relations; }
+        FinalStage::HyperGraph::Relation* getRelation( const RelationID& relationID ) const;
+        using RelationMap = std::unordered_map< RelationID, FinalStage::HyperGraph::Relation*, RelationID::Hash >;
+        const RelationMap& getRelations() const { return m_relations; }
 
-    SizeAlignment getObjectSize( TypeID objectType ) const;
+        SizeAlignment getObjectSize( TypeID objectType ) const;
 
-    const FinalStage::Operations::Invocation* getInvocation( const InvocationID& invocation ) const;
-    const FinalStage::Operations::Invocation* tryGetInvocation( const InvocationID& invocation ) const;
-    void addDynamicInvocation( const InvocationID& invocation, const FinalStage::Operations::Invocation* pInvocation );
+        const FinalStage::Operations::Invocation* getInvocation( const InvocationID& invocation ) const;
+        const FinalStage::Operations::Invocation* tryGetInvocation( const InvocationID& invocation ) const;
+        void addDynamicInvocation( const InvocationID& invocation, const FinalStage::Operations::Invocation* pInvocation
+       );
 
-    TypeID                                         getInterfaceTypeID( TypeID concreteTypeID ) const;
-    TypeID                                         getSingularConcreteTypeID( TypeID interfaceTypeID ) const;
-    std::vector< TypeID >                          getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
-    FinalStage::Concrete::Object*                  getObject( TypeID objectType ) const;
-    FinalStage::Interface::Action*                 getAction( TypeID interfaceTypeID ) const;
-    FinalStage::Decision::DecisionProcedure*       getDecision( TypeID concreteTypeID ) const;
-    const FinalStage::Components::Component*       getComponent( TypeID objectType ) const;
-    const FinalStage::Components::Component*       getOperationComponent( TypeID interfaceTypeID ) const;
-    std::vector< FinalStage::Concrete::Object* >   getObjects() const;
-    std::vector< FinalStage::Concrete::Action* >   getActions() const;
-    std::vector< FinalStage::Concrete::Interupt* > getInterupts() const;
+        TypeID                                         getInterfaceTypeID( TypeID concreteTypeID ) const;
+        TypeID                                         getSingularConcreteTypeID( TypeID interfaceTypeID ) const;
+        std::vector< TypeID >                          getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
+        FinalStage::Concrete::Object*                  getObject( TypeID objectType ) const;
+        FinalStage::Interface::Action*                 getAction( TypeID interfaceTypeID ) const;
+        FinalStage::Decision::DecisionProcedure*       getDecision( TypeID concreteTypeID ) const;
+        const FinalStage::Components::Component*       getComponent( TypeID objectType ) const;
+        const FinalStage::Components::Component*       getOperationComponent( TypeID interfaceTypeID ) const;
+        std::vector< FinalStage::Concrete::Object* >   getObjects() const;
+        std::vector< FinalStage::Concrete::Action* >   getActions() const;
+        std::vector< FinalStage::Concrete::Interupt* > getInterupts() const;
 
-    std::vector< FinalStage::Concrete::Dimensions::User* > getUserDimensions() const;
-    std::vector< FinalStage::Concrete::Dimensions::Link* > getLinkDimensions() const;
+        std::vector< FinalStage::Concrete::Dimensions::User* > getUserDimensions() const;
+        std::vector< FinalStage::Concrete::Dimensions::Link* > getLinkDimensions() const;
 
-    using ConcreteToInterface = std::vector< std::pair< TypeID, TypeID > >;
-    void getConcreteToInterface( ConcreteToInterface& concreteToInterface ) const;
+        using ConcreteToInterface = std::vector< std::pair< TypeID, TypeID > >;
+        void getConcreteToInterface( ConcreteToInterface& concreteToInterface ) const;
 
-    using PrefabBindings = std::vector< FinalStage::UnityAnalysis::Binding* >;
-    PrefabBindings getPrefabBindings() const;
-
+        using PrefabBindings = std::vector< FinalStage::UnityAnalysis::Binding* >;
+        PrefabBindings getPrefabBindings() const;
+    */
 private:
-    io::ArchiveEnvironment                            m_environment;
-    io::Manifest                                      m_manifest;
-    FinalStage::Database                              m_database;
-    std::vector< FinalStage::Components::Component* > m_components;
+    io::ArchiveEnvironment m_environment;
+    io::Manifest           m_manifest;
+    FinalStage::Database   m_database;
 
-    FinalStage::Symbols::SymbolTable* m_pSymbolTable;
-    ConcreteTypeIDMap                 m_concreteTypeIDs;
-    InterfaceTypeIDMap                m_interfaceTypeIDs;
+    /*
+        std::vector< FinalStage::Components::Component* > m_components;
+        FinalStage::Symbols::SymbolTable* m_pSymbolTable;
+        ConcreteTypeIDMap                 m_concreteTypeIDs;
+        InterfaceTypeIDMap                m_interfaceTypeIDs;
 
-    FinalStage::Concrete::Object* m_pConcreteRoot;
-    DynamicInvocationsMap         m_dynamicInvocations;
-    RelationMap                   m_relations;
+        FinalStage::Concrete::Object* m_pConcreteRoot;
+        DynamicInvocationsMap         m_dynamicInvocations;
+        RelationMap                   m_relations;*/
 };
-*/
+
 } // namespace mega::runtime
 
 #endif // DATABASE_8_AUG_2022

@@ -83,7 +83,6 @@ target_link_libraries( tool leaf )
 target_link_libraries( tool database )
 #target_link_libraries( tool orc )
 target_link_libraries( tool log )
-target_link_libraries( tool mega_mangle )
 
 install( FILES ${TOOL_LIB_API} DESTINATION include/service )
 install( TARGETS tool EXPORT tool DESTINATION bin)

@@ -202,99 +202,100 @@ FunctionDefinition Factory::generate_Object_constructor( runtime::JITDatabase& d
 FunctionDefinition Factory::generate_Object_destructor( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
-   /* auto pObject = db.getObject( functorID.m_Object.typeID );
+    /* auto pObject = db.getObject( functorID.m_Object.typeID );
 
-    Variable< ValueType > pReference{ ConstRef{ e_reference }, "ref"s };
-    Variable< ValueType > pMemory{ voidPtr, "pMemory"s };
-    Variable< ValueType > bLinkReset{ Mutable{ e_bool }, "bLinkReset"s };
+     Variable< ValueType > pReference{ ConstRef{ e_reference }, "ref"s };
+     Variable< ValueType > pMemory{ voidPtr, "pMemory"s };
+     Variable< ValueType > bLinkReset{ Mutable{ e_bool }, "bLinkReset"s };
 
-    Variable< ValueType > iterator{ charPtr, "p"s };
+     Variable< ValueType > iterator{ charPtr, "p"s };
 
-    std::vector< Statement > statements;
-    for( auto pBuffer : pObject->get_buffers() )
-    {
-        for( auto pPart : pBuffer->get_parts() )
-        {
-            std::vector< Statement > destructions;
-            for( auto pUserDim : pPart->get_user_dimensions() )
-            {
-                destructions.emplace_back( ExpressionStatement{
-                    Call{ MangleDTor{ pUserDim->get_interface_dimension()->get_mangle()->get_mangle() },
-                          { expAdd( Read{ iterator }, pUserDim->get_offset() ) } } } );
-            }
+     std::vector< Statement > statements;
+     for( auto pBuffer : pObject->get_buffers() )
+     {
+         for( auto pPart : pBuffer->get_parts() )
+         {
+             std::vector< Statement > destructions;
+             for( auto pUserDim : pPart->get_user_dimensions() )
+             {
+                 destructions.emplace_back( ExpressionStatement{
+                     Call{ MangleDTor{ pUserDim->get_interface_dimension()->get_mangle()->get_mangle() },
+                           { expAdd( Read{ iterator }, pUserDim->get_offset() ) } } } );
+             }
 
-            for( auto pLink : pPart->get_link_dimensions() )
-            {
-                if( pLink->get_singular() )
-                {
-                    destructions.emplace_back( ExpressionStatement{ Call{
-                        MangleDTor{ "classmega00reference" }, { expAdd( Read{ iterator }, pLink->get_offset() ) } } } );
+             for( auto pLink : pPart->get_link_dimensions() )
+             {
+                 if( pLink->get_singular() )
+                 {
+                     destructions.emplace_back( ExpressionStatement{ Call{
+                         MangleDTor{ "classmega00reference" }, { expAdd( Read{ iterator }, pLink->get_offset() ) } } }
+     );
 
-                    destructions.emplace_back( ExpressionStatement{
-                        Call{ MangleDTor{ "classmega00TypeID" },
-                              { expAdd( Read{ iterator }, pLink->get_link_type()->get_offset() ) } } } );
-                }
-                else
-                {
-                    destructions.emplace_back(
-                        ExpressionStatement{ Call{ MangleDTor{ "classstd00vector3classmega00reference4" },
-                                                   { expAdd( Read{ iterator }, pLink->get_offset() ) } } } );
+                     destructions.emplace_back( ExpressionStatement{
+                         Call{ MangleDTor{ "classmega00TypeID" },
+                               { expAdd( Read{ iterator }, pLink->get_link_type()->get_offset() ) } } } );
+                 }
+                 else
+                 {
+                     destructions.emplace_back(
+                         ExpressionStatement{ Call{ MangleDTor{ "classstd00vector3classmega00reference4" },
+                                                    { expAdd( Read{ iterator }, pLink->get_offset() ) } } } );
 
-                    destructions.emplace_back( ExpressionStatement{
-                        Call{ MangleDTor{ "classstd00vector3classmega00TypeID4" },
-                              { expAdd( Read{ iterator }, pLink->get_link_type()->get_offset() ) } } } );
-                }
-
-
-                Relation                 relationMat;
-                Variable< Materialiser > relationMatVar{ relationMat, "linkReset"s };
-                const FunctionTemplate&  linkReset = relationMat.getFunctionTemplate( Relation::Reset );
-
-                Variable< ValueType > linkRelationID{ Const{ e_RelationID }, "linkRef" };
-                Variable< ValueType > linkRef{ Const{ e_reference }, "linkRef" };
-
-                // link reset
-                destructions.emplace_back(
-                    If{ { If::Case{ Read{ bLinkReset },
-                                    {
-
-                                        { MaterialiserStatement //
-                                        { relationMatVar, { Read{ linkRelationID } }, linkReset.function },
-                                        ExpressionStatement //
-                                        { CallFunctor{ relationMatVar, linkReset.function, { Read{ linkRef } } } } }
-
-                                    } } } } );
-
-            // const mega::Pointer linkRef = mega::Pointer::make( ref,
-            //         mega::TypeInstance{ {{ link.link_type_id }}, static_cast< mega::Instance >( instance ) } );
-            // static thread_local mega::runtime::relation::LinkReset function(
-            //     g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );
-            // function( linkRef );
-
-            }
-
-            for( auto pBitset : pPart->get_bitset_dimensions() )
-            {
-                destructions.emplace_back( ExpressionStatement{
-                    Call{ MangleDTor{ pBitset->get_interface_compiler_dimension()->get_mangle()->get_mangle() },
-                          { expAdd( Read{ iterator }, pBitset->get_offset() ) } } } );
-            }
+                     destructions.emplace_back( ExpressionStatement{
+                         Call{ MangleDTor{ "classstd00vector3classmega00TypeID4" },
+                               { expAdd( Read{ iterator }, pLink->get_link_type()->get_offset() ) } } } );
+                 }
 
 
-            auto start = expAdd( Cast{ { Read{ pMemory } }, charPtr }, pPart->get_offset() );
-            auto end   = expAdd( start, pPart->get_total_domain_size() * pPart->get_size() );
+                 Relation                 relationMat;
+                 Variable< Materialiser > relationMatVar{ relationMat, "linkReset"s };
+                 const FunctionTemplate&  linkReset = relationMat.getFunctionTemplate( Relation::Reset );
 
-            statements.emplace_back( ForLoop{
+                 Variable< ValueType > linkRelationID{ Const{ e_RelationID }, "linkRef" };
+                 Variable< ValueType > linkRef{ Const{ e_reference }, "linkRef" };
 
-                iterator,
-                start,
-                Operator{ { Read{ iterator }, end }, Operator::eNotEqual },
-                Operator::makeIncrement( iterator, std::to_string( pPart->get_size() ) ),
-                { destructions } } );
-        }
-    }
+                 // link reset
+                 destructions.emplace_back(
+                     If{ { If::Case{ Read{ bLinkReset },
+                                     {
 
-    return { functorID.name(), Mutable{ e_void }, { pReference, pMemory, bLinkReset }, statements };*/
+                                         { MaterialiserStatement //
+                                         { relationMatVar, { Read{ linkRelationID } }, linkReset.function },
+                                         ExpressionStatement //
+                                         { CallFunctor{ relationMatVar, linkReset.function, { Read{ linkRef } } } } }
+
+                                     } } } } );
+
+             // const mega::Pointer linkRef = mega::Pointer::make( ref,
+             //         mega::TypeInstance{ {{ link.link_type_id }}, static_cast< mega::Instance >( instance ) } );
+             // static thread_local mega::runtime::relation::LinkReset function(
+             //     g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );
+             // function( linkRef );
+
+             }
+
+             for( auto pBitset : pPart->get_bitset_dimensions() )
+             {
+                 destructions.emplace_back( ExpressionStatement{
+                     Call{ MangleDTor{ pBitset->get_interface_compiler_dimension()->get_mangle()->get_mangle() },
+                           { expAdd( Read{ iterator }, pBitset->get_offset() ) } } } );
+             }
+
+
+             auto start = expAdd( Cast{ { Read{ pMemory } }, charPtr }, pPart->get_offset() );
+             auto end   = expAdd( start, pPart->get_total_domain_size() * pPart->get_size() );
+
+             statements.emplace_back( ForLoop{
+
+                 iterator,
+                 start,
+                 Operator{ { Read{ iterator }, end }, Operator::eNotEqual },
+                 Operator::makeIncrement( iterator, std::to_string( pPart->get_size() ) ),
+                 { destructions } } );
+         }
+     }
+
+     return { functorID.name(), Mutable{ e_void }, { pReference, pMemory, bLinkReset }, statements };*/
 }
 FunctionDefinition Factory::generate_Object_binaryLoad( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
@@ -357,4 +358,49 @@ FunctionDefinition Factory::generate_Relation_Get( runtime::JITDatabase& db, con
 {
     THROW_TODO;
 }
+
+FunctionDefinition Factory::generate_Invocation_Read( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+FunctionDefinition Factory::generate_Invocation_Write( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+FunctionDefinition Factory::generate_Invocation_LinkRead( runtime::JITDatabase&     db,
+                                                          const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+FunctionDefinition Factory::generate_Invocation_LinkAdd( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+FunctionDefinition Factory::generate_Invocation_LinkRemove( runtime::JITDatabase&     db,
+                                                            const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+FunctionDefinition Factory::generate_Invocation_LinkClear( runtime::JITDatabase&     db,
+                                                           const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+FunctionDefinition Factory::generate_Invocation_Call( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+FunctionDefinition Factory::generate_Invocation_Start( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+FunctionDefinition Factory::generate_Invocation_Move( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+FunctionDefinition Factory::generate_Invocation_Get( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
+{
+    THROW_TODO;
+}
+
 } // namespace mega::il

@@ -130,31 +130,31 @@ network::Message ReportRequestLogicalThread::ReportDaemon( const network::Messag
     return getReportRequest( yield_ctx ).ReportDaemon( request );
 }
 
-network::Message ReportRequestLogicalThread::MPRoot( const network::Message& request, const mega::MP& mp,
+network::Message ReportRequestLogicalThread::MPRoot( const network::Message& request, const mega::runtime::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender rq{ *this, m_report.getLeafSender(), yield_ctx };
     return rq.MPRoot( request, mp );
 }
 
-network::Message ReportRequestLogicalThread::MPUp( const network::Message& request, const mega::MP& mp,
+network::Message ReportRequestLogicalThread::MPUp( const network::Message& request, const mega::runtime::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender rq{ *this, m_report.getLeafSender(), yield_ctx };
     return rq.MPUp( request, mp );
 }
 
-network::Message ReportRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message ReportRequestLogicalThread::MPDown( const network::Message& request, const mega::runtime::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( m_report.getMP() == mp );
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
-network::Message ReportRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
+network::Message ReportRequestLogicalThread::MPODown( const network::Message& request, const mega::runtime::MPO& mpo,
                                                      boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( m_report.getMP() == MP( mpo ) );
+    VERIFY_RTE( m_report.getMP() == mpo.getMP() );
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
