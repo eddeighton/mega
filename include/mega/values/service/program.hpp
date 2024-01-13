@@ -28,6 +28,7 @@
 #include "common/assert_verify.hpp"
 
 #include <optional>
+#include <limits>
 
 namespace mega::service
 {
@@ -39,6 +40,8 @@ public:
     {
     public:
         using Value = U32;
+
+        inline static constexpr Value MAX = std::numeric_limits< Value >::max();
 
         inline Version()                 = default;
         inline Version( const Version& ) = default;

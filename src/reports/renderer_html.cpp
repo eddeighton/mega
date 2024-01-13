@@ -248,6 +248,7 @@ int javascriptKeyCode( char c )
         case 'Y': return 89;
         case 'Z': return 90;
         
+        case 'a': return 97;
         case 'b': return 98;
         case 'c': return 99;
         case 'd': return 100;

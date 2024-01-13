@@ -96,7 +96,7 @@ static constexpr AllocationID ALLOCATION_ZERO = 0x0000_A;
 
 inline std::ostream& operator<<( std::ostream& os, const AllocationID& instance )
 {
-    return os << "0x" << std::hex << std::setw( 4 ) << std::setfill( '0' ) << instance.getValue() << std::dec << "_A";
+    return os << "0x" << std::hex << std::setw( 4 ) << std::setfill( '0' ) << instance.getValue() << "_A";
 }
 
 inline std::istream& operator>>( std::istream& is, AllocationID& instance )

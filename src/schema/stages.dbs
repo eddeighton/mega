@@ -271,4 +271,5 @@ stage FinalStage
 
     dependency DecisionsStage;
 
+    global accessor array< ref< Components::Component > >;
 }

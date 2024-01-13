@@ -76,7 +76,7 @@ std::string generateCPPType( Database& database, Interface::Node* pNode,
         {
             os << MEGA_POINTER << "< "
                << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
-               << pPath->get_type()->get_interface_id()->get_type_id().getValue() << std::dec << " > ";
+               << pPath->get_type()->get_interface_id()->get_type_id().getValue() << " > ";
         }
         else if( auto pPath = db_cast< Parser::Type::Deriving >( pFragment ) )
         {
@@ -101,8 +101,7 @@ std::string generateCPPType( Database& database, Interface::Node* pNode,
                     {
                         os << ", ";
                     }
-                    os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << interfaceTypeID.getValue()
-                       << std::dec;
+                    os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << interfaceTypeID.getValue();
                     uniqueInterfaceTypeIDs.insert( interfaceTypeID );
                 }
             }

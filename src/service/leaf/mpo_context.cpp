@@ -224,6 +224,7 @@ void MPOContext::writeLock( runtime::Pointer& ref )
 void MPOContext::createRoot( const runtime::MPO& mpo )
 {
     // initialise event log
+    try
     {
         boost::filesystem::path logFolder;
         {
@@ -240,7 +241,8 @@ void MPOContext::createRoot( const runtime::MPO& mpo )
         }
         std::ostringstream os;
         {
-            os << "events/ev_" << mpo << "_" << m_logicalthreadIDRef << "/";
+            os << "events/ev_" << mpo.getMachineID() << '_' << mpo.getProcessID() << '_' << mpo.getOwnerID() << '_'
+               << m_logicalthreadIDRef << "/";
         }
 
         const boost::filesystem::path eventLogFolder = logFolder / os.str();
@@ -248,6 +250,12 @@ void MPOContext::createRoot( const runtime::MPO& mpo )
 
         m_pLog                 = std::make_unique< event::FileStorage >( eventLogFolder, false );
         m_pTransactionProducer = std::make_unique< network::TransactionProducer >( *m_pLog );
+    }
+    catch( std::exception& ex )
+    {
+        std::ostringstream os;
+        os << mpo;
+        THROW_RTE( "Exception attempting to create event log for mpo: " << os.str() << " error: " << ex.what() );
     }
 
     m_mpo = mpo;
@@ -436,8 +444,12 @@ void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::T
 
     // clang-format off
     table.m_rows.push_back( { Line{ "         MPO: "s }, Line{ m_mpo.value() } } );
-    table.m_rows.push_back( { Line{ "   Root Heap: "s }, Line{ m_root } } );
-    table.m_rows.push_back( { Line{ "    Root Net: "s }, Line{ m_root.getPointerNet() } } );
+    // table.m_rows.push_back( { Line{ "   Root Heap: "s }, Line{ m_root } } );
+    // if( m_root.valid() )
+    // {
+    //     table.m_rows.push_back( { Line{ "    Root Net: "s }, Line{ m_root.getPointerNet() } } );
+    // }
+
     table.m_rows.push_back( { Line{ "        Tick: "s }, Line{ std::to_string( getLog().getTimeStamp() ) } } );
     table.m_rows.push_back( { Line{ "  Start Time: "s }, Line{ common::printTimeStamp( m_systemStartTime ) } } );
     table.m_rows.push_back( { Line{ "Elapsed Time: "s }, Line{ common::printDuration( getElapsedTime() ) } } );

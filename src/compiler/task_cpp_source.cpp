@@ -328,8 +328,7 @@ class Task_CPP_Source : public BaseTask
                         {
                             os << ", ";
                         }
-                        os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << interfaceTypeID.getValue()
-                           << std::dec;
+                        os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << interfaceTypeID.getValue();
                         uniqueInterfaceTypeIDs.insert( interfaceTypeID );
                     }
                 }

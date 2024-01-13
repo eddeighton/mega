@@ -93,7 +93,7 @@ static constexpr Instance INSTANCE_ZERO = 0x0000_CI;
 
 inline std::ostream& operator<<( std::ostream& os, const Instance& instance )
 {
-    return os << "0x" << std::hex << std::setw( 4 ) << std::setfill( '0' ) << instance.getValue() << std::dec << "_CI";
+    return os << "0x" << std::hex << std::setw( 4 ) << std::setfill( '0' ) << instance.getValue() << "_CI";
 }
 
 inline std::istream& operator>>( std::istream& is, Instance& instance )

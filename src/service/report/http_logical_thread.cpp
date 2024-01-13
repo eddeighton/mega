@@ -521,20 +521,23 @@ reports::HTMLRenderer::JavascriptShortcuts HTTPLogicalThread::getJavascriptShort
             char key = '<';
             for( char c : reportID )
             {
-                if( !used.contains( c ) )
+                if( std::isalpha( c ) )
                 {
-                    key = c;
-                    break;
-                }
-                else if( !used.contains( std::toupper( c ) ) )
-                {
-                    key = std::toupper( c );
-                    break;
-                }
-                else if( !used.contains( std::tolower( c ) ) )
-                {
-                    key = std::tolower( c );
-                    break;
+                    if( !used.contains( c ) )
+                    {
+                        key = c;
+                        break;
+                    }
+                    else if( !used.contains( std::toupper( c ) ) )
+                    {
+                        key = std::toupper( c );
+                        break;
+                    }
+                    else if( !used.contains( std::tolower( c ) ) )
+                    {
+                        key = std::tolower( c );
+                        break;
+                    }
                 }
             }
 

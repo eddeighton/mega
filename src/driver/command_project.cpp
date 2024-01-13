@@ -35,7 +35,7 @@ namespace
 {
 mega::runtime::MP toMP( const std::string& strMP )
 {
-    mega::runtime::MP           mp;
+    mega::runtime::MP  mp;
     std::istringstream is( strMP );
     is >> mp;
     return mp;
@@ -45,20 +45,21 @@ mega::runtime::MP toMP( const std::string& strMP )
 void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     std::string projectName;
-    I32         projectVersion = -1;
-
     std::string strLoad, strUnload, strGet;
+
+    using Version                      = mega::service::Program::Version;
+    Version::Value programVersionValue = Version::MAX;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Project Commands" );
     {
         // clang-format off
         commandOptions.add_options()
-        ( "name",       po::value< std::string >( &projectName ),   "Project Name" )
-        ( "version",    po::value< I32 >( &projectVersion ),        "Program Version" )
-        ( "load",       po::value( &strLoad ),                      "Load program to MP" )
-        ( "unload",     po::value( &strUnload ),                    "Unload any existing program on MP" )
-        ( "get",        po::value( &strGet ),                       "Get current program running on MP" )
+        ( "name",       po::value< std::string >( &projectName ),               "Project Name" )
+        ( "version",    po::value< Version::Value >( &programVersionValue ),    "Program Version" )
+        ( "load",       po::value( &strLoad ),                                  "Load program to MP" )
+        ( "unload",     po::value( &strUnload ),                                "Unload any existing program on MP" )
+        ( "get",        po::value( &strGet ),                                   "Get current program running on MP" )
         
         ;
         // clang-format on
@@ -70,6 +71,14 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     po::variables_map vm;
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
+
+    std::optional< mega::service::Program::Version > programVersionOpt;
+    {
+        if( programVersionValue != Version::MAX )
+        {
+            programVersionOpt = Version{ programVersionValue };
+        }
+    }
 
     if( bHelp )
     {
@@ -85,7 +94,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             const Project project( projectName );
             Program       program;
             {
-                if( projectVersion == -1 )
+                if( !programVersionOpt.has_value() )
                 {
                     auto programOpt = Program::latest( project, Environment::workBin() );
                     VERIFY_RTE_MSG( programOpt.has_value(), "No latest version found for project: " << project );
@@ -93,7 +102,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 }
                 else
                 {
-                    program = Program( project, Program::Version( projectVersion ) );
+                    program = Program( project, programVersionOpt.value() );
                 }
             }
 
@@ -116,7 +125,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         {
             const mega::runtime::MP mp = toMP( strGet );
             mega::service::Terminal terminal( log );
-            auto prog = terminal.ProgramGet( mp );
+            auto                    prog = terminal.ProgramGet( mp );
             std::cout << "MP: " << mp << " reports: " << prog << std::endl;
         }
         else
@@ -155,13 +164,9 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
                         << "parserPath:         " << toolChain.parserPath.string() << "\n"
                         << "megaCompilerPath:   " << toolChain.megaCompilerPath.string() << "\n"
-                        << "megaExecutorPath:   " << toolChain.megaExecutorPath.string() << "\n"
                         << "clangCompilerPath:  " << toolChain.clangCompilerPath.string() << "\n"
                         << "clangPluginPath:    " << toolChain.clangPluginPath.string() << "\n"
                         << "databasePath:       " << toolChain.databasePath.string() << "\n"
-
-                        << "megaManglePath:     " << toolChain.megaManglePath.string() << "\n"
-                        << "leafPath:           " << toolChain.leafPath.string() << "\n"
 
                         << "parserDllHash:      " << toolChain.parserHash.toHexString() << "\n"
                         << "megaCompilerHash:   " << toolChain.megaCompilerHash.toHexString() << "\n"

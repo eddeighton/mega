@@ -104,13 +104,13 @@ inline constexpr SubObjectIDInstance operator""_CSI( unsigned long long int valu
 
 inline std::ostream& operator<<( std::ostream& os, const SubObjectIDInstance& value )
 {
-    return os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << value.getValue() << std::dec << "_CSI";
+    return os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << value.getValue() << "_CSI";
 }
 
 inline std::istream& operator>>( std::istream& is, SubObjectIDInstance& typeID )
 {
     SubObjectIDInstance::ValueType value;
-    is >> std::hex >> value >> std::dec;
+    is >> std::hex >> value;
     typeID = SubObjectIDInstance{ value };
     return is;
 }

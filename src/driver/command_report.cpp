@@ -59,10 +59,12 @@ namespace driver::report
 void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
     std::string             projectName;
-    I32                     projectVersion = -1;
     std::string             reportURL, reportType;
     boost::filesystem::path outputFilePath, templateDir;
     bool                    bClearTempFiles = true, bListReports = false;
+
+    using Version = mega::service::Program::Version;
+    Version::Value programVersionValue = Version::MAX;
 
     namespace po = boost::program_options;
 
@@ -70,14 +72,14 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     {
         // clang-format off
         commandOptions.add_options()
-            ( "name",       po::value< std::string >( &projectName ),                "Project Name" )
-            ( "version",    po::value< I32 >( &projectVersion ),                     "Program Version" )
-            ( "URL",        po::value< std::string >( &reportURL ),                  "Report URL to generate" )
-            ( "type",       po::value< std::string >( &reportType ),                  "Report Type to generate" )
-            ( "templates",  po::value< boost::filesystem::path >( &templateDir ),    "Path to report renderer templates" )
-            ( "clear_temp", po::value< bool >( &bClearTempFiles ),                   "Clear temporary files" )
-            ( "list",       po::bool_switch( &bListReports ),                        "List available report type" )
-            ( "output",     po::value< boost::filesystem::path >( &outputFilePath ), "Output file" )
+            ( "name",       po::value< std::string >( &projectName ),                   "Project Name" )
+            ( "version",    po::value< Version::Value >( &programVersionValue ),        "Program Version" )
+            ( "URL",        po::value< std::string >( &reportURL ),                     "Report URL to generate" )
+            ( "type",       po::value< std::string >( &reportType ),                     "Report Type to generate" )
+            ( "templates",  po::value< boost::filesystem::path >( &templateDir ),       "Path to report renderer templates" )
+            ( "clear_temp", po::value< bool >( &bClearTempFiles ),                      "Clear temporary files" )
+            ( "list",       po::bool_switch( &bListReports ),                           "List available report type" )
+            ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),    "Output file" )
             ;
         // clang-format on
     }
@@ -88,6 +90,14 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     po::variables_map vm;
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
+
+    std::optional< mega::service::Program::Version > programVersionOpt;
+    {
+        if( programVersionValue != Version::MAX )
+        {
+            programVersionOpt = Version{ programVersionValue };
+        }
+    }
 
     if( bHelp )
     {
@@ -115,13 +125,15 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 const auto              result = terminal.GetMegastructureInstallation();
                 templateDir                    = result.getInstallationPath() / "templates";
             }
-            VERIFY_RTE_MSG( !templateDir.empty(), "Failed to locate Megastructure template folder" );
 
+            VERIFY_RTE_MSG( !templateDir.empty(), "Failed to locate Megastructure template folder" );
             VERIFY_RTE_MSG( !projectName.empty(), "Invalid project name" );
+
             const Project project( projectName );
             Program       program;
+
             {
-                if( projectVersion == -1 )
+                if( !programVersionOpt.has_value() )
                 {
                     auto programOpt = Program::latest( project, Environment::workBin() );
                     VERIFY_RTE_MSG( programOpt.has_value(), "No latest version found for project: " << project );
@@ -129,18 +141,18 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 }
                 else
                 {
-                    program = Program( project, Program::Version( projectVersion ) );
+                    program = Program( project, programVersionOpt.value() );
                 }
             }
 
             const auto programManifest = Environment::load( program );
-            const auto datbaseArchive  = programManifest.getDatabase();
+            const auto databaseArchive = programManifest.getDatabase();
 
             using namespace mega::reports;
             using namespace mega::reporters;
 
-            VERIFY_RTE_MSG( boost::filesystem::exists( datbaseArchive ),
-                            "Failed to locate project database at: " << datbaseArchive.string() );
+            VERIFY_RTE_MSG( boost::filesystem::exists( databaseArchive ),
+                            "Failed to locate project database at: " << databaseArchive.string() );
 
             if( !reportType.empty() )
             {
@@ -157,7 +169,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             const mega::reports::URL url = boost::urls::parse_origin_form( reportURL ).value();
 
             {
-                mega::io::ArchiveEnvironment environment( datbaseArchive );
+                mega::io::ArchiveEnvironment environment( databaseArchive );
                 mega::io::Manifest           manifest( environment, environment.project_manifest() );
 
                 const std::optional< Container > resultOpt

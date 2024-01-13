@@ -96,7 +96,7 @@ static constexpr MachineID MACHINE_ZERO = 0x0000_M;
 
 inline std::ostream& operator<<( std::ostream& os, const MachineID& instance )
 {
-    return os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << instance.getValue() << std::dec << "_M";
+    return os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << instance.getValue() << "_M";
 }
 
 inline std::istream& operator>>( std::istream& is, MachineID& instance )

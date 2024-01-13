@@ -244,7 +244,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             else
             {
                 mega::event::FileStorage log( logFolderPath, true );
-                printLog( log, options, 0 );
+                printLog( log, options, mega::runtime::TimeStamp{} );
             }
         }
         else

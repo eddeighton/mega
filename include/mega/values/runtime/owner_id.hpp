@@ -96,14 +96,15 @@ static constexpr OwnerID OWNER_ZERO = 0x0000_O;
 
 inline std::ostream& operator<<( std::ostream& os, const OwnerID& instance )
 {
-    return os << "0x" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << instance.getValue() << std::dec << "_O";
+    return os << "0x" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << 
+        static_cast< U32 >( instance.getValue() ) << "_O";
 }
 
 inline std::istream& operator>>( std::istream& is, OwnerID& instance )
 {
-    OwnerID::ValueType value;
+    U32 value;
     is >> value;
-    instance = OwnerID{ value };
+    instance = OwnerID{ static_cast< OwnerID::ValueType >( value ) };
     return is;
 }
 
