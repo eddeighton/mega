@@ -197,7 +197,7 @@ public:
                             pAggregate
                         }
                     );
-                
+
                 // clang-format on
                 pAggregateParent->push_back_children( pInterfaceAggregate );
 
@@ -372,7 +372,7 @@ public:
                 // allow namespace to be included into other type
                 bool bFoundParentObject = false;
                 for( Interface::IContext* p = pIContext; p != nullptr;
-                    p                      = db_cast< Interface::IContext >( p->get_parent() ) )
+                     p                      = db_cast< Interface::IContext >( p->get_parent() ) )
                 {
                     if( db_cast< Interface::Object >( p ) )
                     {
@@ -774,7 +774,11 @@ public:
         {
             for( auto pReservedSymbol : database.many< Parser::ReservedSymbol >( sourceFilePath ) )
             {
-                reservedSymbols.insert( { pReservedSymbol->get_token(), pReservedSymbol } );
+                auto iFind = reservedSymbols.find( pReservedSymbol->get_token() );
+                if( iFind == reservedSymbols.end() )
+                {
+                    reservedSymbols.insert( { pReservedSymbol->get_token(), pReservedSymbol } );
+                }
             }
         }
 
@@ -809,7 +813,8 @@ public:
         for( const auto& strFlags : IContextFlags::strings() )
         {
             auto iFind = reservedSymbols.find( strFlags );
-            VERIFY_RTE( iFind != reservedSymbols.end() );
+            VERIFY_RTE_MSG(
+                iFind != reservedSymbols.end(), "Failed to find reserved symbol for context flag: " << strFlags );
             auto pContext = database.construct< Interface::Abstract >( Interface::Abstract::Args{
                 Interface::IContext::Args{ Interface::Node::Args{ Interface::NodeGroup::Args{ {} }, iFind->second,
                                                                   pInterfaceRoot, std::nullopt },

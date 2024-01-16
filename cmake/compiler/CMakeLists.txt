@@ -128,8 +128,6 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_cpp_impl.cpp
     ${MEGA_SRC_DIR}/compiler/task_cpp_obj.cpp
 
-    ${MEGA_SRC_DIR}/compiler/task_runtime_source.cpp
-    ${MEGA_SRC_DIR}/compiler/task_runtime_obj.cpp
     # ${MEGA_SRC_DIR}/compiler/task_alias.cpp
     # ${MEGA_SRC_DIR}/compiler/task_complete.cpp
     # ${MEGA_SRC_DIR}/compiler/task_cpp.cpp

@@ -45,7 +45,7 @@ enum Reason
 struct ReturnReason
 {
     Reason                                                 reason;
-    std::vector< runtime::PointerHeap >                    events;
+    std::vector< runtime::Pointer >                        events;
     std::optional< std::chrono::steady_clock::time_point > timeout;
 
     ReturnReason()
@@ -58,13 +58,13 @@ struct ReturnReason
     {
     }
 
-    ReturnReason( Reason _reason, const runtime::PointerHeap& event )
+    ReturnReason( Reason _reason, const runtime::Pointer& event )
         : reason( _reason )
         , events( 1, event )
     {
     }
 
-    ReturnReason( Reason _reason, std::initializer_list< runtime::PointerHeap > _events )
+    ReturnReason( Reason _reason, std::initializer_list< runtime::Pointer > _events )
         : reason( _reason )
         , events( _events )
     {

@@ -44,9 +44,6 @@ TASK_SRC(CPP_Compile,std::get< mega::io::cppFilePath >( task.sourceFilePath ),co
 TASK_SRC(CPP_Impl,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
 TASK_SRC(CPP_Obj,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
 
-TASK_PROJECT(Runtime_Source)
-TASK_PROJECT(Runtime_Obj)
-
 TASK_PROJECT(Decisions)
 
 TASK_PROJECT(UnityReflection)

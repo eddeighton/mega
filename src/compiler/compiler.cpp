@@ -246,6 +246,8 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
+    VERIFY_RTE_MSG( !parserTasks.empty(), "No mega source files detected" );
+
     const TskDesc interfaceTree = encode( Task{ eTask_AST } );
     dependencies.add( interfaceTree, parserTasks );
 
@@ -293,37 +295,32 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     std::vector< TskDesc > cppObjects;
     for( const auto& componentInfo : config.componentInfos )
     {
-        if( componentInfo.getComponentType().get() == mega::ComponentType::eLibrary )
+        for( const auto& filePath : componentInfo.getSourceFiles() )
         {
-            for( const auto& filePath : componentInfo.getSourceFiles() )
+            if( filePath.extension() == ".cpp" )
             {
-                if( filePath.extension() == ".cpp" )
-                {
-                    auto cppSourceFile = m_pConfig->m_environment.cppFilePath_fromPath( filePath );
+                auto cppSourceFile = m_pConfig->m_environment.cppFilePath_fromPath( filePath );
 
-                    const TskDesc cppSource  = encode( Task{ eTask_CPP_Source, cppSourceFile } );
-                    const TskDesc cppCompile = encode( Task{ eTask_CPP_Compile, cppSourceFile } );
-                    const TskDesc cppImpl    = encode( Task{ eTask_CPP_Impl, cppSourceFile } );
-                    const TskDesc cppObj     = encode( Task{ eTask_CPP_Obj, cppSourceFile } );
+                const TskDesc cppSource  = encode( Task{ eTask_CPP_Source, cppSourceFile } );
+                const TskDesc cppCompile = encode( Task{ eTask_CPP_Compile, cppSourceFile } );
+                const TskDesc cppImpl    = encode( Task{ eTask_CPP_Impl, cppSourceFile } );
+                const TskDesc cppObj     = encode( Task{ eTask_CPP_Obj, cppSourceFile } );
 
-                    dependencies.add( cppSource, { cpp_decls } );
-                    dependencies.add( cppCompile, { cppSource } );
-                    dependencies.add( cppImpl, { cppCompile } );
-                    dependencies.add( cppObj, { cppImpl } );
+                dependencies.add( cppSource, { cpp_decls } );
+                dependencies.add( cppCompile, { cppSource } );
+                dependencies.add( cppImpl, { cppCompile } );
+                dependencies.add( cppObj, { cppImpl } );
 
-                    cppObjects.push_back( cppObj );
-                }
+                cppObjects.push_back( cppObj );
             }
         }
     }
 
-    const TskDesc runtime_source = encode( Task{ eTask_Runtime_Source } );
-    dependencies.add( runtime_source, { includePCH, clang_Traits_Analysis } );
+    // const TskDesc runtime_source = encode( Task{ eTask_Runtime_Source } );
+    // dependencies.add( runtime_source, { includePCH, clang_Traits_Analysis } );
 
-    const TskDesc runtime_obj = encode( Task{ eTask_Runtime_Obj } );
-    dependencies.add( runtime_obj, { runtime_source } );
-
-
+    // const TskDesc runtime_obj = encode( Task{ eTask_Runtime_Obj } );
+    // dependencies.add( runtime_obj, { runtime_source } );
 
     const TskDesc decisions = encode( Task{ eTask_Decisions } );
     dependencies.add( decisions, { clang_Traits_Gen } );
