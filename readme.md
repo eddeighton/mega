@@ -12,11 +12,15 @@ Megastructure is a domain specific language for game development that deeply int
 
 2. The ability to host the simulation in a "creative" mode that enables "live" programming and changing the program as it executes with very fast compilation.
 
-3. The ability to easily bind the program to game engines i.e. Unity such that megastructure can completely control the Unity s cene graph but appropriate work is gracefully offloaded to Unity itself.
+3. A novel "Hypergraph" high level concept of bi-directional links between objects specified at compile time and integrated into Megastructure function calls.
 
-4. A novel approach to developer workflow support based on change detector testing and providing HTML live reports about the program.
+4. The ability to easily bind the program to game engines i.e. Unity such that Megastructure can control the Unity scene graph.  
+
+5. A novel approach to developer workflow support based on change detector testing and providing HTML live reports about the program.
 
 # Deployment
+
+The Megastructure retail compiler generates vanilla C++ code that works anywhere C++ works and largely optimises away ALL overheads of the creative system to produce highly efficient production code.
 
 The Megastructure creative system only works on linux and is implemented as a set of independent executables including:
 
@@ -38,6 +42,8 @@ The domain specific language of Megastructure provides many novel features for c
 2. A compile time checked and extremely powerful event system.
 3. Compile time structural inheritance type system that completely integrates with C++ yet completely avoid compilation time overhead.
 4. Deep integration into C++ via a customisation of the Clang compiler that enables C++ member function calls on Megastructure objects to be translated into Megastructure invocations - a super powerful compile time form of polymorphic function call.
+
+The language seemelessly integrates with C++ where C++ can be used to define Megastructure member functions and C++ type aliases and data types can be used within Megastructure objects.  
 
 # Python Integration
 
