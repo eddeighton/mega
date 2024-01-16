@@ -34,7 +34,7 @@ namespace mega::service::python
         g_pIPythonModuleCast = (IPythonModuleCast*)pPythonCaster;
     }
 
-    PyObject* cast( const mega::Pointer& ref )
+    PyObject* cast( const mega::runtime::Pointer& ref )
     {
         if( !g_pIPythonModuleCast )
         {
@@ -52,7 +52,7 @@ extern "C"
 {
 PyObject* _p{{ operation.hash }}_{{ operation.typeID }}( mega::runtime::CallResult& callResult, const pybind11::args& pyArgs )
 {
-    using FPtr = {{ operation.return_type }} (*)( mega::Pointer*{% for param in operation.params %}, {{param.type}} {{param.name}}{% endfor %} );
+    using FPtr = {{ operation.return_type }} (*)( mega::runtime::Pointer*{% for param in operation.params %}, {{param.type}} {{param.name}}{% endfor %} );
     FPtr pOp = reinterpret_cast< FPtr >( const_cast< void* >( callResult.pFunction ) );
 {% if operation.return_type == "void" %}
     pOp( &callResult.context {% for param in operation.params %}, pybind11::cast< {{param.type}} >( pyArgs[ {{ loop.index }} ] ){% endfor %} );

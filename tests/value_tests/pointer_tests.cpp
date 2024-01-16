@@ -59,14 +59,14 @@ TEST( Pointer, MPIO )
 
 TEST( Pointer, InvalidByDefault )
 {
-    mega::Pointer def{};
+    mega::runtime::Pointer def{};
     ASSERT_EQ( def.isNetworkAddress(), true );
     ASSERT_FALSE( def.valid() );
 }
 
 TEST( Pointer, HeapAccess )
 {
-    mega::Pointer h{ mega::TypeInstance{ mega::max_typeID_context, 123 }, ( mega::HeapAddress )0xFFFFFFFF };
+    mega::runtime::Pointer h{ mega::TypeInstance{ mega::max_typeID_context, 123 }, ( mega::HeapAddress )0xFFFFFFFF };
 
     ASSERT_TRUE( h.isHeapAddress() );
     ASSERT_EQ( h.getType(), mega::max_typeID_context );
@@ -78,7 +78,7 @@ TEST( Pointer, NetAccess )
 {
     using namespace mega;
     mega::runtime::MPO       testMPO( 1, 2, 3 );
-    mega::Pointer h{ mega::TypeInstance{ mega::max_typeID_context, 123 }, testMPO, 4 };
+    mega::runtime::Pointer h{ mega::TypeInstance{ mega::max_typeID_context, 123 }, testMPO, 4 };
 
     ASSERT_TRUE( h.isNetworkAddress() );
     ASSERT_EQ( h.getType(), mega::max_typeID_context );
@@ -91,10 +91,10 @@ TEST( Pointer, HeaderAccess )
 {
     mega::TypeInstance     typeInstance{ mega::max_typeID_context, 123 };
     mega::runtime::MPO              testMPO( 1, 2, 3 );
-    mega::Pointer        networkAddress{ typeInstance, testMPO, 4 };
+    mega::runtime::Pointer        networkAddress{ typeInstance, testMPO, 4 };
     mega::ObjectHeaderBase header{ networkAddress, 1U, 9 };
 
-    mega::Pointer h{ typeInstance, &header };
+    mega::runtime::Pointer h{ typeInstance, &header };
 
     ASSERT_TRUE( h.isHeapAddress() );
     ASSERT_EQ( h.getMPO(), testMPO );
@@ -164,7 +164,7 @@ TEST( Pointer, TypeInstance2 )
 
 struct PointerTestData
 {
-    mega::Pointer expected;
+    mega::runtime::Pointer expected;
 };
 
 class PointerIOTest : public ::testing::TestWithParam< PointerTestData >
@@ -183,7 +183,7 @@ TEST_P( PointerIOTest, PointerIO )
         str = os.str();
     }
 
-    mega::Pointer result;
+    mega::runtime::Pointer result;
     {
         std::istringstream is( str );
         is >> result;
@@ -199,15 +199,15 @@ INSTANTIATE_TEST_SUITE_P( Pointer, PointerIOTest,
         ::testing::Values
         (
             // default
-            PointerTestData{ mega::Pointer{} },
+            PointerTestData{ mega::runtime::Pointer{} },
 
             // network address
-            PointerTestData{ mega::Pointer{ mega::TypeInstance{}, mega::runtime::MPO{}, mega::AllocationID{} } },
+            PointerTestData{ mega::runtime::Pointer{ mega::TypeInstance{}, mega::runtime::MPO{}, mega::AllocationID{} } },
             PointerTestData{ mega::max_net_ref },
             PointerTestData{ mega::min_net_ref },
 
             // heap address
-            PointerTestData{ mega::Pointer{ mega::TypeInstance{}, mega::HeapAddress{} } },
+            PointerTestData{ mega::runtime::Pointer{ mega::TypeInstance{}, mega::HeapAddress{} } },
             PointerTestData{ mega::max_heap_ref },
             PointerTestData{ mega::min_heap_ref }
         ));

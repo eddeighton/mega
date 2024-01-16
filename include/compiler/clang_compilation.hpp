@@ -197,6 +197,30 @@ public:
 
         return compilation;
     }
+
+    template < typename TComponentType >
+    static inline Compilation make_runtime_obj_compilation( const io::BuildEnvironment& environment,
+                                                            const utilities::ToolChain& toolChain,
+                                                            TComponentType*             pComponent
+
+    )
+    {
+        Compilation compilation;
+
+        compilation.compilationMode  = CompilationMode{ CompilationMode::eNormal };
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
+
+        compilation.flags       = pComponent->get_cpp_flags();
+        compilation.defines     = pComponent->get_cpp_defines();
+        compilation.includeDirs = pComponent->get_include_directories();
+
+        compilation.inputPCH = { environment.FilePath( environment.IncludePCH() ) };
+
+        compilation.inputFile    = environment.FilePath( environment.RuntimeSource() );
+        compilation.outputObject = environment.FilePath( environment.RuntimeObj() );
+
+        return compilation;
+    }
 };
 
 } // namespace mega

@@ -106,14 +106,14 @@ struct MPORealToLogicalVisitor
 
 struct MPORealVisitor
 {
-    mega::Pointer m_root;
+    mega::runtime::Pointer m_root;
 
-    MPORealVisitor( const mega::Pointer& root )
+    MPORealVisitor( const mega::runtime::Pointer& root )
         : m_root( root )
     {
     }
     MPORealVisitor( const MPO& mpo )
-        : m_root( mega::Pointer::make_root( mpo ) )
+        : m_root( mega::runtime::Pointer::make_root( mpo ) )
     {
     }
 

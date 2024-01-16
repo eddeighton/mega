@@ -34,8 +34,8 @@ class PythonMPO
 public:
     PythonMPO( PythonModule& module, mega::runtime::MPO mpo );
 
-    mega::Pointer getRoot() const;
-    mega::Pointer new_( mega::SubType interfaceTypeID ) const;
+    mega::runtime::Pointer getRoot() const;
+    mega::runtime::Pointer new_( mega::SubType interfaceTypeID ) const;
     void            destroy() const;
 
 private:

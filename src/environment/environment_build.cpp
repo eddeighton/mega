@@ -203,6 +203,20 @@ ObjectFilePath BuildEnvironment::CPPObj( const cppFilePath& source ) const
     return { dirPath / os.str() };
 }
 
+GeneratedCPPSourceFilePath BuildEnvironment::RuntimeSource() const
+{
+    std::ostringstream os;
+    os << "Runtime" << GeneratedCPPSourceFilePath::extension().string();
+    return { os.str() };
+}
+
+ObjectFilePath BuildEnvironment::RuntimeObj() const
+{
+    std::ostringstream os;
+    os << "Runtime" << ObjectFilePath::extension().string();
+    return { os.str() };
+}
+
 ComponentListingFilePath BuildEnvironment::ComponentListingFilePath_fromPath( const Path& buildDirectory ) const
 {
     VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDirectory ),

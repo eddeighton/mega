@@ -441,7 +441,7 @@ public:
 
     void call( ExecutionState&& executionState )
     {
-        const mega::Pointer ref = executionState.getRef();
+        const mega::runtime::Pointer ref = executionState.getRef();
 
         ActiveAction* pAction = new ActiveAction(
             std::move( executionState ), m_listOne.end(), m_listTwo.end(), m_listThree.end(), m_paused.end() );

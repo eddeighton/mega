@@ -43,8 +43,8 @@ public:
     using TypePath              = std::vector< mega::TypeID >;
     using PythonWrapperFunction = PyObject* ( * )( mega::runtime::CallResult&, const pybind11::args& );
 
-    PythonPointer( PythonModule& module, Type& type, const mega::Pointer& ref );
-    PythonPointer( PythonModule& module, Type& type, const mega::Pointer& ref, const TypePath& typePath );
+    PythonPointer( PythonModule& module, Type& type, const mega::runtime::Pointer& ref );
+    PythonPointer( PythonModule& module, Type& type, const mega::runtime::Pointer& ref, const TypePath& typePath );
 
     PyObject* get( void* pClosure );
     int       set( void* pClosure, PyObject* pValue );
@@ -52,12 +52,12 @@ public:
     PyObject* dump() const;
     PyObject* call( PyObject* args, PyObject* kwargs );
 
-    inline const mega::Pointer& getReference() const { return m_reference; }
+    inline const mega::runtime::Pointer& getReference() const { return m_reference; }
 
 private:
     PythonModule&   m_module;
     Type&           m_type;
-    mega::Pointer m_reference;
+    mega::runtime::Pointer m_reference;
     TypePath        m_type_path;
 };
 

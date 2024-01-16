@@ -266,7 +266,7 @@ FunctionDefinition Factory::generate_Object_destructor( runtime::JITDatabase& db
 
                                      } } } } );
 
-             // const mega::Pointer linkRef = mega::Pointer::make( ref,
+             // const mega::runtime::Pointer linkRef = mega::runtime::Pointer::make( ref,
              //         mega::TypeInstance{ {{ link.link_type_id }}, static_cast< mega::Instance >( instance ) } );
              // static thread_local mega::runtime::relation::LinkReset function(
              //     g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );

@@ -49,8 +49,8 @@ public:
           ConcreteObjectTypeSet&& concreteObjects );
     ~Type();
 
-    PyObject* createReference( const mega::Pointer& ref );
-    PyObject* createReference( const mega::Pointer& ref, const TypeIDVector& typePath, const char* symbol );
+    PyObject* createReference( const mega::runtime::Pointer& ref );
+    PyObject* createReference( const mega::runtime::Pointer& ref, const TypeIDVector& typePath, const char* symbol );
 
 private:
     static TypeIDVector append( const TypeIDVector& from, mega::TypeID next );

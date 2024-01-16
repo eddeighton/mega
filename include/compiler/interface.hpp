@@ -21,7 +21,7 @@
 namespace Interface
 {
 
-void getNodes( NodeGroup* pNodeGroup, std::vector< IContext* >& contexts, std::vector< Aggregate* >& aggregates )
+static void getNodes( NodeGroup* pNodeGroup, std::vector< IContext* >& contexts, std::vector< Aggregate* >& aggregates )
 {
     for( auto p : pNodeGroup->get_children() )
     {

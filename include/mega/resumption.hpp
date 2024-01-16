@@ -39,9 +39,9 @@ inline ReturnReason complete() { return { eReason_Complete }; }
 // wait functions
 inline ReturnReason wait() { return { eReason_Wait }; }
 
-inline ReturnReason wait( const Pointer& event ) { return { eReason_Wait_All, event }; }
+inline ReturnReason wait( const runtime::Pointer& event ) { return { eReason_Wait_All, event }; }
 
-inline ReturnReason wait_all( std::initializer_list< Pointer > events )
+inline ReturnReason wait_all( std::initializer_list< runtime::Pointer > events )
 {
     return { eReason_Wait_All, events };
 }
@@ -52,7 +52,7 @@ inline ReturnReason wait_all( Args... args )
     return wait_all( { args... } );
 }
 
-inline ReturnReason wait_any( std::initializer_list< Pointer > events )
+inline ReturnReason wait_any( std::initializer_list< runtime::Pointer > events )
 {
     return { eReason_Wait_Any, events };
 }
@@ -67,9 +67,9 @@ inline ReturnReason wait_any( Args... args )
 // sleep functions
 inline ReturnReason sleep() { return { eReason_Sleep }; }
 
-inline ReturnReason sleep( const Pointer& event ) { return { eReason_Sleep_All, event }; }
+inline ReturnReason sleep( const runtime::Pointer& event ) { return { eReason_Sleep_All, event }; }
 
-inline ReturnReason sleep_all( std::initializer_list< Pointer > events )
+inline ReturnReason sleep_all( std::initializer_list< runtime::Pointer > events )
 {
     return { eReason_Sleep_All, events };
 }
@@ -80,7 +80,7 @@ inline ReturnReason sleep_all( Args... args )
     return sleep_all( { args... } );
 }
 
-inline ReturnReason sleep_any( std::initializer_list< Pointer > events )
+inline ReturnReason sleep_any( std::initializer_list< runtime::Pointer > events )
 {
     return { eReason_Sleep_Any, events };
 }

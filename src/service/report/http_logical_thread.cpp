@@ -20,6 +20,8 @@
 
 #include "http_logical_thread.hpp"
 
+#include "environment/environment.hpp"
+
 #include "database_reporters/factory.hpp"
 
 #include "mega/iterator.hpp"
@@ -27,8 +29,10 @@
 #include "mega/printer.hpp"
 
 #include "service/mpo_visitor.hpp"
-#include "service/protocol/model/jit.hxx"
 #include "service/reporters.hpp"
+
+#include "service/protocol/model/jit.hxx"
+#include "service/protocol/model/host.hxx"
 
 #include "service/protocol/common/type_erase.hpp"
 #include "service/protocol/common/sender_ref.hpp"
@@ -437,28 +441,35 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
 boost::beast::http::string_body::value_type
 HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::asio::yield_context& yield_ctx )
 {
-    mega::reports::Container reportContainer;
+    std::optional< mega::reports::Container > reportContainerOpt;
 
     // either service request or database
     if( mega::reporters::isCompilationReportType( url ) )
     {
-        THROW_TODO;
-        /*auto projectOpt = m_report.getProject();
-        if( projectOpt.has_value() && boost::filesystem::exists( projectOpt.value().getProjectDatabase() ) )
+        QueueStackDepth queueMsgs( m_queueStack );
         {
-            VERIFY_RTE_MSG(
-                boost::filesystem::exists( projectOpt.value().getProjectDatabase() ),
-                "Failed to locate project database at: " << projectOpt.value().getProjectDatabase().string() );
+            network::host::Request_Sender leafHostRequest{ *this, m_report.getLeafSender(), yield_ctx };
+            const auto                    program     = leafHostRequest.GetProgram();
+            const auto                    programPath = Environment::prog( program );
 
-            mega::io::ArchiveEnvironment environment( projectOpt.value().getProjectDatabase() );
-            mega::io::Manifest           manifest( environment, environment.project_manifest() );
+            if( boost::filesystem::exists( programPath ) )
+            {
+                const ProgramManifest programManifest = Environment::load( program );
+                const auto            databaseArchive = programManifest.getDatabase();
 
-            reportContainer = mega::reporters::generateCompilationReport(
-                url, mega::reporters::CompilationReportArgs{ manifest, environment } );
-        }
-        else*/
-        {
-            SPDLOG_ERROR( "Cannot generated report: {} when no active project", url.c_str() );
+                VERIFY_RTE_MSG( boost::filesystem::exists( databaseArchive ),
+                                "Failed to locate program database at: " << databaseArchive.string() );
+
+                mega::io::ArchiveEnvironment environment( databaseArchive );
+                mega::io::Manifest           manifest( environment, environment.project_manifest() );
+
+                reportContainerOpt = mega::reporters::generateCompilationReport(
+                    url, mega::reporters::CompilationReportArgs{ manifest, environment } );
+            }
+            else
+            {
+                SPDLOG_ERROR( "Cannot generated report: {} when no active program", url.c_str() );
+            }
         }
     }
     else
@@ -466,44 +477,47 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
         QueueStackDepth queueMsgs( m_queueStack );
         {
             auto reportRequest = getRootRequest< network::report::Request_Encoder >( yield_ctx );
-            reportContainer    = reportRequest.GetNetworkReport( url );
+            reportContainerOpt = reportRequest.GetNetworkReport( url );
         }
-    }
-
-    using namespace mega::reports;
-    struct Linker : public mega::reports::Linker
-    {
-        const mega::reports::URL& m_url;
-        Linker( const mega::reports::URL& url )
-            : m_url( url )
-        {
-        }
-        std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
-        {
-            if( auto pTypeID = std::get_if< mega::interface::TypeID >( &value ) )
-            {
-                URL url = m_url;
-                url.set_fragment( mega::reports::toString( value ) );
-                return url;
-            }
-            else if( auto pMPO = std::get_if< mega::runtime::MPO >( &value ) )
-            {
-                URL url = m_url;
-                url.set_fragment( mega::reports::toString( value ) );
-                return url;
-            }
-            return {};
-        }
-    } linker( url );
-
-    if( !m_pRenderer )
-    {
-        m_pRenderer = std::make_unique< mega::reports::HTMLRenderer >(
-            m_report.getMegastructureInstallation().getRuntimeTemplateDir(), getJavascriptShortcuts(), true );
     }
 
     std::ostringstream os;
-    m_pRenderer->render( reportContainer, linker, os );
+    if( reportContainerOpt.has_value() )
+    {
+        using namespace mega::reports;
+        struct Linker : public mega::reports::Linker
+        {
+            const mega::reports::URL& m_url;
+            Linker( const mega::reports::URL& url )
+                : m_url( url )
+            {
+            }
+            std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
+            {
+                if( auto pTypeID = std::get_if< mega::interface::TypeID >( &value ) )
+                {
+                    URL url = m_url;
+                    url.set_fragment( mega::reports::toString( value ) );
+                    return url;
+                }
+                else if( auto pMPO = std::get_if< mega::runtime::MPO >( &value ) )
+                {
+                    URL url = m_url;
+                    url.set_fragment( mega::reports::toString( value ) );
+                    return url;
+                }
+                return {};
+            }
+        } linker( url );
+
+        if( !m_pRenderer )
+        {
+            m_pRenderer = std::make_unique< mega::reports::HTMLRenderer >(
+                m_report.getMegastructureInstallation().getRuntimeTemplateDir(), getJavascriptShortcuts(), true );
+        }
+
+        m_pRenderer->render( reportContainerOpt.value(), linker, os );
+    }
     return os.str();
 }
 

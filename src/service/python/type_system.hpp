@@ -76,7 +76,7 @@ public:
     void reload( const Program& program );
 
     Type::Ptr getLinkType( SubType concreteObjectID, TypeID typeID );
-    PyObject* cast( const mega::Pointer& ref );
+    PyObject* cast( const mega::runtime::Pointer& ref );
 
 private:
     PythonModule&       m_module;

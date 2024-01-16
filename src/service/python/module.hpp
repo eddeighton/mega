@@ -92,10 +92,10 @@ public:
     PythonModule& operator=( PythonModule&& )      = delete;
 
     // operators
-    mega::Pointer operatorNew( mega::SubType typeID );
-    mega::Pointer operatorRemoteNew( mega::SubType typeID, MPO mpo );
-    void            operatorDelete( mega::Pointer ref );
-    mega::Pointer operatorCast( mega::Pointer ref, mega::SubType typeID );
+    mega::runtime::Pointer operatorNew( mega::SubType typeID );
+    mega::runtime::Pointer operatorRemoteNew( mega::SubType typeID, MPO mpo );
+    void            operatorDelete( mega::runtime::Pointer ref );
+    mega::runtime::Pointer operatorCast( mega::runtime::Pointer ref, mega::SubType typeID );
 
     // Python Dynamic Invocations
     mega::TypeID                           getInterfaceTypeID( const mega::TypeID concreteTypeID );

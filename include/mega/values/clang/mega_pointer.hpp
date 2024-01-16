@@ -35,7 +35,7 @@ template< typename ResultType, typename Context, typename TypePath, typename Ope
 static ResultType invoke_impl( Context& context, Args... args );
 
 template< mega::interface::TypeID::ValueType... InterfaceTypeID >
-class [[clang::eg_type( mega::id_MegaPointer )]] __mega_ptr : public mega::Pointer
+class [[clang::eg_type( mega::id_MegaPointer )]] __mega_ptr : public mega::runtime::Pointer
 {
 public: 
     template< typename TypePath, typename Operation, typename... Args >

@@ -42,7 +42,7 @@ inline PythonPointer* fromPyObject( PyObject* pPyObject )
     return pLogicalObject->pReference;
 }
 
-inline const mega::Pointer& cast( PyObject* pObject )
+inline const mega::runtime::Pointer& cast( PyObject* pObject )
 {
     return fromPyObject( pObject )->getReference();
 }
@@ -61,21 +61,21 @@ inline std::optional< Pointer > tryCast( PyObject* pObject )
 
 struct IPythonModuleCast
 {
-    virtual PyObject* cast( const mega::Pointer& ref ) = 0;
+    virtual PyObject* cast( const mega::runtime::Pointer& ref ) = 0;
 };
-PyObject* cast( const mega::Pointer& ref );
+PyObject* cast( const mega::runtime::Pointer& ref );
 
 } // namespace mega::service::python
 
 template < typename T >
-concept IsReferenceType = std::is_base_of< mega::Pointer, T >::value;
+concept IsReferenceType = std::is_base_of< mega::runtime::Pointer, T >::value;
 
 namespace PYBIND11_NAMESPACE
 {
 namespace detail
 {
 template <>
-struct type_caster< mega::Pointer >
+struct type_caster< mega::runtime::Pointer >
 {
 public:
     /**
@@ -83,7 +83,7 @@ public:
      * function signatures and declares a local variable
      * 'value' of type inty
      */
-    PYBIND11_TYPE_CASTER( mega::Pointer, const_name( "classmega00reference" ) );
+    PYBIND11_TYPE_CASTER( mega::runtime::Pointer, const_name( "classmega00reference" ) );
 
     /**
      * Conversion part 1 (Python->C++): convert a PyObject into a inty
@@ -101,7 +101,7 @@ public:
         value = mega::service::python::cast( source );
 
         /* Ensure return code was OK (to avoid out-of-range errors etc) */
-        // return !( value != mega::Pointer{} && !PyErr_Occurred() );
+        // return !( value != mega::runtime::Pointer{} && !PyErr_Occurred() );
         return !PyErr_Occurred();
     }
 
@@ -112,7 +112,7 @@ public:
      * ``return_value_policy::reference_internal``) and are generally
      * ignored by implicit casters.
      */
-    static handle cast( mega::Pointer src, return_value_policy /* policy */, handle /* parent */ )
+    static handle cast( mega::runtime::Pointer src, return_value_policy /* policy */, handle /* parent */ )
     {
         return mega::service::python::cast( src );
     }

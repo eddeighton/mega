@@ -220,17 +220,17 @@ TEST_F( BasicLogTest, StructureMsg )
         Structure::eBreak,
         Structure::eBreak
     };
-    std::vector< mega::Pointer > sources =
+    std::vector< mega::runtime::Pointer > sources =
     {
-        mega::Pointer{},
+        mega::runtime::Pointer{},
         mega::max_net_ref,
         mega::min_net_ref,
         mega::max_heap_ref,
         mega::min_heap_ref,
     };
-    std::vector< mega::Pointer > targets =
+    std::vector< mega::runtime::Pointer > targets =
     {
-        mega::Pointer{},
+        mega::runtime::Pointer{},
         mega::max_net_ref,
         mega::min_net_ref,
         mega::max_heap_ref,
@@ -278,7 +278,7 @@ TEST_F( BasicLogTest, MemoryMsg )
 struct MemoryReadHeader
 {
     mega::U16       size;
-    mega::Pointer ref;
+    mega::runtime::Pointer ref;
     mega::U16       dataSize;
 };
 #pragma pack()
@@ -294,7 +294,7 @@ TEST_F( BasicLogTest, Range )
     std::string_view strView( strTest );
 
     auto                           start = log.getTimeStamp();
-    std::vector< mega::Pointer > expected{ mega::Pointer{}, mega::max_net_ref, mega::min_net_ref };
+    std::vector< mega::runtime::Pointer > expected{ mega::runtime::Pointer{}, mega::max_net_ref, mega::min_net_ref };
     {
         for( const auto& ex : expected )
         {

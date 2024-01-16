@@ -240,7 +240,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                     break;
                                 }
 
-                                auto actionContext = mega::Pointer::make(
+                                auto actionContext = mega::runtime::Pointer::make(
                                     ref, TypeInstance{ ref.getType().getObjectID(), subTypeInstance } );
                                 auto pAction = actionFunctionCache.getActionFunction( actionContext.getType() );
 

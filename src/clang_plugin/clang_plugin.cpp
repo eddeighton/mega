@@ -181,7 +181,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
     virtual bool isPtr( const clang::QualType& type )
     {
         // template< mega::interface::TypeID... ContextID >
-        // class __mega_ptr : public mega::Pointer
+        // class __mega_ptr : public mega::runtime::Pointer
         
         if( g_pASTContext )
         {

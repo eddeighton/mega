@@ -77,7 +77,7 @@ public:
     inline bool operator!=(const __eg_ReferenceRawIterator& rhs) const {return !(rhs==*this);}
     inline const value_type operator*() const
     {
-        return mega::Pointer{ instance, type, getTimestamp< ReferenceType >( type, instance ) };
+        return mega::runtime::Pointer{ instance, type, getTimestamp< ReferenceType >( type, instance ) };
     }
 };
 
@@ -106,7 +106,7 @@ public:
     inline bool operator!=(const __eg_ReferenceIterator& rhs) const {return !(rhs==*this);}
     inline const value_type operator*() const
     {
-        return mega::Pointer{ instance, type, getTimestamp< ReferenceType >( type, instance ) };
+        return mega::runtime::Pointer{ instance, type, getTimestamp< ReferenceType >( type, instance ) };
     }
 };
 

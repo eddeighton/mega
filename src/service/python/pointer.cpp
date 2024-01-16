@@ -45,7 +45,7 @@
 namespace mega::service::python
 {
 
-PythonPointer::PythonPointer( PythonModule& module, Type& type, const mega::Pointer& ref )
+PythonPointer::PythonPointer( PythonModule& module, Type& type, const mega::runtime::Pointer& ref )
     : m_module( module )
     , m_type( type )
     , m_reference( ref )
@@ -54,7 +54,7 @@ PythonPointer::PythonPointer( PythonModule& module, Type& type, const mega::Poin
 
 PythonPointer::PythonPointer( PythonModule&          module,
                                   Type&                  type,
-                                  const mega::Pointer& ref,
+                                  const mega::runtime::Pointer& ref,
                                   const TypePath&        typePath )
     : m_module( module )
     , m_type( type )
@@ -153,7 +153,7 @@ PyObject* PythonPointer::call( PyObject* args, PyObject* kwargs )
                     void*            pArg
                         = m_module.getPythonMangle().pythonToCpp( functionInfo.typeInfo.mangledType, firstArg.ptr() );
 
-                    mega::Pointer result;
+                    mega::runtime::Pointer result;
                     m_module.invoke(
                         [ &functionInfo, &m_reference = m_reference, &pArg, &result ]( MPOContext& )
                         {
@@ -187,8 +187,8 @@ PyObject* PythonPointer::call( PyObject* args, PyObject* kwargs )
                     auto             refOpt   = tryCast( firstArg.ptr() );
                     VERIFY_RTE_MSG( refOpt.has_value(), "Link Add requires a Pointer parameter" );
 
-                    mega::Pointer refArg = refOpt.value();
-                    mega::Pointer result;
+                    mega::runtime::Pointer refArg = refOpt.value();
+                    mega::runtime::Pointer result;
 
                     m_module.invoke(
                         [ &functionInfo, &m_reference = m_reference, &refArg, &result ]( MPOContext& )
@@ -208,8 +208,8 @@ PyObject* PythonPointer::call( PyObject* args, PyObject* kwargs )
                     auto             refOpt   = tryCast( firstArg.ptr() );
                     VERIFY_RTE_MSG( refOpt.has_value(), "Link Remove requires a Pointer parameter" );
 
-                    mega::Pointer refArg = refOpt.value();
-                    mega::Pointer result;
+                    mega::runtime::Pointer refArg = refOpt.value();
+                    mega::runtime::Pointer result;
 
                     m_module.invoke(
                         [ &functionInfo, &m_reference = m_reference, &refArg, &result ]( MPOContext& )
@@ -224,7 +224,7 @@ PyObject* PythonPointer::call( PyObject* args, PyObject* kwargs )
                 break;
                 case id_exp_Link_Clear:
                 {
-                    mega::Pointer result;
+                    mega::runtime::Pointer result;
                     m_module.invoke(
                         [ &functionInfo, &m_reference = m_reference, &result ]( MPOContext& )
                         {
@@ -270,7 +270,7 @@ PyObject* PythonPointer::call( PyObject* args, PyObject* kwargs )
                 break;
                 case id_exp_Start:
                 {
-                    mega::Pointer result;
+                    mega::runtime::Pointer result;
                     m_module.invoke(
                         [ &functionInfo, &m_reference = m_reference, &m_module = m_module, &result ]( MPOContext& )
                         {
@@ -283,7 +283,7 @@ PyObject* PythonPointer::call( PyObject* args, PyObject* kwargs )
                 break;
                 case id_exp_GetContext:
                 {
-                    mega::Pointer result;
+                    mega::runtime::Pointer result;
                     m_module.invoke(
                         [ &functionInfo, &m_reference = m_reference, &result ]( MPOContext& )
                         {

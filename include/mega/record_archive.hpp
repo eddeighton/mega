@@ -81,7 +81,7 @@ public:
         base::save( value );
     }
 
-    inline void save( const ::mega::Pointer& ref ) 
+    inline void save( const ::mega::runtime::Pointer& ref ) 
     { 
         THROW_TODO;
         // if( ref.isHeapAddress() )
@@ -103,12 +103,12 @@ BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::RecordOArchive )
 
 namespace boost::serialization
 {
-inline void serialize( boost::archive::RecordIArchive& ar, ::mega::Pointer& value, const unsigned int version )
+inline void serialize( boost::archive::RecordIArchive& ar, ::mega::runtime::Pointer& value, const unsigned int version )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::RecordOArchive& ar, ::mega::Pointer& value, const unsigned int version )
+inline void serialize( boost::archive::RecordOArchive& ar, ::mega::runtime::Pointer& value, const unsigned int version )
 {
     ar.save( value );
 }

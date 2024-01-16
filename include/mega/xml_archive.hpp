@@ -165,11 +165,11 @@ public:
     }
 
 private:
-    inline std::optional< mega::AddressTable::Index > refToIndexIfExist( const mega::Pointer& maybeNetAddress )
+    inline std::optional< mega::AddressTable::Index > refToIndexIfExist( const mega::runtime::Pointer& maybeNetAddress )
     {
         return m_table.refToIndexIfObjectExist( maybeNetAddress );
     }
-    inline const mega::AddressTable::Index& refToIndex( const mega::Pointer& maybeNetAddress )
+    inline const mega::AddressTable::Index& refToIndex( const mega::runtime::Pointer& maybeNetAddress )
     {
         return m_table.refToIndex( maybeNetAddress );
     }
@@ -252,7 +252,7 @@ public:
         mega::consumeEnd( *m_pFileStream, name );
     }
 
-    inline void load( const char* name, mega::Pointer& ref )
+    inline void load( const char* name, mega::runtime::Pointer& ref )
     {
         mega::consumeStart( *m_pFileStream, name );
 
@@ -363,13 +363,13 @@ private:
         }
     }
 
-    inline void mapIndex( mega::AddressTable::Index index, const mega::Pointer& ref )
+    inline void mapIndex( mega::AddressTable::Index index, const mega::runtime::Pointer& ref )
     {
         m_indexToRefMap.insert( { index, ref } );
     }
 
 private:
-    using IndexRefMap = std::unordered_map< mega::AddressTable::Index, mega::Pointer >;
+    using IndexRefMap = std::unordered_map< mega::AddressTable::Index, mega::runtime::Pointer >;
 
     std::unique_ptr< std::istream > m_pFileStream;
     mega::XMLTag                    m_rootTag;

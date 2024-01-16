@@ -35,12 +35,12 @@ PythonMPO::PythonMPO( PythonModule& module, mega::runtime::MPO mpo )
 {
 }
 
-mega::Pointer PythonMPO::getRoot() const
+mega::runtime::Pointer PythonMPO::getRoot() const
 {
     return Pointer::make_root( m_mpo );
 }
 
-mega::Pointer PythonMPO::new_( mega::SubType interfaceTypeID ) const
+mega::runtime::Pointer PythonMPO::new_( mega::SubType interfaceTypeID ) const
 {
     return m_module.operatorRemoteNew( interfaceTypeID, m_mpo );
 }

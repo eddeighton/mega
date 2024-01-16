@@ -175,7 +175,7 @@ inline void serialize( boost::archive::xml_oarchive& ar, ::mega::runtime::MPO& v
     ar&         boost::serialization::make_nvp( "owner", owner );
 }
 
-inline void serialize( boost::archive::xml_iarchive& ar, ::mega::Pointer& ref, const unsigned int version )
+inline void serialize( boost::archive::xml_iarchive& ar, ::mega::runtime::Pointer& ref, const unsigned int version )
 {
     ::mega::Flags flags{};
     ar&           boost::serialization::make_nvp( "flags", flags );
@@ -189,7 +189,7 @@ inline void serialize( boost::archive::xml_iarchive& ar, ::mega::Pointer& ref, c
         ar& boost::serialization::make_nvp( "heap", heap );
         ar& boost::serialization::make_nvp( "type_instance", typeInstance );
 
-        ref = ::mega::Pointer( typeInstance, reinterpret_cast< ::mega::HeapAddress >( heap ) );
+        ref = ::mega::runtime::Pointer( typeInstance, reinterpret_cast< ::mega::HeapAddress >( heap ) );
     }
     else
     {
@@ -201,11 +201,11 @@ inline void serialize( boost::archive::xml_iarchive& ar, ::mega::Pointer& ref, c
         ar& boost::serialization::make_nvp( "mpo", mpo );
         ar& boost::serialization::make_nvp( "type_instance", typeInstance );
 
-        ref = ::mega::Pointer( typeInstance, mpo, allocationID );
+        ref = ::mega::runtime::Pointer( typeInstance, mpo, allocationID );
     }
 }
 
-inline void serialize( boost::archive::xml_oarchive& ar, ::mega::Pointer& ref, const unsigned int version )
+inline void serialize( boost::archive::xml_oarchive& ar, ::mega::runtime::Pointer& ref, const unsigned int version )
 {
     ::mega::Flags flags = ref.getFlags();
     ar&           boost::serialization::make_nvp( "flags", flags );
@@ -263,7 +263,7 @@ inline void serialize( boost::archive::binary_oarchive& ar, ::mega::runtime::MPO
     ar&( ::mega::U32 )value.getOwnerID();
 }
 
-inline void serialize( boost::archive::binary_iarchive& ar, ::mega::Pointer& ref, const unsigned int version )
+inline void serialize( boost::archive::binary_iarchive& ar, ::mega::runtime::Pointer& ref, const unsigned int version )
 {
     ::mega::Flags flags{};
     ar&           flags;
@@ -276,7 +276,7 @@ inline void serialize( boost::archive::binary_iarchive& ar, ::mega::Pointer& ref
         ar& heap;
         ar& typeInstance;
 
-        ref = ::mega::Pointer( typeInstance, reinterpret_cast< ::mega::HeapAddress >( heap ) );
+        ref = ::mega::runtime::Pointer( typeInstance, reinterpret_cast< ::mega::HeapAddress >( heap ) );
     }
     else
     {
@@ -288,11 +288,11 @@ inline void serialize( boost::archive::binary_iarchive& ar, ::mega::Pointer& ref
         ar& mpo;
         ar& typeInstance;
 
-        ref = ::mega::Pointer( typeInstance, mpo, allocationID );
+        ref = ::mega::runtime::Pointer( typeInstance, mpo, allocationID );
     }
 }
 
-inline void serialize( boost::archive::binary_oarchive& ar, ::mega::Pointer& ref, const unsigned int version )
+inline void serialize( boost::archive::binary_oarchive& ar, ::mega::runtime::Pointer& ref, const unsigned int version )
 {
     ar& ref.getFlags();
     if( ref.isHeapAddress() )

@@ -205,7 +205,7 @@ public:
                     const std::vector< std::string >& parameters    = *parameterTypes.begin();
 
                     // define function pointer type
-                    os << strReturnType << "(*)( mega::Pointer* ";
+                    os << strReturnType << "(*)( mega::runtime::Pointer* ";
 
                     for( const std::string& strType : parameters )
                         os << "," << strType;

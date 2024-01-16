@@ -94,6 +94,9 @@ public:
     GeneratedCPPSourceFilePath CPPImpl( const cppFilePath& source ) const;
     ObjectFilePath             CPPObj( const cppFilePath& source ) const;
 
+    GeneratedCPPSourceFilePath RuntimeSource() const;
+    ObjectFilePath             RuntimeObj() const;
+
     // note lowercase file type function names are used in generated code based on file type
     ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const;
     manifestFilePath         manifestFilePath_fromPath( const boost::filesystem::path& filePath ) const;

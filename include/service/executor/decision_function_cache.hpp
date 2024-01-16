@@ -32,7 +32,7 @@ namespace mega::service
 /*
 class DecisionFunctionCache
 {
-    using DecisionFunctionPtr = void ( * )( const mega::Pointer* );
+    using DecisionFunctionPtr = void ( * )( const mega::runtime::Pointer* );
     using DecisionFunctionMap = std::unordered_map< TypeID, DecisionFunctionPtr, TypeID::Hash >;
 
 public:

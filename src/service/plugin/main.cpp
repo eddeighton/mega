@@ -42,7 +42,7 @@
 struct MemoryRecordHeader
 {
     mega::U16       size;
-    mega::Pointer ref;
+    mega::runtime::Pointer ref;
     mega::U16       dataSize;
 };
 #pragma pack()
