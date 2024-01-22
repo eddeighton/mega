@@ -21,6 +21,8 @@
 
 #include "log/log.hpp"
 
+#include "service/terminal.hpp"
+
 #include "pipeline/configuration.hpp"
 #include "pipeline/stash.hpp"
 #include "pipeline/pipeline.hpp"
@@ -84,8 +86,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
-    bRunLocally = true;
-
     if( !strTaskName.empty() )
     {
         VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
@@ -131,7 +131,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                     = runPipelineLocally( stashDir, symbolXMLOpt, toolchain, pipelineConfig, strTaskName, strSourceFile,
                                           inputPipelineResultPath, bForceNoStash, bExecuteUpTo, false, std::cout );
             }
-            /*else
+            else
             {
                 try
                 {
@@ -142,7 +142,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 {
                     THROW_RTE( "Exception executing pipeline: " << ex.what() );
                 }
-            }*/
+            }
         }
 
         VERIFY_RTE_MSG( pipelineResult.has_value(), "Failed to get pipeline result" );

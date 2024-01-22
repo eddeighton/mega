@@ -174,7 +174,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
                 const std::optional< Container > resultOpt
                     = mega::reporters::generateCompilationReport( url, CompilationReportArgs{ manifest, environment } );
-                VERIFY_RTE_MSG( !resultOpt.has_value(), "Failed to generate any report for: " << url.c_str() );
+                VERIFY_RTE_MSG( resultOpt.has_value(), "Failed to generate any report for: " << url.c_str() );
 
                 struct Linker : mega::reports::Linker
                 {

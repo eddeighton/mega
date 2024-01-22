@@ -68,6 +68,7 @@ public:
 
     TaskDescriptor::Vector          getReady() const;
     std::vector< TaskDescriptor >   getTasks( const std::string& strTaskName ) const;
+    std::optional< TaskDescriptor > getTask( const std::string& strTaskName ) const;
     std::optional< TaskDescriptor > getTask( const std::string& strTaskName, const std::string& strSourceFile ) const;
     Schedule                        getUpTo( const std::string& strTaskName, bool bInclusive ) const;
     Schedule getUpTo( const std::string& strTaskName, const std::string& strSourceFile, bool bInclusive ) const;
@@ -82,6 +83,7 @@ private:
 
 class Progress
 {
+public:
     Progress( const Progress& )            = delete;
     Progress& operator=( const Progress& ) = delete;
 

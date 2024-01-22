@@ -177,6 +177,21 @@ std::vector< TaskDescriptor > Schedule::getTasks( const std::string& strTaskName
     return tasks;
 }
 
+std::optional< TaskDescriptor > Schedule::getTask( const std::string& strTaskName ) const
+{
+    std::optional< TaskDescriptor > result;
+
+    for( const TaskDescriptor& task : m_dependencies.getTasks() )
+    {
+        if( task.getName() == strTaskName && task.getSourceFile().empty() )
+        {
+            return task;
+        }
+    }
+
+    return result;
+}
+
 std::optional< TaskDescriptor > Schedule::getTask( const std::string& strTaskName,
                                                    const std::string& strSourceFile ) const
 {
@@ -382,14 +397,26 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
         EG_PARSER_INTERFACE* getParser() { return m_pParser.get(); }
     } dependencies( toolChain );
 
-    if( !strTaskName.empty() && !strSourceFile.empty() && !bExecuteUpTo )
+    if( !strTaskName.empty() && !bExecuteUpTo )
     {
-        mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
-        osLog << "Running ONLY task: " << strTaskName << " with source: " << strSourceFile << std::endl;
-        std::optional< mega::pipeline::TaskDescriptor > taskOpt = schedule.getTask( strTaskName, strSourceFile );
-        VERIFY_RTE_MSG( taskOpt.has_value(),
-                        "Failed to locate task with name: " << strTaskName << " and source file: " << strSourceFile );
-        pPipeline->execute( taskOpt.value(), progressReporter, stashImpl, dependencies );
+        if( !strSourceFile.empty() )
+        {
+            mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
+            osLog << "Running ONLY task: " << strTaskName << " with source: " << strSourceFile << std::endl;
+            std::optional< mega::pipeline::TaskDescriptor > taskOpt = schedule.getTask( strTaskName, strSourceFile );
+            VERIFY_RTE_MSG(
+                taskOpt.has_value(),
+                "Failed to locate task with name: " << strTaskName << " and source file: " << strSourceFile );
+            pPipeline->execute( taskOpt.value(), progressReporter, stashImpl, dependencies );
+        }
+        else
+        {
+            mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
+            osLog << "Running ONLY task: " << strTaskName << std::endl;
+            std::optional< mega::pipeline::TaskDescriptor > taskOpt = schedule.getTask( strTaskName );
+            VERIFY_RTE_MSG( taskOpt.has_value(), "Failed to locate task with name: " << strTaskName );
+            pPipeline->execute( taskOpt.value(), progressReporter, stashImpl, dependencies );
+        }
     }
     else
     {
@@ -401,11 +428,13 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
             {
                 if( bInclusive )
                 {
-                    osLog << "Running UP TO AND INCLUDING task: " << strTaskName << " with source: " << strSourceFile << std::endl;
+                    osLog << "Running UP TO AND INCLUDING task: " << strTaskName << " with source: " << strSourceFile
+                          << std::endl;
                 }
                 else
                 {
-                    osLog << "Running UP TO NOT INCLUDING task: " << strTaskName << " with source: " << strSourceFile << std::endl;
+                    osLog << "Running UP TO NOT INCLUDING task: " << strTaskName << " with source: " << strSourceFile
+                          << std::endl;
                 }
                 schedule = schedule.getUpTo( strTaskName, strSourceFile, bInclusive );
             }

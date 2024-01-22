@@ -323,7 +323,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     // dependencies.add( runtime_obj, { runtime_source } );
 
     const TskDesc decisions = encode( Task{ eTask_Decisions } );
-    dependencies.add( decisions, { clang_Traits_Gen } );
+    dependencies.add( decisions, cppObjects );
 
     // TskDesc unityReflection = encode( Task{ eTask_UnityReflection} );
     // TskDesc unityAnalysis   = encode( Task{ eTask_UnityAnalysis } );

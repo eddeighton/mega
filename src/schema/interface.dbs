@@ -19,25 +19,6 @@
 
 namespace Interface
 {
-    // context traits
-    /*
-    object DimensionTrait -> InterfaceStage::Tree
-    {
-        ref< IContext > parent;
-        
-        array< ref< Concrete::Dimensions::User > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
-
-        // value< std::string >                    canonical_type  -> InterfaceAnalysisStage::Clang;
-        // value< std::string >                    mangled_name    -> InterfaceAnalysisStage::Clang;
-        // ref< MegaMangle::Mangle >               mangle          -> InterfaceAnalysisStage::Clang;
-        // value< std::string >                    erased_type     -> InterfaceAnalysisStage::Clang;
-        // value< mega::U64 >                      size            -> InterfaceAnalysisStage::Clang;
-        // value< mega::U64 >                      alignment       -> InterfaceAnalysisStage::Clang;
-        // value< bool >                           simple          -> InterfaceAnalysisStage::Clang;
-        // array< ref< Symbols::SymbolTypeID > >   symbols         -> InterfaceAnalysisStage::Clang;
-    }
-*/
-
     namespace CPP
     {
         object TypeInfo -> ClangAnalysisStage::Analysis

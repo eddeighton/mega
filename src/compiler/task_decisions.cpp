@@ -842,10 +842,7 @@ Decision::DecisionProcedure* compileDecision( Database& database, Concrete::Cont
                                            << Concrete::fullTypeName( pContext ) );
     }
 
-    Concrete::Object* pObject = pContext->get_parent_object();
-
-    // const TruthTable                        truthTable = pObject->get_truth_table();
-    // const std::vector< Automata::Vertex* >  variables  = pObject->get_variable_vertices();
+    Concrete::Object*                       pObject  = pContext->get_parent_object();
     const std::vector< Concrete::Decider* > deciders = pObject->get_deciders();
 
     Concrete::State* pCommonAncestor = findCommonAncestor( pContextState, transitionStates );
