@@ -39,9 +39,11 @@
 
 namespace DecisionsStage
 {
+#include "compiler/interface.hpp"
 #include "compiler/interface_printer.hpp"
 #include "compiler/interface_visitor.hpp"
 #include "compiler/common_ancestor.hpp"
+#include "compiler/concrete.hpp"
 #include "compiler/concrete_printer.hpp"
 
 namespace ClangTraits
@@ -61,7 +63,7 @@ namespace
 using DeciderVector     = std::vector< Concrete::Decider* >;
 using StateVector       = std::vector< Concrete::State* >;
 using StateVectorVector = std::vector< StateVector >;
-using StateSet          = std::unordered_set< Concrete::State* >;
+// using StateSet          = std::unordered_set< Concrete::State* >;
 
 Concrete::State* findCommonAncestor( Concrete::State* pState, Concrete::State* pAncestor )
 {
@@ -331,13 +333,24 @@ struct Collector
 };
 
 using TruthTable = std::vector< Automata::TruthAssignment* >;
+using VarSet     = std::unordered_set< Automata::Vertex* >;
 
-using VarSet = std::unordered_set< Automata::Vertex* >;
-struct State
+class State
 {
     // sorted vectors using memory address
     VariableVector true_vars, false_vars;
+
+public:
     using Vector = std::vector< State >;
+
+    State( const VariableVector& vertices, const VariableVector& variablesSorted )
+        : true_vars( vertices )
+    {
+        VERIFY_RTE( !true_vars.empty() );
+        std::sort( true_vars.begin(), true_vars.end() );
+        std::set_difference( variablesSorted.begin(), variablesSorted.end(), true_vars.begin(), true_vars.end(),
+                             std::back_inserter( false_vars ) );
+    }
 
     bool match( const VariableVector& trueVerts, const VariableVector& falseVerts ) const
     {
@@ -351,17 +364,30 @@ struct State
             return false;
         }
     }
+
+    VariableVector getCanBeTrue( const VariableVector& remainingVarsSorted ) const
+    {
+        VariableVector canBeTrueVarsTemp;
+        std::set_intersection( true_vars.begin(), true_vars.end(), remainingVarsSorted.begin(),
+                               remainingVarsSorted.end(), std::back_inserter( canBeTrueVarsTemp ) );
+        return canBeTrueVarsTemp;
+    }
+
+    VariableVector getCanBeFalse( const VariableVector& remainingVarsSorted ) const
+    {
+        VariableVector canBeFalseVarsTemp;
+        std::set_intersection( false_vars.begin(), false_vars.end(), remainingVarsSorted.begin(),
+                               remainingVarsSorted.end(), std::back_inserter( canBeFalseVarsTemp ) );
+        return canBeFalseVarsTemp;
+    }
 };
+
 State::Vector fromTruthTable( const TruthTableSolver::VectorVector& truthTable, const VariableVector& variablesSorted )
 {
     State::Vector result;
     for( const auto& row : truthTable )
     {
-        State state{ row, {} };
-        std::sort( state.true_vars.begin(), state.true_vars.end() );
-        std::set_difference( variablesSorted.begin(), variablesSorted.end(), state.true_vars.begin(),
-                             state.true_vars.end(), std::back_inserter( state.false_vars ) );
-        result.push_back( state );
+        result.emplace_back( row, variablesSorted );
     }
     return result;
 }
@@ -506,7 +532,8 @@ struct DeciderSelector
                 }
             }
         }
-        THROW_RTE( "Failed to resolve decider for non singular transition: " << Concrete::fullTypeName( m_pContext ) );
+        THROW_RTE( "Failed to resolve decider for non singular transition: " << Concrete::getKind( m_pContext ) << " "
+                                                                             << Concrete::fullTypeName( m_pContext ) );
     }
 };
 
@@ -525,9 +552,9 @@ VariableVector calculateRemainingDecideableVariables( Concrete::Context* pContex
         }
     }
 
-    VERIFY_RTE_MSG(
-        !compatibleStates.empty(),
-        "Failed to find compatible truth table states for transition: " << Concrete::fullTypeName( pContext ) );
+    VERIFY_RTE_MSG( !compatibleStates.empty(),
+                    "Failed to find compatible truth table states for transition: "
+                        << Concrete::getKind( pContext ) << " " << Concrete::fullTypeName( pContext ) );
 
     // determine all remaining variables that CAN be both true AND false
     VariableVector remainingDecideableVars;
@@ -538,9 +565,7 @@ VariableVector calculateRemainingDecideableVariables( Concrete::Context* pContex
         {
             const State& state = *iter;
             {
-                VariableVector canBeTrueVarsTemp;
-                std::set_intersection( state.true_vars.begin(), state.true_vars.end(), remainingVarsSorted.begin(),
-                                       remainingVarsSorted.end(), std::back_inserter( canBeTrueVarsTemp ) );
+                const VariableVector canBeTrueVarsTemp = state.getCanBeTrue( remainingVarsSorted );
 
                 VariableVector temp;
                 canBeTrueVars.swap( temp );
@@ -549,9 +574,7 @@ VariableVector calculateRemainingDecideableVariables( Concrete::Context* pContex
             }
 
             {
-                VariableVector canBeFalseVarsTemp;
-                std::set_intersection( state.false_vars.begin(), state.false_vars.end(), remainingVarsSorted.begin(),
-                                       remainingVarsSorted.end(), std::back_inserter( canBeFalseVarsTemp ) );
+                const VariableVector canBeFalseVarsTemp = state.getCanBeFalse( remainingVarsSorted );
 
                 VariableVector temp;
                 canBeFalseVars.swap( temp );
@@ -561,6 +584,8 @@ VariableVector calculateRemainingDecideableVariables( Concrete::Context* pContex
         }
 
         // find all variables where BOTH values occur
+        std::sort( canBeTrueVars.begin(), canBeTrueVars.end() );
+        std::sort( canBeFalseVars.begin(), canBeFalseVars.end() );
         std::set_intersection( canBeTrueVars.begin(), canBeTrueVars.end(), canBeFalseVars.begin(), canBeFalseVars.end(),
                                std::back_inserter( remainingDecideableVars ) );
     }
@@ -650,7 +675,10 @@ Decision::Step* buildRecurse( Database& database, Concrete::State* pCommonAncest
         {
             VariableVector newTrueVars = trueVars, newFalseVars = falseVars;
             newTrueVars.push_back( pBooleanVar );
+
             std::sort( newTrueVars.begin(), newTrueVars.end() );
+            std::sort( newFalseVars.begin(), newFalseVars.end() );
+
             VariableVector newRemainingDecideableVars = calculateRemainingDecideableVariables(
                 pContext, truthTable, newTrueVars, newFalseVars, remainingDecideableVars );
 
@@ -673,7 +701,10 @@ Decision::Step* buildRecurse( Database& database, Concrete::State* pCommonAncest
         {
             VariableVector newTrueVars = trueVars, newFalseVars = falseVars;
             newFalseVars.push_back( pBooleanVar );
+
+            std::sort( newTrueVars.begin(), newTrueVars.end() );
             std::sort( newFalseVars.begin(), newFalseVars.end() );
+
             VariableVector newRemainingDecideableVars = calculateRemainingDecideableVariables(
                 pContext, truthTable, newTrueVars, newFalseVars, remainingDecideableVars );
 

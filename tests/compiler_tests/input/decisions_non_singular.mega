@@ -1,0 +1,16 @@
+
+
+object NonSingular
+{
+    decider( @B, @C );
+
+    component Component
+    {
+        state S1 : ^OR
+        {
+            action A > @B, @C;
+            action B > @A;
+            action C > @A;
+        }
+    }
+}

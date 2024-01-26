@@ -94,7 +94,7 @@ int inner_main( int argc, char* argv[] )
         ( "clang_compiler", bpo::value< boost::filesystem::path >( &clangCompiler ),    "Clang Compiler path" )
         ( "parser_dll",     bpo::value< boost::filesystem::path >( &parserDll ),        "Parser DLL Path" )
         ( "mega_compiler",  bpo::value< boost::filesystem::path >( &megaCompiler ),     "Megastructure compiler path" )
-        //( "clang_plugin",   bpo::value< boost::filesystem::path >( &clangPlugin ),      "Clang Plugin path" )
+        ( "clang_plugin",   bpo::value< boost::filesystem::path >( &clangPlugin ),      "Clang Plugin path" )
         ( "database_dll",   bpo::value< boost::filesystem::path >( &databaseDll ),      "Database DLL Path" )
 
         ( "cpp_flags",      bpo::value< std::string >( &strCPPFlags ),                  "C++ Compiler Flags" )
@@ -103,7 +103,7 @@ int inner_main( int argc, char* argv[] )
 
         ( "compiler_templates_dir",     bpo::value< boost::filesystem::path >( &g_compiler_templatesDir ),  "Path to compiler templates" )
         ( "report_templates_dir",       bpo::value< boost::filesystem::path >( &g_report_templatesDir ),    "Path to report templates" )
-        ( "stash_dir",      bpo::value< boost::filesystem::path >( &g_stashDir ),       "Test stash path" )
+        ( "stash_dir",                  bpo::value< boost::filesystem::path >( &g_stashDir ),       "Test stash path" )
         
     ;
     // clang-format on
@@ -124,6 +124,15 @@ int inner_main( int argc, char* argv[] )
         std::cin >> c;
     }
 
+    if( !strFilter.empty() )
+    {
+        std::cout << "Running with filter: " << strFilter << std::endl;
+    }
+    else
+    {
+        std::cout << "Running ALL tests" << std::endl;
+    }
+
     // initialise toolchain
     {
         // clang-format off
@@ -134,7 +143,7 @@ int inner_main( int argc, char* argv[] )
         VERIFY_RTE_MSG( boost::filesystem::exists( clangCompiler ), "File not found clangCompiler at : " << clangCompiler.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( parserDll ), "File not found parserDll at : " << parserDll.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( megaCompiler ), "File not found megaCompiler at : " << megaCompiler.string() );
-        //VERIFY_RTE_MSG( boost::filesystem::exists( clangPlugin ), "File not found clangPlugin at : " << clangPlugin.string() );
+        VERIFY_RTE_MSG( boost::filesystem::exists( clangPlugin ), "File not found clangPlugin at : " << clangPlugin.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( databaseDll ), "File not found databaseDll at : " << databaseDll.string() );
 
 
@@ -147,8 +156,8 @@ int inner_main( int argc, char* argv[] )
         const std::string strClangVersion   = mega::utilities::ToolChain::getClangVersion( clangCompiler );
         const mega::U64   szDatabaseVersion = mega::utilities::ToolChain::getDatabaseVersion( databaseDll );
 
-        g_toolChain = mega::utilities::ToolChain( strClangVersion, szDatabaseVersion, parserDll, megaCompiler,
-                                                  clangCompiler, parserDll /*clangPlugin*/, databaseDll );
+        g_toolChain = mega::utilities::ToolChain(
+            strClangVersion, szDatabaseVersion, parserDll, megaCompiler, clangCompiler, clangPlugin, databaseDll );
     }
 
     {

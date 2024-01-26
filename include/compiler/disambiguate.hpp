@@ -162,6 +162,7 @@ static Disambiguation disambiguate( Derivation::Step* pStep, const std::vector< 
     }
     else if( Derivation::Or* pOr = db_cast< Derivation::Or >( pStep ) )
     {
+        // if the OR is in final frontier then have reached the end
         if( std::find( finalFrontier.begin(), finalFrontier.end(), pOr ) != finalFrontier.end() )
         {
             ASSERT( pStep->get_edges().empty() );
@@ -169,6 +170,7 @@ static Disambiguation disambiguate( Derivation::Step* pStep, const std::vector< 
         }
         else
         {
+            // otherwise we are within the tree
             ASSERT( !pStep->get_edges().empty() );
         }
 
@@ -217,7 +219,7 @@ static Disambiguation disambiguate( Derivation::Step* pStep, const std::vector< 
         }
 
         // now determine highest precedence for any successful edges
-        int iHighestPrecedence = 0;
+        int iHighestPrecedence = std::numeric_limits< int >::lowest();
         for( auto pEdge : pStep->get_edges() )
         {
             if( !pEdge->get_eliminated() )
@@ -304,7 +306,7 @@ static void precedence( Derivation::Edge* pEdge )
                     }
                     break;
                 case ::mega::EdgeType::eParent:
-
+                    break;
                 case mega::EdgeType::eInterObjectNonOwner:
                 case mega::EdgeType::eInterObjectOwner:
                 case mega::EdgeType::eInterObjectParent:
@@ -313,6 +315,21 @@ static void precedence( Derivation::Edge* pEdge )
                 default:
                     THROW_RTE( "Unknown hyper graph edge type" );
                     break;
+            }
+        }
+        else
+        {
+            for( auto pGraphEdge : edges )
+            {
+                switch( pGraphEdge->get_type().get() )
+                {
+                    // punish parent derivation steps
+                    case ::mega::EdgeType::eParent:
+                    {
+                        pEdge->set_precedence( pEdge->get_precedence() - 1 );
+                    }
+                    break;
+                }
             }
         }
     }

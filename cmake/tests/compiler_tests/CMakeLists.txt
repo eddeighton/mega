@@ -79,6 +79,8 @@ gtest_add_tests( TARGET compiler_tests SOURCES ${COMPILER_UNIT_TESTS} )
 
 install( TARGETS compiler_tests DESTINATION bin )
 
+###################################################################################################
+###################################################################################################
 message( "Generating the ToolChain.xml for compiler tests" )
 
 find_path(LLVM_CONFIGURATION_PATH NAMES "llvm/install" PATHS "${CMAKE_INSTALL_PREFIX}/../../" REQUIRED NO_DEFAULT_PATH)
@@ -104,12 +106,10 @@ add_custom_target( run_compiler_tests
         --expected ${COMPILER_TESTS_DIR}/expected
 
 		--clang_compiler ${SCRIPT_CLANG_COMPILER}
-		--parser $<TARGET_FILE:parser> 
+		--parser_dll $<TARGET_FILE:parser> 
 		--mega_compiler $<TARGET_FILE:compiler>
-		#--mega_executor $<TARGET_FILE:executor>
-		#--clang_plugin $<TARGET_FILE:clang_plugin>
+		--clang_plugin $<TARGET_FILE:clang_plugin>
 		--database $<TARGET_FILE:database>
-		#--leaf $<TARGET_FILE:leaf>
 
 		--cpp_flags \"${CLANG_CXX_FLAGS_STR}\"
 		--cpp_defines \"${CLANG_CXX_DEFINES_STR}\"

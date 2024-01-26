@@ -68,6 +68,8 @@ using namespace std::string_literals;
 INSTANTIATE_TEST_SUITE_P( Decisions, DecisionsFixtureType,
         ::testing::Values
         ( 
-            Data{ "decisions_basic", { "decisions_basic.mega" }, {} }
+            Data{ "decisions_basic", { "decisions_basic.mega" }, {} },
+            Data{ "decisions_non_singular", { "decisions_non_singular.mega" }, {} },
+            Data{ "decisions_sub_tree", { "decisions_sub_tree.mega" }, {} }
         ));
 // clang-format on

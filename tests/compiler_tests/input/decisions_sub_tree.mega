@@ -1,0 +1,21 @@
+
+
+object SubTree
+{
+    component Component
+    {
+        state S1 : ^OR
+        {
+            action B > @C;
+
+            state C : ^OR
+            {
+                decider( @D, @E );
+
+                action D;
+                action E;
+            }
+        }
+
+    }
+}

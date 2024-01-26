@@ -1,27 +1,13 @@
 
 
-object Simple
+object Basic
 {
     component C
     {
         state S1 : ^OR
         {
-            action A > @S1.B;
-            action B > @S1.C.D;
-            
-            state C : ^OR
-            {
-                action D > @S1.E;
-                action E > @S1.F;
-                action F > @S1.A;
-            }
-        }
-
-        state S2 : ^OR
-        {
-            action A > @S2.B;
-            action B > @S2.C;
-            action C > @S2.A;
+            action A > @B;
+            action B > @A;
         }
     }
 }

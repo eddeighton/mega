@@ -1,0 +1,43 @@
+
+interface S :  ^OR
+{
+    action A > @B;
+    action B > @A;
+    action C > @S2.A;
+    action D > @Component.A;
+}
+
+object Disambiguate
+{
+    component Component
+    {
+        state S1 : ^S;
+
+        state S2 : ^S
+        {
+            action C > @S1.A;
+        }
+        
+        action A;
+    }
+}
+
+object DisambiguateDerived : ^Disambiguate
+{
+    action Component::S1::B > @Component.A;
+}
+
+object Disambiguate2
+{
+    component Component
+    {
+        state S1 : ^S;
+
+        state S2 : ^S
+        {
+            action C > @S1.A;
+        }
+        
+        action A;
+    }
+}

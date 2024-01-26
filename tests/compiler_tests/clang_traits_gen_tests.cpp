@@ -68,6 +68,8 @@ INSTANTIATE_TEST_SUITE_P( ClangTraitsGen, ClangTraitsGenFixtureType,
         ::testing::Values
         ( 
             Data{ "clang_traits_gen", { "clang_traits_gen.mega" }, {} },
-            Data{ "clang_traits_interobject", { "clang_traits_interobject.mega" }, {} }
+            Data{ "clang_traits_interobject", { "clang_traits_interobject.mega" }, {} },
+
+            Data{ "clang_traits_disambiguate", { "clang_traits_disambiguate.mega" }, {} }
         ));
 // clang-format on

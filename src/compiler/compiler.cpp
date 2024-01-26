@@ -316,6 +316,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
+    // NOTE: if no cppObjects ensure have cpp_decls as dependency
+    std::vector< TskDesc > decisionsDependencies = cppObjects;
+    decisionsDependencies.push_back( cpp_decls );
+
+
     // const TskDesc runtime_source = encode( Task{ eTask_Runtime_Source } );
     // dependencies.add( runtime_source, { includePCH, clang_Traits_Analysis } );
 
@@ -323,7 +328,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     // dependencies.add( runtime_obj, { runtime_source } );
 
     const TskDesc decisions = encode( Task{ eTask_Decisions } );
-    dependencies.add( decisions, cppObjects );
+    dependencies.add( decisions, decisionsDependencies );
 
     // TskDesc unityReflection = encode( Task{ eTask_UnityReflection} );
     // TskDesc unityAnalysis   = encode( Task{ eTask_UnityAnalysis } );
