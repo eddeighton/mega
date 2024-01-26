@@ -170,29 +170,14 @@ network::Message LeafRequestLogicalThread::MPRoot( const network::Message&     r
     SPDLOG_TRACE( "LeafRequestLogicalThread::MPRoot: {}", m_leaf.m_mp );
     return getMPOUpSender( yield_ctx ).MPRoot( request, m_leaf.m_mp );
 }
+
 network::Message LeafRequestLogicalThread::MPDown( const network::Message& request, const mega::runtime::MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( mp == m_leaf.getMP() );
-    
-    switch( m_leaf.m_nodeType )
-    {
-        case network::Node::Executor:
-        case network::Node::Tool:
-        case network::Node::Python:
-        case network::Node::Report:
-        case network::Node::Plugin:
-            return getMPODownSender( yield_ctx ).MPDown( request, mp );
-        case network::Node::Terminal:
-        case network::Node::Daemon:
-        case network::Node::Root:
-        case network::Node::Leaf:
-        case network::Node::TOTAL_NODE_TYPES:
-            THROW_RTE( "Unreachable" );
-        default:
-            THROW_RTE( "Unknown node type" );
-    }
+    return dispatchInBoundRequest( request, yield_ctx );
 }
+
 network::Message LeafRequestLogicalThread::MPUp( const network::Message& request, const mega::runtime::MP& mp,
                                                  boost::asio::yield_context& yield_ctx )
 {

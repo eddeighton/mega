@@ -500,6 +500,12 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
                     url.set_fragment( mega::reports::toString( value ) );
                     return url;
                 }
+                else if( auto pTypeID = std::get_if< mega::concrete::TypeID >( &value ) )
+                {
+                    URL url = m_url;
+                    url.set_fragment( mega::reports::toString( value ) );
+                    return url;
+                }
                 else if( auto pMPO = std::get_if< mega::runtime::MPO >( &value ) )
                 {
                     URL url = m_url;
