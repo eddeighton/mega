@@ -6,10 +6,12 @@
 
 #ifndef Q_MOC_RUN
 
-#include "service/tool.hpp"
-#include "service/network/network.hpp"
+#include "log/log.hpp"
 
-#include "boost/asio/spawn.hpp"
+// #include "service/tool.hpp"
+// #include "service/network/network.hpp"
+
+// #include "boost/asio/spawn.hpp"
 #include <boost/program_options.hpp>
 
 #include <iostream>
@@ -20,14 +22,15 @@ namespace editor
 {
 void MainWindow::OnIdle()
 {
-    if( m_pYield_ctx )
+    /*if( m_pYield_ctx )
     {
         boost::asio::post( *m_pYield_ctx );
         queueIdleTimer();
-    }
+    }*/
 }
 } // namespace editor
 
+/*
 int runGuiInService( int argc, char* argv[], boost::asio::yield_context& yield_ctx )
 {
     QApplication       application( argc, argv );
@@ -35,7 +38,8 @@ int runGuiInService( int argc, char* argv[], boost::asio::yield_context& yield_c
     mainWindow.show();
     mainWindow.queueIdleTimer();
     return application.exec();
-}
+}*/
+
 int runGui( int argc, char* argv[] )
 {
     QApplication       application( argc, argv );
@@ -46,11 +50,11 @@ int runGui( int argc, char* argv[] )
 
 int main( int argc, char* argv[] )
 {
-    std::string             strIP              = "localhost";
-    short                   daemonPortNumber   = mega::network::MegaDaemonPort();
+    //std::string             strIP              = "localhost";
+    //short                   daemonPortNumber   = mega::network::MegaDaemonPort();
     boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
     std::string             strConsoleLogLevel = "warn", strLogFileLevel = "warn";
-    bool                    bConnect = false;
+    //bool                    bConnect = false;
     {
         bool bShowHelp = false;
 
@@ -63,8 +67,8 @@ int main( int argc, char* argv[] )
         ( "log",     po::value< boost::filesystem::path >( &logFolder ),                            "Logging folder" )
         ( "console", po::value< std::string >( &strConsoleLogLevel ),                               "Console logging level" )
         ( "level",   po::value< std::string >( &strLogFileLevel ),                                  "Log file logging level" )
-        ( "port",    po::value< short >( &daemonPortNumber )->default_value( daemonPortNumber ),    "Daemon port number" )
-        ( "connect", po::bool_switch( &bConnect ),                                                  "Connect to Megastructure" )
+        //( "port",    po::value< short >( &daemonPortNumber )->default_value( daemonPortNumber ),    "Daemon port number" )
+        //( "connect", po::bool_switch( &bConnect ),                                                  "Connect to Megastructure" )
         ;
         // clang-format on
 
@@ -87,7 +91,7 @@ int main( int argc, char* argv[] )
             mega::network::Log::Config{ logFolder, "editor", mega::network::fromStr( strConsoleLogLevel ),
                                         mega::network::fromStr( strLogFileLevel ) } );
 
-        if( bConnect )
+        /*if( bConnect )
         {
             mega::service::Tool tool( daemonPortNumber, log );
 
@@ -96,7 +100,7 @@ int main( int argc, char* argv[] )
 
             tool.run( functor );
         }
-        else
+        else*/
         {
             runGui( argc, argv );
         }

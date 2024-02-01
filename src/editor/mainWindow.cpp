@@ -34,7 +34,7 @@ namespace editor
 {
 MainWindow* MainWindow::m_pThis = nullptr;
 
-MainWindow::MainWindow( boost::asio::yield_context* pYieldCtx )
+MainWindow::MainWindow( void* pYieldCtx )
     : QMainWindow( nullptr )
     , m_pYield_ctx( pYieldCtx )
     , m_pMainWindowImpl( new Ui::MainWindow )

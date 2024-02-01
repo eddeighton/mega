@@ -15,7 +15,7 @@
 #include "toolbox.hpp"
 #include "document.hpp"
 
-#include "boost/asio/spawn.hpp"
+// #include "boost/asio/spawn.hpp"
 
 #include <map>
 #include <thread>
@@ -46,7 +46,7 @@ class MainWindow : public QMainWindow, public DocumentChangeObserver
     using ActionMap = std::map< QAction*, int >;
 
 public:
-    explicit MainWindow( boost::asio::yield_context* pYieldCtx );
+    explicit MainWindow( void* pYieldCtx );
     virtual ~MainWindow();
 
     static MainWindow* getSingleton()
@@ -98,14 +98,14 @@ public slots:
     void OnSaveAll();
 
 protected:
-    static MainWindow*          m_pThis;
-    boost::asio::yield_context* m_pYield_ctx;
-    Ui::MainWindow*             m_pMainWindowImpl;
-    ads::CDockManager*          m_pDockManager;
-    DocumentViewMap             m_docViewMap;
-    ActionMap                   m_actionRefCountMap;
-    Toolbox::Ptr                m_pToolbox;
-    QComboBox*                  m_pCompilationModeComboBox;
+    static MainWindow* m_pThis;
+    void*              m_pYield_ctx;
+    Ui::MainWindow*    m_pMainWindowImpl;
+    ads::CDockManager* m_pDockManager;
+    DocumentViewMap    m_docViewMap;
+    ActionMap          m_actionRefCountMap;
+    Toolbox::Ptr       m_pToolbox;
+    QComboBox*         m_pCompilationModeComboBox;
 };
 
 } // namespace editor

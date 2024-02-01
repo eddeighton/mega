@@ -91,6 +91,10 @@ add_executable( editor
     ${EDITOR_SOURCE}
 )
 
+# CommandLine Error: Option 'use-dbg-addr' registered more than once!
+# LLVM ERROR: inconsistency in registered CommandLine options
+# target_compile_definitions( editor PUBLIC -DENABLE_LLVM_SHARED=1 )
+
 target_include_directories( editor PRIVATE ${MEGA_API_DIR} )
 target_include_directories( editor PRIVATE ${EDITOR_SRC_DIR} )
 
@@ -123,9 +127,9 @@ target_link_libraries( editor schematic )
 target_link_libraries( editor compiler_config )
 target_link_libraries( editor database )
 target_link_libraries( editor log )
-target_link_libraries( editor network )
-target_link_libraries( editor protocol )
-target_link_libraries( editor tool )
+# target_link_libraries( editor network )
+# target_link_libraries( editor protocol )
+# target_link_libraries( editor tool )
 
 link_cgal( editor )
 link_qtdock2( editor )
