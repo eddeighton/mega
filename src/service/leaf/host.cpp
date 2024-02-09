@@ -25,8 +25,8 @@
 namespace mega::service
 {
 
-Host::Host( network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber )
-    : Leaf( pSender, nodeType, daemonPortNumber )
+Host::Host( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber )
+    : Leaf( std::move( log ), pSender, nodeType, daemonPortNumber )
 {
 }
 

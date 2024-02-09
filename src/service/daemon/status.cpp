@@ -42,6 +42,7 @@ network::Status DaemonRequestLogicalThread::GetStatus( const std::vector< networ
         status.setLogicalThreadID( logicalthreads );
         status.setMachineID( m_daemon.m_machineID );
         status.setDescription( m_daemon.m_strProcessName );
+        status.setLogFile( m_daemon.getLog().logFile.string() );
     }
 
     return status;

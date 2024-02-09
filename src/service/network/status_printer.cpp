@@ -84,11 +84,26 @@ void StatusPrinter::printNodeInfo( const network::Status& status, std::ostream& 
 {
     int indent = 4;
 
+    if( m_config.m_bRuntime )
+    {
+        if( status.getProgram().has_value() )
+        {
+            line( os, indent ) << "Program: " << status.getProgram().value() << "\n";
+        }
+        if( status.getLogFile().has_value() )
+        {
+            if( const auto& log = status.getLogFile().value(); !log.empty() )
+            {
+                line( os, indent ) << "Log File: " << log << "\n";
+            }
+        }
+    }
+
     if( m_config.m_bLog )
     {
         if( status.getLogFolder().has_value() )
         {
-            line( os, indent ) << "LOG: " << status.getLogFolder().value() << "\n";
+            line( os, indent ) << "Event folder: " << status.getLogFolder().value() << "\n";
         }
         if( status.getLogIterator().has_value() )
         {

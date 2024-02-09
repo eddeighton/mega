@@ -24,8 +24,8 @@
 namespace mega::service
 {
     
-Player::Player( network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber, ProcessClock& processClock )
-    : Host( pSender, nodeType, daemonPortNumber )
+Player::Player( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber, ProcessClock& processClock )
+    : Host( std::move( log ), pSender, nodeType, daemonPortNumber )
     , m_processClock( processClock )
 {
 }

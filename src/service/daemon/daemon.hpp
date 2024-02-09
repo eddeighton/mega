@@ -49,6 +49,8 @@ public:
 
     void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
 
+    const auto& getLog() const { return m_log; }
+
 private:
     void onLeafDisconnect( mega::runtime::MP mp );
 

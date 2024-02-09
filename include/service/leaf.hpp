@@ -20,6 +20,8 @@
 #ifndef LEAF_16_JUNE_2022
 #define LEAF_16_JUNE_2022
 
+#include "log/log.hpp"
+
 #include "runtime/runtime.hpp"
 
 #include "service/network/client.hpp"
@@ -52,7 +54,7 @@ class Leaf : public network::LogicalThreadManager
     friend class MPOEntry;
 
 public:
-    Leaf( network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber );
+    Leaf( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber );
     ~Leaf();
 
     void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
@@ -65,6 +67,7 @@ public:
     // network::LogicalThreadManager
     virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
+    const network::Log&  getLog() const { return m_log; }
     network::Node        getType() const { return m_nodeType; }
     network::Sender::Ptr getDaemonSender() { return m_client.getSender(); }
     network::Sender::Ptr getNodeChannelSender() { return m_pSender; }
@@ -90,6 +93,7 @@ public:
     }
 
 private:
+    network::Log            m_log;
     network::Sender::Ptr    m_pSender;
     network::Sender::Ptr    m_pSelfSender;
     network::Node           m_nodeType;

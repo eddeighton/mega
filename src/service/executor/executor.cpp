@@ -46,12 +46,11 @@ namespace mega::service
 Executor::Executor( boost::asio::io_context& io_context, network::Log log, U64 numThreads, short daemonPortNumber,
                     ProcessClock& processClock, network::Node nodeType )
     : network::LogicalThreadManager( network::Node::makeProcessName( nodeType ), io_context )
-    , m_log( log )
     , m_io_context( io_context )
     , m_numThreads( numThreads )
     , m_processClock( processClock )
     , m_receiverChannel( m_io_context, *this )
-    , m_player( m_receiverChannel.getSender(), nodeType, daemonPortNumber, processClock )
+    , m_player( std::move( log ), m_receiverChannel.getSender(), nodeType, daemonPortNumber, processClock )
 {
     m_receiverChannel.run( m_player.getLeafSender() );
     m_player.startup();
@@ -99,7 +98,6 @@ void Executor::getGeneralStatusReport( const mega::reports::URL& url, mega::repo
     Table table;
     // clang-format off
     table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
-    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, makeFileURL( url, m_log.logFile ) } } );
     table.m_rows.push_back( { Line{ "     Threads: "s }, Line{ std::to_string( m_numThreads ) } } );
     table.m_rows.push_back( { Line{ "Mega Threads: "s }, threads } );
     // clang-format on

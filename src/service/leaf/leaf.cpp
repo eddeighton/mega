@@ -90,8 +90,9 @@ public:
     }
 };
 
-Leaf::Leaf( network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber )
+Leaf::Leaf( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber )
     : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Leaf ), m_io_context )
+    , m_log( std::move( log ) )
     , m_pSender( pSender )
     , m_nodeType( nodeType )
     , m_io_context( 1 ) // single threaded concurrency hint
@@ -120,6 +121,9 @@ void Leaf::getGeneralStatusReport( const mega::reports::URL& url, mega::reports:
         table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
         table.m_rows.push_back( { Line{ "   Node Type: "s }, Line{ m_nodeType } } );
         table.m_rows.push_back( { Line{ "          MP: "s }, Line{ m_mp } } );
+        table.m_rows.push_back( { Line{ "     Program: "s }, Line{ getRuntime().getProgram() } } );
+        table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ getLog().logFile, makeFileURL( url, getLog().logFile ) } } );
+
         // table.m_rows.push_back( { Line{ "  Remote Mem: "s }, Line{ std::to_string( remoteMemStatus.m_heap ) } } );
         // table.m_rows.push_back( { Line{ "  Remote Obj: "s }, Line{ std::to_string( remoteMemStatus.m_object ) } } );
         // clang-format on

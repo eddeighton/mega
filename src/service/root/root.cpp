@@ -58,7 +58,7 @@ namespace mega::service
 Root::Root( boost::asio::io_context& ioContext, network::Log log, const boost::filesystem::path& stashFolder,
             short portNumber )
     : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Root ), ioContext )
-    , m_log( log )
+    , m_log( std::move( log ) )
     , m_stashFolder( stashFolder )
     , m_server( ioContext, *this, portNumber )
     , m_stash( m_stashFolder )

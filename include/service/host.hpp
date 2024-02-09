@@ -29,12 +29,12 @@ namespace mega::service
 class Host : public Leaf
 {
 public:
-    Host( network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber );
+    Host( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber );
 
 private:
-    //std::unique_ptr< runtime::RemoteMemoryManager >  m_pRemoteMemoryManager;
+    // std::unique_ptr< runtime::RemoteMemoryManager >  m_pRemoteMemoryManager;
 };
 
-}
+} // namespace mega::service
 
-#endif //GUARD_2023_November_28_host
+#endif // GUARD_2023_November_28_host

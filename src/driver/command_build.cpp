@@ -57,13 +57,22 @@ bool runBuild( const mega::service::Project& project, const mega::io::Directorie
 
     const auto buildCmd = Environment::buildCmd();
 
-    std::future< std::string > output, error;
+    std::future< std::string > output;
+    std::future< std::string > error;
     {
         namespace bp = boost::process;
         boost::asio::io_service ios;
         std::error_code         ec;
-        bp::child c( buildCmd, bp::start_dir = directories.buildDir, bp::std_in.close(), bp::std_out > output,
-                     bp::std_err > error, bp::error_code( ec ), ios );
+
+        bp::child c( buildCmd
+                , bp::start_dir = directories.buildDir
+                , bp::std_in.close()
+                , bp::std_out > output
+                , bp::std_err > error
+                , bp::error_code( ec )
+                
+                , ios );
+
         ios.run();
     }
 
@@ -80,12 +89,14 @@ bool runBuild( const mega::service::Project& project, const mega::io::Directorie
         using namespace std::string_literals;
         const std::string strFAILED = "FAILED:"s;
 
-        bWasError
-            = std::search( strOutput.begin(), strOutput.end(), strFAILED.begin(), strFAILED.end() ) != strOutput.end();
+         bWasError
+             = std::search( strOutput.begin(), strOutput.end(), strFAILED.begin(), strFAILED.end() ) != strOutput.end();
 
         if( bWasError )
         {
+            std::cout << std::endl;
             std::cout << strOutput << std::endl;
+            std::cout << std::endl;
         }
     }
     return bWasError;

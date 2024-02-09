@@ -119,7 +119,6 @@ private:
     }
 
 private:
-    network::Log             m_log;
     boost::asio::io_context  m_io_context;
     network::ReceiverChannel m_receiverChannel;
     Leaf                     m_leaf;

@@ -46,9 +46,8 @@ namespace mega::service
 
 Tool::Tool( short daemonPortNumber, network::Log log )
     : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Tool ), m_io_context )
-    , m_log( log )
     , m_receiverChannel( m_io_context, *this )
-    , m_host( m_receiverChannel.getSender(), network::Node::Tool, daemonPortNumber )
+    , m_host( std::move( log ), m_receiverChannel.getSender(), network::Node::Tool, daemonPortNumber )
 {
     m_receiverChannel.run( m_host.getLeafSender() );
     m_host.startup();

@@ -64,9 +64,6 @@ network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status
 
         status.setLogIterator( getLog().getIterator() );
         status.setLogFolder( getLog().getLogFolderPath().string() );
-
-        THROW_TODO;
-        // status.setMemory( m_pMemoryManager->getStatus() );
     }
 
     return status;

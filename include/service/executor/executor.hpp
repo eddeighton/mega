@@ -50,7 +50,8 @@ class Executor : public network::LogicalThreadManager
     friend class Platform;
     friend class PlayerNetwork;
 
-    using SimulationMap = std::unordered_map< mega::runtime::MPO, std::shared_ptr< Simulation >, mega::runtime::MPO::Hash >;
+    using SimulationMap
+        = std::unordered_map< mega::runtime::MPO, std::shared_ptr< Simulation >, mega::runtime::MPO::Hash >;
 
 public:
     Executor( boost::asio::io_context& io_context,
@@ -63,7 +64,7 @@ public:
     ~Executor() override;
 
     void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
-    
+
     void shutdown();
     void shutdown( boost::asio::yield_context& yield_ctx );
 
@@ -76,12 +77,12 @@ public:
 
     void                          getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const;
     std::shared_ptr< Simulation > getSimulation( const mega::runtime::MPO& mpo ) const;
-    mega::runtime::MPO createSimulation( network::LogicalThread& callingLogicalThread, boost::asio::yield_context& yield_ctx );
-    void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );
-    void      logicalthreadCompleted( network::LogicalThreadBase::Ptr pLogicalThread ) override;
+    mega::runtime::MPO            createSimulation( network::LogicalThread&     callingLogicalThread,
+                                                    boost::asio::yield_context& yield_ctx );
+    void                          simulationTerminating( std::shared_ptr< Simulation > pSimulation );
+    void                          logicalthreadCompleted( network::LogicalThreadBase::Ptr pLogicalThread ) override;
 
 private:
-    network::Log                             m_log;
     boost::asio::io_context&                 m_io_context;
     U64                                      m_numThreads;
     ProcessClock&                            m_processClock;

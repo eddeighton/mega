@@ -47,7 +47,7 @@ const char* Environment::getenv( const char* pszKey )
     }
     else
     {
-        THROW_RTE( "Failed to find environment key: " << pszKey );
+        THROW_BACKTRACE( std::runtime_error, "Failed to find environment key: " << pszKey );
     }
 }
 

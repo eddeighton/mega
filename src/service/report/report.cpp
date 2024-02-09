@@ -47,10 +47,9 @@ namespace mega::service::report
 Report::Report( boost::asio::io_context& io_context, network::Log log, short daemonPortNumber, int iTimeoutSeconds,
                 const boost::asio::ip::tcp::endpoint& httpEndPoint )
     : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Report ), io_context )
-    , m_log( log )
     , m_io_context( io_context )
     , m_receiverChannel( m_io_context, *this )
-    , m_leaf( m_receiverChannel.getSender(), network::Node::Report, daemonPortNumber )
+    , m_leaf( std::move( log ), m_receiverChannel.getSender(), network::Node::Report, daemonPortNumber )
     , m_iTimeoutSeconds( iTimeoutSeconds )
     , m_httpEndPoint( httpEndPoint )
 {

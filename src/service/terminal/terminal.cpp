@@ -72,9 +72,8 @@ public:
 
 Terminal::Terminal( network::Log log, short daemonPortNumber )
     : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Terminal ), m_io_context )
-    , m_log( log )
     , m_receiverChannel( m_io_context, *this )
-    , m_leaf( m_receiverChannel.getSender(), network::Node::Terminal, daemonPortNumber )
+    , m_leaf( std::move( log ), m_receiverChannel.getSender(), network::Node::Terminal, daemonPortNumber )
 {
     m_receiverChannel.run( m_leaf.getLeafSender() );
     m_leaf.startup();

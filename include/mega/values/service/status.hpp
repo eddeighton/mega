@@ -23,6 +23,7 @@
 #include "mega/values/runtime/pointer.hpp"
 
 #include "mega/values/service/logical_thread_id.hpp"
+#include "mega/values/service/program.hpp"
 #include "service/protocol/common/sender_ref.hpp"
 
 #include "event/index_record.hpp"
@@ -165,6 +166,8 @@ public:
     const std::vector< network::LogicalThreadID >& getLogicalThreads() const { return m_logicalthreadIDs; }
     const std::optional< event::IndexRecord >&     getLogIterator() const { return m_logIterator; }
     const std::optional< std::string >&            getLogFolder() const { return m_strLogFolder; }
+    const std::optional< std::string >&            getLogFile() const { return m_strLogFile; }
+    const std::optional< service::Program >&       getProgram() const { return m_program; }
     const std::optional< network::MemoryStatus >&  getMemory() const { return m_memory; }
 
     const std::optional< std::vector< std::pair< runtime::MPO, runtime::TimeStamp > > >& getReads() const
@@ -189,7 +192,9 @@ public:
         m_logicalthreadIDs = logicalthreads;
     }
     void setLogIterator( const event::IndexRecord& iterator ) { m_logIterator = iterator; }
+    void setProgram( const service::Program& program ) { m_program = program; }
     void setLogFolder( const std::string& strLogFolder ) { m_strLogFolder = strLogFolder; }
+    void setLogFile( const std::string& strLogFile ) { m_strLogFile = strLogFile; }
     void setMemory( network::MemoryStatus memoryStatus ) { m_memory = memoryStatus; }
 
     void setReads( const std::optional< std::vector< std::pair< runtime::MPO, runtime::TimeStamp > > >& value )
@@ -214,6 +219,8 @@ public:
         archive& m_logicalthreadIDs;
         archive& m_logIterator;
         archive& m_strLogFolder;
+        archive& m_strLogFile;
+        archive& m_program;
         archive& m_memory;
 
         archive& m_reads;
@@ -232,6 +239,8 @@ private:
     std::vector< network::LogicalThreadID > m_logicalthreadIDs;
     std::optional< event::IndexRecord >     m_logIterator;
     std::optional< std::string >            m_strLogFolder;
+    std::optional< std::string >            m_strLogFile;
+    std::optional< service::Program >       m_program;
     std::optional< network::MemoryStatus >  m_memory;
 
     std::optional< std::vector< std::pair< runtime::MPO, runtime::TimeStamp > > > m_reads;

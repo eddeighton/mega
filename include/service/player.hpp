@@ -30,13 +30,14 @@ namespace mega::service
 class Player : public Host
 {
 public:
-    Player( network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber, ProcessClock& processClock );
+    Player( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber,
+            ProcessClock& processClock );
+
 private:
-    //std::optional< task::FileHash >                  m_unityDatabaseHashCode;
+    // std::optional< task::FileHash >                  m_unityDatabaseHashCode;
     ProcessClock& m_processClock;
 };
 
-}
+} // namespace mega::service
 
-
-#endif //GUARD_2023_November_28_player
+#endif // GUARD_2023_November_28_player

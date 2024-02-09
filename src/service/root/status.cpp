@@ -56,6 +56,7 @@ network::Status RootRequestLogicalThread::GetStatus( const std::vector< network:
         }
         status.setLogicalThreadID( logicalthreads );
         status.setDescription( m_root.m_strProcessName );
+        status.setLogFile( m_root.getLog().logFile.string() );
     }
 
     return status;

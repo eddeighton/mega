@@ -49,8 +49,12 @@ network::Status LeafRequestLogicalThread::GetStatus( const std::vector< network:
         os << m_leaf.getProcessName() << " of type: " << m_leaf.m_nodeType;
         status.setDescription( os.str() );
 
-        // THROW_TODO;
-        // status.setMemory( m_leaf.m_pRemoteMemoryManager->getStatus() );
+        status.setLogFile( m_leaf.getLog().logFile.string() );
+
+        if( auto program = m_leaf.getRuntime().getProgram(); !program.empty() )
+        {
+            status.setProgram( program );
+        }
     }
 
     return status;

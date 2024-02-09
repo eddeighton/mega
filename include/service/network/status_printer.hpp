@@ -34,10 +34,11 @@ class StatusPrinter
 public:
     struct Config
     {
-        bool m_bLogicalThreads   = false;
-        bool m_bMemory          = false;
-        bool m_bLocks           = false;
-        bool m_bLog             = false;
+        bool m_bLogicalThreads = false;
+        bool m_bRuntime        = false;
+        bool m_bMemory         = false;
+        bool m_bLocks          = false;
+        bool m_bLog            = false;
     };
     StatusPrinter( Config config );
 
@@ -51,9 +52,9 @@ private:
     std::ostream& line( std::ostream& os, int iIndent = 0 ) const;
     std::ostream& dash( std::ostream& os, int iIndent = 0 ) const;
 
-    std::vector< int > m_stack;
+    std::vector< int >  m_stack;
     std::vector< bool > m_stackLast;
-    Config m_config;
+    Config              m_config;
 };
 
 } // namespace mega::utilities

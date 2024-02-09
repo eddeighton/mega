@@ -111,6 +111,21 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
         std::optional< mega::pipeline::PipelineResult > pipelineResult;
         {
+            if( !bRunLocally )
+            {
+                // attempt to connect to service
+                try
+                {
+                    mega::service::Terminal terminal( log );
+                    pipelineResult = terminal.PipelineRun( pipelineConfig );
+                }
+                catch( std::exception& ex )
+                {
+                    bRunLocally = true;
+                    SPDLOG_WARN( "Unable to connect to Megastructure service so running build locally" );
+                }
+            }
+
             if( bRunLocally )
             {
                 SPDLOG_INFO( "Running pipeline locally" );
@@ -130,18 +145,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 pipelineResult
                     = runPipelineLocally( stashDir, symbolXMLOpt, toolchain, pipelineConfig, strTaskName, strSourceFile,
                                           inputPipelineResultPath, bForceNoStash, bExecuteUpTo, false, std::cout );
-            }
-            else
-            {
-                try
-                {
-                    mega::service::Terminal terminal( log );
-                    pipelineResult = terminal.PipelineRun( pipelineConfig );
-                }
-                catch( std::exception& ex )
-                {
-                    THROW_RTE( "Exception executing pipeline: " << ex.what() );
-                }
             }
         }
 

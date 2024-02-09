@@ -24,7 +24,6 @@
 
 #include "service/network/status_printer.hpp"
 
-
 #include "log/log.hpp"
 #include "spdlog/stopwatch.h"
 
@@ -55,10 +54,11 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             ( "msg",     po::value< std::string >( &strMsg ),   "Message to send in ping" )
             ( "size",    po::value< int >( &msgSize ),          "Message size to generate ( instead of input msg )" )
 
-            ( "conv",    po::bool_switch( &m_config.m_bLogicalThreads ), "Response logicalthreads status" )
-            ( "mem",     po::bool_switch( &m_config.m_bMemory        ), "Response memory status" )
-            ( "locks",   po::value< bool >( &m_config.m_bLocks )->default_value( true ), "Response locks status ( true by default )" )
-            ( "logs",    po::bool_switch( &m_config.m_bLog           ), "Response log status" )
+            ( "conv",    po::bool_switch( &m_config.m_bLogicalThreads ),    "Report logicalthreads status" )
+            ( "mem",     po::bool_switch( &m_config.m_bMemory ),            "Report memory usage info" )
+            ( "locks",   po::value< bool >( &m_config.m_bLocks )->default_value( true ), "Report active lock status ( true by default )" )
+            ( "logs",    po::bool_switch( &m_config.m_bLog ),               "Report log file path" )
+            ( "runtime", po::bool_switch( &m_config.m_bRuntime ),           "Report runtime info including active program name" )
             ;
         // clang-format on
     }

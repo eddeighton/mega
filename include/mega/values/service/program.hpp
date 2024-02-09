@@ -100,6 +100,8 @@ public:
 
     inline Program next() const { return { m_project, m_version.next() }; }
 
+    inline bool empty() const { return m_project.empty(); }
+
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
