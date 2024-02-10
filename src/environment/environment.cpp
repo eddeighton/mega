@@ -24,19 +24,19 @@ namespace mega::service
 {
 namespace
 {
-static constexpr char CCACHE_DIR[]          = "CCACHE_DIR";
-static constexpr char CCACHE_CONFIGPATH[]   = "CCACHE_CONFIGPATH";
-static constexpr char BUILD_PATH[]          = "BUILD_PATH";          // /build
-static constexpr char WORKSPACE_ROOT_PATH[] = "WORKSPACE_ROOT_PATH"; // /workspace/root
-static constexpr char CFG_TUPLE[]           = "CFG_TUPLE";
-static constexpr char CFG_LINK[]            = "CFG_LINK";
-static constexpr char CFG_TYPE[]            = "CFG_TYPE";
-static constexpr char CFG_CMAKE[]           = "CFG_CMAKE";
-static constexpr char UNITY_EDITOR[]        = "UNITY_EDITOR";
-static constexpr char CFG_CXXFLAGS[]        = "CFG_CXXFLAGS";
-static constexpr char CFG_CFLAGS[]          = "CFG_CFLAGS";
-static constexpr char CFG_BUILD_TOOL[]      = "CFG_BUILD_TOOL";
-static constexpr char CFG_BUILD_CMD[]       = "CFG_BUILD_CMD";
+static constexpr const char CCACHE_DIR[]          = "CCACHE_DIR";
+static constexpr const char CCACHE_CONFIGPATH[]   = "CCACHE_CONFIGPATH";
+static constexpr const char BUILD_PATH[]          = "BUILD_PATH";          // /build
+static constexpr const char WORKSPACE_ROOT_PATH[] = "WORKSPACE_ROOT_PATH"; // /workspace/root
+static constexpr const char CFG_TUPLE[]           = "CFG_TUPLE";
+static constexpr const char CFG_LINK[]            = "CFG_LINK";
+static constexpr const char CFG_TYPE[]            = "CFG_TYPE";
+static constexpr const char CFG_CMAKE[]           = "CFG_CMAKE";
+static constexpr const char UNITY_EDITOR[]        = "UNITY_EDITOR";
+static constexpr const char CFG_CXXFLAGS[]        = "CFG_CXXFLAGS";
+static constexpr const char CFG_CFLAGS[]          = "CFG_CFLAGS";
+static constexpr const char CFG_BUILD_TOOL[]      = "CFG_BUILD_TOOL";
+static constexpr const char CFG_BUILD_CMD[]       = "CFG_BUILD_CMD";
 } // namespace
 
 const char* Environment::getenv( const char* pszKey )
