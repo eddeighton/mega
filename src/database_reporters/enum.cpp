@@ -264,9 +264,9 @@ mega::reports::Container EnumReporter::generate( const mega::reports::URL& url )
                 nodes.push_back( szNodeIndex );
             }
 
-            Graph::Subgraph subgraph{ { { Concrete::printContextFullType( pObject ), pObject->get_concrete_id() } } };
-            subgraph.m_nodes = nodes;
-            graph.m_subgraphs.push_back( subgraph );
+            graph.m_subgraphs.emplace_back( 
+                Graph::Subgraph{ { { Concrete::printContextFullType( pObject ), pObject->get_concrete_id() } }, nodes }
+             );
 
             sourceBranch.m_elements.push_back( graph );
         }

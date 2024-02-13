@@ -438,12 +438,12 @@ public:
             {
                 try
                 {
-                    if( pCXXRecordDecl->getNameAsString() == "Name" ||
-                        pCXXRecordDecl->getNameAsString() == "Functions" )
+                    if( pCXXRecordDecl->getNameAsString() == "Name"
+                        || pCXXRecordDecl->getNameAsString() == "Functions" )
                     {
                         return;
                     }
-                    
+
                     std::vector< Variable > arguments;
                     std::vector< Function > functions;
 
@@ -544,7 +544,7 @@ public:
                                                                 << pCXXRecordDecl->getNameAsString() );
 
                         std::cout << "Found materialiser: " << pCXXRecordDecl->getNameAsString()
-                                << " decl kind: " << pCXXRecordDecl->getKindName().str() << std::endl;
+                                  << " decl kind: " << pCXXRecordDecl->getKindName().str() << std::endl;
 
                         Materialiser materialiser{ pCXXRecordDecl->getNameAsString(), arguments, functions };
                         model.materialisers.push_back( materialiser );
@@ -564,6 +564,8 @@ class StubFunctionCallback : public MatchFinder::MatchCallback
 {
     Model& model;
 
+    std::unique_ptr< ItaniumMangleContext > pMangle;
+
 public:
     StubFunctionCallback( Model& model )
         : model( model )
@@ -571,6 +573,12 @@ public:
     }
     virtual void run( const MatchFinder::MatchResult& Result )
     {
+        if( !pMangle )
+        {
+            VERIFY_RTE( Result.Context );
+            pMangle.reset( ItaniumMangleContext::create( *Result.Context, Result.Context->getDiagnostics() ) );
+        }
+
         if( auto pFunctionDecl = Result.Nodes.getNodeAs< clang::FunctionDecl >( "functions" ) )
         {
             try
@@ -589,11 +597,8 @@ public:
                                 if( functionName == func.name )
                                 {
                                     // determine mangle for function
-                                    ItaniumMangleContext* pItaniumMangle = ItaniumMangleContext::create(
-                                        pFunctionDecl->getASTContext(),
-                                        pFunctionDecl->getASTContext().getDiagnostics() );
                                     llvm::raw_string_ostream os( func.mangle );
-                                    pItaniumMangle->mangleName( pFunctionDecl, os );
+                                    pMangle->mangleName( pFunctionDecl, os );
                                     std::cout << "Mangle: " << func << " " << func.mangle << std::endl;
                                     bFound = true;
                                 }

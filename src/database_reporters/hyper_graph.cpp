@@ -94,7 +94,7 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
         {
             for( auto j = owners.upper_bound( i->first ); i != j; ++i )
             {
-                Interface::UserLink*     pLink  = i->first;
+                Interface::UserLink*           pLink  = i->first;
                 Concrete::Data::OwnershipLink* pOwned = i->second;
                 ownersTable.m_rows.push_back(
                     { Line{ Interface::fullTypeName( pLink ) }, Line{ pLink->get_interface_id()->get_type_id() },
@@ -116,7 +116,7 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
             for( auto j = owned.upper_bound( i->first ); i != j; ++i )
             {
                 Concrete::Data::OwnershipLink* pLink  = i->first;
-                Interface::UserLink*     pOwner = i->second;
+                Interface::UserLink*           pOwner = i->second;
                 ownedTable.m_rows.push_back(
                     { Line{ Concrete::fullTypeName( pLink ) }, Line{ pLink->get_concrete_id()->get_type_id() },
                       Line{ Interface::fullTypeName( pOwner ) }, Line{ pOwner->get_interface_id()->get_type_id() } } );
@@ -155,16 +155,14 @@ mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL&
 
             for( auto i = objectNodes.begin(), iEnd = objectNodes.end(); i != iEnd; )
             {
-                auto            pObject = i->first;
-                Graph::Subgraph subgraph{
-                    { { Concrete::fullTypeName( pObject ), pObject->get_concrete_id()->get_type_id() } } };
+                auto                           pObject = i->first;
                 std::vector< Graph::Node::ID > nodes;
                 for( auto iNext = objectNodes.upper_bound( i->first ); i != iNext; ++i )
                 {
                     nodes.push_back( nodeIDs[ i->second ] );
                 }
-                subgraph.m_nodes = nodes;
-                graph.m_subgraphs.push_back( subgraph );
+                graph.m_subgraphs.emplace_back( Graph::Subgraph{
+                    { { Concrete::fullTypeName( pObject ), pObject->get_concrete_id()->get_type_id() } }, nodes } );
             }
         }
         graphBranch.m_elements.emplace_back( std::move( graph ) );

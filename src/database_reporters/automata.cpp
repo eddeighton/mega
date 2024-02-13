@@ -134,10 +134,8 @@ mega::reports::Container AutomataReporter::generate( const mega::reports::URL& u
         std::vector< std::size_t > nodes;
         recurse( graph, pRoot, nodes );
 
-        Graph::Subgraph subgraph{
-            { { Concrete::fullTypeName( pObject ), pObject->get_concrete_id()->get_type_id() } } };
-        subgraph.m_nodes = nodes;
-        graph.m_subgraphs.push_back( subgraph );
+        graph.m_subgraphs.emplace_back( Graph::Subgraph{
+            { { Concrete::fullTypeName( pObject ), pObject->get_concrete_id()->get_type_id() } }, nodes } );
 
         branch.m_elements.push_back( graph );
     }

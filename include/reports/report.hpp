@@ -114,7 +114,7 @@ public:
 /***
     Table{ vec< Value >, vec< vec< Container > > }
 
-    NOTE: If headings are empty then only containers row columns displayed
+    NOTE: If headings can be left empty and heading row will be omitted
 */
 class Table
 {
@@ -206,6 +206,7 @@ public:
         using Vector = std::vector< Node >;
 
         std::vector< ValueVector > m_rows;
+
         Colour                     m_colour = Colour::blue;
         std::optional< URL >       m_url;
         std::optional< Value >     m_bookmark;
@@ -230,10 +231,11 @@ public:
         using Vector = std::vector< Subgraph >;
 
         std::vector< ValueVector > m_rows;
+        std::vector< Node::ID >    m_nodes;
+        
         Colour                     m_colour = Colour::lightblue;
         std::optional< URL >       m_url;
         std::optional< Value >     m_bookmark;
-        std::vector< Node::ID >    m_nodes;
     };
 
     class Edge
@@ -291,11 +293,12 @@ public:
         };
 
         Node::ID m_source, m_target;
+
         Colour   m_colour          = Colour::black;
         Style    m_style           = Style::solid;
         bool     m_bIgnoreInLayout = false;
         int      line_width        = 1;
-
+        
         std::optional< std::vector< Value > > m_label;
     };
 

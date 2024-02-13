@@ -102,7 +102,7 @@ public:
         Database&             database;
         ASTContext*           pASTContext;
         Sema*                 pSema;
-        ItaniumMangleContext* pMangle;
+        ItaniumMangleContext& mangle;
         TypeInfoMap&          typeInfoMap;
 
         DeclContext*   pDeclContext = nullptr;
@@ -111,17 +111,15 @@ public:
         Visitor( Database&             database,
                  ASTContext*           pASTContext,
                  Sema*                 pSema,
-                 ItaniumMangleContext* pMangle,
+                 ItaniumMangleContext& mangle,
                  TypeInfoMap&          typeInfoMap )
             : database( database )
             , pASTContext( pASTContext )
             , pSema( pSema )
-            , pMangle( pMangle )
+            , mangle( mangle )
             , typeInfoMap( typeInfoMap )
         {
         }
-
-        virtual ~Visitor() = default;
 
         Interface::CPP::TypeInfo* getOrCreateTypeInfo( QualType traitType ) const
         {
@@ -137,7 +135,7 @@ public:
                 std::string strMangle;
                 {
                     llvm::raw_string_ostream os( strMangle );
-                    pMangle->mangleTypeName( traitType, os );
+                    mangle.mangleTypeName( traitType, os );
                 }
 
                 std::ostringstream osTraitName;
@@ -207,11 +205,11 @@ public:
 
     bool recurse( Interface::Node*      pNode,
                   DeclContext*          pDeclContext,
-                  ItaniumMangleContext* pMangle,
+                  ItaniumMangleContext& mangle,
                   SourceLocation        loc,
                   TypeInfoMap&          typeInfoMap )
     {
-        Visitor visitor{ m_database, pASTContext, pSema, pMangle, typeInfoMap };
+        Visitor visitor{ m_database, pASTContext, pSema, mangle, typeInfoMap };
 
         visitor.pDeclContext = pDeclContext;
         visitor.loc          = loc;
@@ -234,7 +232,7 @@ public:
 
             for( Interface::Node* pChildNode : pNode->get_children() )
             {
-                if( !recurse( pChildNode, result.pDeclContext, pMangle, result.loc, typeInfoMap ) )
+                if( !recurse( pChildNode, result.pDeclContext, mangle, result.loc, typeInfoMap ) )
                 {
                     return false;
                 }
@@ -247,16 +245,17 @@ public:
     {
         bool bSuccess = true;
         {
-            SourceLocation loc;
-            DeclContext*   pDeclContext = pASTContext->getTranslationUnitDecl();
-            auto           pMangle      = ItaniumMangleContext::create( *pASTContext, pASTContext->getDiagnostics() );
+            SourceLocation                          loc;
+            DeclContext*                            pDeclContext = pASTContext->getTranslationUnitDecl();
+            std::unique_ptr< ItaniumMangleContext > pMangle(
+                ItaniumMangleContext::create( *pASTContext, pASTContext->getDiagnostics() ) );
 
             TypeInfoMap typeInfoMap;
 
             Interface::Root* pRoot = m_database.one< Interface::Root >( m_environment.project_manifest() );
             for( Interface::Node* pNode : pRoot->get_children() )
             {
-                if( !recurse( pNode, pDeclContext, pMangle, loc, typeInfoMap ) )
+                if( !recurse( pNode, pDeclContext, *pMangle, loc, typeInfoMap ) )
                 {
                     bSuccess = false;
                     break;
