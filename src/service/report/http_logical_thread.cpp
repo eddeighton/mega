@@ -474,10 +474,18 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
     }
     else
     {
-        QueueStackDepth queueMsgs( m_queueStack );
+        // is the file set ?
+        if( auto fileOpt = mega::reports::getFile( url ) )
         {
-            auto reportRequest = getRootRequest< network::report::Request_Encoder >( yield_ctx );
-            reportContainerOpt = reportRequest.GetNetworkReport( url );
+            reportContainerOpt = mega::reports::getFileReport( url );
+        }
+        else
+        {
+            QueueStackDepth queueMsgs( m_queueStack );
+            {
+                auto reportRequest = getRootRequest< network::report::Request_Encoder >( yield_ctx );
+                reportContainerOpt = reportRequest.GetNetworkReport( url );
+            }
         }
     }
 

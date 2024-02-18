@@ -40,6 +40,7 @@ using URL = boost::url;
 URL makeFileURL( const URL& url, const boost::filesystem::path& filePath );
 
 std::optional< std::string > getReportType( const URL& url );
+std::optional< boost::filesystem::path > getFile( const URL& url );
 
 } // namespace mega::reports
 

@@ -30,6 +30,19 @@ URL makeFileURL( const URL& url, const boost::filesystem::path& filePath )
     return result;
 }
 
+std::optional< boost::filesystem::path > getFile( const URL& url )
+{
+    auto iFind = url.params().find( "file" );
+    if( iFind != url.params().end() )
+    {
+        if( ( *iFind ).has_value )
+        {
+            return ( *iFind ).value;
+        }
+    }
+    return {};
+}
+
 std::optional< std::string > getReportType( const URL& url )
 {
     auto iFind = url.params().find( "report" );

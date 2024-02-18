@@ -29,6 +29,10 @@
 
 namespace mega::reports
 {
+
+mega::reports::Container getFileReport( const mega::reports::URL& url );
+
+
 /*
 class MemoryReporter
 {

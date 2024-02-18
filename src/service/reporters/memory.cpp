@@ -18,9 +18,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_October_19_memory
-#define GUARD_2023_October_19_memory
-
 #include "service/reporters.hpp"
 
 namespace mega::reports
@@ -74,5 +71,3 @@ mega::reports::Container MemoryReporter::generate( const mega::reports::URL& url
 }
 */
 } // namespace mega::reports
-
-#endif // GUARD_2023_October_19_memory

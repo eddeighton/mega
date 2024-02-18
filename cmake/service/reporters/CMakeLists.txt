@@ -42,6 +42,7 @@ set( REPORTERS_LIB_API
 
 set( REPORTERS_LIB_SRC 
     ${REPORTERS_SRC_DIR}/memory.cpp
+    ${REPORTERS_SRC_DIR}/file.cpp
 )
 
 add_library( reporters
