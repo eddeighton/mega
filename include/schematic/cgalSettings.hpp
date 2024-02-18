@@ -133,7 +133,9 @@ using Float = double;
 // typedef CGAL::Cartesian< Number_type >                        Kernel;
 // typedef CGAL::Simple_cartesian< Number_type >                 Kernel;
 // typedef CGAL::Exact_predicates_inexact_constructions_kernel   Kernel;
+
 using Kernel = CGAL::Exact_predicates_exact_constructions_kernel;
+// using Kernel = CGAL::Exact_predicates_inexact_constructions_kernel;
 
 using Transform = Kernel::Aff_transformation_2;
 using Line      = Kernel::Line_2;
