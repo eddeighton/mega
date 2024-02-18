@@ -270,7 +270,10 @@ void Site::cmd_filter()
             }
         }
 
-        pContour->set( Utils::convert< schematic::Kernel >( Utils::filterPolygon( contour ) ) );
+        if( !contour.is_empty() )
+        {
+            pContour->set( Utils::convert< schematic::Kernel >( Utils::filterPolygon( contour ) ) );
+        }
     }
 }
 
@@ -291,25 +294,28 @@ void Site::cmd_aabb()
             }
         }
 
-        const Rect transformBounds = CGAL::bbox_2( points.begin(), points.end() );
-
-        Polygon contour;
+        if( !points.empty() )
         {
-            contour.push_back( transformBounds[ 0 ] );
-            contour.push_back( transformBounds[ 1 ] );
-            contour.push_back( transformBounds[ 2 ] );
-            contour.push_back( transformBounds[ 3 ] );
-        }
+            const Rect transformBounds = CGAL::bbox_2( points.begin(), points.end() );
 
-        if( !contour.is_empty() && contour.is_simple() )
-        {
-            if( !contour.is_counterclockwise_oriented() )
+            Polygon contour;
             {
-                std::reverse( contour.begin(), contour.end() );
+                contour.push_back( transformBounds[ 0 ] );
+                contour.push_back( transformBounds[ 1 ] );
+                contour.push_back( transformBounds[ 2 ] );
+                contour.push_back( transformBounds[ 3 ] );
             }
-        }
 
-        pContour->set( contour );
+            if( !contour.is_empty() && contour.is_simple() )
+            {
+                if( !contour.is_counterclockwise_oriented() )
+                {
+                    std::reverse( contour.begin(), contour.end() );
+                }
+            }
+
+            pContour->set( contour );
+        }
     }
 }
 
@@ -330,18 +336,21 @@ void Site::cmd_convexHull()
             }
         }
 
-        Polygon contour;
-        CGAL::ch_graham_andrew( points.begin(), points.end(), std::back_inserter( contour ) );
-
-        if( !contour.is_empty() && contour.is_simple() )
+        if( !points.empty() )
         {
-            if( !contour.is_counterclockwise_oriented() )
-            {
-                std::reverse( contour.begin(), contour.end() );
-            }
-        }
+            Polygon contour;
+            CGAL::ch_graham_andrew( points.begin(), points.end(), std::back_inserter( contour ) );
 
-        pContour->set( contour );
+            if( !contour.is_empty() && contour.is_simple() )
+            {
+                if( !contour.is_counterclockwise_oriented() )
+                {
+                    std::reverse( contour.begin(), contour.end() );
+                }
+            }
+
+            pContour->set( contour );
+        }
     }
 }
 

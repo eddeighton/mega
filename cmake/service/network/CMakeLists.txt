@@ -57,7 +57,6 @@ add_library( network
                     ${MEGA_NETWORK_API}
 					${MEGA_NETWORK_SRC}
 				)
-target_precompile_headers( network REUSE_FROM mega_pch )
 
 #IF( ${WIN32} )
 #set_property(TARGET network PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )

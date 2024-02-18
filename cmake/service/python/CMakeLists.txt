@@ -72,7 +72,6 @@ set( MEGA_PYTHON_SOURCE
 
 
 add_library( megastructure SHARED ${MEGA_PYTHON_API} ${MEGA_PYTHON_SOURCE} )
-target_precompile_headers( megastructure REUSE_FROM mega_pch )
 
 ##############################################################
 # NOT DOING THIS: pybind11_add_module( megastructure SHARED ${MEGA_PYTHON_SOURCE} )

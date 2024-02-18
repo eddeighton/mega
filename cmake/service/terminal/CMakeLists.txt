@@ -47,7 +47,6 @@ add_library( terminal
                     ${TERMINAL_LIB_API}
 					${TERMINAL_LIB_SRC}
 				)
-target_precompile_headers( terminal REUSE_FROM mega_pch )
 #IF( ${WIN32} )
 #set_property(TARGET terminal PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 #ENDIF( ${WIN32} )

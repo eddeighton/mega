@@ -70,7 +70,6 @@ add_library( runtime
     ${RUNTIME_HEADERS}
     ${RUNTIME_SOURCE}
 )
-target_precompile_headers( runtime REUSE_FROM mega_pch )
 
 set_target_properties( runtime PROPERTIES FOLDER service )
 

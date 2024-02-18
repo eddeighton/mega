@@ -172,10 +172,7 @@ IInteraction::Ptr EditBase::interaction_draw_clip( Float x, Float y, Float qX, F
         if( Schematic::Ptr pSchematic = boost::dynamic_pointer_cast< Schematic >( pNode ) )
         {
             // determine the centroid of the clip and offset accordingly
-            for( Node::PtrVector::const_iterator i    = pSchematic->getChildren().begin(),
-                                                 iEnd = pSchematic->getChildren().end();
-                 i != iEnd;
-                 ++i )
+            for( auto i = pSchematic->getChildren().begin(), iEnd = pSchematic->getChildren().end(); i != iEnd; ++i )
             {
                 if( Node::Ptr pClipSite = boost::dynamic_pointer_cast< Node >( *i ) )
                 {
@@ -186,7 +183,7 @@ IInteraction::Ptr EditBase::interaction_draw_clip( Float x, Float y, Float qX, F
                 }
             }
 
-            for( Node::PtrSet::iterator i = newNodes.begin(), iEnd = newNodes.end(); i != iEnd; ++i )
+            for( auto i = newNodes.begin(), iEnd = newNodes.end(); i != iEnd; ++i )
             {
                 Node::Ptr pClipSiteCopy = *i;
                 if( Site::Ptr pSiteCopy = boost::dynamic_pointer_cast< Site >( pClipSiteCopy ) )
@@ -225,7 +222,7 @@ IInteraction::Ptr EditBase::interaction_draw_clip( Float x, Float y, Float qX, F
         bool           bContainsSite = false;
         IGlyph::PtrSet siteMainGlyphs;
         IGlyph::PtrSet featureGlyphs;
-        for( Node::PtrSet::iterator i = newNodes.begin(), iEnd = newNodes.end(); i != iEnd; ++i )
+        for( auto i = newNodes.begin(), iEnd = newNodes.end(); i != iEnd; ++i )
         {
             if( boost::dynamic_pointer_cast< Site >( *i ) )
             {
@@ -269,10 +266,10 @@ IEditContext* EditBase::getNestedContext( const std::vector< IGlyph* >& candidat
 {
     IEditContext* pEditContext = 0u;
 
-    for( std::vector< IGlyph* >::const_iterator i = candidates.begin(), iEnd = candidates.end();
+    for( auto i = candidates.begin(), iEnd = candidates.end();
          i != iEnd && !pEditContext; ++i )
     {
-        for( NodeToEditNestedMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
+        for( auto j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
         {
             if( j->second->owns( *i ) )
             {
@@ -287,7 +284,7 @@ IEditContext* EditBase::getNestedContext( const std::vector< IGlyph* >& candidat
 
 IEditContext* EditBase::getNodeContext( Node::Ptr pNode )
 {
-    NodeToEditNestedMap::const_iterator iFind = m_glyphMap.find( pNode );
+    auto iFind = m_glyphMap.find( pNode );
     if( iFind != m_glyphMap.end() )
     {
         return iFind->second.get();
@@ -414,12 +411,12 @@ void EditBase::updateGlyphs()
                      generics::collect( removals, generics::deref< NodeToEditNestedMap::const_iterator >() ),
                      generics::collect( additions, generics::deref< Node::PtrSet::const_iterator >() ) );
 
-    for( NodeToEditNestedMap::iterator i = removals.begin(), iEnd = removals.end(); i != iEnd; ++i )
+    for( auto i = removals.begin(), iEnd = removals.end(); i != iEnd; ++i )
     {
         m_glyphMap.erase( i->first );
     }
 
-    for( Node::PtrVector::iterator i = additions.begin(), iEnd = additions.end(); i != iEnd; ++i )
+    for( auto i = additions.begin(), iEnd = additions.end(); i != iEnd; ++i )
     {
         if( Site::Ptr pSite = boost::dynamic_pointer_cast< Site >( *i ) )
         {
@@ -456,11 +453,11 @@ void EditBase::cmd_delete( const std::set< IGlyph* >& selection )
 
 void EditBase::cmd_delete_impl( const std::set< IGlyph* >& selection )
 {
-    for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+    for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
     {
         IGlyph* pGlyph = *i;
 
-        for( NodeToEditNestedMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
+        for( auto j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
         {
             Node::Ptr pNode = j->first;
             if( dynamic_cast< const GlyphSpec* >( pNode.get() ) == pGlyph->getGlyphSpec() )
@@ -479,11 +476,11 @@ Node::Ptr EditBase::cmd_cut( const std::set< IGlyph* >& selection )
     Node::Ptr pResult;
     {
         Node::PtrSet nodes;
-        for( std::set< IGlyph* >::const_iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             IGlyph* pGlyph = *i;
 
-            for( NodeToEditNestedMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
+            for( auto j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
             {
                 Node::Ptr pNode = j->first;
                 if( dynamic_cast< const GlyphSpec* >( pNode.get() ) == pGlyph->getGlyphSpec() )
@@ -499,7 +496,7 @@ Node::Ptr EditBase::cmd_cut( const std::set< IGlyph* >& selection )
         if( !nodes.empty() )
         {
             Schematic::Ptr pClip( new Schematic( "clip" ) );
-            for( Node::PtrSet::iterator i = nodes.begin(), iEnd = nodes.end(); i != iEnd; ++i )
+            for( auto i = nodes.begin(), iEnd = nodes.end(); i != iEnd; ++i )
             {
                 VERIFY_RTE( pClip->add( ( *i )->copy( pClip, ( *i )->Node::getName() ) ) );
             }
@@ -519,11 +516,11 @@ Node::Ptr EditBase::cmd_copy( const std::set< IGlyph* >& selection )
     Node::Ptr pResult;
     {
         Node::PtrSet nodes;
-        for( std::set< IGlyph* >::const_iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             IGlyph* pGlyph = *i;
 
-            for( NodeToEditNestedMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
+            for( auto j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
             {
                 Node::Ptr pNode = j->first;
                 if( dynamic_cast< const GlyphSpec* >( pNode.get() ) == pGlyph->getGlyphSpec() )
@@ -537,7 +534,7 @@ Node::Ptr EditBase::cmd_copy( const std::set< IGlyph* >& selection )
         if( !nodes.empty() )
         {
             Schematic::Ptr pClip( new Schematic( "copy" ) );
-            for( Node::PtrSet::iterator i = nodes.begin(), iEnd = nodes.end(); i != iEnd; ++i )
+            for( auto i = nodes.begin(), iEnd = nodes.end(); i != iEnd; ++i )
             {
                 bool bResult = pClip->add( ( *i )->copy( pClip, ( *i )->Node::getName() ) );
                 VERIFY_RTE( bResult );
@@ -556,7 +553,7 @@ IInteraction::Ptr EditBase::cmd_paste( Node::Ptr pPaste, Float x, Float y, Float
     Node::PtrVector nodes;
     if( Schematic::Ptr pClip = boost::dynamic_pointer_cast< Schematic >( pPaste ) )
     {
-        for( Node::PtrVector::const_iterator i = pClip->getChildren().begin(), iEnd = pClip->getChildren().end();
+        for( auto i = pClip->getChildren().begin(), iEnd = pClip->getChildren().end();
              i != iEnd; ++i )
         {
             if( Node::Ptr pSite = boost::dynamic_pointer_cast< Node >( *i ) )
@@ -587,7 +584,7 @@ IInteraction::Ptr EditBase::cmd_paste( IGlyph* pGlyph, Float x, Float y, Float q
 IInteraction::Ptr EditBase::cmd_paste( const std::set< IGlyph* >& selection, Float x, Float y, Float qX, Float qY )
 {
     Node::PtrVector nodes;
-    for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+    for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
     {
         if( const Node* pSite = dynamic_cast< const Node* >( ( *i )->getGlyphSpec() ) )
         {
@@ -608,7 +605,7 @@ IInteraction::Ptr EditBase::cmd_paste( Node::PtrVector nodes, Float x, Float y, 
         ASSERT( !m_pActiveInteraction );
 
         IGlyph::PtrSet copies;
-        for( Node::PtrVector::const_iterator i = nodes.begin(), iEnd = nodes.end(); i != iEnd; ++i )
+        for( auto i = nodes.begin(), iEnd = nodes.end(); i != iEnd; ++i )
         {
             const std::string strNewKey = m_pNode->generateNewNodeName( *i );
             Node::Ptr         pCopy     = boost::dynamic_pointer_cast< Node >( ( *i )->copy( m_pNode, strNewKey ) );
@@ -639,7 +636,7 @@ void EditBase::cmd_rotateLeft( const std::set< IGlyph* >& selection )
 {
     {
         std::vector< Site* > nodes;
-        for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             if( const Site* pSite = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
             {
@@ -662,7 +659,7 @@ void EditBase::cmd_rotateRight( const std::set< IGlyph* >& selection )
 {
     {
         std::vector< Site* > areas;
-        for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             if( const Site* pSite = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
                 areas.push_back( const_cast< Site* >( pSite ) );
@@ -682,7 +679,7 @@ void EditBase::cmd_flipHorizontally( const std::set< IGlyph* >& selection )
 {
     {
         std::vector< Site* > areas;
-        for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             if( const Site* pSite = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
                 areas.push_back( const_cast< Site* >( pSite ) );
@@ -702,7 +699,7 @@ void EditBase::cmd_flipVertically( const std::set< IGlyph* >& selection )
 {
     {
         std::vector< Site* > areas;
-        for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             if( const Site* pSite = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
                 areas.push_back( const_cast< Site* >( pSite ) );
@@ -723,7 +720,7 @@ void EditBase::cmd_shrink( const std::set< IGlyph* >& selection, double dbAmount
 {
     {
         std::vector< Site* > areas;
-        for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             if( const Site* pSite = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
                 areas.push_back( const_cast< Site* >( pSite ) );
@@ -741,7 +738,7 @@ void EditBase::cmd_extrude( const std::set< IGlyph* >& selection, double dbAmoun
 {
     {
         std::vector< Site* > areas;
-        for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             if( const Site* pSite = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
                 areas.push_back( const_cast< Site* >( pSite ) );
@@ -942,7 +939,7 @@ void EditBase::cmd_union( const std::set< IGlyph* >& selection )
         std::vector< Site* > walls;
         std::vector< Site* > objects;
 
-        for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             if( const Space* pSite = dynamic_cast< const Space* >( ( *i )->getGlyphSpec() ) )
                 spaces.push_back( const_cast< Space* >( pSite ) );
@@ -962,7 +959,7 @@ void EditBase::cmd_union( const std::set< IGlyph* >& selection )
 void EditBase::cmd_filter( const std::set< IGlyph* >& selection )
 {
     {
-        for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             if( const Site* pSiteCst = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
             {
@@ -979,7 +976,7 @@ void EditBase::cmd_aabb( const std::set< IGlyph* >& selection )
     {
         Site::PtrVector sites;
         {
-            for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+            for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
             {
                 if( const Site* pSiteCst = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
                 {
@@ -1002,7 +999,7 @@ void EditBase::cmd_convexHull( const std::set< IGlyph* >& selection )
     {
         Site::PtrVector sites;
         {
-            for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+            for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
             {
                 if( const Site* pSiteCst = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
                 {
@@ -1026,7 +1023,7 @@ void EditBase::cmd_reparent( const std::set< IGlyph* >& selection )
         Site::PtrVector sites;
         {
             Site::PtrSet sitesSet;
-            for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+            for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
             {
                 if( const Site* pSiteCst = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
                 {
@@ -1041,45 +1038,49 @@ void EditBase::cmd_reparent( const std::set< IGlyph* >& selection )
             sites.assign( sitesSet.begin(), sitesSet.end() );
         }
 
-        Rect transformBounds;
-        Utils::getSelectionBounds( sites, transformBounds );
-
-        Site::Ptr pNewNode( new Space( m_pNode, m_pNode->generateNewNodeName( "space" ) ) );
-
-        const Point ptCentre( transformBounds.xmin() + ( ( transformBounds.xmax() - transformBounds.xmin() ) / 2.0 ),
-                              transformBounds.ymin() + ( ( transformBounds.ymax() - transformBounds.ymin() ) / 2.0 ) );
-
-        pNewNode->init( calculateInitTransform( ptCentre ) );
-
-        m_pNode->add( pNewNode );
-
-        const exact::Transform exactTransformOne = inexactToExact( pNewNode->getTransform() );
-
-        const exact::Transform inverseTransformOne = exactTransformOne.inverse();
-
-        for( Site::Ptr pSite : sites )
+        if( !sites.empty() )
         {
-            const std::string strNewKey = pNewNode->generateNewNodeName( pSite );
-            Node::Ptr         pCopy     = boost::dynamic_pointer_cast< Node >( pSite->copy( pNewNode, strNewKey ) );
-            VERIFY_RTE( pCopy );
+            Rect transformBounds;
+            Utils::getSelectionBounds( sites, transformBounds );
 
-            Site::Ptr pSiteCopy = boost::dynamic_pointer_cast< Site >( pCopy );
-            VERIFY_RTE( pSiteCopy );
+            Site::Ptr pNewNode( new Space( m_pNode, m_pNode->generateNewNodeName( "space" ) ) );
 
-            exact::Transform siteTransform = inexactToExact( pSiteCopy->getTransform() );
+            const Point ptCentre(
+                transformBounds.xmin() + ( ( transformBounds.xmax() - transformBounds.xmin() ) / 2.0 ),
+                transformBounds.ymin() + ( ( transformBounds.ymax() - transformBounds.ymin() ) / 2.0 ) );
 
-            siteTransform = inverseTransformOne * siteTransform;
+            pNewNode->init( calculateInitTransform( ptCentre ) );
 
-            pSiteCopy->setTransform( exactToInexact( siteTransform ) );
+            m_pNode->add( pNewNode );
 
-            pNewNode->add( pSiteCopy );
-        }
+            const exact::Transform exactTransformOne = inexactToExact( pNewNode->getTransform() );
 
-        pNewNode->cmd_aabb();
+            const exact::Transform inverseTransformOne = exactTransformOne.inverse();
 
-        for( Site::Ptr pSite : sites )
-        {
-            m_pNode->remove( pSite );
+            for( Site::Ptr pSite : sites )
+            {
+                const std::string strNewKey = pNewNode->generateNewNodeName( pSite );
+                Node::Ptr         pCopy     = boost::dynamic_pointer_cast< Node >( pSite->copy( pNewNode, strNewKey ) );
+                VERIFY_RTE( pCopy );
+
+                Site::Ptr pSiteCopy = boost::dynamic_pointer_cast< Site >( pCopy );
+                VERIFY_RTE( pSiteCopy );
+
+                exact::Transform siteTransform = inexactToExact( pSiteCopy->getTransform() );
+
+                siteTransform = inverseTransformOne * siteTransform;
+
+                pSiteCopy->setTransform( exactToInexact( siteTransform ) );
+
+                pNewNode->add( pSiteCopy );
+            }
+
+            pNewNode->cmd_aabb();
+
+            for( Site::Ptr pSite : sites )
+            {
+                m_pNode->remove( pSite );
+            }
         }
     }
     onEditted( true );

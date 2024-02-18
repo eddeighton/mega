@@ -183,7 +183,6 @@ set( MEGA_VALUES_SRC
 )
 
 add_library( mega_values STATIC ${MEGA_VALUES_HEADERS} ${MEGA_VALUES_SRC} )
-target_precompile_headers( mega_values REUSE_FROM mega_pch )
 
 link_boost( mega_values atomic )
 link_boost( mega_values filesystem )

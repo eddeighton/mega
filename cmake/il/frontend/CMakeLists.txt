@@ -44,7 +44,6 @@ add_library( frontend ${IL_FRONTEND_HEADERS} ${IL_FRONTEND_SOURCES} )
 
 target_include_directories( frontend PUBLIC ${MEGA_API_DIR} )
 
-target_precompile_headers( frontend REUSE_FROM mega_pch )
 
 source_group( src FILES ${IL_FRONTEND_HEADERS} ${IL_FRONTEND_SOURCES} )
 

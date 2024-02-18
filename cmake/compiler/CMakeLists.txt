@@ -82,7 +82,6 @@ add_library( compiler_config
     ${COMPILER_LIB_SOURCE} 
     ${COMPILER_LIB_SOURCE}
 )
-target_precompile_headers( compiler_config REUSE_FROM mega_pch )
 
 set_target_properties( compiler_config PROPERTIES FOLDER compiler )
 target_link_libraries( compiler_config pipeline )
@@ -155,7 +154,6 @@ set( COMPILER_SOURCE
 add_library( compiler MODULE
     ${COMPILER_SOURCE}
 )
-target_precompile_headers( compiler REUSE_FROM mega_pch )
 
 set_target_properties( compiler PROPERTIES FOLDER compiler )
 

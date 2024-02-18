@@ -47,7 +47,6 @@ add_definitions(-DMEGA_PARSER_MODULE)
 add_library( parser MODULE
                     ${CLANG_PLUGIN_API}
                     ${CLANG_PLUGIN_SOURCES} )
-target_precompile_headers( parser REUSE_FROM mega_pch )
 
 target_link_libraries( parser mega_values )
 

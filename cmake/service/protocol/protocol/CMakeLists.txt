@@ -135,7 +135,6 @@ add_library( protocol
 					${MEGA_PROTOCOL_GENERATED_HEADERS}
 					${MEGA_PROTOCOL_GENERATED_SOURCES}
 				)
-target_precompile_headers( protocol REUSE_FROM mega_pch )
 
 target_link_libraries( protocol mega_interface )
 target_link_libraries( protocol mega_values )

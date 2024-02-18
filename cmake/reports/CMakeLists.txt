@@ -84,7 +84,6 @@ add_library( reports
     ${REPORTS_HEADERS}
     ${REPORTS_SOURCE}
 )
-target_precompile_headers( reports REUSE_FROM mega_pch )
 
 set_target_properties( reports PROPERTIES FOLDER reports )
 

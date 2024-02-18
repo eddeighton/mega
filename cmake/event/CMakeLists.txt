@@ -63,7 +63,6 @@ add_library( event
     ${EVENT_HEADERS} 
     ${EVENT_SOURCE}
 )
-target_precompile_headers( event REUSE_FROM mega_pch )
 
 set_target_properties( event PROPERTIES FOLDER service )
 

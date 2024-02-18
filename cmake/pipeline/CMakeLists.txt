@@ -45,7 +45,6 @@ add_library( pipeline
     ${PIPELINE_HEADERS} 
     ${PIPELINE_SOURCE}
 )
-target_precompile_headers( pipeline REUSE_FROM mega_pch )
 
 set_target_properties( pipeline PROPERTIES FOLDER service )
 

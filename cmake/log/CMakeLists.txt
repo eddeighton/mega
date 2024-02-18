@@ -43,7 +43,6 @@ add_library( log
     ${LOG_HEADERS} 
     ${LOG_SOURCE}
 )
-target_precompile_headers( log REUSE_FROM mega_pch )
 
 target_link_libraries( log mega_values )
 

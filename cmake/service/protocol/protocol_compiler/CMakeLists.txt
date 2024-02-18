@@ -49,7 +49,6 @@ set( MEGA_PROTOCOL_COMPILER
 add_library( protocol_compiler
                     ${MEGA_PROTOCOL_COMPILER}
 				)
-target_precompile_headers( protocol_compiler REUSE_FROM mega_pch )
 
 #IF( ${WIN32} )
 #set_property(TARGET protocol_compiler PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )

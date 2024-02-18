@@ -53,7 +53,6 @@ add_library( backend
 
 target_include_directories( backend PUBLIC ${MEGA_API_DIR})
 
-target_precompile_headers( backend REUSE_FROM mega_pch )
 
 link_boost( backend system )
 link_boost( backend filesystem )

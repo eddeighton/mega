@@ -47,7 +47,6 @@ add_library( invocation
     ${INVOCATION_HEADERS} 
     ${INVOCATION_SOURCE}
 )
-target_precompile_headers( invocation REUSE_FROM mega_pch )
 
 set_target_properties( invocation PROPERTIES FOLDER compiler )
 

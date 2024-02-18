@@ -48,7 +48,6 @@ add_library( reporters
                     ${REPORTERS_LIB_API}
 					${REPORTERS_LIB_SRC}
 				)
-target_precompile_headers( reporters REUSE_FROM mega_pch )
 
 IF( ${WIN32} )
 target_compile_options( reporters PRIVATE "/bigobj" )

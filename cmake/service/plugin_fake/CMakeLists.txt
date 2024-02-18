@@ -48,7 +48,6 @@ set( PLUGIN_FAKE_SOURCE
     )
 
 add_library( plugin_fake SHARED ${PLUGIN_FAKE_API} ${PLUGIN_FAKE_SOURCE} )
-target_precompile_headers( plugin_fake REUSE_FROM mega_pch )
 
 IF( ${WIN32} )
 add_definitions(-DMEGA_PLUGIN_SHARED_MODULE)

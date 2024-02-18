@@ -51,7 +51,6 @@ set( PLUGIN_SOURCE
     )
 
 add_library( plugin SHARED ${PLUGIN_API} ${PLUGIN_SOURCE} )
-target_precompile_headers( plugin REUSE_FROM mega_pch )
 
 IF( ${WIN32} )
 add_definitions(-DMEGA_PLUGIN_SHARED_MODULE)

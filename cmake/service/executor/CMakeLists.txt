@@ -70,7 +70,6 @@ add_library( executorLib
                     ${EXECUTOR_LIB_API}
 					${EXECUTOR_LIB_SRC}
 				)
-target_precompile_headers( executorLib REUSE_FROM mega_pch )
 
 #IF( ${WIN32} )
 #target_compile_options( executorLib PUBLIC "/await:strict" )

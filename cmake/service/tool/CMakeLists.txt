@@ -55,7 +55,6 @@ add_library( tool
                     ${TOOL_LIB_API}
 					${TOOL_LIB_SRC}
 				)
-target_precompile_headers( tool REUSE_FROM mega_pch )
 
 #IF( ${WIN32} )
 #target_compile_options( tool PRIVATE "/bigobj" )
