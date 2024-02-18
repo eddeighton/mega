@@ -36,6 +36,7 @@ GridView::GridView( QWidget* pParentWidget, MainWindow* pMainWindow )
         pToolBox->getConfigValue( ".background.lines.main.colour", m_mainLineColour );
         pToolBox->getConfigValue( ".background.lines.other.colour", m_otherLineColour );
         pToolBox->getConfigValue( ".background.text.colour", m_textColor );
+        pToolBox->getConfigValue( ".view.zoom.rate", m_fZoomRate );
     }
 }
 
@@ -369,8 +370,6 @@ void GridView::scrollContentsBy( int dx, int dy )
 
 void GridView::wheelEvent( QWheelEvent* pEvent )
 {
-    static const float m_fZoomRate = 0.1f;
-
     if( isPanning() )
     {
         // ignor wheel while panning

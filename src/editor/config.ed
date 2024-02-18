@@ -25,6 +25,7 @@ view
     zoom
     {
         default( 512 ) //amount of visible space
+        rate( 0.025 )
     }
     quantise
     {

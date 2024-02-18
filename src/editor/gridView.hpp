@@ -89,6 +89,7 @@ private:
     QColor m_textColor       = QColor( 0, 0, 0, 255 );
     int    m_iMainLineStep   = 4;
     float  m_lineWidth       = 0.5f;
+    float  m_fZoomRate       = 0.025f;
 };
 
 } // namespace editor

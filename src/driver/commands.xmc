@@ -14,9 +14,10 @@ COMMAND(tool_chain,"tool_chain","Generate Megastructure Toolchain xml file")
 COMMAND(report,"report","Generate Megastructure Report")
 COMMAND(make_pipeline,"make_pipeline","Generate Megastructure Pipeline XML")
 
+COMMAND(map,"map","Map related commands")
+
 // COMMAND(defaults,"defaults,d","Configure Megastructure Default Values")
 // COMMAND(archive,"archive","Generate retail archive file")
-// COMMAND(map,"map","Map related commands")
 // COMMAND(symbols,"symbols","Dump Megastructure Symbols")
 // COMMAND(function,"function","Generate Megastructure Function")
 

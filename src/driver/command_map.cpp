@@ -20,7 +20,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "mega/defaults.hpp"
+// #include "mega/defaults.hpp"
 #include "mega/values/compilation/concrete/type_id.hpp"
 #include "mega/values/compilation/interface/type_id.hpp"
 
@@ -28,12 +28,10 @@
 
 #include "mega/values/service/project.hpp"
 
-#ifndef _WIN32
 #include "schematic/factory.hpp"
 #include "schematic/schematic.hpp"
 #include "schematic/format/format.hpp"
 #include "ed/file.hpp"
-#endif
 
 #include "log/log.hpp"
 #include "common/assert_verify.hpp"
@@ -58,10 +56,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
     namespace po = boost::program_options;
 
-#ifdef _WIN32
-    THROW_RTE( "Map commands not supported on windows" );
-#else
-
     po::options_description commandOptions( " Process schematic files" );
     {
         // clang-format off
@@ -84,7 +78,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     }
     else if( bTest )
     {
-#ifndef _WIN32
         std::cout << "Constructing test schematic file" << std::endl;
 
         schematic::format::Node root;
@@ -105,12 +98,9 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
         auto fullPath = boost::filesystem::edsCannonicalise( outputFilePath );
 
-        
         Ed::saveNodeToFile( fullPath.string(), rootNode );
 
         std::cout << "Generated file: " << fullPath.string() << std::endl;
-
-#endif
     }
     else
     {
@@ -136,7 +126,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         // using namespace FinalStage;
         // Database database( environment, environment.project_manifest() );
     }
-#endif
+
 }
 
 } // namespace driver::map
