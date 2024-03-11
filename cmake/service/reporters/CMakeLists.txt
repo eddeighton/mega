@@ -31,6 +31,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#get report
+include( ${WORKSPACE_ROOT_PATH}/src/report/report_include.cmake )
+
 set( REPORTERS_SRC_DIR ${MEGA_SRC_DIR}/service/reporters )
 
 ####################################################################
@@ -66,14 +69,13 @@ link_boost( reporters atomic )
 link_boost( reporters coroutine )
 link_boost( reporters serialization )
 link_common( reporters )
+link_report( reporters )
 
 target_link_libraries( reporters compiler_config )
-target_link_libraries( reporters reports )
 target_link_libraries( reporters protocol )
 target_link_libraries( reporters network )
 target_link_libraries( reporters pipeline )
 target_link_libraries( reporters database )
-#target_link_libraries( reporters orc )
 target_link_libraries( reporters log )
 
 install( FILES ${REPORTERS_LIB_API} DESTINATION include/service )

@@ -132,7 +132,7 @@ public:
     void applyTransaction( const network::Transaction& transaction );
     void cycleComplete();
 
-    void getBasicReport( const mega::reports::URL& url, mega::reports::Table& table );
+    void getBasicReport( const report::URL& url, mega::reports::Table& table );
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
 protected:

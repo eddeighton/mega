@@ -84,7 +84,7 @@ Daemon::Daemon( boost::asio::io_context& ioContext, network::Log log, const std:
     }
 }
 
-void Daemon::getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report )
+void Daemon::getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report )
 {
     using namespace mega::reports;
     using namespace std::string_literals;

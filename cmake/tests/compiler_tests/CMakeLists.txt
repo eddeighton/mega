@@ -24,11 +24,20 @@ cmake_minimum_required(VERSION 3.2)
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
 #get gtest
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/gtest/gtest_include.cmake )
 
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
+
+#get report
+include( ${WORKSPACE_ROOT_PATH}/src/report/report_include.cmake )
 
 include_directories( ${MEGA_API_DIR} )
 include_directories( ${MEGA_SRC_DIR} )
@@ -67,12 +76,13 @@ link_boost( compiler_tests program_options )
 link_boost( compiler_tests iostreams )
 link_boost( compiler_tests atomic )
 link_boost( compiler_tests serialization )
+link_common( compiler_tests )
+link_report( compiler_tests )
 link_gtest( compiler_tests )
 
 target_link_libraries( compiler_tests compiler_config )
 target_link_libraries( compiler_tests database )
 target_link_libraries( compiler_tests pipeline)
-target_link_libraries( compiler_tests reports)
 target_link_libraries( compiler_tests database_reporters)
 
 gtest_add_tests( TARGET compiler_tests SOURCES ${COMPILER_UNIT_TESTS} )

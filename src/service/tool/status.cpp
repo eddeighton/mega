@@ -26,7 +26,7 @@ namespace mega::service
 // network::project::Impl
 
 network::Status ToolRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                    boost::asio::yield_context&           yield_ctx )
+                                                     boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "ToolRequestLogicalThread::GetStatus" );
 
@@ -58,9 +58,9 @@ std::string ToolRequestLogicalThread::Ping( const std::string& strMsg, boost::as
     return os.str();
 }
 
-mega::reports::Container ToolRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                                                const std::vector< mega::reports::Container >& report,
-                                                                boost::asio::yield_context& yield_ctx )
+Report ToolRequestLogicalThread::GetReport( const report::URL&    url,
+                                            const std::vector< Report >& report,
+                                            boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "ToolRequestLogicalThread::GetReport" );
     using namespace mega::reports;

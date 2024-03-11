@@ -21,8 +21,10 @@
 #ifndef GUARD_2023_October_19_reporters
 #define GUARD_2023_October_19_reporters
 
-#include "reports/report.hpp"
-#include "reports/reporter_id.hpp"
+#include "report/report.hpp"
+#include "report/reporter_id.hpp"
+
+#include "mega/reports.hpp"
 
 #include "service/memory_manager.hpp"
 #include "environment/mpo_database.hpp"
@@ -30,22 +32,9 @@
 namespace mega::reports
 {
 
-mega::reports::Container getFileReport( const mega::reports::URL& url );
+Report getFileReport( const report::URL& url );
 
-
-/*
-class MemoryReporter
-{
-    mega::runtime::MemoryManager& m_memoryManager;
-    runtime::MPODatabase&         m_database;
-
-public:
-    MemoryReporter( mega::runtime::MemoryManager& memoryManager, runtime::MPODatabase& database );
-    static const mega::reports::ReporterID ID;
-    mega::reports::Container               generate( const mega::reports::URL& url );
-};
-*/
-inline void getServiceReporters( std::vector< mega::reports::ReporterID >& reporterIDs )
+inline void getServiceReporters( std::vector< report::ReporterID >& reporterIDs )
 {
     reporterIDs.push_back( "home" );
     //reporterIDs.push_back( MemoryReporter::ID );

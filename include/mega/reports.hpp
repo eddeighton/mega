@@ -18,40 +18,23 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_October_19_colour
-#define GUARD_2023_October_19_colour
+#ifndef GUARD_2024_March_11_reports
+#define GUARD_2024_March_11_reports
 
+#include "mega/values/value.hpp"
 
-namespace mega::reports
+#include "report/report.hpp"
+
+namespace mega
 {
 
-class Colour
-{
-public:
-    enum Type
-    {
-{% for colour in colours %}
-        {{ colour }},
-{% endfor %}
-        TOTAL_COLOURS
-    };
-
-    Colour() = default;
-    constexpr Colour( Type type ) : m_type( type ) {}
-
-    const char* str() const;
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& m_type;
-    }
-
-private:
-    Type m_type = black;
-};
-
+using Report    = report::Container< mega::Value >;
+using Branch    = report::Branch< mega::Value >;
+using Line      = report::Line< mega::Value >;
+using Multiline = report::Multiline< mega::Value >;
+using Table     = report::Table< mega::Value >;
+using Graph     = report::Graph< mega::Value >;
 
 }
 
-#endif //GUARD_2023_October_19_colour
+#endif //GUARD_2024_March_11_reports

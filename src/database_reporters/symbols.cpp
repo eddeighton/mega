@@ -24,8 +24,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/SymbolRollout.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -51,10 +49,9 @@ namespace mega::reporters
 {
 using namespace SymbolRollout;
 
-mega::reports::Container SymbolsReporter::generate( const mega::reports::URL& url )
+Report SymbolsReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch branch{ { ID } };
 
@@ -77,10 +74,9 @@ mega::reports::Container SymbolsReporter::generate( const mega::reports::URL& ur
     return branch;
 }
 
-mega::reports::Container InterfaceTypeIDReporter::generate( const mega::reports::URL& url )
+Report InterfaceTypeIDReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Database database( m_args.environment, m_args.environment.project_manifest() );
 

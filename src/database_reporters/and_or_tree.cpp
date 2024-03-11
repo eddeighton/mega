@@ -24,8 +24,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -50,7 +48,7 @@ namespace FinalStage
 namespace mega::reporters
 {
 
-std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage::Automata::Vertex* pVertex,
+std::size_t AndOrTreeReporter::recurse( Graph& graph, FinalStage::Automata::Vertex* pVertex,
                                         std::vector< std::size_t >& nodes )
 {
     using namespace FinalStage;
@@ -115,7 +113,7 @@ std::size_t AndOrTreeReporter::recurse( mega::reports::Graph& graph, FinalStage:
     return szNodeIndex;
 }
 
-mega::reports::Container AndOrTreeReporter::generate( const mega::reports::URL& url )
+Report AndOrTreeReporter::generate( const report::URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;

@@ -24,8 +24,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 #include "mega/values/compilation/concrete/type_id.hpp"
@@ -229,10 +227,9 @@ void generateDerivationGraph( FinalStage::Derivation::Node* pNode, reports::Grap
     }
 }
 
-mega::reports::Container DerivationReporter::generate( const mega::reports::URL& url )
+Report DerivationReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch files{ { "Files"s } };
     files.m_elements.push_back( legend() );

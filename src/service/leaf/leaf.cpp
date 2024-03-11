@@ -105,7 +105,7 @@ Leaf::Leaf( network::Log log, network::Sender::Ptr pSender, network::Node nodeTy
     m_pSelfSender = m_receiverChannel.getSender();
 }
 
-void Leaf::getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report )
+void Leaf::getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report )
 {
     using namespace mega::reports;
     using namespace std::string_literals;

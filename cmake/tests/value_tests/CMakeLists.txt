@@ -24,11 +24,14 @@ cmake_minimum_required(VERSION 3.2)
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get gtest
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/gtest/gtest_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
+#get gtest
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/gtest/gtest_include.cmake )
 
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
@@ -58,7 +61,6 @@ enable_testing()
 add_executable( value_tests ${VALUE_UNIT_TESTS} ${VALUE_TESTS_DIR}/main_test_runner.cpp )
 
 target_link_libraries( value_tests mega_values )
-# target_link_libraries( value_tests reports )
 
 #IF( ${WIN32} )
 #target_compile_options( value_tests PRIVATE "/bigobj" )

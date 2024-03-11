@@ -55,15 +55,14 @@ std::string DaemonRequestLogicalThread::Ping( const std::string& strMsg, boost::
     return os.str();
 }
 
-mega::reports::Container DaemonRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                                                const std::vector< mega::reports::Container >& report,
-                                                                boost::asio::yield_context& yield_ctx )
+Report DaemonRequestLogicalThread::GetReport( const report::URL&    url,
+                                              const std::vector< Report >& report,
+                                              boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::GetReport" );
-    using namespace mega::reports;
     using namespace std::string_literals;
 
-    reports::Branch daemon{ { m_daemon.getProcessName() } };
+    Branch daemon{ { m_daemon.getProcessName() } };
 
     m_daemon.getGeneralStatusReport( url, daemon );
 

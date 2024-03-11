@@ -24,8 +24,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -180,10 +178,9 @@ mega::reports::Graph BDDReporter::makeBDDGraph( Decision::DecisionProcedure* pPr
     return graph;
 }
 
-mega::reports::Container BDDReporter::generate( const mega::reports::URL& url )
+Report BDDReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch branch{ { ID } };
 

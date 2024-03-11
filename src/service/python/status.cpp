@@ -64,15 +64,14 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
 
         status.setLogIterator( getLog().getIterator() );
         status.setLogFolder( getLog().getLogFolderPath().string() );
-
     }
 
     return status;
 }
 
-mega::reports::Container MPOLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                                      const std::vector< mega::reports::Container >& report,
-                                                      boost::asio::yield_context&                    yield_ctx )
+Report MPOLogicalThread::GetReport( const report::URL&    url,
+                                    const std::vector< Report >& report,
+                                    boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "MPOLogicalThread::GetReport" );
     VERIFY_RTE( report.empty() );
@@ -115,9 +114,9 @@ std::string PythonRequestLogicalThread::Ping( const std::string& strMsg, boost::
     return os.str();
 }
 
-mega::reports::Container PythonRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                                                const std::vector< mega::reports::Container >& report,
-                                                                boost::asio::yield_context& yield_ctx )
+Report PythonRequestLogicalThread::GetReport( const report::URL&    url,
+                                              const std::vector< Report >& report,
+                                              boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "PythonRequestLogicalThread::GetReport" );
     using namespace mega::reports;

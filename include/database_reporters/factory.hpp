@@ -22,8 +22,10 @@
 
 #include "compilation_reporter_args.hpp"
 
-#include "reports/report.hpp"
-#include "reports/reporter_id.hpp"
+#include "report/report.hpp"
+#include "report/reporter_id.hpp"
+
+#include "mega/reports.hpp"
 
 #include "mega/values/service/url.hpp"
 
@@ -32,10 +34,10 @@
 namespace mega::reporters
 {
 
-bool isCompilationReportType( const mega::reports::URL& url );
-void getDatabaseReporterIDs( std::vector< reports::ReporterID >& reportIDs );
+bool isCompilationReportType( const report::URL& url );
+void getDatabaseReporterIDs( std::vector< report::ReporterID >& reportIDs );
 
-std::optional< mega::reports::Container > generateCompilationReport( const mega::reports::URL& url, CompilationReportArgs args );
+std::optional< Report > generateCompilationReport( const report::URL& url, CompilationReportArgs args );
 
 } // namespace mega::reporters
 

@@ -156,7 +156,6 @@ set( MEGA_VALUES_SERVICE_HEADERS
     ${MEGA_VALUES_SERVICE_DIR}/project.hpp
     ${MEGA_VALUES_SERVICE_DIR}/root_config.hpp
     ${MEGA_VALUES_SERVICE_DIR}/status.hpp
-    ${MEGA_VALUES_SERVICE_DIR}/url.hpp
 
 )
 set( MEGA_VALUES_SERVICE_SRC
@@ -164,7 +163,6 @@ set( MEGA_VALUES_SERVICE_SRC
     ${MEGA_VALUES_SERVICE_DIR}/program.cpp
     ${MEGA_VALUES_SERVICE_DIR}/project.cpp
     ${MEGA_VALUES_SERVICE_DIR}/root_config.cpp
-    ${MEGA_VALUES_SERVICE_DIR}/url.cpp
 )
 
 set( MEGA_VALUES_HEADERS

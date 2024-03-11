@@ -23,8 +23,6 @@
 
 #include "database/AutomataStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -116,10 +114,9 @@ std::size_t recurse( mega::reports::Graph& graph, Automata::Vertex* pVertex, std
 }
 } // namespace
 
-mega::reports::Container AutomataReporter::generate( const mega::reports::URL& url )
+Report AutomataReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch branch{ { ID } };
 

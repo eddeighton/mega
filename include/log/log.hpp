@@ -28,7 +28,7 @@
 // #include "mega/values/service/logical_thread_id.hpp"
 // #include "mega/values/service/program.hpp"
 
-#include "reports/value.hpp"
+#include "mega/values/value.hpp"
 
 #include "common/time.hpp"
 
@@ -170,20 +170,22 @@ struct formatter< mega::network::LogTime >
         template < typename FormatContext >                                                      \
         inline auto format( const TypeName& value, FormatContext& ctx ) -> decltype( ctx.out() ) \
         {                                                                                        \
-            return fmt::format_to( ctx.out(), "{}", mega::reports::toString( value ) );          \
+            std::ostringstream os;                                                               \
+            os << value;                                                                         \
+            return fmt::format_to( ctx.out(), "{}", os.str() );                                  \
         }                                                                                        \
     };
-#include "reports/value.hxx"
+#include "mega/values/value.hxx"
 #undef MEGA_VALUE_TYPE
 
 template <>
-struct formatter< mega::reports::Value >
+struct formatter< mega::Value >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    inline auto format( const mega::reports::Value& value, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::Value& value, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return fmt::format_to( ctx.out(), "{}", mega::reports::toString( value ) );
+        return fmt::format_to( ctx.out(), "{}", mega::toString( value ) );
     }
 };
 

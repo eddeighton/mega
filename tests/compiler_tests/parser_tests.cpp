@@ -21,7 +21,6 @@
 #include "compiler_fixture.hpp"
 
 #include "database_reporters/factory.hpp"
-#include "reports/renderer_html.hpp"
 
 #include <iostream>
 

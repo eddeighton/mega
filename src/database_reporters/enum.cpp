@@ -24,8 +24,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -166,11 +164,10 @@ reports::Graph::Node::ID EnumReporter::recurse( mega::reports::Graph& graph, Fin
     return szNodeIndex;
 }
 
-mega::reports::Container EnumReporter::generate( const mega::reports::URL& url )
+Report EnumReporter::generate( const report::URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch branch{ { ID } };
 

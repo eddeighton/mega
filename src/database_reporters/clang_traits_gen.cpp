@@ -23,8 +23,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/ClangTraitsStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -284,10 +282,9 @@ void recurse( Concrete::Node* pNode, mega::reports::Branch& tree )
 
 } // namespace
 
-mega::reports::Container ClangTraitsGenReporter::generate( const mega::reports::URL& url )
+Report ClangTraitsGenReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch root{ { ID } };
 

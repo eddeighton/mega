@@ -19,7 +19,7 @@
 
 #include "mega/values/service/root_config.hpp"
 
-namespace mega::network
+namespace mega::service
 {
 
 RootConfig::RootConfig() = default;

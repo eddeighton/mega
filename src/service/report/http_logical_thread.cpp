@@ -399,7 +399,7 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
         return bad_request( "Unknown HTTP-method" );
     }
 
-    mega::reports::URL url;
+    report::URL url;
     {
         const auto httpEndpoint = m_report.getHTTPEndPoint();
         url                     = boost::urls::parse_origin_form( httpRequest.request ).value();
@@ -439,9 +439,9 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
 }
 
 boost::beast::http::string_body::value_type
-HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::asio::yield_context& yield_ctx )
+HTTPLogicalThread::generateHTTPResponse( const report::URL& url, boost::asio::yield_context& yield_ctx )
 {
-    std::optional< mega::reports::Container > reportContainerOpt;
+    std::optional< Report > reportContainerOpt;
 
     // either service request or database
     if( mega::reporters::isCompilationReportType( url ) )
@@ -495,12 +495,12 @@ HTTPLogicalThread::generateHTTPResponse( const mega::reports::URL& url, boost::a
         using namespace mega::reports;
         struct Linker : public mega::reports::Linker
         {
-            const mega::reports::URL& m_url;
-            Linker( const mega::reports::URL& url )
+            const report::URL& m_url;
+            Linker( const report::URL& url )
                 : m_url( url )
             {
             }
-            std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
+            std::optional< report::URL > link( const mega::reports::Value& value ) const override
             {
                 if( auto pTypeID = std::get_if< mega::interface::TypeID >( &value ) )
                 {

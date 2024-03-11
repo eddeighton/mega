@@ -67,31 +67,19 @@
 #include <variant>
 #include <string>
 
-namespace mega::reports
+namespace mega
 {
-
-// using ValueTypeVector = boost::mpl::list<
-// 
-// #define MEGA_VALUE_TYPE( TypeName ) TypeName,
-// #include "reports/value.hxx"
-// #undef MEGA_VALUE_TYPE
-// 
-//     std::string, boost::filesystem::path >;
-// 
-// 
-// using Value = boost::make_variant_over< ValueTypeVector >::type;
 
 using Value = std::variant<
 
 #define MEGA_VALUE_TYPE( TypeName ) TypeName,
-#include "reports/value.hxx"
+#include "mega/values/value.hxx"
 #undef MEGA_VALUE_TYPE
 
-std::string, boost::filesystem::path >;
+    std::string, boost::filesystem::path >;
 
 std::string toString( const Value& value );
 
-} // namespace mega::reports
-
+} // namespace mega
 
 #endif // GUARD_2023_October_17_value

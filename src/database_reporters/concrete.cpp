@@ -23,8 +23,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/ConcreteStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -123,11 +121,10 @@ void recurse( Concrete::Node* pNode, TableTree& table, mega::reports::Branch& tr
 
 } // namespace
 
-mega::reports::Container ConcreteReporter::generate( const mega::reports::URL& url )
+Report ConcreteReporter::generate( const report::URL& url )
 {
     using namespace ConcreteStage;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Table root{ { "Kind"s, ID, "Direct Realiser"s, "Interface Type"s, "Interface Type ID"s, "Flags"s } };
 

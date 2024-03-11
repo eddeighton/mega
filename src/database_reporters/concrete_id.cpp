@@ -24,8 +24,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/ConcreteTypeAnalysis.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -52,10 +50,9 @@ namespace mega::reporters
 {
 using namespace ConcreteTypeAnalysis;
 
-mega::reports::Container ConcreteIDReporter::generate( const mega::reports::URL& url )
+Report ConcreteIDReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch branch{ { ID } };
 

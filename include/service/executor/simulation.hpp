@@ -69,8 +69,8 @@ public:
     virtual void     SimErrorCheck( boost::asio::yield_context& yield_ctx ) override;
     virtual Snapshot SimObjectSnapshot( const runtime::PointerNet& object, boost::asio::yield_context& ) override;
     virtual runtime::PointerHeap SimAllocate( const concrete::ObjectID& objectTypeID,
-                                          boost::asio::yield_context& ) override;
-    virtual Snapshot         SimSnapshot( const runtime::MPO&, boost::asio::yield_context& ) override;
+                                              boost::asio::yield_context& ) override;
+    virtual Snapshot             SimSnapshot( const runtime::MPO&, boost::asio::yield_context& ) override;
     virtual runtime::TimeStamp
     SimLockRead( const runtime::MPO&, const runtime::MPO&, boost::asio::yield_context& ) override;
     virtual runtime::TimeStamp
@@ -92,9 +92,9 @@ public:
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
     // network::report::Impl
-    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
-                                                const std::vector< mega::reports::Container >& report,
-                                                boost::asio::yield_context&                    yield_ctx ) override;
+    virtual Report GetReport( const report::URL&           url,
+                              const std::vector< Report >& report,
+                              boost::asio::yield_context&  yield_ctx ) override;
 
 private:
     void runSimulation( boost::asio::yield_context& yield_ctx );

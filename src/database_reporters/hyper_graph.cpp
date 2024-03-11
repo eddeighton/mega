@@ -23,8 +23,6 @@
 
 #include "database/HyperGraphAnalysis.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -50,10 +48,9 @@ namespace mega::reporters
 {
 using namespace HyperGraphAnalysis;
 
-mega::reports::Container HyperGraphReporter::generate( const mega::reports::URL& url )
+Report HyperGraphReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch branch{ { ID } };
 

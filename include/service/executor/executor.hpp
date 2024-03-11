@@ -63,7 +63,7 @@ public:
 
     ~Executor() override;
 
-    void getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report );
+    void getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report );
 
     void shutdown();
     void shutdown( boost::asio::yield_context& yield_ctx );

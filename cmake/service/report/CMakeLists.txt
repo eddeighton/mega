@@ -31,6 +31,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#get report
+include( ${WORKSPACE_ROOT_PATH}/src/report/report_include.cmake )
+
 set( REPORT_SOURCE 
     ${MEGA_SRC_DIR}/service/report/status.cpp 
     ${MEGA_SRC_DIR}/service/report/project.cpp 
@@ -53,7 +56,6 @@ target_link_options( report PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 target_link_libraries( report executorLib )
-target_link_libraries( report reports )
 target_link_libraries( report reporters )
 target_link_libraries( report database_reporters )
 
@@ -64,8 +66,7 @@ link_boost( report timer )
 link_boost( report filesystem )
 link_boost( report iostreams )
 link_boost( report serialization )
-link_json( report )
-link_inja( report )
 link_common( report )
+link_report( report )
 
 install( TARGETS report DESTINATION bin)

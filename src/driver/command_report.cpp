@@ -20,8 +20,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "database_reporters/factory.hpp"
 
 #include "environment/environment.hpp"
@@ -107,7 +105,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     {
         if( bListReports )
         {
-            std::vector< mega::reports::ReporterID > reportIDs;
+            std::vector< report::ReporterID > reportIDs;
             mega::reporters::getDatabaseReporterIDs( reportIDs );
             for( const auto& reporter : reportIDs )
             {
@@ -166,7 +164,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 VERIFY_RTE_MSG( !reportURL.empty(), "Missing report URL or type specification" );
             }
 
-            const mega::reports::URL url = boost::urls::parse_origin_form( reportURL ).value();
+            const report::URL url = boost::urls::parse_origin_form( reportURL ).value();
 
             {
                 mega::io::ArchiveEnvironment environment( databaseArchive );
@@ -178,12 +176,12 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
                 struct Linker : mega::reports::Linker
                 {
-                    const mega::reports::URL& m_url;
-                    Linker( const mega::reports::URL& url )
+                    const report::URL& m_url;
+                    Linker( const report::URL& url )
                         : m_url( url )
                     {
                     }
-                    std::optional< mega::reports::URL > link( const mega::reports::Value& value ) const override
+                    std::optional< report::URL > link( const mega::reports::Value& value ) const override
                     {
                         /*if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
                         {

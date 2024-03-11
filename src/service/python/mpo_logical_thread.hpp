@@ -51,9 +51,9 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& childNodeStatus,
                                        boost::asio::yield_context&           yield_ctx ) override;
 
-    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
-                                                const std::vector< mega::reports::Container >& report,
-                                                boost::asio::yield_context&                    yield_ctx ) override;
+    virtual Report GetReport( const report::URL&           url,
+                              const std::vector< Report >& report,
+                              boost::asio::yield_context&  yield_ctx ) override;
 
     // network::python::Impl
     virtual TypeID             PythonGetInterfaceTypeID( const TypeID&               concreteTypeID,

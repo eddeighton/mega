@@ -25,8 +25,17 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
+
+#get report
+include( ${WORKSPACE_ROOT_PATH}/src/report/report_include.cmake )
 
 set( PROTOCOL_SCHEMA_DIR ${MEGA_SRC_DIR}/service/protocol/schema )
 
@@ -140,7 +149,6 @@ target_link_libraries( protocol mega_interface )
 target_link_libraries( protocol mega_values )
 target_link_libraries( protocol pipeline )
 target_link_libraries( protocol log )
-target_link_libraries( protocol reports )
 target_link_libraries( protocol event )
 
 IF( ${WIN32} )
@@ -163,6 +171,7 @@ link_boost( protocol iostreams )
 link_boost( protocol serialization )
 link_boost( protocol system )
 link_common( protocol )
+link_report( protocol )
 
 install( FILES ${MEGA_PROTOCOL_COMMON_HEADERS} DESTINATION include/service/protocol/common )
 install( FILES ${MEGA_TYPES_HEADERS} DESTINATION include/service/protocol/types )

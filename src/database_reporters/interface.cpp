@@ -23,8 +23,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 #include "mega/values/compilation/concrete/type_id.hpp"
@@ -334,11 +332,10 @@ void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, 
 }
 } // namespace
 
-mega::reports::Container InterfaceReporter::generate( const mega::reports::URL& url )
+Report InterfaceReporter::generate( const report::URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Table root{ { "Interface TypeID"s, ID, "Concrete TypeIDs"s } };
     

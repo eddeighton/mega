@@ -22,19 +22,19 @@
 
 #include "database_reporters/compilation_reporter_args.hpp"
 
-#include "reports/report.hpp"
-#include "reports/reporter_id.hpp"
-#include "mega/values/service/url.hpp"
+#include "report/report.hpp"
+#include "report/reporter_id.hpp"
+#include "report/url.hpp"
 
 namespace mega::reporters
 {
 
-#define REPORTER( reportname )                                                \
-    struct reportname##Reporter                                               \
-    {                                                                         \
-        CompilationReportArgs            m_args;                              \
-        static const reports::ReporterID ID;                                  \
-        reports::Container               generate( const reports::URL& url ); \
+#define REPORTER( reportname )                                               \
+    struct reportname##Reporter                                              \
+    {                                                                        \
+        CompilationReportArgs           m_args;                              \
+        static const report::ReporterID ID;                                  \
+        reports::Container              generate( const reports::URL& url ); \
     };
 #include "reporters.hxx"
 #undef REPORTER

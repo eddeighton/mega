@@ -24,8 +24,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -50,11 +48,10 @@ namespace FinalStage
 namespace mega::reporters
 {
 
-mega::reports::Container InheritanceReporter::generate( const mega::reports::URL& url )
+Report InheritanceReporter::generate( const report::URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Graph graph;
 

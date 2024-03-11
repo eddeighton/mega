@@ -29,9 +29,9 @@ MemoryReporter::MemoryReporter( mega::runtime::MemoryManager& memoryManager, run
 {
 }
 
-const mega::reports::ReporterID MemoryReporter::ID = "memory";
+const report::ReporterID MemoryReporter::ID = "memory";
 
-mega::reports::Container MemoryReporter::generate( const mega::reports::URL& url )
+Report MemoryReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
     using namespace mega::reports;

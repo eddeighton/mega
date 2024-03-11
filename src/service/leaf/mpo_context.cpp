@@ -433,7 +433,7 @@ void MPOContest::getDump()
 }
 */
 
-void MPOContext::getBasicReport( const mega::reports::URL& url, mega::reports::Table& table )
+void MPOContext::getBasicReport( const report::URL& url, mega::reports::Table& table )
 {
     SPDLOG_TRACE( "MPOContext::GetBasicReport: mpo: {} {}", m_mpo.value(), url.c_str() );
 

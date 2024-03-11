@@ -21,6 +21,7 @@
 #include "service/reporters.hpp"
 
 #include "mega/values/service/url.hpp"
+#include "mega/reports.hpp"
 
 #include "common/file.hpp"
 
@@ -29,11 +30,11 @@
 namespace mega::reports
 {
 
-mega::reports::Container getFileReport( const mega::reports::URL& url )
+Report getFileReport( const report::URL& url )
 {
-    mega::reports::Branch result;
+    Branch result;
 
-    if( const auto fileOpt = mega::reports::getFile( url ); fileOpt.has_value() )
+    if( const auto fileOpt = report::getFile( url ); fileOpt.has_value() )
     {
         if( boost::filesystem::exists( fileOpt.value() ) )
         {
@@ -48,7 +49,7 @@ mega::reports::Container getFileReport( const mega::reports::URL& url )
                 while( ss && ss.good() )
                 {
                     std::getline( ss, strLine );
-                    result.m_elements.push_back( mega::reports::Line{ strLine } );
+                    result.m_elements.push_back( Line{ strLine } );
                 }
             }
             else if( boost::filesystem::is_directory( filePath ) )
@@ -60,7 +61,7 @@ mega::reports::Container getFileReport( const mega::reports::URL& url )
                 {
                     const boost::filesystem::path& dirItem = *iter;
                     result.m_elements.push_back(
-                        mega::reports::Line{ dirItem, mega::reports::makeFileURL( url, dirItem ) } );
+                        Line{ dirItem, report::makeFileURL( url, dirItem ) } );
                 }
             }
             else

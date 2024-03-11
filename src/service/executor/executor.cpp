@@ -84,7 +84,7 @@ Executor::~Executor()
     }
 }
 
-void Executor::getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report )
+void Executor::getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report )
 {
     using namespace mega::reports;
     using namespace std::string_literals;

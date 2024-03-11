@@ -23,8 +23,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/InterfaceStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -53,7 +51,7 @@ using namespace InterfaceStage;
 namespace
 {
     
-void recurse( Interface::Aggregate* pNode, reports::Branch& tree )
+void recurse( Interface::Aggregate* pNode, Branch& tree )
 {
     using namespace InterfaceStage;
     using namespace std::string_literals;
@@ -63,9 +61,9 @@ void recurse( Interface::Aggregate* pNode, reports::Branch& tree )
     tree.m_elements.emplace_back( std::move( branch ) );
 }
 
-void recurse( Interface::Node* pNode, reports::Branch& tree );
+void recurse( Interface::Node* pNode, Branch& tree );
 
-void recurse( Interface::IContext* pNode, reports::Branch& tree )
+void recurse( Interface::IContext* pNode, Branch& tree )
 {
     using namespace InterfaceStage;
     using namespace std::string_literals;
@@ -81,7 +79,7 @@ void recurse( Interface::IContext* pNode, reports::Branch& tree )
     tree.m_elements.emplace_back( std::move( branch ) );
 }
 
-void recurse( Interface::Node* pNode, reports::Branch& tree )
+void recurse( Interface::Node* pNode, Branch& tree )
 {
     using namespace InterfaceStage;
     using namespace std::string_literals;
@@ -103,7 +101,7 @@ void recurse( Interface::Node* pNode, reports::Branch& tree )
 
 } // namespace
 
-mega::reports::Container ASTReporter::generate( const mega::reports::URL& url )
+Report ASTReporter::generate( const report::URL& url )
 {
     using namespace InterfaceStage;
     using namespace std::string_literals;

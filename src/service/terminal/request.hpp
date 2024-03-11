@@ -44,7 +44,7 @@ public:
     virtual ~TerminalRequestLogicalThread();
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::leaf_term::Impl
     virtual network::Message RootAllBroadcast( const network::Message&     request,
@@ -56,9 +56,9 @@ public:
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
     // network::report::Impl
-    virtual mega::reports::Container GetReport( const mega::reports::URL&                      url,
-                                                const std::vector< mega::reports::Container >& report,
-                                                boost::asio::yield_context&                    yield_ctx ) override;
+    virtual Report GetReport( const report::URL&    url,
+                              const std::vector< Report >& report,
+                              boost::asio::yield_context&  yield_ctx ) override;
 };
 
 } // namespace mega::service

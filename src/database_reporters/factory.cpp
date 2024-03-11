@@ -25,11 +25,11 @@ namespace mega::reporters
 {
 
 // generate static ReporterID strings for each type
-#define REPORTER( reportname ) const mega::reports::ReporterID reportname##Reporter::ID = #reportname;
+#define REPORTER( reportname ) const report::ReporterID reportname##Reporter::ID = #reportname;
 #include "reporters.hxx"
 #undef REPORTER
 
-bool isCompilationReportType( const mega::reports::URL& url )
+bool isCompilationReportType( const report::URL& url )
 {
     static std::set< std::string > reportedIDMap;
     if( reportedIDMap.empty() )
@@ -49,15 +49,14 @@ bool isCompilationReportType( const mega::reports::URL& url )
     return false;
 }
 
-void getDatabaseReporterIDs( std::vector< reports::ReporterID >& reportIDs )
+void getDatabaseReporterIDs( std::vector< report::ReporterID >& reportIDs )
 {
 #define REPORTER( reportname ) reportIDs.push_back( #reportname );
 #include "reporters.hxx"
 #undef REPORTER
 }
 
-std::optional< mega::reports::Container > generateCompilationReport( const mega::reports::URL& url,
-                                                                     CompilationReportArgs     args )
+std::optional< Report > generateCompilationReport( const report::URL& url, CompilationReportArgs args )
 {
     if( mega::reporters::isCompilationReportType( url ) )
     {

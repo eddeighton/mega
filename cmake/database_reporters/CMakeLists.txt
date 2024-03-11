@@ -22,8 +22,17 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
+
+#get report
+include( ${WORKSPACE_ROOT_PATH}/src/report/report_include.cmake )
 
 set( DATABASE_REPORTERS_API ${MEGA_API_DIR}/database_reporters )
 set( DATABASE_REPORTERS_SRC ${MEGA_SRC_DIR}/database_reporters )
@@ -68,7 +77,6 @@ add_library( database_reporters SHARED
 target_include_directories( database_reporters PUBLIC ${MEGA_API_DIR} )
 
 target_link_libraries( database_reporters mega_values )
-target_link_libraries( database_reporters reports )
 target_link_libraries( database_reporters database )
 
 link_boost( database_reporters filesystem )
@@ -76,9 +84,9 @@ link_boost( database_reporters system )
 link_boost( database_reporters iostreams )
 link_boost( database_reporters serialization )
 link_common( database_reporters )
+link_report( database_reporters )
 
 install( FILES ${DATABASE_REPORTERS_HEADERS} DESTINATION include/database_reporters )
 install( FILES ${ENVIRONMENT_HEADERS} DESTINATION include/environment )
 install( EXPORT database_reporters NAMESPACE MEGA:: FILE database_reporters-config.cmake DESTINATION share )
-
 install( TARGETS database_reporters EXPORT database_reporters DESTINATION bin)

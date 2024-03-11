@@ -37,7 +37,7 @@
 #include "database/environment.hxx"
 
 #include "database_reporters/factory.hpp"
-#include "reports/renderer_html.hpp"
+#include "report/renderer_html.hpp"
 
 #include "common/file.hpp"
 #include "common/string.hpp"

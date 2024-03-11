@@ -166,9 +166,9 @@ network::Status ToolMPOLogicalThread::GetStatus( const std::vector< network::Sta
     return status;
 }
 
-mega::reports::Container ToolMPOLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                                          const std::vector< mega::reports::Container >& report,
-                                                          boost::asio::yield_context&                    yield_ctx )
+Report ToolMPOLogicalThread::GetReport( const report::URL&    url,
+                                        const std::vector< Report >& report,
+                                        boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "Tool::GetReport" );
     VERIFY_RTE( report.empty() );

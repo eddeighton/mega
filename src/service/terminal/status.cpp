@@ -26,7 +26,7 @@ namespace mega::service
 
 // network::project::Impl
 network::Status TerminalRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                        boost::asio::yield_context&           yield_ctx )
+                                                         boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "TerminalRequestLogicalThread::GetStatus" );
 
@@ -34,9 +34,9 @@ network::Status TerminalRequestLogicalThread::GetStatus( const std::vector< netw
     {
         std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for ( const auto& id : m_terminal.reportLogicalThreads() )
+            for( const auto& id : m_terminal.reportLogicalThreads() )
             {
-                if ( id != getID() )
+                if( id != getID() )
                 {
                     logicalthreads.push_back( id );
                 }
@@ -56,9 +56,9 @@ std::string TerminalRequestLogicalThread::Ping( const std::string& strMsg, boost
     return os.str();
 }
 
-mega::reports::Container TerminalRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                                                const std::vector< mega::reports::Container >& report,
-                                                                boost::asio::yield_context& yield_ctx )
+Report TerminalRequestLogicalThread::GetReport( const report::URL&    url,
+                                                const std::vector< Report >& report,
+                                                boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "TerminalRequestLogicalThread::GetReport" );
     using namespace mega::reports;

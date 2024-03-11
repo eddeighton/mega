@@ -35,6 +35,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#get report
+include( ${WORKSPACE_ROOT_PATH}/src/report/report_include.cmake )
+
 #get ed
 include( ${WORKSPACE_ROOT_PATH}/src/ed/ed_include.cmake )
 
@@ -93,7 +96,6 @@ target_link_libraries( mega event )
 target_link_libraries( mega network )
 target_link_libraries( mega protocol )
 target_link_libraries( mega terminal )
-target_link_libraries( mega reports )
 target_link_libraries( mega database_reporters )
 target_link_libraries( mega schematic )
 
@@ -108,9 +110,10 @@ link_boost( mega iostreams )
 link_boost( mega program_options )
 link_boost( mega serialization )
 link_boost( mega timer )
-link_common( mega )
 link_inja( mega )
 link_json( mega )
+link_common( mega )
+link_report( mega )
 link_ed( mega )
 
 install( TARGETS mega DESTINATION bin)

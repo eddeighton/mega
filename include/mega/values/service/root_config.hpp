@@ -24,7 +24,7 @@
 
 #include <boost/serialization/nvp.hpp>
 
-namespace mega::network
+namespace mega::service
 {
 
 class RootConfig

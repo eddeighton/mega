@@ -617,13 +617,12 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
     return status;
 }
 
-mega::reports::Container Simulation::GetReport( const mega::reports::URL&                      url,
-                                                const std::vector< mega::reports::Container >& report,
-                                                boost::asio::yield_context&                    yield_ctx )
+Report Simulation::GetReport( const report::URL&    url,
+                              const std::vector< Report >& report,
+                              boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "Simulation::GetReport" );
     VERIFY_RTE( report.empty() );
-    using namespace mega::reports;
     using namespace std::string_literals;
     Table table;
     table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );

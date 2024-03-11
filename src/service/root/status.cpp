@@ -62,14 +62,13 @@ network::Status RootRequestLogicalThread::GetStatus( const std::vector< network:
     return status;
 }
 
-mega::reports::Container RootRequestLogicalThread::GetReport( const mega::reports::URL&                      url,
-                                                              const std::vector< mega::reports::Container >& report,
-                                                              boost::asio::yield_context&                    yield_ctx )
+Report RootRequestLogicalThread::GetReport( const report::URL&    url,
+                                            const std::vector< Report >& report,
+                                            boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::GetReport" );
     using namespace mega::reports;
     using namespace std::string_literals;
-
 
     reports::Branch root{ { "Megastructure Service Report"s, common::printCurrentTime() } };
 
@@ -83,8 +82,8 @@ mega::reports::Container RootRequestLogicalThread::GetReport( const mega::report
     return root;
 }
 
-mega::reports::Container RootRequestLogicalThread::GetNetworkReport( const mega::reports::URL&   url,
-                                                                     boost::asio::yield_context& yield_ctx )
+Report RootRequestLogicalThread::GetNetworkReport( const report::URL&   url,
+                                                   boost::asio::yield_context& yield_ctx )
 {
     return getAllBroadcastRequest< network::report::Request_Encoder >( yield_ctx ).GetReport( url, {} );
 }

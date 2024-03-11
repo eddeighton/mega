@@ -23,8 +23,6 @@
 #include "environment/environment_archive.hpp"
 #include "database/DecisionsStage.hxx"
 
-#include "reports/renderer_html.hpp"
-
 #include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
 
@@ -644,10 +642,9 @@ void recurseTree( Concrete::Node* pNode, mega::reports::Branch& tree )
 
 } // namespace
 
-mega::reports::Container DecisionsReporter::generate( const mega::reports::URL& url )
+Report DecisionsReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch root{ { ID } };
 

@@ -58,11 +58,10 @@ std::string symbolsToStr( const std::vector< Parser::Symbol* >& symbols, const c
     return osName.str();
 }
 
-mega::reports::Container reportDataType( Parser::TypeDecl::Data* pDataType )
+Report reportDataType( Parser::TypeDecl::Data* pDataType )
 {
     using namespace ParserStage::Parser;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch container{ { "DataType"s } };
 
@@ -218,10 +217,9 @@ void recurse( Parser::Container* pContainer, reports::Branch& branch )
 
 } // namespace
 
-mega::reports::Container ParserReporter::generate( const mega::reports::URL& url )
+Report ParserReporter::generate( const report::URL& url )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch report{ { ID } };
 

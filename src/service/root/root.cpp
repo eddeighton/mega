@@ -73,7 +73,7 @@ Root::Root( boost::asio::io_context& ioContext, network::Log log, const boost::f
     m_server.waitForConnection();
 }
 
-void Root::getGeneralStatusReport( const mega::reports::URL& url, mega::reports::Branch& report )
+void Root::getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report )
 {
     using namespace mega::reports;
     using namespace std::string_literals;
