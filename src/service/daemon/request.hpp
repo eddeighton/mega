@@ -132,7 +132,7 @@ public:
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
     // network::report::Impl
-    virtual Report GetReport( const report::URL&    url,
+    virtual Report GetReport( const URL&    url,
                               const std::vector< Report >& report,
                               boost::asio::yield_context&  yield_ctx ) override;
 

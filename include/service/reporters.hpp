@@ -32,7 +32,7 @@
 namespace mega::reports
 {
 
-Report getFileReport( const report::URL& url );
+Report getFileReport( const URL& url );
 
 inline void getServiceReporters( std::vector< report::ReporterID >& reporterIDs )
 {

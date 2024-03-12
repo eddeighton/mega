@@ -29,7 +29,7 @@ namespace mega::reporters
 #include "reporters.hxx"
 #undef REPORTER
 
-bool isCompilationReportType( const report::URL& url )
+bool isCompilationReportType( const URL& url )
 {
     static std::set< std::string > reportedIDMap;
     if( reportedIDMap.empty() )
@@ -40,7 +40,7 @@ bool isCompilationReportType( const report::URL& url )
 #undef REPORTER
     }
 
-    auto reportType = mega::reports::getReportType( url );
+    auto reportType = report::getReportType( url );
 
     if( reportType.has_value() )
     {
@@ -56,11 +56,11 @@ void getDatabaseReporterIDs( std::vector< report::ReporterID >& reportIDs )
 #undef REPORTER
 }
 
-std::optional< Report > generateCompilationReport( const report::URL& url, CompilationReportArgs args )
+std::optional< Report > generateCompilationReport( const URL& url, CompilationReportArgs args )
 {
-    if( mega::reporters::isCompilationReportType( url ) )
+    if( isCompilationReportType( url ) )
     {
-        auto reportType = mega::reports::getReportType( url ).value();
+        auto reportType = report::getReportType( url ).value();
         if( reportType.empty() )
         {
             THROW_RTE( "Failed to find report type in url: " << url.c_str() );

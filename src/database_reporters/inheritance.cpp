@@ -24,7 +24,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -48,7 +48,7 @@ namespace FinalStage
 namespace mega::reporters
 {
 
-Report InheritanceReporter::generate( const report::URL& url )
+Report InheritanceReporter::generate( const URL& url )
 {
     using namespace FinalStage;
     using namespace std::string_literals;

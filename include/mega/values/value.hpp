@@ -78,8 +78,6 @@ using Value = std::variant<
 
     std::string, boost::filesystem::path >;
 
-std::string toString( const Value& value );
-
 } // namespace mega
 
 #endif // GUARD_2023_October_17_value

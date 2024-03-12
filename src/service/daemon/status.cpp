@@ -55,7 +55,7 @@ std::string DaemonRequestLogicalThread::Ping( const std::string& strMsg, boost::
     return os.str();
 }
 
-Report DaemonRequestLogicalThread::GetReport( const report::URL&    url,
+Report DaemonRequestLogicalThread::GetReport( const URL&    url,
                                               const std::vector< Report >& report,
                                               boost::asio::yield_context&  yield_ctx )
 {

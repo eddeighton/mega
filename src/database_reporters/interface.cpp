@@ -23,7 +23,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 #include "mega/values/compilation/concrete/type_id.hpp"
 #include "mega/values/compilation/interface/type_id.hpp"
@@ -51,6 +51,7 @@ namespace mega::reporters
 {
 
 using namespace FinalStage;
+using namespace std::string_literals;
 
 namespace
 {
@@ -67,12 +68,10 @@ reports::ValueVector fromConcrete( std::vector< T* > concrete )
     return result;
 }
 
-void addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch,
-                    reports::Branch& concreteTypeIDs, const std::vector< Interface::DimensionTrait* >& dimensions )
+void addProperties( Branch& typeIDs, Branch& parentBranch, Branch& concreteTypeIDs,
+                    const std::vector< Interface::DimensionTrait* >& dimensions )
 {
     using namespace FinalStage::Interface;
-    using namespace std::string_literals;
-    using namespace mega::reports;
 
     if( !dimensions.empty() )
     {
@@ -107,12 +106,10 @@ void addProperties( mega::reports::Branch& typeIDs, mega::reports::Branch& paren
     }
 }
 
-void addLinks( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBranch, reports::Branch& concreteTypeIDs,
+void addLinks( Branch& typeIDs, Branch& parentBranch, Branch& concreteTypeIDs,
                const std::vector< Interface::LinkTrait* >& links )
 {
     using namespace FinalStage::Interface;
-    using namespace std::string_literals;
-    using namespace mega::reports;
 
     if( !links.empty() )
     {
@@ -148,11 +145,10 @@ void addLinks( mega::reports::Branch& typeIDs, mega::reports::Branch& parentBran
     }
 }
 
-void addInheritance( std::optional< Interface::InheritanceTrait* > inheritance, mega::reports::Branch& branch )
+void addInheritance( std::optional< Interface::InheritanceTrait* > inheritance, Branch& branch )
 {
     using namespace FinalStage::Interface;
-    using namespace std::string_literals;
-    using namespace mega::reports;
+
     if( inheritance.has_value() )
     {
         bool bFirst = true;
@@ -172,11 +168,9 @@ void addInheritance( std::optional< Interface::InheritanceTrait* > inheritance, 
     }
 }
 
-void addEvent( Interface::EventTypeTrait* pEventTrait, mega::reports::Branch& branch )
+void addEvent( Interface::EventTypeTrait* pEventTrait, Branch& branch )
 {
     using namespace FinalStage::Interface;
-    using namespace std::string_literals;
-    using namespace reports;
 
     std::ostringstream os;
     os << "(" << pEventTrait->get_named_symbol_variant_path_sequence().str() << ")";
@@ -184,12 +178,9 @@ void addEvent( Interface::EventTypeTrait* pEventTrait, mega::reports::Branch& br
     branch.m_label.push_back( os.str() );
 }
 
-void addTransition( std::optional< Interface::TransitionTypeTrait* > pTransitionTraitOpt,
-                    mega::reports::Branch&                           branch )
+void addTransition( std::optional< Interface::TransitionTypeTrait* > pTransitionTraitOpt, Branch& branch )
 {
     using namespace FinalStage::Interface;
-    using namespace std::string_literals;
-    using namespace reports;
 
     if( pTransitionTraitOpt.has_value() )
     {
@@ -216,12 +207,9 @@ void addTransition( std::optional< Interface::TransitionTypeTrait* > pTransition
     }
 }
 
-void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, reports::Branch& concreteTypeIDs,
-              Interface::IContext* pContext )
+void recurse( Branch& interfaceTypeIDs, Branch& parentBranch, Branch& concreteTypeIDs, Interface::IContext* pContext )
 {
     using namespace FinalStage::Interface;
-    using namespace std::string_literals;
-    using namespace reports;
 
     Branch branch;
     branch.m_bookmark = pContext->get_interface_id();
@@ -332,13 +320,12 @@ void recurse( reports::Branch& interfaceTypeIDs, reports::Branch& parentBranch, 
 }
 } // namespace
 
-Report InterfaceReporter::generate( const report::URL& url )
+Report InterfaceReporter::generate( const URL& url )
 {
     using namespace FinalStage;
-    using namespace std::string_literals;
 
     Table root{ { "Interface TypeID"s, ID, "Concrete TypeIDs"s } };
-    
+
     Database database( m_args.environment, m_args.environment.project_manifest() );
 
     Branch interfaceTypeIDs( { { sourceFilePath.path() } } );

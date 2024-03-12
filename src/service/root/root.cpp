@@ -73,9 +73,8 @@ Root::Root( boost::asio::io_context& ioContext, network::Log log, const boost::f
     m_server.waitForConnection();
 }
 
-void Root::getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report )
+void Root::getGeneralStatusReport( const URL& url, Branch& report )
 {
-    using namespace mega::reports;
     using namespace std::string_literals;
 
     const auto megaInstall = getMegastructureInstallation();
@@ -95,9 +94,9 @@ void Root::getGeneralStatusReport( const report::URL& url, mega::reports::Branch
     table.m_rows.push_back( { Line{ "     Process: "s }, Line{ m_strProcessName } } );
     table.m_rows.push_back( { Line{ "          IP: "s }, Line{ m_server.getEndPoint().address().to_string() } } );
     table.m_rows.push_back( { Line{ "        PORT: "s }, Line{ std::to_string( m_server.getEndPoint().port() ) } } );
-    table.m_rows.push_back( { Line{ "Installation: "s }, Line{ megaInstall,   makeFileURL( url, megaInstall.getInstallationPath() ) } } );
-    table.m_rows.push_back( { Line{ "Stash Folder: "s }, Line{ m_stashFolder, makeFileURL( url, m_stashFolder ) } } );
-    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, makeFileURL( url, m_log.logFile ) } } );
+    table.m_rows.push_back( { Line{ "Installation: "s }, Line{ megaInstall,   report::makeFileURL( url, megaInstall.getInstallationPath() ) } } );
+    table.m_rows.push_back( { Line{ "Stash Folder: "s }, Line{ m_stashFolder, report::makeFileURL( url, m_stashFolder ) } } );
+    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, report::makeFileURL( url, m_log.logFile ) } } );
     // clang-format on
 
     report.m_elements.push_back( table );

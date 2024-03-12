@@ -23,7 +23,7 @@
 
 #include "database/HyperGraphAnalysis.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -48,7 +48,7 @@ namespace mega::reporters
 {
 using namespace HyperGraphAnalysis;
 
-Report HyperGraphReporter::generate( const report::URL& url )
+Report HyperGraphReporter::generate( const URL& url )
 {
     using namespace std::string_literals;
 

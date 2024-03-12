@@ -20,7 +20,7 @@
 #include "daemon.hpp"
 #include "request.hpp"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 
 #include "service/network/logical_thread.hpp"
 #include "service/network/network.hpp"
@@ -50,7 +50,7 @@ public:
     void run( boost::asio::yield_context& yield_ctx )
     {
         m_daemon.m_machineID = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleDaemon();
-        //m_daemon.setActiveProject( getRootRequest< network::project::Request_Encoder >( yield_ctx ).GetProject() );
+        // m_daemon.setActiveProject( getRootRequest< network::project::Request_Encoder >( yield_ctx ).GetProject() );
 
         std::ostringstream os;
         os << network::Node( network::Node::Daemon ) << " " << m_daemon.m_machineID;
@@ -84,9 +84,8 @@ Daemon::Daemon( boost::asio::io_context& ioContext, network::Log log, const std:
     }
 }
 
-void Daemon::getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report )
+void Daemon::getGeneralStatusReport( const URL& url, Branch& report )
 {
-    using namespace mega::reports;
     using namespace std::string_literals;
 
     Table table;
@@ -96,7 +95,7 @@ void Daemon::getGeneralStatusReport( const report::URL& url, mega::reports::Bran
     table.m_rows.push_back( { Line{ "          IP: "s }, Line{ m_server.getEndPoint().address().to_string() } } );
     table.m_rows.push_back( { Line{ "        PORT: "s }, Line{ std::to_string( m_server.getEndPoint().port() ) } } );
     table.m_rows.push_back( { Line{ "  Machine ID: "s }, Line{ m_machineID } } );
-    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, makeFileURL( url, m_log.logFile ) } } );
+    table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ m_log.logFile, report::makeFileURL( url, m_log.logFile ) } } );
     // clang-format on
 
     report.m_elements.push_back( table );

@@ -37,7 +37,7 @@ network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status
     {
         std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for( const auto& id : m_report.reportLogicalThreads() )
+            for( const auto& id : m_reportServer.reportLogicalThreads() )
             {
                 if( id != getID() )
                 {
@@ -48,7 +48,7 @@ network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status
         status.setLogicalThreadID( logicalthreads );
         if( m_mpo.has_value() )
             status.setMPO( m_mpo.value() );
-        status.setDescription( m_report.getProcessName() );
+        status.setDescription( m_reportServer.getProcessName() );
 
         using MPOTimeStampVec = std::vector< std::pair< runtime::MPO, runtime::TimeStamp > >;
         using MPOVec          = std::vector< runtime::MPO >;
@@ -69,13 +69,11 @@ network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status
     return status;
 }
 
-Report HTTPLogicalThread::GetReport( const report::URL&    url,
+Report HTTPLogicalThread::GetReport( const URL&                   url,
                                      const std::vector< Report >& report,
                                      boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "HTTPLogicalThread::GetReport" );
-    // VERIFY_RTE( report.empty() );
-    using namespace mega::reports;
     using namespace std::string_literals;
     Table table;
     table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );
@@ -92,7 +90,7 @@ network::Status ReportRequestLogicalThread::GetStatus( const std::vector< networ
     {
         std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for( const auto& id : m_report.reportLogicalThreads() )
+            for( const auto& id : m_reportServer.reportLogicalThreads() )
             {
                 if( id != getID() )
                 {
@@ -101,8 +99,8 @@ network::Status ReportRequestLogicalThread::GetStatus( const std::vector< networ
             }
         }
         status.setLogicalThreadID( logicalthreads );
-        status.setDescription( m_report.getProcessName() );
-        status.setMP( m_report.getMP() );
+        status.setDescription( m_reportServer.getProcessName() );
+        status.setMP( m_reportServer.getMP() );
     }
 
     return status;
@@ -115,13 +113,13 @@ std::string ReportRequestLogicalThread::Ping( const std::string& strMsg, boost::
     return os.str();
 }
 
-Report ReportRequestLogicalThread::GetReport( const report::URL&           url,
+Report ReportRequestLogicalThread::GetReport( const URL&                   url,
                                               const std::vector< Report >& report,
                                               boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "ReportRequestLogicalThread::GetReport" );
-    reports::Branch branch{
-        { getID(), m_report.getProcessName(), m_report.getHTTPEndPoint().address().to_string() }, report };
+    Branch branch{
+        { getID(), m_reportServer.getProcessName(), m_reportServer.getHTTPEndPoint().address().to_string() }, report };
     return branch;
 }
 

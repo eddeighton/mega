@@ -51,7 +51,7 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& childNodeStatus,
                                        boost::asio::yield_context&           yield_ctx ) override;
 
-    virtual Report GetReport( const report::URL&           url,
+    virtual Report GetReport( const URL&           url,
                               const std::vector< Report >& report,
                               boost::asio::yield_context&  yield_ctx ) override;
 

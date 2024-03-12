@@ -43,12 +43,12 @@
 
 namespace mega::service::report
 {
-HTTPLogicalThread::HTTPLogicalThread( Report&                         report,
+HTTPLogicalThread::HTTPLogicalThread( ReportServer&                   reportServer,
                                       const network::LogicalThreadID& logicalthreadID,
                                       boost::asio::ip::tcp::socket&   socket )
-    : ReportRequestLogicalThread( report, logicalthreadID )
+    : ReportRequestLogicalThread( reportServer, logicalthreadID )
     , runtime::MPOContext( getID() )
-    , m_report( report )
+    , m_reportServer( reportServer )
     , m_tcpStream( std::move( socket ) )
 {
     m_bEnableQueueing = true;
@@ -65,12 +65,12 @@ network::Message HTTPLogicalThread::dispatchInBoundRequest( const network::Messa
 
 network::report_leaf::Request_Sender HTTPLogicalThread::getReportRequest( boost::asio::yield_context& yield_ctx )
 {
-    return { *this, m_report.getLeafSender(), yield_ctx };
+    return { *this, m_reportServer.getLeafSender(), yield_ctx };
 }
 
 network::mpo::Request_Sender HTTPLogicalThread::getMPRequest( boost::asio::yield_context& yield_ctx )
 {
-    return { *this, m_report.getLeafSender(), yield_ctx };
+    return { *this, m_reportServer.getLeafSender(), yield_ctx };
 }
 
 network::enrole::Request_Encoder HTTPLogicalThread::getRootEnroleRequest()
@@ -108,13 +108,13 @@ network::sim::Request_Encoder HTTPLogicalThread::getMPOSimRequest( runtime::MPO 
 network::memory::Request_Sender HTTPLogicalThread::getLeafMemoryRequest()
 {
     VERIFY_RTE( m_pYieldContext );
-    return { *this, m_report.getLeafSender(), *m_pYieldContext };
+    return { *this, m_reportServer.getLeafSender(), *m_pYieldContext };
 }
 
 network::jit::Request_Sender HTTPLogicalThread::getLeafJITRequest()
 {
     VERIFY_RTE( m_pYieldContext );
-    return { *this, m_report.getLeafSender(), *m_pYieldContext };
+    return { *this, m_reportServer.getLeafSender(), *m_pYieldContext };
 }
 
 network::mpo::Request_Sender HTTPLogicalThread::getMPRequest()
@@ -182,9 +182,9 @@ void HTTPLogicalThread::spawnTCPStream()
     // start tcp session reader coroutine
     boost::asio::spawn(
 
-        m_report.getIOContext(),
+        m_reportServer.getIOContext(),
 
-        [ this, timeout = m_report.getTimeoutSeconds() ]( boost::asio::yield_context yield_ctx )
+        [ this, timeout = m_reportServer.getTimeoutSeconds() ]( boost::asio::yield_context yield_ctx )
         {
             boost::beast::error_code ec;
 
@@ -399,10 +399,11 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
         return bad_request( "Unknown HTTP-method" );
     }
 
-    report::URL url;
+    URL url;
     {
-        const auto httpEndpoint = m_report.getHTTPEndPoint();
-        url                     = boost::urls::parse_origin_form( httpRequest.request ).value();
+        const auto httpEndpoint = m_reportServer.getHTTPEndPoint();
+
+        url = ::report::fromString( httpRequest.request );
         url.set_encoded_host_address( httpEndpoint.address().to_string() );
         url.set_port_number( httpEndpoint.port() );
     }
@@ -439,7 +440,7 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
 }
 
 boost::beast::http::string_body::value_type
-HTTPLogicalThread::generateHTTPResponse( const report::URL& url, boost::asio::yield_context& yield_ctx )
+HTTPLogicalThread::generateHTTPResponse( const URL& url, boost::asio::yield_context& yield_ctx )
 {
     std::optional< Report > reportContainerOpt;
 
@@ -448,7 +449,7 @@ HTTPLogicalThread::generateHTTPResponse( const report::URL& url, boost::asio::yi
     {
         QueueStackDepth queueMsgs( m_queueStack );
         {
-            network::host::Request_Sender leafHostRequest{ *this, m_report.getLeafSender(), yield_ctx };
+            network::host::Request_Sender leafHostRequest{ *this, m_reportServer.getLeafSender(), yield_ctx };
             const auto                    program     = leafHostRequest.GetProgram();
             const auto                    programPath = Environment::prog( program );
 
@@ -475,7 +476,7 @@ HTTPLogicalThread::generateHTTPResponse( const report::URL& url, boost::asio::yi
     else
     {
         // is the file set ?
-        if( auto fileOpt = mega::reports::getFile( url ) )
+        if( auto fileOpt = ::report::getFile( url ) )
         {
             reportContainerOpt = mega::reports::getFileReport( url );
         }
@@ -492,15 +493,14 @@ HTTPLogicalThread::generateHTTPResponse( const report::URL& url, boost::asio::yi
     std::ostringstream os;
     if( reportContainerOpt.has_value() )
     {
-        using namespace mega::reports;
-        struct Linker : public mega::reports::Linker
+        /*struct Linker : public mega::reports::Linker
         {
-            const report::URL& m_url;
-            Linker( const report::URL& url )
+            const URL& m_url;
+            Linker( const URL& url )
                 : m_url( url )
             {
             }
-            std::optional< report::URL > link( const mega::reports::Value& value ) const override
+            std::optional< URL > link( const mega::reports::Value& value ) const override
             {
                 if( auto pTypeID = std::get_if< mega::interface::TypeID >( &value ) )
                 {
@@ -522,24 +522,24 @@ HTTPLogicalThread::generateHTTPResponse( const report::URL& url, boost::asio::yi
                 }
                 return {};
             }
-        } linker( url );
+        } linker( url );*/
 
-        if( !m_pRenderer )
+        if( !m_pHTMLTemplateEngine )
         {
-            m_pRenderer = std::make_unique< mega::reports::HTMLRenderer >(
-                m_report.getMegastructureInstallation().getRuntimeTemplateDir(), getJavascriptShortcuts(), true );
+            m_pHTMLTemplateEngine = std::make_unique< ::report::HTMLTemplateEngine >(
+                m_reportServer.getMegastructureInstallation().getRuntimeTemplateDir(), true );
         }
 
-        m_pRenderer->render( reportContainerOpt.value(), linker, os );
+        ::report::renderHTML( reportContainerOpt.value(), os, *m_pHTMLTemplateEngine );
     }
     return os.str();
 }
-
+/*
 reports::HTMLRenderer::JavascriptShortcuts HTTPLogicalThread::getJavascriptShortcuts() const
 {
     reports::HTMLRenderer::JavascriptShortcuts shortcuts;
     {
-        mega::reports::HTMLRenderer::ReporterIDs reporterIDs;
+        std::vector< report::ReporterID > reporterIDs;
         mega::reporters::getDatabaseReporterIDs( reporterIDs );
         mega::reports::getServiceReporters( reporterIDs );
 
@@ -576,7 +576,7 @@ reports::HTMLRenderer::JavascriptShortcuts HTTPLogicalThread::getJavascriptShort
     }
     return shortcuts;
 }
-
+*/
 mega::network::HTTPRequestData HTTPLogicalThread::HTTPRequest( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "HTTPLogicalThread::HTTPRequest" );

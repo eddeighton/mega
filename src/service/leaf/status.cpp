@@ -67,15 +67,14 @@ std::string LeafRequestLogicalThread::Ping( const std::string& strMsg, boost::as
     return os.str();
 }
 
-Report LeafRequestLogicalThread::GetReport( const report::URL&    url,
+Report LeafRequestLogicalThread::GetReport( const URL&    url,
                                             const std::vector< Report >& report,
                                             boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::GetReport" );
-    using namespace mega::reports;
     using namespace std::string_literals;
 
-    reports::Branch leaf{ { m_leaf.getProcessName() } };
+    Branch leaf{ { m_leaf.getProcessName() } };
 
     m_leaf.getGeneralStatusReport( url, leaf );
 

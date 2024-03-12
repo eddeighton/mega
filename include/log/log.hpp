@@ -185,7 +185,9 @@ struct formatter< mega::Value >
     template < typename FormatContext >
     inline auto format( const mega::Value& value, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return fmt::format_to( ctx.out(), "{}", mega::toString( value ) );
+        std::ostringstream osValue;
+        std::visit( [ & ]( const auto& arg ) { osValue << arg; }, value );
+        return fmt::format_to( ctx.out(), "{}", osValue.str() );
     }
 };
 

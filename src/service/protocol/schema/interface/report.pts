@@ -26,13 +26,13 @@ msg HTTPRequest
 
 msg GetReport
 {
-    broadcast( report::URL url );
+    broadcast( mega::URL url );
     response( mega::Report report );
 }
 
 msg GetNetworkReport
 {
-    request( report::URL url );
+    request( mega::URL url );
     response( mega::Report report );
 }
 

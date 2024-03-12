@@ -69,13 +69,12 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
     return status;
 }
 
-Report MPOLogicalThread::GetReport( const report::URL&    url,
+Report MPOLogicalThread::GetReport( const URL&    url,
                                     const std::vector< Report >& report,
                                     boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "MPOLogicalThread::GetReport" );
     VERIFY_RTE( report.empty() );
-    using namespace mega::reports;
     using namespace std::string_literals;
     Table table;
     table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );
@@ -114,14 +113,13 @@ std::string PythonRequestLogicalThread::Ping( const std::string& strMsg, boost::
     return os.str();
 }
 
-Report PythonRequestLogicalThread::GetReport( const report::URL&    url,
+Report PythonRequestLogicalThread::GetReport( const URL&    url,
                                               const std::vector< Report >& report,
                                               boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "PythonRequestLogicalThread::GetReport" );
-    using namespace mega::reports;
     using namespace std::string_literals;
-    reports::Branch branch{ { getID(), " "s, m_python.getProcessName() }, report };
+    Branch branch{ { getID(), " "s, m_python.getProcessName() }, report };
     return branch;
 }
 } // namespace mega::service::python

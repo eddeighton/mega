@@ -23,7 +23,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/ConcreteStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -55,12 +55,12 @@ namespace
 
 struct TableTree
 {
-    mega::reports::Branch concreteKind{ { { ConcreteReporter::ID } } };
-    mega::reports::Branch concreteTree{ { { ConcreteReporter::ID } } };
-    mega::reports::Branch directRealiser{ { { ConcreteReporter::ID } } };
-    mega::reports::Branch interfaceType{ { { ConcreteReporter::ID } } };
-    mega::reports::Branch interfaceTypeID{ { { ConcreteReporter::ID } } };
-    mega::reports::Branch flags{ { { ConcreteReporter::ID } } };
+    Branch concreteKind{ { { ConcreteReporter::ID } } };
+    Branch concreteTree{ { { ConcreteReporter::ID } } };
+    Branch directRealiser{ { { ConcreteReporter::ID } } };
+    Branch interfaceType{ { { ConcreteReporter::ID } } };
+    Branch interfaceTypeID{ { { ConcreteReporter::ID } } };
+    Branch flags{ { { ConcreteReporter::ID } } };
 };
 
 const std::string& bool_to_string( bool b )
@@ -71,11 +71,10 @@ const std::string& bool_to_string( bool b )
     return b ? strTrue : strFalse;
 }
 
-void recurse( Concrete::Node* pNode, TableTree& table, mega::reports::Branch& tree )
+void recurse( Concrete::Node* pNode, TableTree& table, Branch& tree )
 {
     using namespace ConcreteStage;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Colour color = Colour::blue;
     if( auto pContext = db_cast< Concrete::Context >( pNode ) )
@@ -121,7 +120,7 @@ void recurse( Concrete::Node* pNode, TableTree& table, mega::reports::Branch& tr
 
 } // namespace
 
-Report ConcreteReporter::generate( const report::URL& url )
+Report ConcreteReporter::generate( const URL& url )
 {
     using namespace ConcreteStage;
     using namespace std::string_literals;

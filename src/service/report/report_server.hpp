@@ -41,14 +41,14 @@ namespace mega::service::report
 
 class HTTPLogicalThread;
 
-class Report : public network::LogicalThreadManager
+class ReportServer : public network::LogicalThreadManager
 {
     friend class PythonRequestLogicalThread;
 
 public:
-    Report( boost::asio::io_context& io_context, network::Log log, short daemonPortNumber, int iTimeoutSeconds,
+    ReportServer( boost::asio::io_context& io_context, network::Log log, short daemonPortNumber, int iTimeoutSeconds,
             const boost::asio::ip::tcp::endpoint& httpEndPoint );
-    ~Report();
+    ~ReportServer();
 
     void shutdown();
 

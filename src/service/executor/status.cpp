@@ -61,14 +61,14 @@ std::string ExecutorRequestLogicalThread::Ping( const std::string& strMsg, boost
     return os.str();
 }
 
-Report ExecutorRequestLogicalThread::GetReport( const report::URL&           url,
+Report ExecutorRequestLogicalThread::GetReport( const URL&           url,
                                                 const std::vector< Report >& report,
                                                 boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "ExecutorRequestLogicalThread::GetReport" );
     using namespace std::string_literals;
 
-    reports::Branch exe{ { m_executor.getProcessName() } };
+    Branch exe{ { m_executor.getProcessName() } };
 
     m_executor.getGeneralStatusReport( url, exe );
 

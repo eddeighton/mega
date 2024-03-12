@@ -24,7 +24,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/ConcreteTypeAnalysis.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -50,7 +50,7 @@ namespace mega::reporters
 {
 using namespace ConcreteTypeAnalysis;
 
-Report ConcreteIDReporter::generate( const report::URL& url )
+Report ConcreteIDReporter::generate( const URL& url )
 {
     using namespace std::string_literals;
 

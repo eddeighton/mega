@@ -27,17 +27,17 @@
 
 #include "mega/reports.hpp"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 
 #include <optional>
 
 namespace mega::reporters
 {
 
-bool isCompilationReportType( const report::URL& url );
+bool isCompilationReportType( const URL& url );
 void getDatabaseReporterIDs( std::vector< report::ReporterID >& reportIDs );
 
-std::optional< Report > generateCompilationReport( const report::URL& url, CompilationReportArgs args );
+std::optional< Report > generateCompilationReport( const URL& url, CompilationReportArgs args );
 
 } // namespace mega::reporters
 

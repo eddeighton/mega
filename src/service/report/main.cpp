@@ -1,6 +1,6 @@
 
 #include "http_server.hpp"
-#include "report.hpp"
+#include "report_server.hpp"
 #include "http_logical_thread.hpp"
 
 #include "service/network/network.hpp"
@@ -87,10 +87,10 @@ int main( int argc, char* argv[] )
 
     try
     {
-        auto const                     address = boost::asio::ip::make_address( strIP );
-        boost::asio::ip::tcp::endpoint endPoint{ address, port };
-        boost::asio::io_context        ioService{ uiNumThreads };
-        mega::service::report::Report  reportService( ioService, log, daemonPort, timeoutSeconds, endPoint );
+        auto const                          address = boost::asio::ip::make_address( strIP );
+        boost::asio::ip::tcp::endpoint      endPoint{ address, port };
+        boost::asio::io_context             ioService{ uiNumThreads };
+        mega::service::report::ReportServer reportService( ioService, log, daemonPort, timeoutSeconds, endPoint );
 
         {
             // THROW_TODO;

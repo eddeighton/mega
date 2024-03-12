@@ -194,6 +194,21 @@ public:
 
     inline Pointer getNetworkAddress() const { THROW_TODO; }
     inline Pointer getHeapAddress() const { THROW_TODO; }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
+        {
+            THROW_TODO;
+            //archive& boost::serialization::make_nvp( "value", m_value );
+        }
+        else
+        {
+            THROW_TODO;
+            //archive& m_value;
+        }
+    }
 };
 
 inline std::istream& operator>>( std::istream& is, Pointer& ref )

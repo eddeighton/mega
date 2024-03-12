@@ -27,6 +27,7 @@
 
 #include "service/protocol/model/report.hxx"
 
+#include "report/html_template_engine.hpp"
 #include "report/renderer_html.hpp"
 
 #include <boost/beast/core.hpp>
@@ -44,7 +45,7 @@ class HTTPLogicalThread : public ReportRequestLogicalThread, public runtime::MPO
 public:
     using Ptr = std::shared_ptr< HTTPLogicalThread >;
 
-    HTTPLogicalThread( Report&                         report,
+    HTTPLogicalThread( ReportServer&                   reportServer,
                        const network::LogicalThreadID& logicalthreadID,
                        boost::asio::ip::tcp::socket&   socket );
 
@@ -66,9 +67,8 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
 
     // network::report::Impl
-    virtual Report GetReport( const report::URL&           url,
-                              const std::vector< Report >& report,
-                              boost::asio::yield_context&  yield_ctx ) override;
+    virtual Report
+    GetReport( const URL& url, const std::vector< Report >& report, boost::asio::yield_context& yield_ctx ) override;
 
     // network::report::Impl
     mega::network::HTTPRequestData HTTPRequest( boost::asio::yield_context& ) override;
@@ -104,9 +104,9 @@ private:
     void                                        spawnTCPStream();
     boost::beast::http::message_generator       handleHTTPRequest( const network::HTTPRequestData& msg,
                                                                    boost::asio::yield_context&     yield_ctx );
-    boost::beast::http::string_body::value_type generateHTTPResponse( const report::URL&   url,
+    boost::beast::http::string_body::value_type generateHTTPResponse( const URL&                  url,
                                                                       boost::asio::yield_context& yield_ctx );
-    reports::HTMLRenderer::JavascriptShortcuts  getJavascriptShortcuts() const;
+    // reports::HTMLRenderer::JavascriptShortcuts  getJavascriptShortcuts() const;
 
 private:
     int m_queueStack = 0;
@@ -121,12 +121,12 @@ private:
         ~QueueStackDepth() { --stackDepth; }
     };
 
-    bool                                           m_bRunning = false;
-    Report&                                        m_report;
-    boost::beast::tcp_stream                       m_tcpStream;
-    std::unique_ptr< mega::reports::HTMLRenderer > m_pRenderer;
-    std::vector< network::ReceivedMessage >        m_messageQueue;
-    bool                                           m_bRunComplete = false;
+    bool                                          m_bRunning = false;
+    ReportServer&                                 m_reportServer;
+    boost::beast::tcp_stream                      m_tcpStream;
+    std::unique_ptr< ::report::HTMLTemplateEngine > m_pHTMLTemplateEngine;
+    std::vector< network::ReceivedMessage >       m_messageQueue;
+    bool                                          m_bRunComplete = false;
 };
 } // namespace mega::service::report
 

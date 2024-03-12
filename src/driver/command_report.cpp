@@ -27,10 +27,14 @@
 #include "log/log.hpp"
 #include "service/terminal.hpp"
 
-#include "mega/values/service/url.hpp"
 #include "mega/values/service/project.hpp"
-
 #include "mega/common_strings.hpp"
+#include "mega/reports.hpp"
+
+#include "report/reporter_id.hpp"
+#include "report/html_template_engine.hpp"
+#include "report/renderer_html.hpp"
+
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -61,7 +65,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     boost::filesystem::path outputFilePath, templateDir;
     bool                    bClearTempFiles = true, bListReports = false;
 
-    using Version = mega::service::Program::Version;
+    using Version                      = mega::service::Program::Version;
     Version::Value programVersionValue = Version::MAX;
 
     namespace po = boost::program_options;
@@ -105,7 +109,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     {
         if( bListReports )
         {
-            std::vector< report::ReporterID > reportIDs;
+            std::vector< ::report::ReporterID > reportIDs;
             mega::reporters::getDatabaseReporterIDs( reportIDs );
             for( const auto& reporter : reportIDs )
             {
@@ -146,9 +150,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             const auto programManifest = Environment::load( program );
             const auto databaseArchive = programManifest.getDatabase();
 
-            using namespace mega::reports;
-            using namespace mega::reporters;
-
             VERIFY_RTE_MSG( boost::filesystem::exists( databaseArchive ),
                             "Failed to locate project database at: " << databaseArchive.string() );
 
@@ -164,40 +165,20 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                 VERIFY_RTE_MSG( !reportURL.empty(), "Missing report URL or type specification" );
             }
 
-            const report::URL url = boost::urls::parse_origin_form( reportURL ).value();
+            const mega::URL url = ::report::fromString( reportURL );
 
             {
                 mega::io::ArchiveEnvironment environment( databaseArchive );
                 mega::io::Manifest           manifest( environment, environment.project_manifest() );
 
-                const std::optional< Container > resultOpt
-                    = mega::reporters::generateCompilationReport( url, CompilationReportArgs{ manifest, environment } );
+                const std::optional< mega::Report > resultOpt = mega::reporters::generateCompilationReport(
+                    url, mega::reporters::CompilationReportArgs{ manifest, environment } );
                 VERIFY_RTE_MSG( resultOpt.has_value(), "Failed to generate any report for: " << url.c_str() );
 
-                struct Linker : mega::reports::Linker
-                {
-                    const report::URL& m_url;
-                    Linker( const report::URL& url )
-                        : m_url( url )
-                    {
-                    }
-                    std::optional< report::URL > link( const mega::reports::Value& value ) const override
-                    {
-                        /*if( auto pTypeID = boost::get< mega::TypeID >( &value ) )
-                        {
-                            URL url = m_url;
-                            url.set_fragment( mega::reports::toString( value ) );
-                            return url;
-                        }*/
-                        return {};
-                    }
-                } linker{ url };
-
-                HTMLRenderer::JavascriptShortcuts shortcuts;
-                HTMLRenderer                      renderer( templateDir, shortcuts, bClearTempFiles );
+                ::report::HTMLTemplateEngine templateEngine( templateDir, bClearTempFiles );
 
                 std::ostringstream os;
-                renderer.render( resultOpt.value(), linker, os );
+                ::report::renderHTML( resultOpt.value(), os, templateEngine );
 
                 try
                 {

@@ -136,10 +136,10 @@ public:
     virtual network::Status GetNetworkStatus( boost::asio::yield_context& yield_ctx ) override;
 
     // network::report::Impl
-    virtual Report GetReport( const report::URL&    url,
+    virtual Report GetReport( const URL&    url,
                               const std::vector< Report >& report,
                               boost::asio::yield_context&  yield_ctx ) override;
-    virtual Report GetNetworkReport( const report::URL& url, boost::asio::yield_context& yield_ctx ) override;
+    virtual Report GetNetworkReport( const URL& url, boost::asio::yield_context& yield_ctx ) override;
 
     // network::stash::Impl
     virtual void              StashClear( boost::asio::yield_context& yield_ctx ) override;

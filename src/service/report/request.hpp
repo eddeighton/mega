@@ -20,7 +20,7 @@
 #ifndef REQUEST_PYTHON_9_MAR_2023
 #define REQUEST_PYTHON_9_MAR_2023
 
-#include "report.hpp"
+#include "report_server.hpp"
 
 #include "service/network/logical_thread.hpp"
 
@@ -45,10 +45,10 @@ class ReportRequestLogicalThread : public network::InThreadLogicalThread,
                                    public network::report::Impl
 {
 protected:
-    Report& m_report;
+    ReportServer& m_reportServer;
 
 public:
-    ReportRequestLogicalThread( Report& report, const network::LogicalThreadID& logicalthreadID );
+    ReportRequestLogicalThread( ReportServer& report, const network::LogicalThreadID& logicalthreadID );
     virtual ~ReportRequestLogicalThread();
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
@@ -99,9 +99,8 @@ public:
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
     // network::report::Impl
-    virtual Report GetReport( const report::URL&    url,
-                              const std::vector< Report >& report,
-                              boost::asio::yield_context&  yield_ctx ) override;
+    virtual Report
+    GetReport( const URL& url, const std::vector< Report >& report, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service::report

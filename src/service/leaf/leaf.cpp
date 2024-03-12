@@ -105,9 +105,8 @@ Leaf::Leaf( network::Log log, network::Sender::Ptr pSender, network::Node nodeTy
     m_pSelfSender = m_receiverChannel.getSender();
 }
 
-void Leaf::getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report )
+void Leaf::getGeneralStatusReport( const URL& url, Branch& report )
 {
-    using namespace mega::reports;
     using namespace std::string_literals;
 
     // THROW_TODO;
@@ -122,7 +121,7 @@ void Leaf::getGeneralStatusReport( const report::URL& url, mega::reports::Branch
         table.m_rows.push_back( { Line{ "   Node Type: "s }, Line{ m_nodeType } } );
         table.m_rows.push_back( { Line{ "          MP: "s }, Line{ m_mp } } );
         table.m_rows.push_back( { Line{ "     Program: "s }, Line{ getRuntime().getProgram() } } );
-        table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ getLog().logFile, makeFileURL( url, getLog().logFile ) } } );
+        table.m_rows.push_back( { Line{ "    Log File: "s }, Line{ getLog().logFile, report::makeFileURL( url, getLog().logFile ) } } );
 
         // table.m_rows.push_back( { Line{ "  Remote Mem: "s }, Line{ std::to_string( remoteMemStatus.m_heap ) } } );
         // table.m_rows.push_back( { Line{ "  Remote Obj: "s }, Line{ std::to_string( remoteMemStatus.m_object ) } } );

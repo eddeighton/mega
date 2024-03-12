@@ -126,7 +126,7 @@ add_custom_target( run_compiler_tests
 		--include_dirs \"${CMAKE_INSTALL_PREFIX}/../../boost/install/include\;${CMAKE_INSTALL_PREFIX}/../../common/install/include\;${MEGA_API_DIR}\"
 
 		--compiler_templates_dir ${MEGA_SRC_DIR}/compiler/templates
-		--report_templates_dir ${MEGA_SRC_DIR}/reports/templates
+		--report_templates_dir ${REPORT_INSTALL_PATH}/templates
 		--stash_dir ${CMAKE_CURRENT_BINARY_DIR}/stash
 
 		--cout

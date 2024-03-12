@@ -617,7 +617,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
     return status;
 }
 
-Report Simulation::GetReport( const report::URL&    url,
+Report Simulation::GetReport( const URL&    url,
                               const std::vector< Report >& report,
                               boost::asio::yield_context&  yield_ctx )
 {

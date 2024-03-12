@@ -24,7 +24,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -47,14 +47,12 @@ namespace FinalStage
 
 namespace mega::reporters
 {
+using namespace std::string_literals;
+using namespace FinalStage;
 
 std::size_t AndOrTreeReporter::recurse( Graph& graph, FinalStage::Automata::Vertex* pVertex,
                                         std::vector< std::size_t >& nodes )
 {
-    using namespace FinalStage;
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     std::string strType;
     Colour      colour      = Colour::lightblue;
     int         borderWidth = 1;
@@ -113,12 +111,8 @@ std::size_t AndOrTreeReporter::recurse( Graph& graph, FinalStage::Automata::Vert
     return szNodeIndex;
 }
 
-Report AndOrTreeReporter::generate( const report::URL& url )
+Report AndOrTreeReporter::generate( const URL& url )
 {
-    using namespace FinalStage;
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     Branch branch{ { ID } };
 
     for( const mega::io::megaFilePath& sourceFilePath : m_args.manifest.getMegaSourceFiles() )

@@ -23,7 +23,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/InterfaceStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -55,7 +55,6 @@ void recurse( Interface::Aggregate* pNode, Branch& tree )
 {
     using namespace InterfaceStage;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch branch{ { Interface::getKind( pNode ), " "s, Interface::getIdentifier( pNode ) } };
     tree.m_elements.emplace_back( std::move( branch ) );
@@ -67,7 +66,6 @@ void recurse( Interface::IContext* pNode, Branch& tree )
 {
     using namespace InterfaceStage;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch branch{ { Interface::getKind( pNode ), " "s, Interface::getIdentifier( pNode ) } };
 
@@ -83,7 +81,6 @@ void recurse( Interface::Node* pNode, Branch& tree )
 {
     using namespace InterfaceStage;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     if( auto pAggregate = db_cast< Interface::Aggregate >( pNode ) )
     {
@@ -101,11 +98,10 @@ void recurse( Interface::Node* pNode, Branch& tree )
 
 } // namespace
 
-Report ASTReporter::generate( const report::URL& url )
+Report ASTReporter::generate( const URL& url )
 {
     using namespace InterfaceStage;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch root{ { ID } };
 

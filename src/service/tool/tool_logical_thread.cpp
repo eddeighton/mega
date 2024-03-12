@@ -166,13 +166,12 @@ network::Status ToolMPOLogicalThread::GetStatus( const std::vector< network::Sta
     return status;
 }
 
-Report ToolMPOLogicalThread::GetReport( const report::URL&    url,
+Report ToolMPOLogicalThread::GetReport( const URL&                   url,
                                         const std::vector< Report >& report,
                                         boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "Tool::GetReport" );
     VERIFY_RTE( report.empty() );
-    using namespace mega::reports;
     using namespace std::string_literals;
     Table table;
     table.m_rows.push_back( { Line{ "   Thread ID: "s }, Line{ getID() } } );

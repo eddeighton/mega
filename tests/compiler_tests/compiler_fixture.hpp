@@ -22,7 +22,8 @@
 #define GUARD_2023_January_22_invoke_fixture
 
 #include "mega/values/compilation/tool_chain_hash.hpp"
-#include "mega/values/service/url.hpp"
+
+#include "mega/reports.hpp"
 
 #include "compiler/configuration.hpp"
 
@@ -37,7 +38,10 @@
 #include "database/environment.hxx"
 
 #include "database_reporters/factory.hpp"
+
 #include "report/renderer_html.hpp"
+
+#include "mega/reports.hpp"
 
 #include "common/file.hpp"
 #include "common/string.hpp"
@@ -127,28 +131,25 @@ public:
 
     void generateReport( const std::string& strURL, const std::string& strFileNameNoExt )
     {
-        using namespace mega::reports;
-        using namespace mega::reporters;
-
         std::ostringstream osOutFile;
         osOutFile << strFileNameNoExt << ".html";
         const boost::filesystem::path resultFile = g_resultDir / osOutFile.str();
 
         try
         {
-            const URL url = boost::urls::parse_origin_form( strURL ).value();
+            const mega::URL url = report::fromString( strURL );
 
             mega::io::Manifest manifest( m_environment, m_environment.project_manifest() );
 
-            std::optional< Container > resultOpt
-                = generateCompilationReport( url, CompilationReportArgs{ manifest, m_environment } );
+            std::optional< mega::Report > resultOpt
+                = generateCompilationReport( url, mega::reporters::CompilationReportArgs{ manifest, m_environment } );
             VERIFY_RTE_MSG( resultOpt.has_value(), "Failed to generate any report for: " << url.c_str() );
 
-            HTMLRenderer::JavascriptShortcuts shortcuts;
-            HTMLRenderer                      renderer( g_report_templatesDir, shortcuts, true );
+            // HTMLRenderer::JavascriptShortcuts shortcuts;
+            report::HTMLTemplateEngine templateEngine( g_report_templatesDir, true );
 
             std::ostringstream os;
-            renderer.render( resultOpt.value(), os );
+            report::renderHTML( resultOpt.value(), os, templateEngine );
 
             boost::filesystem::updateFileIfChanged( resultFile, os.str() );
         }

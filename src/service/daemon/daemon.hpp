@@ -47,7 +47,7 @@ public:
     // network::LogicalThreadManager
     virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
-    void getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report );
+    void getGeneralStatusReport( const URL& url, Branch& report );
 
     const auto& getLog() const { return m_log; }
 

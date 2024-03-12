@@ -24,7 +24,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -48,15 +48,13 @@ namespace FinalStage
 
 namespace mega::reporters
 {
+using namespace FinalStage;
+using namespace std::string_literals;
 
-reports::Graph::Node::ID EnumReporter::recurse( mega::reports::Graph& graph, FinalStage::Automata::Enum* pEnum,
+reports::Graph::Node::ID EnumReporter::recurse( Graph& graph, FinalStage::Automata::Enum* pEnum,
                                                 std::vector< reports::Graph::Node::ID >& nodes,
                                                 SwitchIDToNodeMap& switchIDToNodeMap, Edges& edges )
 {
-    using namespace FinalStage;
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     auto pVertex = pEnum->get_vertex();
 
     std::string strVertexType;
@@ -164,11 +162,8 @@ reports::Graph::Node::ID EnumReporter::recurse( mega::reports::Graph& graph, Fin
     return szNodeIndex;
 }
 
-Report EnumReporter::generate( const report::URL& url )
+Report EnumReporter::generate( const URL& url )
 {
-    using namespace FinalStage;
-    using namespace std::string_literals;
-
     Branch branch{ { ID } };
 
     for( const mega::io::megaFilePath& sourceFilePath : m_args.manifest.getMegaSourceFiles() )
@@ -261,9 +256,8 @@ Report EnumReporter::generate( const report::URL& url )
                 nodes.push_back( szNodeIndex );
             }
 
-            graph.m_subgraphs.emplace_back( 
-                Graph::Subgraph{ { { Concrete::printContextFullType( pObject ), pObject->get_concrete_id() } }, nodes }
-             );
+            graph.m_subgraphs.emplace_back( Graph::Subgraph{
+                { { Concrete::printContextFullType( pObject ), pObject->get_concrete_id() } }, nodes } );
 
             sourceBranch.m_elements.push_back( graph );
         }

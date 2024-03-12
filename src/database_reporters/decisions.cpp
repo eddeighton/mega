@@ -23,7 +23,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/DecisionsStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -73,6 +73,7 @@ namespace mega::reporters
 
 using namespace DecisionsStage;
 using namespace DecisionsStage::ClangTraits;
+using namespace std::string_literals;
 
 namespace
 {
@@ -81,11 +82,8 @@ namespace
 ////////////////////////////////////////////////////////////////////////////////////
 // BDD
 
-mega::reports::Graph::Node::ID recurseNodesBDD( mega::reports::Graph& graph, Decision::Step* pStep )
+Graph::Node::ID recurseNodesBDD( Graph& graph, Decision::Step* pStep )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     Graph::Node node;
 
     bool bIncludeVariableInfo = true;
@@ -186,7 +184,7 @@ mega::reports::Graph::Node::ID recurseNodesBDD( mega::reports::Graph& graph, Dec
         }
     }
 
-    const mega::reports::Graph::Node::ID nodeID = graph.m_nodes.size();
+    const Graph::Node::ID nodeID = graph.m_nodes.size();
     graph.m_nodes.push_back( node );
 
     for( auto pChild : pStep->get_children() )
@@ -198,11 +196,8 @@ mega::reports::Graph::Node::ID recurseNodesBDD( mega::reports::Graph& graph, Dec
     return nodeID;
 }
 
-mega::reports::Graph makeBDDGraph( Decision::DecisionProcedure* pProcedure )
+Graph makeBDDGraph( Decision::DecisionProcedure* pProcedure )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     Graph graph;
     graph.m_rankDirection = Graph::RankDirection::TB;
 
@@ -214,11 +209,8 @@ mega::reports::Graph makeBDDGraph( Decision::DecisionProcedure* pProcedure )
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 // Derivation Tree
-void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges, reports::Graph& graph )
+void addEdges( Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges, Graph& graph )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     for( auto pEdge : edges )
     {
         auto pNextStep = pEdge->get_next();
@@ -323,21 +315,15 @@ void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation
     }
 }
 
-void generateDerivationGraph( Derivation::Root* pRoot, reports::Graph& graph )
+void generateDerivationGraph( Derivation::Root* pRoot, Graph& graph )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     // add root node
     graph.m_nodes.push_back( Graph::Node{ { { "Root:"s } }, Colour::lightblue } );
     addEdges( 0, pRoot->get_edges(), graph );
 }
 
-void generateDerivationGraph( Derivation::Dispatch* pDispatch, reports::Graph& graph )
+void generateDerivationGraph( Derivation::Dispatch* pDispatch, Graph& graph )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     auto pVertex = pDispatch->get_vertex();
 
     graph.m_nodes.push_back( Graph::Node{ { { "Dispatch:"s, Concrete::fullTypeName( pVertex ) },
@@ -348,7 +334,7 @@ void generateDerivationGraph( Derivation::Dispatch* pDispatch, reports::Graph& g
     addEdges( 0, pDispatch->get_edges(), graph );
 }
 
-void generateDerivationGraph( Derivation::Node* pNode, reports::Graph& graph )
+void generateDerivationGraph( Derivation::Node* pNode, Graph& graph )
 {
     if( auto pDispatch = db_cast< Derivation::Dispatch >( pNode ) )
     {
@@ -367,11 +353,8 @@ void generateDerivationGraph( Derivation::Node* pNode, reports::Graph& graph )
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 // Truth Table
-void generateTruthTable( Concrete::Object* pObject, mega::reports::Branch& tree )
+void generateTruthTable( Concrete::Object* pObject, Branch& tree )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     auto variables = pObject->get_variable_vertices();
     auto table     = pObject->get_truth_table();
 
@@ -434,12 +417,8 @@ void generateTruthTable( Concrete::Object* pObject, mega::reports::Branch& tree 
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 // And Or Tree
-std::size_t recurseAndOrTree( mega::reports::Graph& graph, Automata::Vertex* pVertex,
-                              std::vector< std::size_t >& nodes )
+std::size_t recurseAndOrTree( Graph& graph, Automata::Vertex* pVertex, std::vector< std::size_t >& nodes )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     std::string strType;
     Colour      colour      = Colour::lightblue;
     int         borderWidth = 1;
@@ -501,11 +480,8 @@ std::size_t recurseAndOrTree( mega::reports::Graph& graph, Automata::Vertex* pVe
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 // Concrete Tree recursion
-void recurseTree( Concrete::Node* pNode, mega::reports::Branch& tree )
+void recurseTree( Concrete::Node* pNode, Branch& tree )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     Branch branch;
 
     branch.m_label = { { Concrete::getKind( pNode ), ": "s, Concrete::getIdentifier( pNode ) } };
@@ -551,7 +527,8 @@ void recurseTree( Concrete::Node* pNode, mega::reports::Branch& tree )
             if( opt.has_value() )
             {
                 auto   pDecisionProcedure = opt.value();
-                Branch decisionProcedureBranch{ { "Decision Procedure for Interupt "s, Concrete::fullTypeName( pInterupt ) } };
+                Branch decisionProcedureBranch{
+                    { "Decision Procedure for Interupt "s, Concrete::fullTypeName( pInterupt ) } };
                 decisionProcedureBranch.m_elements.push_back(
                     Table{ {},
                            { { Line{ "Concrete TypeID"s }, Line{ pInterupt->get_concrete_id()->get_type_id() } },
@@ -584,7 +561,8 @@ void recurseTree( Concrete::Node* pNode, mega::reports::Branch& tree )
             if( opt.has_value() )
             {
                 auto   pDecisionProcedure = opt.value();
-                Branch stateDecisionProcedureBranch{ { "Decision Procedure for State "s, Concrete::fullTypeName( pState ) } };
+                Branch stateDecisionProcedureBranch{
+                    { "Decision Procedure for State "s, Concrete::fullTypeName( pState ) } };
                 stateDecisionProcedureBranch.m_elements.push_back(
                     Table{ {},
                            { { Line{ "Concrete TypeID"s }, Line{ pState->get_concrete_id()->get_type_id() } },
@@ -642,10 +620,8 @@ void recurseTree( Concrete::Node* pNode, mega::reports::Branch& tree )
 
 } // namespace
 
-Report DecisionsReporter::generate( const report::URL& url )
+Report DecisionsReporter::generate( const URL& url )
 {
-    using namespace std::string_literals;
-
     Branch root{ { ID } };
 
     Database database( m_args.environment, m_args.environment.project_manifest(), true );

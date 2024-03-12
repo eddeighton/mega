@@ -23,7 +23,7 @@
 
 #include "database/AutomataStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -50,10 +50,9 @@ using namespace AutomataStage;
 
 namespace
 {
-std::size_t recurse( mega::reports::Graph& graph, Automata::Vertex* pVertex, std::vector< std::size_t >& nodes )
+std::size_t recurse( Graph& graph, Automata::Vertex* pVertex, std::vector< std::size_t >& nodes )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     std::string strType;
     Colour      colour      = Colour::lightblue;
@@ -114,7 +113,7 @@ std::size_t recurse( mega::reports::Graph& graph, Automata::Vertex* pVertex, std
 }
 } // namespace
 
-Report AutomataReporter::generate( const report::URL& url )
+Report AutomataReporter::generate( const URL& url )
 {
     using namespace std::string_literals;
 

@@ -56,14 +56,13 @@ std::string TerminalRequestLogicalThread::Ping( const std::string& strMsg, boost
     return os.str();
 }
 
-Report TerminalRequestLogicalThread::GetReport( const report::URL&    url,
+Report TerminalRequestLogicalThread::GetReport( const URL&    url,
                                                 const std::vector< Report >& report,
                                                 boost::asio::yield_context&  yield_ctx )
 {
     SPDLOG_TRACE( "TerminalRequestLogicalThread::GetReport" );
-    using namespace mega::reports;
     using namespace std::string_literals;
-    reports::Branch branch{ { getID(), " "s, m_terminal.m_strProcessName }, report };
+    Branch branch{ { getID(), " "s, m_terminal.m_strProcessName }, report };
     return branch;
 }
 } // namespace mega::service

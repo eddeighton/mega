@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "report.hpp"
+#include "report_server.hpp"
 #include "http_logical_thread.hpp"
 
 #include "request.hpp"
@@ -44,7 +44,7 @@
 namespace mega::service::report
 {
 
-Report::Report( boost::asio::io_context& io_context, network::Log log, short daemonPortNumber, int iTimeoutSeconds,
+ReportServer::ReportServer( boost::asio::io_context& io_context, network::Log log, short daemonPortNumber, int iTimeoutSeconds,
                 const boost::asio::ip::tcp::endpoint& httpEndPoint )
     : network::LogicalThreadManager( network::Node::makeProcessName( network::Node::Report ), io_context )
     , m_io_context( io_context )
@@ -58,22 +58,22 @@ Report::Report( boost::asio::io_context& io_context, network::Log log, short dae
     m_megastructureInstallation = m_leaf.getMegastructureInstallation();
 }
 
-Report::~Report()
+ReportServer::~ReportServer()
 {
     m_receiverChannel.stop();
 }
 
-void Report::shutdown()
+void ReportServer::shutdown()
 {
     // TODO ?
 }
 
-network::LogicalThreadBase::Ptr Report::joinLogicalThread( const network::Message& msg )
+network::LogicalThreadBase::Ptr ReportServer::joinLogicalThread( const network::Message& msg )
 {
     return network::LogicalThreadBase::Ptr( new ReportRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
 }
 
-void Report::createReport( boost::asio::ip::tcp::socket& socket )
+void ReportServer::createReport( boost::asio::ip::tcp::socket& socket )
 {
     HTTPLogicalThread::Ptr pMPOLogicalThread
         = std::make_shared< HTTPLogicalThread >( *this, createLogicalThreadID(), socket );

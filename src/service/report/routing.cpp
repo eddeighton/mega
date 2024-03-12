@@ -27,9 +27,9 @@
 namespace mega::service::report
 {
 
-ReportRequestLogicalThread::ReportRequestLogicalThread( Report& report, const network::LogicalThreadID& logicalthreadID )
-    : InThreadLogicalThread( report, logicalthreadID )
-    , m_report( report )
+ReportRequestLogicalThread::ReportRequestLogicalThread( ReportServer& reportServer, const network::LogicalThreadID& logicalthreadID )
+    : InThreadLogicalThread( reportServer, logicalthreadID )
+    , m_reportServer( reportServer )
 {
 }
 ReportRequestLogicalThread::~ReportRequestLogicalThread()
@@ -58,7 +58,7 @@ network::Message ReportRequestLogicalThread::dispatchInBoundRequest( const netwo
 network::report_leaf::Request_Sender
 ReportRequestLogicalThread::getReportRequest( boost::asio::yield_context& yield_ctx )
 {
-    return { *this, m_report.getLeafSender(), yield_ctx };
+    return { *this, m_reportServer.getLeafSender(), yield_ctx };
 }
 
 network::Message ReportRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
@@ -69,7 +69,7 @@ network::Message ReportRequestLogicalThread::RootAllBroadcast( const network::Me
     SPDLOG_TRACE( "ReportRequestLogicalThread::RootAllBroadcast" );
     std::vector< network::Message > responses;
     {
-        for( auto pThread : m_report.getLogicalThreads() )
+        for( auto pThread : m_reportServer.getLogicalThreads() )
         {
             if( std::dynamic_pointer_cast< HTTPLogicalThread >( pThread ) )
             {
@@ -133,28 +133,28 @@ network::Message ReportRequestLogicalThread::ReportDaemon( const network::Messag
 network::Message ReportRequestLogicalThread::MPRoot( const network::Message& request, const mega::runtime::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
-    network::mpo::Request_Sender rq{ *this, m_report.getLeafSender(), yield_ctx };
+    network::mpo::Request_Sender rq{ *this, m_reportServer.getLeafSender(), yield_ctx };
     return rq.MPRoot( request, mp );
 }
 
 network::Message ReportRequestLogicalThread::MPUp( const network::Message& request, const mega::runtime::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
-    network::mpo::Request_Sender rq{ *this, m_report.getLeafSender(), yield_ctx };
+    network::mpo::Request_Sender rq{ *this, m_reportServer.getLeafSender(), yield_ctx };
     return rq.MPUp( request, mp );
 }
 
 network::Message ReportRequestLogicalThread::MPDown( const network::Message& request, const mega::runtime::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( m_report.getMP() == mp );
+    VERIFY_RTE( m_reportServer.getMP() == mp );
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message ReportRequestLogicalThread::MPODown( const network::Message& request, const mega::runtime::MPO& mpo,
                                                      boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( m_report.getMP() == mpo.getMP() );
+    VERIFY_RTE( m_reportServer.getMP() == mpo.getMP() );
     return dispatchInBoundRequest( request, yield_ctx );
 }
 

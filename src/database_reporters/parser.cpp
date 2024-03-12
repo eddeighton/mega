@@ -21,7 +21,7 @@
 
 #include "database/ParserStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -112,11 +112,10 @@ Report reportDataType( Parser::TypeDecl::Data* pDataType )
     return container;
 }
 
-void recurse( Parser::Container* pContainer, reports::Branch& branch )
+void recurse( Parser::Container* pContainer, Branch& branch )
 {
     using namespace ParserStage::Parser;
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch container;
 
@@ -217,7 +216,7 @@ void recurse( Parser::Container* pContainer, reports::Branch& branch )
 
 } // namespace
 
-Report ParserReporter::generate( const report::URL& url )
+Report ParserReporter::generate( const URL& url )
 {
     using namespace std::string_literals;
 

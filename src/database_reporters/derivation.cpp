@@ -24,7 +24,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 #include "mega/values/compilation/concrete/type_id.hpp"
 #include "mega/values/compilation/interface/type_id.hpp"
@@ -49,14 +49,12 @@ namespace FinalStage
 
 namespace mega::reporters
 {
-
+using namespace std::string_literals;
 using namespace FinalStage;
 
-mega::reports::Table legend()
+Table legend()
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-    mega::reports::Table legend{ { "Edge Colour"s, "Edge Type"s } };
+    Table legend{ { "Edge Colour"s, "Edge Type"s } };
 
     auto key = []( Colour colour, EdgeType edgeType ) -> ContainerVector
     {
@@ -77,11 +75,8 @@ mega::reports::Table legend()
     return legend;
 }
 
-void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges, reports::Graph& graph )
+void addEdges( Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges, reports::Graph& graph )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     for( auto pEdge : edges )
     {
         auto pNextStep = pEdge->get_next();
@@ -188,9 +183,6 @@ void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation
 
 void generateDerivationGraph( Derivation::Root* pRoot, reports::Graph& graph )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     // add root node
     graph.m_nodes.push_back( Graph::Node{ { { "Root:"s } }, Colour::lightblue } );
     addEdges( 0, pRoot->get_edges(), graph );
@@ -198,9 +190,6 @@ void generateDerivationGraph( Derivation::Root* pRoot, reports::Graph& graph )
 
 void generateDerivationGraph( Derivation::Dispatch* pDispatch, reports::Graph& graph )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     auto pVertex = pDispatch->get_vertex();
 
     graph.m_nodes.push_back( Graph::Node{
@@ -227,10 +216,8 @@ void generateDerivationGraph( FinalStage::Derivation::Node* pNode, reports::Grap
     }
 }
 
-Report DerivationReporter::generate( const report::URL& url )
+Report DerivationReporter::generate( const URL& url )
 {
-    using namespace std::string_literals;
-
     Branch files{ { "Files"s } };
     files.m_elements.push_back( legend() );
 

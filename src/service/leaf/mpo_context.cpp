@@ -22,7 +22,7 @@
 // #include "jit/program_functions.hxx"
 #include "runtime/exception.hpp"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 
 #include "service/mpo_context.hpp"
 #include "service/cycle.hpp"
@@ -433,11 +433,10 @@ void MPOContest::getDump()
 }
 */
 
-void MPOContext::getBasicReport( const report::URL& url, mega::reports::Table& table )
+void MPOContext::getBasicReport( const URL& url, Table& table )
 {
     SPDLOG_TRACE( "MPOContext::GetBasicReport: mpo: {} {}", m_mpo.value(), url.c_str() );
 
-    using namespace mega::reports;
     using namespace std::string_literals;
 
     // general stuff
@@ -454,10 +453,10 @@ void MPOContext::getBasicReport( const report::URL& url, mega::reports::Table& t
     table.m_rows.push_back( { Line{ "  Start Time: "s }, Line{ common::printTimeStamp( m_systemStartTime ) } } );
     table.m_rows.push_back( { Line{ "Elapsed Time: "s }, Line{ common::printDuration( getElapsedTime() ) } } );
     table.m_rows.push_back( { Line{ "     Log Dir: "s }, Line{ getLog().getLogFolderPath().string(), 
-        makeFileURL( url, getLog().getLogFolderPath().string() ) } } );
+        report::makeFileURL( url, getLog().getLogFolderPath().string() ) } } );
     // clang-format on
 
-    auto reportType     = getReportType( url );
+    auto reportType     = report::getReportType( url );
     bool bDoBasicReport = true;
 
     if( reportType.has_value() )

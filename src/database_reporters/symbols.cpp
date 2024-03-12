@@ -24,7 +24,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/SymbolRollout.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -49,7 +49,7 @@ namespace mega::reporters
 {
 using namespace SymbolRollout;
 
-Report SymbolsReporter::generate( const report::URL& url )
+Report SymbolsReporter::generate( const URL& url )
 {
     using namespace std::string_literals;
 
@@ -74,7 +74,7 @@ Report SymbolsReporter::generate( const report::URL& url )
     return branch;
 }
 
-Report InterfaceTypeIDReporter::generate( const report::URL& url )
+Report InterfaceTypeIDReporter::generate( const URL& url )
 {
     using namespace std::string_literals;
 

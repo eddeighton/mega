@@ -20,7 +20,7 @@
 
 #include "service/reporters.hpp"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/reports.hpp"
 
 #include "common/file.hpp"
@@ -30,7 +30,7 @@
 namespace mega::reports
 {
 
-Report getFileReport( const report::URL& url )
+Report getFileReport( const URL& url )
 {
     Branch result;
 

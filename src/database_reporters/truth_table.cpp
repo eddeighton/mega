@@ -24,7 +24,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 #include "mega/values/compilation/concrete/type_id.hpp"
 #include "mega/values/compilation/interface/type_id.hpp"
@@ -74,7 +74,7 @@ namespace mega::reporters
 {
 using namespace FinalStage;
 
-Report TruthTableReporter::generate( const report::URL& url )
+Report TruthTableReporter::generate( const URL& url )
 {
     using namespace std::string_literals;
 

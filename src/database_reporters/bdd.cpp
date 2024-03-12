@@ -24,7 +24,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/FinalStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -48,12 +48,10 @@ namespace FinalStage
 namespace mega::reporters
 {
 using namespace FinalStage;
+using namespace std::string_literals;
 
-mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decision::Step* pStep )
+Graph::Node::ID recurseNodes( Graph& graph, Decision::Step* pStep )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     Graph::Node node;
 
     bool bIncludeVariableInfo = true;
@@ -139,21 +137,21 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
         for( auto pAssignVar : pStep->get_assignment() )
         {
             node.m_rows.push_back( { "ASSIGN"s, Concrete::printContextFullType( pAssignVar->get_context() ),
-                                    pAssignVar->get_context()->get_concrete_id() } );
+                                     pAssignVar->get_context()->get_concrete_id() } );
         }
         for( auto pTrueVar : pStep->get_vars_true() )
         {
             node.m_rows.push_back( { "TRUE"s, Concrete::printContextFullType( pTrueVar->get_context() ),
-                                    pTrueVar->get_context()->get_concrete_id() } );
+                                     pTrueVar->get_context()->get_concrete_id() } );
         }
         for( auto pFalseVar : pStep->get_vars_false() )
         {
             node.m_rows.push_back( { "FALSE"s, Concrete::printContextFullType( pFalseVar->get_context() ),
-                                    pFalseVar->get_context()->get_concrete_id() } );
+                                     pFalseVar->get_context()->get_concrete_id() } );
         }
     }
 
-    const mega::reports::Graph::Node::ID nodeID = graph.m_nodes.size();
+    const Graph::Node::ID nodeID = graph.m_nodes.size();
     graph.m_nodes.push_back( node );
 
     for( auto pChild : pStep->get_children() )
@@ -165,11 +163,8 @@ mega::reports::Graph::Node::ID recurseNodes( mega::reports::Graph& graph, Decisi
     return nodeID;
 }
 
-mega::reports::Graph BDDReporter::makeBDDGraph( Decision::DecisionProcedure* pProcedure )
+Graph BDDReporter::makeBDDGraph( Decision::DecisionProcedure* pProcedure )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     Graph graph;
     graph.m_rankDirection = Graph::RankDirection::TB;
 
@@ -178,10 +173,8 @@ mega::reports::Graph BDDReporter::makeBDDGraph( Decision::DecisionProcedure* pPr
     return graph;
 }
 
-Report BDDReporter::generate( const report::URL& url )
+Report BDDReporter::generate( const URL& url )
 {
-    using namespace std::string_literals;
-
     Branch branch{ { ID } };
 
     for( const mega::io::megaFilePath& sourceFilePath : m_args.manifest.getMegaSourceFiles() )

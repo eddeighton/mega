@@ -24,9 +24,17 @@
 #include "mega/values/value.hpp"
 
 #include "report/report.hpp"
+#include "report/colours.hxx"
+#include "report/url.hpp"
 
 namespace mega
 {
+
+using URL    = report::URL;
+using Colour = report::Colour;
+
+using ValueVector     = report::ValueVector< mega::Value >;
+using ContainerVector = report::ContainerVector< mega::Value >;
 
 using Report    = report::Container< mega::Value >;
 using Branch    = report::Branch< mega::Value >;
@@ -35,6 +43,6 @@ using Multiline = report::Multiline< mega::Value >;
 using Table     = report::Table< mega::Value >;
 using Graph     = report::Graph< mega::Value >;
 
-}
+} // namespace mega
 
-#endif //GUARD_2024_March_11_reports
+#endif // GUARD_2024_March_11_reports

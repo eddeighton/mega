@@ -23,7 +23,7 @@
 #include "environment/environment_archive.hpp"
 #include "database/ClangTraitsStage.hxx"
 
-#include "mega/values/service/url.hpp"
+#include "report/url.hpp"
 #include "mega/values/service/project.hpp"
 
 #include "mega/common_strings.hpp"
@@ -50,15 +50,13 @@ namespace mega::reporters
 
 using namespace ClangTraitsStage;
 using namespace ClangTraitsStage::ClangTraits;
+using namespace std::string_literals;
 
 namespace
 {
 
-void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges, reports::Graph& graph )
+void addEdges( Graph::Node::ID iPrevious, std::vector< Derivation::Edge* > edges, Graph& graph )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     for( auto pEdge : edges )
     {
         auto pNextStep = pEdge->get_next();
@@ -163,21 +161,15 @@ void addEdges( mega::reports::Graph::Node::ID iPrevious, std::vector< Derivation
     }
 }
 
-void generateDerivationGraph( Derivation::Root* pRoot, reports::Graph& graph )
+void generateDerivationGraph( Derivation::Root* pRoot, Graph& graph )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     // add root node
     graph.m_nodes.push_back( Graph::Node{ { { "Root:"s } }, Colour::lightblue } );
     addEdges( 0, pRoot->get_edges(), graph );
 }
 
-void generateDerivationGraph( Derivation::Dispatch* pDispatch, reports::Graph& graph )
+void generateDerivationGraph( Derivation::Dispatch* pDispatch, Graph& graph )
 {
-    using namespace std::string_literals;
-    using namespace mega::reports;
-
     auto pVertex = pDispatch->get_vertex();
 
     graph.m_nodes.push_back( Graph::Node{ { { "Dispatch:"s, Concrete::fullTypeName( pVertex ) },
@@ -188,7 +180,7 @@ void generateDerivationGraph( Derivation::Dispatch* pDispatch, reports::Graph& g
     addEdges( 0, pDispatch->get_edges(), graph );
 }
 
-void generateDerivationGraph( Derivation::Node* pNode, reports::Graph& graph )
+void generateDerivationGraph( Derivation::Node* pNode, Graph& graph )
 {
     if( auto pDispatch = db_cast< Derivation::Dispatch >( pNode ) )
     {
@@ -204,10 +196,9 @@ void generateDerivationGraph( Derivation::Node* pNode, reports::Graph& graph )
     }
 }
 
-void recurse( Concrete::Node* pNode, mega::reports::Branch& tree )
+void recurse( Concrete::Node* pNode, Branch& tree )
 {
     using namespace std::string_literals;
-    using namespace mega::reports;
 
     Branch branch;
 
@@ -282,10 +273,8 @@ void recurse( Concrete::Node* pNode, mega::reports::Branch& tree )
 
 } // namespace
 
-Report ClangTraitsGenReporter::generate( const report::URL& url )
+Report ClangTraitsGenReporter::generate( const URL& url )
 {
-    using namespace std::string_literals;
-
     Branch root{ { ID } };
 
     Database database( m_args.environment, m_args.environment.project_manifest(), true );

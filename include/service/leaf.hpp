@@ -32,6 +32,8 @@
 #include "mega/values/service/logical_thread_id.hpp"
 #include "mega/values/service/node.hpp"
 
+#include "mega/reports.hpp"
+
 #include <boost/asio/io_service.hpp>
 
 #include <memory>
@@ -57,7 +59,7 @@ public:
     Leaf( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber );
     ~Leaf();
 
-    void getGeneralStatusReport( const report::URL& url, mega::reports::Branch& report );
+    void getGeneralStatusReport( const URL& url, Branch& report );
 
     void startup();
 
