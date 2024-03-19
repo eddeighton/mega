@@ -96,8 +96,8 @@ struct Task
         struct Visitor
         {
             Archive& ar;
-            Visitor( Archive& ar )
-                : ar( ar )
+            Visitor( Archive& _ar )
+                : ar( _ar )
             {
             }
             void operator()( const mega::io::megaFilePath& filePath ) const { ar& filePath; }
@@ -222,7 +222,7 @@ public:
     }
 };
 
-pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, pipeline::Stash& stash )
+pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress&, pipeline::Stash& )
 {
     VERIFY_RTE( m_pConfig );
 
@@ -319,7 +319,6 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     // NOTE: if no cppObjects ensure have cpp_decls as dependency
     std::vector< TskDesc > decisionsDependencies = cppObjects;
     decisionsDependencies.push_back( cpp_decls );
-
 
     // const TskDesc runtime_source = encode( Task{ eTask_Runtime_Source } );
     // dependencies.add( runtime_source, { includePCH, clang_Traits_Analysis } );

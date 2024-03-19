@@ -91,15 +91,15 @@ inline std::string toString( const std::vector< std::string >& name )
 
 struct TaskArguments
 {
-    TaskArguments( const mega::io::StashEnvironment& environment, const mega::io::Manifest& manifest,
-                   const mega::utilities::ToolChain& toolChain, const boost::filesystem::path& unityProjectDir,
-                   const boost::filesystem::path& unityEditor, EG_PARSER_INTERFACE* parser )
-        : environment( environment )
-        , manifest( manifest )
-        , toolChain( toolChain )
-        , unityProjectDir( unityProjectDir )
-        , unityEditor( unityEditor )
-        , parser( parser )
+    TaskArguments( const mega::io::StashEnvironment& _environment, const mega::io::Manifest& _manifest,
+                   const mega::utilities::ToolChain& _toolChain, const boost::filesystem::path& _unityProjectDir,
+                   const boost::filesystem::path& _unityEditor, EG_PARSER_INTERFACE* _parser )
+        : environment( _environment )
+        , manifest( _manifest )
+        , toolChain( _toolChain )
+        , unityProjectDir( _unityProjectDir )
+        , unityEditor( _unityEditor )
+        , parser( _parser )
     {
     }
     const mega::io::StashEnvironment& environment;

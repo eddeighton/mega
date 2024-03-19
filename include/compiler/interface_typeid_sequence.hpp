@@ -18,16 +18,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 struct TypeIDSequenceGen
 {
-    using NewSymbolNames = std::map< std::string, Symbols::SymbolID* >;
+    using NewSymbolNames            = std::map< std::string, Symbols::SymbolID* >;
     using ObjectSubObjectIDSequence = mega::SymbolTraits::SymbolIDVectorPair;
-    
+
     const NewSymbolNames& symbolNames;
 
-    TypeIDSequenceGen( const NewSymbolNames& symbolNames )
-        : symbolNames( symbolNames )
+    TypeIDSequenceGen( const NewSymbolNames& _symbolNames )
+        : symbolNames( _symbolNames )
     {
     }
 
@@ -42,7 +41,7 @@ struct TypeIDSequenceGen
     // recurse up the tree from the node to the root
     // record the initial path into second - then if encounter object
     // record remaining into first.
-    template< typename T >
+    template < typename T >
     void recurse( T* pInterface, ObjectSubObjectIDSequence& sequence, bool bFoundObject ) const
     {
         if( !bFoundObject )
@@ -71,7 +70,7 @@ struct TypeIDSequenceGen
         }
     }
 
-    template< typename T >
+    template < typename T >
     ObjectSubObjectIDSequence operator()( T* pContext ) const
     {
         ObjectSubObjectIDSequence sequence;

@@ -26,28 +26,28 @@ namespace Interface
 struct Visitor
 {
     virtual ~Visitor() = default;
-    virtual bool visit( UserDimension* pNode ) const { return false; }
-    virtual bool visit( UserAlias* pNode ) const { return false; }
-    virtual bool visit( UserUsing* pNode ) const { return false; }
-    virtual bool visit( NonOwningLink* pNode ) const { return false; }
-    virtual bool visit( OwningLink* pNode ) const { return false; }
-    virtual bool visit( UserLink* pNode ) const { return false; }
-    virtual bool visit( Aggregate* pNode ) const { return false; }
-    
-    virtual bool visit( Namespace* pNode ) const { return false; }
-    virtual bool visit( Abstract* pNode ) const { return false; }
-    virtual bool visit( Event* pNode ) const { return false; }
-    virtual bool visit( Object* pNode ) const { return false; }
-    virtual bool visit( Interupt* pNode ) const { return false; }
-    virtual bool visit( Requirement* pNode ) const { return false; }
-    virtual bool visit( Decider* pNode ) const { return false; }
-    virtual bool visit( Function* pNode ) const { return false; }
-    virtual bool visit( Action* pNode ) const { return false; }
-    virtual bool visit( Component* pNode ) const { return false; }
-    virtual bool visit( State* pNode ) const { return false; }
-    virtual bool visit( InvocationContext* pNode ) const { return false; }
-    virtual bool visit( Unspecified* pNode ) const { return false; }
-    virtual bool visit( IContext* pNode ) const { return false; }
+    virtual bool visit( UserDimension* ) const { return false; }
+    virtual bool visit( UserAlias* ) const { return false; }
+    virtual bool visit( UserUsing* ) const { return false; }
+    virtual bool visit( NonOwningLink* ) const { return false; }
+    virtual bool visit( OwningLink* ) const { return false; }
+    virtual bool visit( UserLink* ) const { return false; }
+    virtual bool visit( Aggregate* ) const { return false; }
+
+    virtual bool visit( Namespace* ) const { return false; }
+    virtual bool visit( Abstract* ) const { return false; }
+    virtual bool visit( Event* ) const { return false; }
+    virtual bool visit( Object* ) const { return false; }
+    virtual bool visit( Interupt* ) const { return false; }
+    virtual bool visit( Requirement* ) const { return false; }
+    virtual bool visit( Decider* ) const { return false; }
+    virtual bool visit( Function* ) const { return false; }
+    virtual bool visit( Action* ) const { return false; }
+    virtual bool visit( Component* ) const { return false; }
+    virtual bool visit( State* ) const { return false; }
+    virtual bool visit( InvocationContext* ) const { return false; }
+    virtual bool visit( Unspecified* ) const { return false; }
+    virtual bool visit( IContext* ) const { return false; }
 };
 
 inline bool visit( Visitor& visitor, Interface::Node* pINode )

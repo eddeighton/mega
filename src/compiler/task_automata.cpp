@@ -345,14 +345,14 @@ public:
                 Node rootNode{ concrete::INSTANCE_ZERO, pRoot };
                 recurseNode( rootNode );
 
-                TestMap tests;
-                recurseEnum( taskProgress, database, rootNode, enums, nullptr, switchIndex, tests );
+                TestMap testsMap;
+                recurseEnum( taskProgress, database, rootNode, enums, nullptr, switchIndex, testsMap );
 
                 // determine the bit indices
-                for( TestMap::const_iterator i = tests.begin(), iEnd = tests.end(); i != iEnd; )
+                for( TestMap::const_iterator i = testsMap.begin(), iEnd = testsMap.end(); i != iEnd; )
                 {
                     auto pVertex   = i->first;
-                    auto iRangeEnd = tests.upper_bound( pVertex );
+                    auto iRangeEnd = testsMap.upper_bound( pVertex );
 
                     const auto rangeStart = totalBits;
                     pVertex->set_bitset_range_start( rangeStart );

@@ -106,9 +106,9 @@ public:
             Database& database;
             Printer&  printer;
 
-            Visitor( Database& database, Printer& printer )
-                : database( database )
-                , printer( printer )
+            Visitor( Database& _database, Printer& _printer )
+                : database( _database )
+                , printer( _printer )
             {
             }
 
@@ -116,13 +116,12 @@ public:
             virtual bool visit( Interface::UserUsing* pNode ) const
             {
                 // only generate the cpp type aliases
-                auto pUsingType = pNode->get_cpp_using()->get_using_type();
                 printer.line() << "using " << pNode->get_symbol()->get_token() << " = "
                                << pNode->get_cpp_data_type()->get_type_info()->get_canonical() << ";";
                 return true;
             }
-            virtual bool visit( Interface::Aggregate* pNode ) const { return true; }
-            virtual bool visit( Interface::IContext* pNode ) const { return true; }
+            virtual bool visit( Interface::Aggregate* ) const { return true; }
+            virtual bool visit( Interface::IContext* ) const { return true; }
         } visitor{ database, printer };
 
         Interface::visit( visitor, pNode );
@@ -210,7 +209,8 @@ public:
 
             for( auto pTypeInfo : database.many< Interface::CPP::TypeInfo >( m_manifestFilePath ) )
             {
-                printer.line() << "  using " << pTypeInfo->get_trait_name() << " = " << pTypeInfo->get_canonical() << ";";
+                printer.line() << "  using " << pTypeInfo->get_trait_name() << " = " << pTypeInfo->get_canonical()
+                               << ";";
             }
 
             printer.line() << "}";

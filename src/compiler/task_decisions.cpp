@@ -168,7 +168,7 @@ struct TruthTableSolver
         }
         else
         {
-            if( auto pOr = db_cast< Automata::Or >( pVertex ) )
+            if( db_cast< Automata::Or >( pVertex ) )
             {
                 for( auto pChild : children )
                 {
@@ -178,7 +178,7 @@ struct TruthTableSolver
                     }
                 }
             }
-            else if( auto pAnd = db_cast< Automata::And >( pVertex ) )
+            else if( db_cast< Automata::And >( pVertex ) )
             {
                 bool bFirst = true;
                 for( auto pChild : children )
@@ -210,7 +210,7 @@ struct Collector
 {
     static void collectVariables( Automata::Vertex* pVertex, std::vector< Automata::Vertex* >& variables )
     {
-        if( auto pOr = db_cast< Automata::Or >( pVertex ) )
+        if( db_cast< Automata::Or >( pVertex ) )
         {
             for( auto pChild : pVertex->get_children() )
             {
@@ -218,7 +218,7 @@ struct Collector
                 collectVariables( pChild, variables );
             }
         }
-        else if( auto pAnd = db_cast< Automata::And >( pVertex ) )
+        else if( db_cast< Automata::And >( pVertex ) )
         {
             for( auto pChild : pVertex->get_children() )
             {
@@ -453,7 +453,7 @@ struct DeciderSelector
             if( variables.match( cmp ) )
             {
                 // work out relative variable ordering...
-                const auto total = variables.variables.size();
+                const auto total = static_cast< int >( variables.variables.size() );
                 variableOrdering.resize( total );
                 auto i    = variables.variablesSortedPos.begin();
                 auto iEnd = variables.variablesSortedPos.end();
@@ -461,8 +461,8 @@ struct DeciderSelector
 
                 for( ; i != iEnd; ++i, ++j )
                 {
-                    int iDecidPos = i->second;
-                    int iTransPos = j->second;
+                    const auto iDecidPos = i->second;
+                    const auto iTransPos = j->second;
 
                     VERIFY_RTE( iDecidPos < total );
                     VERIFY_RTE( iTransPos < total );
@@ -522,7 +522,7 @@ struct DeciderSelector
         auto total = std::distance( iBegin, iEnd );
         for( const DeciderInfo& deciderInfo : m_deciders )
         {
-            auto size = deciderInfo.variables.size();
+            const auto size = static_cast< int >( deciderInfo.variables.size() );
             if( total >= size )
             {
                 VariableOrdering transitionVars( iBegin, iBegin + size );
@@ -628,9 +628,9 @@ Decision::Assignments* buildAssignments( Database& database, Concrete::State* pC
             for( auto pSibling : pTrueVar->get_siblings() )
             {
                 VERIFY_RTE( !variables.contains( pSibling ) );
-                auto pAssignment = database.construct< Decision::Assignment >(
+                auto pNewAssignment = database.construct< Decision::Assignment >(
                     Decision::Assignment::Args{ false, pSibling, multiplier } );
-                assignments.push_back( pAssignment );
+                assignments.push_back( pNewAssignment );
                 variables.insert( pSibling );
             }
         }
@@ -640,9 +640,9 @@ Decision::Assignments* buildAssignments( Database& database, Concrete::State* pC
             if( !variables.contains( pFalseVar ) )
             {
                 concrete::Instance multiplier( calculateInstanceMultiplier( pCommonAncestor, pFalseVar ) );
-                auto               pAssignment = database.construct< Decision::Assignment >(
+                auto               pNewAssignment = database.construct< Decision::Assignment >(
                     Decision::Assignment::Args{ false, pFalseVar, multiplier } );
-                assignments.push_back( pAssignment );
+                assignments.push_back( pNewAssignment );
                 variables.insert( pFalseVar );
             }
         }
@@ -734,11 +734,11 @@ Decision::Step* buildRecurse( Database& database, Concrete::State* pCommonAncest
             { remainingDecideableVars.begin(), remainingDecideableVars.begin() + variableOrdering.size() },
             variableOrdering } );
 
-        for( int i = 0; i != variableOrdering.size(); ++i )
+        for( std::size_t i = 0U; i != variableOrdering.size(); ++i )
         {
             VariableVector newAssignment, newTrueVars = trueVars, newFalseVars = falseVars;
             {
-                for( int j = 0; j != variableOrdering.size(); ++j )
+                for( std::size_t j = 0U; j != variableOrdering.size(); ++j )
                 {
                     if( i == j )
                     {
@@ -816,11 +816,11 @@ Decision::Step* buildDecisionProcedure( Database&                               
         Decision::Step::Args{ decider, {}, {}, {}, {} }, transitionSelectionVariables, variableOrdering } );
 
     // enumerate variable assignments for each selection
-    for( int i = 0; i != transitionVariables.size(); ++i )
+    for( std::size_t i = 0U; i != transitionVariables.size(); ++i )
     {
         VariableVector trueVerts, falseVerts;
         {
-            for( int j = 0; j != transitionVariables.size(); ++j )
+            for( std::size_t j = 0U; j != transitionVariables.size(); ++j )
             {
                 const auto& verts = transitionVariables[ j ];
                 if( i == j )

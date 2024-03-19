@@ -152,14 +152,14 @@ public:
 
         for( auto pOwnershipLink : database.many< Concrete::Data::OwnershipLink >( m_manifestFilePath ) )
         {
-            std::vector< Interface::OwningLink* > owners;
+            std::vector< Interface::OwningLink* > owners_;
             for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink ); i != iEnd;
                  ++i )
             {
-                owners.push_back( i->second );
+                owners_.push_back( i->second );
             }
             database.construct< Concrete::Data::OwnershipLink >(
-                Concrete::Data::OwnershipLink::Args{ pOwnershipLink, owners } );
+                Concrete::Data::OwnershipLink::Args{ pOwnershipLink, owners_ } );
         }
 
         for( const auto& pair : userLinkPairs )
@@ -210,9 +210,9 @@ public:
 
         std::vector< Concrete::Edge* >& edges;
 
-        Visitor( Database& database, HyperGraph::Graph* pGraph, std::vector< Concrete::Edge* >& edges )
-            : database( database )
-            , edges( edges )
+        Visitor( Database& database_, HyperGraph::Graph*, std::vector< Concrete::Edge* >& edges_ )
+            : database( database_ )
+            , edges( edges_ )
         {
         }
 
@@ -223,7 +223,7 @@ public:
             return pEdge;
         }
 
-        virtual bool visit( Interface::UserDimension* pNode ) const
+        virtual bool visit( Interface::UserDimension* ) const
         {
             auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
             VERIFY_RTE( pConcreteParent );
@@ -232,7 +232,7 @@ public:
             return true;
         }
 
-        virtual bool visit( Interface::UserAlias* pNode ) const
+        virtual bool visit( Interface::UserAlias* ) const
         {
             auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
             VERIFY_RTE( pConcreteParent );
@@ -241,7 +241,7 @@ public:
             return true;
         }
 
-        virtual bool visit( Interface::UserUsing* pNode ) const
+        virtual bool visit( Interface::UserUsing* ) const
         {
             auto pConcreteParent = db_cast< Concrete::Node >( pConcrete->get_parent() );
             VERIFY_RTE( pConcreteParent );
@@ -351,11 +351,11 @@ public:
                         }
                     }
                 }
-                else if( auto pActivationBitSet = db_cast< Concrete::Data::ActivationBitSet >( pChild ) )
+                else if( db_cast< Concrete::Data::ActivationBitSet >( pChild ) )
                 {
                     // ignor
                 }
-                else if( auto pOwnershipLink = db_cast< Concrete::Data::OwnershipLink >( pChild ) )
+                else if( db_cast< Concrete::Data::OwnershipLink >( pChild ) )
                 {
                     // ignor
                 }
@@ -396,10 +396,7 @@ public:
             {
                 for( auto pOwner : pOwnershipLink->get_owners() )
                 {
-                    for( auto pNode : pOwner->get_inheritors() )
-                    {
-                        ++total;
-                    }
+                    total += pOwner->get_inheritors().size();
                 }
             }
 
@@ -453,8 +450,8 @@ public:
 
         for( auto pNode : database.many< Concrete::Node >( m_manifestFilePath ) )
         {
-            const auto& edges = edgeMap[ pNode ];
-            database.construct< Concrete::Node >( Concrete::Node::Args{ pNode, edges.outEdges, edges.inEdges } );
+            const auto& nodeEdges = edgeMap[ pNode ];
+            database.construct< Concrete::Node >( Concrete::Node::Args{ pNode, nodeEdges.outEdges, nodeEdges.inEdges } );
         }
     }
 

@@ -64,7 +64,7 @@ public:
         if( !pCParentNode )
         {
             // see if can start object
-            if( auto pIObject = db_cast< Interface::Object >( pIParentNode ) )
+            if( db_cast< Interface::Object >( pIParentNode ) )
             {
                 pCParentNode = database.construct< Concrete::Node >(
                     Concrete::Node::Args{ Concrete::NodeGroup::Args{ {} }, pConcreteRoot, pIParentNode, true } );
@@ -213,8 +213,8 @@ public:
             }
             else if( auto pFunction = db_cast< Interface::Function >( pIContext ) )
             {
-                database.construct< Concrete::Function >( Concrete::Function::Args{
-                    Concrete::Context::Args{ pCNode, pIContext }, pFunction } );
+                database.construct< Concrete::Function >(
+                    Concrete::Function::Args{ Concrete::Context::Args{ pCNode, pIContext }, pFunction } );
             }
             else if( auto pAction = db_cast< Interface::Action >( pIContext ) )
             {
@@ -268,12 +268,12 @@ public:
         }
         else if( auto pIUserLink = db_cast< Interface::UserLink >( pINode ) )
         {
-            auto pUserLink = database.construct< Concrete::Data::UserLink >( Concrete::Data::UserLink::Args{
+            database.construct< Concrete::Data::UserLink >( Concrete::Data::UserLink::Args{
                 Concrete::Data::Link::Args{ Concrete::Data::Field::Args{ pCNode } }, pIUserLink } );
         }
         else if( auto pIUserDimension = db_cast< Interface::UserDimension >( pINode ) )
         {
-            auto pUserLink = database.construct< Concrete::Data::Dimension >(
+            database.construct< Concrete::Data::Dimension >(
                 Concrete::Data::Dimension::Args{ Concrete::Data::Field::Args{ pCNode }, pIUserDimension } );
         }
         else
@@ -393,9 +393,9 @@ public:
             std::map< Interface::IContext*, IContextFlags > contextFlags;
             for( auto pInterface : database.many< Interface::Abstract >( projectManifestPath ) )
             {
-                for( U64 i = 1; i != IContextFlags::TOTAL_FLAGS; ++i )
+                for( U64 iFlagsIndex = 1; iFlagsIndex != IContextFlags::TOTAL_FLAGS; ++iFlagsIndex )
                 {
-                    const auto bit = static_cast< IContextFlags::Value >( i );
+                    const auto bit = static_cast< IContextFlags::Value >( iFlagsIndex );
                     if( pInterface->get_symbol()->get_token() == IContextFlags::str( bit ) )
                     {
                         if( IContextFlags::isDirect( bit ) )

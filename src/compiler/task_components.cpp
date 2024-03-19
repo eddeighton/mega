@@ -136,10 +136,8 @@ public:
             VERIFY_RTE( pComponent->get_name() == componentInfo.getName() );
         }
 
-        const task::FileHash fileHashCode = database.save_Components_to_temp();
-        // m_environment.setBuildHashCode( componentsListing, fileHashCode );
+        database.save_Components_to_temp();
         m_environment.temp_to_real( componentsListing );
-        // m_environment.stash( componentsListing, determinant );
 
         succeeded( taskProgress );
     }

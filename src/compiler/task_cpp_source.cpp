@@ -65,8 +65,8 @@ namespace mega::compiler
 
 struct IncludeFileReplacements : public boost::wave::context_policies::default_preprocessing_hooks
 {
-    IncludeFileReplacements( std::ostream& os )
-        : os( os )
+    IncludeFileReplacements( std::ostream& _os )
+        : os( _os )
     {
     }
 
@@ -93,7 +93,7 @@ struct IncludeFileReplacements : public boost::wave::context_policies::default_p
     }
 
     template < typename ContextT >
-    bool found_include_directive( const ContextT& ctx, const std::string& filename, bool include_next )
+    bool found_include_directive( const ContextT&, const std::string& filename, bool )
     {
         // if system include then DO NOT expand
         if( !filename.empty() && filename.front() == '<' )
@@ -308,7 +308,7 @@ class Task_CPP_Source : public BaseTask
             FunctionBody::InterObjectDerivationPolicy::Spec spec{
                 m_pInterfaceContext->get_inheritors(), m_symbols, true };
             std::vector< FunctionBody::Derivation::Or* > frontier;
-            auto pRoot = FunctionBody::solveContextFree( spec, policy, frontier );
+            FunctionBody::solveContextFree( spec, policy, frontier );
 
             std::ostringstream os;
             {

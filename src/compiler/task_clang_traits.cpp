@@ -72,18 +72,18 @@ std::string generateCPPType( Database& database, Interface::Node* pNode,
 
     for( auto pFragment : fragments )
     {
-        if( auto pPath = db_cast< Parser::Type::Absolute >( pFragment ) )
+        if( auto pPathAbs = db_cast< Parser::Type::Absolute >( pFragment ) )
         {
             os << MEGA_POINTER << "< "
                << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' )
-               << pPath->get_type()->get_interface_id()->get_type_id().getValue() << " > ";
+               << pPathAbs->get_type()->get_interface_id()->get_type_id().getValue() << " > ";
         }
-        else if( auto pPath = db_cast< Parser::Type::Deriving >( pFragment ) )
+        else if( auto pPathDer = db_cast< Parser::Type::Deriving >( pFragment ) )
         {
             ClangTraits::InterObjectDerivationPolicy       policy{ database };
-            ClangTraits::InterObjectDerivationPolicy::Spec spec{ pNode->get_inheritors(), pPath, true };
+            ClangTraits::InterObjectDerivationPolicy::Spec spec{ pNode->get_inheritors(), pPathDer, true };
             std::vector< ClangTraits::Derivation::Or* >    frontier;
-            auto pRoot = ClangTraits::solveContextFree( spec, policy, frontier );
+            ClangTraits::solveContextFree( spec, policy, frontier );
 
             os << MEGA_POINTER << "< ";
             bool                                bFirst = true;
@@ -127,7 +127,7 @@ solveTransitions( Database& database, Parser::TypeDecl::Transitions* pTransition
 
     for( auto pPath : pTransitions->get_type_path_sequence()->get_path_sequence() )
     {
-        if( auto pAbsolutePath = db_cast< Parser::Type::Absolute >( pPath ) )
+        if( db_cast< Parser::Type::Absolute >( pPath ) )
         {
             THROW_RTE( "Invalid use of absolute type in transition" );
         }
@@ -180,9 +180,7 @@ solveTransitions( Database& database, Parser::TypeDecl::Transitions* pTransition
 
 struct GraphInfo
 {
-    GraphInfo( HyperGraph::Graph* pGraph )
-    {
-    }
+    GraphInfo( HyperGraph::Graph* ) {}
 };
 
 std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, GraphInfo& graph,
@@ -192,28 +190,30 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, G
 
     auto pCurrentStep = pEdge->get_next();
 
-    auto edges = pCurrentStep->get_edges();
-    if( edges.empty() )
     {
-        auto pEventVertex = pCurrentStep->get_vertex();
-        auto pEventState  = db_cast< Concrete::State >( pEventVertex );
-        auto pEventEvent  = db_cast< Concrete::Event >( pEventVertex );
-        VERIFY_RTE_MSG( pEventState || pEventEvent, "Interupt event does NOT specify an Event or State. Kind is: "
-                                                        << Concrete::getKind( pEventVertex ) );
-
-        // create event dispatch
-        auto pDispatch = database.construct< Derivation::Dispatch >( Derivation::Dispatch::Args{
-            Derivation::Step::Args{ Derivation::Node::Args{ {} }, pCurrentStep->get_vertex() } } );
-        dispatches.push_back( pDispatch );
-    }
-    else
-    {
-        for( auto p : edges )
+        auto edges = pCurrentStep->get_edges();
+        if( edges.empty() )
         {
-            if( !p->get_eliminated() )
+            auto pEventVertex = pCurrentStep->get_vertex();
+            auto pEventState  = db_cast< Concrete::State >( pEventVertex );
+            auto pEventEvent  = db_cast< Concrete::Event >( pEventVertex );
+            VERIFY_RTE_MSG( pEventState || pEventEvent, "Interupt event does NOT specify an Event or State. Kind is: "
+                                                            << Concrete::getKind( pEventVertex ) );
+
+            // create event dispatch
+            auto pDispatch = database.construct< Derivation::Dispatch >( Derivation::Dispatch::Args{
+                Derivation::Step::Args{ Derivation::Node::Args{ {} }, pCurrentStep->get_vertex() } } );
+            dispatches.push_back( pDispatch );
+        }
+        else
+        {
+            for( auto p : edges )
             {
-                auto result = buildEventDispatches( database, graph, p );
-                std::copy( result.begin(), result.end(), std::back_inserter( dispatches ) );
+                if( !p->get_eliminated() )
+                {
+                    auto result = buildEventDispatches( database, graph, p );
+                    std::copy( result.begin(), result.end(), std::back_inserter( dispatches ) );
+                }
             }
         }
     }
@@ -227,9 +227,9 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, G
         {
             while( !pLastStep->get_edges().empty() )
             {
-                auto edges = pLastStep->get_edges();
-                VERIFY_RTE( edges.size() == 1 );
-                pLastStep = edges.front()->get_next();
+                auto lastStepEdges = pLastStep->get_edges();
+                VERIFY_RTE( lastStepEdges.size() == 1 );
+                pLastStep = lastStepEdges.front()->get_next();
                 VERIFY_RTE( pLastStep );
             }
         }
@@ -239,7 +239,7 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, G
         if( auto pTargetStep = db_cast< Derivation::Step >( pEdge->get_from() ) )
         {
             auto pTargetVertex = pTargetStep->get_vertex();
-            if( auto pTargetOr = db_cast< Derivation::Or >( pTargetStep ) )
+            if( db_cast< Derivation::Or >( pTargetStep ) )
             {
                 if( pSourceVertex != pTargetVertex )
                 {
@@ -260,78 +260,74 @@ std::vector< Derivation::Dispatch* > buildEventDispatches( Database& database, G
             }
             else if( auto pTargetAnd = db_cast< Derivation::And >( pTargetStep ) )
             {
-                Concrete::Node* pGraphInterObjectLinkVertex = nullptr;
+                // previous step MUST be an Or
+                auto pLastOr = db_cast< Derivation::Or >( pLastStep );
+                VERIFY_RTE( pLastOr );
+
+                // the And MUST be on a link vertex
+                auto pConcreteLink = db_cast< Concrete::Data::Link >( pTargetAnd->get_vertex() );
+                VERIFY_RTE( pConcreteLink );
+
+                // edge should be single edge to the inter object target type
+                auto graphEdges = pEdge->get_edges();
+                VERIFY_RTE( graphEdges.size() == 1 );
+                auto pGraphInterObjectEdge = db_cast< Concrete::InterObjectEdge >( graphEdges[ 0 ] );
+                VERIFY_RTE( pGraphInterObjectEdge );
+
+                // which MUST have a source of the target vertex
+                VERIFY_RTE( pGraphInterObjectEdge->get_source() == pTargetVertex );
+
+                // get the counter part of the inter object edge
+                auto pCounterPart = pGraphInterObjectEdge->get_counterpart();
+                VERIFY_RTE( pCounterPart );
+
+                Concrete::InterObjectEdge* pCounterEdge = nullptr;
                 {
-                    // previous step MUST be an Or
-                    auto pLastOr = db_cast< Derivation::Or >( pLastStep );
-                    VERIFY_RTE( pLastOr );
-
-                    // the And MUST be on a link vertex
-                    auto pConcreteLink = db_cast< Concrete::Data::Link >( pTargetAnd->get_vertex() );
-                    VERIFY_RTE( pConcreteLink );
-
-                    // edge should be single edge to the inter object target type
-                    auto graphEdges = pEdge->get_edges();
-                    VERIFY_RTE( graphEdges.size() == 1 );
-                    auto pGraphInterObjectEdge = db_cast< Concrete::InterObjectEdge >( graphEdges[ 0 ] );
-                    VERIFY_RTE( pGraphInterObjectEdge );
-
-                    // which MUST have a source of the target vertex
-                    VERIFY_RTE( pGraphInterObjectEdge->get_source() == pTargetVertex );
-
-                    // get the counter part of the inter object edge
-                    auto pCounterPart = pGraphInterObjectEdge->get_counterpart();
-                    VERIFY_RTE( pCounterPart );
-
-                    Concrete::InterObjectEdge* pCounterEdge = nullptr;
+                    for( auto pCounterPartOutEdge : pCounterPart->get_out_edges() )
                     {
-                        for( auto pCounterPartOutEdge : pCounterPart->get_out_edges() )
+                        if( auto pCounterInterObjectEdge = db_cast< Concrete::InterObjectEdge >( pCounterPartOutEdge ) )
                         {
-                            if( auto pCounterInterObjectEdge
-                                = db_cast< Concrete::InterObjectEdge >( pCounterPartOutEdge ) )
+                            if( pCounterInterObjectEdge->get_counterpart() == pConcreteLink )
                             {
-                                if( pCounterInterObjectEdge->get_counterpart() == pConcreteLink )
-                                {
-                                    VERIFY_RTE( !pCounterEdge );
-                                    pCounterEdge = pCounterInterObjectEdge;
-                                }
+                                VERIFY_RTE( !pCounterEdge );
+                                pCounterEdge = pCounterInterObjectEdge;
                             }
                         }
                     }
-                    VERIFY_RTE( pCounterEdge );
-                    auto pCounterTarget = pCounterEdge->get_target();
-
-                    // create the Selection to perform the inter-object derivation step
-                    auto pSelect = database.construct< Derivation::Select >( Derivation::Select::Args{
-                        Derivation::Or::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pCounterPart } },
-                        pCounterTarget } );
-
-                    // derive to the counterpart
-                    {
-                        // solve common root derivation to the link from the current vertex
-                        std::vector< Concrete::Edge* > edges;
-                        VERIFY_RTE( CommonAncestor::commonRootDerivation( pSourceVertex, pCounterPart, edges, true ) );
-
-                        auto pEdgeToCounterPart = database.construct< Derivation::Edge >(
-                            Derivation::Edge::Args{ pLastStep, pSelect, false, false, 0, edges } );
-                        pLastStep->push_back_edges( pEdgeToCounterPart );
-                    }
-
-                    // can now construct an Or vertex at the target which the Selection derives
-                    auto pFinalOrStep = database.construct< Derivation::Or >( Derivation::Or::Args{
-                        Derivation::Step::Args{ Derivation::Node::Args{ {} }, pCounterTarget } } );
-
-                    auto pSelectEdge = database.construct< Derivation::Edge >(
-                        Derivation::Edge::Args{ pSelect, pFinalOrStep, false, false, 0, { pCounterEdge } } );
-                    pSelect->push_back_edges( pSelectEdge );
                 }
+                VERIFY_RTE( pCounterEdge );
+                auto pCounterTarget = pCounterEdge->get_target();
+
+                // create the Selection to perform the inter-object derivation step
+                auto pSelect = database.construct< Derivation::Select >( Derivation::Select::Args{
+                    Derivation::Or::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pCounterPart } },
+                    pCounterTarget } );
+
+                // derive to the counterpart
+                {
+                    // solve common root derivation to the link from the current vertex
+                    std::vector< Concrete::Edge* > edges;
+                    VERIFY_RTE( CommonAncestor::commonRootDerivation( pSourceVertex, pCounterPart, edges, true ) );
+
+                    auto pEdgeToCounterPart = database.construct< Derivation::Edge >(
+                        Derivation::Edge::Args{ pLastStep, pSelect, false, false, 0, edges } );
+                    pLastStep->push_back_edges( pEdgeToCounterPart );
+                }
+
+                // can now construct an Or vertex at the target which the Selection derives
+                auto pFinalOrStep = database.construct< Derivation::Or >(
+                    Derivation::Or::Args{ Derivation::Step::Args{ Derivation::Node::Args{ {} }, pCounterTarget } } );
+
+                auto pSelectEdge = database.construct< Derivation::Edge >(
+                    Derivation::Edge::Args{ pSelect, pFinalOrStep, false, false, 0, { pCounterEdge } } );
+                pSelect->push_back_edges( pSelectEdge );
             }
             else
             {
                 THROW_RTE( "Unknown derivation step type" );
             }
         }
-        else if( auto pTargetRoot = db_cast< Derivation::Root >( pEdge->get_from() ) )
+        else if( db_cast< Derivation::Root >( pEdge->get_from() ) )
         {
             // do nothing
         }
@@ -408,10 +404,10 @@ public:
         GraphInfo& graph;
         Printer&   printer;
 
-        Visitor( Database& database, GraphInfo& graph, Printer& printer )
-            : database( database )
-            , graph( graph )
-            , printer( printer )
+        Visitor( Database& database_, GraphInfo& graph_, Printer& printer_ )
+            : database( database_ )
+            , graph( graph_ )
+            , printer( printer_ )
         {
         }
 
@@ -425,15 +421,14 @@ public:
             auto pCPPDataType = database.construct< Interface::CPP::DataType >(
                 Interface::CPP::DataType::Args{ Interface::CPP::Type::Args{ pNode } } );
 
-            database.construct< Interface::UserDimension >(
-                Interface::UserDimension::Args{ pNode, pCPPDataType } );
+            database.construct< Interface::UserDimension >( Interface::UserDimension::Args{ pNode, pCPPDataType } );
 
             return true;
         }
         virtual bool visit( Interface::UserAlias* pNode ) const
         {
             auto pPath = pNode->get_alias()->get_alias_type()->get_type_path();
-            if( auto pDeriving = db_cast< Parser::Type::Deriving >( pPath ) )
+            if( db_cast< Parser::Type::Deriving >( pPath ) )
             {
                 THROW_TODO;
                 /*ClangTraits::InterObjectDerivationPolicy       policy{ database };
@@ -443,7 +438,7 @@ public:
 
                 // TODO
             }
-            else if( auto pAbsolute = db_cast< Parser::Type::Absolute >( pPath ) )
+            else if( db_cast< Parser::Type::Absolute >( pPath ) )
             {
                 // auto pType = pAbsolute->get_type();
             }
@@ -464,18 +459,17 @@ public:
             auto pCPPDataType = database.construct< Interface::CPP::DataType >(
                 Interface::CPP::DataType::Args{ Interface::CPP::Type::Args{ pNode } } );
 
-            database.construct< Interface::UserUsing >(
-                Interface::UserUsing::Args{ pNode, pCPPDataType } );
+            database.construct< Interface::UserUsing >( Interface::UserUsing::Args{ pNode, pCPPDataType } );
 
             return true;
         }
-        virtual bool visit( Interface::UserLink* pNode ) const { return false; }
-        virtual bool visit( Interface::Aggregate* pNode ) const { return true; }
+        virtual bool visit( Interface::UserLink* ) const { return false; }
+        virtual bool visit( Interface::Aggregate* ) const { return true; }
 
-        virtual bool visit( Interface::Namespace* pNode ) const { return false; }
-        virtual bool visit( Interface::Abstract* pNode ) const { return false; }
-        virtual bool visit( Interface::Event* pNode ) const { return false; }
-        virtual bool visit( Interface::Object* pNode ) const { return false; }
+        virtual bool visit( Interface::Namespace* ) const { return false; }
+        virtual bool visit( Interface::Abstract* ) const { return false; }
+        virtual bool visit( Interface::Event* ) const { return false; }
+        virtual bool visit( Interface::Object* ) const { return false; }
 
         virtual bool visit( Interface::Interupt* pNode ) const
         {
@@ -541,7 +535,7 @@ public:
 
             return true;
         }
-        virtual bool visit( Interface::Requirement* pNode ) const { return false; }
+        virtual bool visit( Interface::Requirement* ) const { return false; }
 
         virtual bool visit( Interface::Decider* pNode ) const
         {
@@ -584,14 +578,13 @@ public:
             auto pCPPFunctionType = database.construct< Interface::CPP::FunctionType >(
                 Interface::CPP::FunctionType::Args{ Interface::CPP::Type::Args{ pNode } } );
 
-            database.construct< Interface::Function >(
-                Interface::Function::Args{ pNode, pCPPFunctionType } );
+            database.construct< Interface::Function >( Interface::Function::Args{ pNode, pCPPFunctionType } );
 
             return true;
         }
 
-        virtual bool visit( Interface::Action* pNode ) const { return false; }
-        virtual bool visit( Interface::Component* pNode ) const { return false; }
+        virtual bool visit( Interface::Action* ) const { return false; }
+        virtual bool visit( Interface::Component* ) const { return false; }
         virtual bool visit( Interface::State* pNode ) const
         {
             auto transitionOpt = pNode->get_transition_opt();
@@ -613,8 +606,8 @@ public:
             }
             return true;
         }
-        virtual bool visit( Interface::InvocationContext* pNode ) const { return false; }
-        virtual bool visit( Interface::IContext* pNode ) const { return true; }
+        virtual bool visit( Interface::InvocationContext* ) const { return false; }
+        virtual bool visit( Interface::IContext* ) const { return true; }
     };
 
     void recurse( Database& database, GraphInfo& graph, Interface::Node* pNode, Printer& printer )

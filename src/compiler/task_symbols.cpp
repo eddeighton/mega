@@ -53,9 +53,9 @@ public:
     {
         const mega::io::StashEnvironment& env;
         task::DeterminantHash             toolChainHash;
-        InterfaceHashCodeGenerator( const mega::io::StashEnvironment& env, task::DeterminantHash toolChainHash )
-            : env( env )
-            , toolChainHash( toolChainHash )
+        InterfaceHashCodeGenerator( const mega::io::StashEnvironment& env_, task::DeterminantHash toolChainHash_ )
+            : env( env_ )
+            , toolChainHash( toolChainHash_ )
         {
         }
         inline task::DeterminantHash operator()( const mega::io::megaFilePath& megaFilePath ) const

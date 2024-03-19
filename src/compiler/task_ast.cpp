@@ -250,10 +250,10 @@ public:
                 else if( auto pMegaIncludeNested = db_cast< Parser::MegaIncludeNested >( pMegaInclude ) )
                 {
                     auto pIdentifier = pMegaIncludeNested->get_identifier();
-                    auto symbols     = pIdentifier->get_symbols();
+                    auto syms        = pIdentifier->get_symbols();
 
                     auto pIncludeGroup
-                        = findOrCreate( database, pComponent, pNodeGroup, symbols.begin(), symbols.end(), icontexts );
+                        = findOrCreate( database, pComponent, pNodeGroup, syms.begin(), syms.end(), icontexts );
                     buildInterfaceTree( database, pComponent, pIncludeGroup, pMegaIncludeNested->get_root()->get_ast(),
                                         icontexts, reservedSymbols );
                 }
@@ -365,7 +365,7 @@ public:
                 refineInheritance( pAbstract, pIAbstract );
                 refineSize( pAbstract, pIAbstract );
             }
-            else if( auto pNamespace = db_cast< Namespace >( pContainer ) )
+            else if( db_cast< Namespace >( pContainer ) )
             {
                 auto pINamespace = getOrCreate< Interface::Namespace >( database, pIContext, pContainer, bRefined );
 
@@ -584,8 +584,8 @@ public:
         }
     }
 
-    void checkAndConstructIContext( Database& database, Interface::IContext* pIContext,
-                                    const ReservedSymbolMap& reservedSymbols )
+    void checkAndConstructIContext( Database&, Interface::IContext* pIContext,
+                                    const ReservedSymbolMap&  )
     {
         using namespace InterfaceStage::Interface;
 
@@ -640,13 +640,13 @@ public:
                     // contain anything
                 }
             }
-            else if( auto pAbstract = db_cast< Abstract >( pIContext ) )
+            else if( db_cast< Abstract >( pIContext ) )
             {
             }
-            else if( auto pUnspecified = db_cast< Unspecified >( pIContext ) )
+            else if( db_cast< Unspecified >( pIContext ) )
             {
             }
-            else if( auto pEvent = db_cast< Event >( pIContext ) )
+            else if( db_cast< Event >( pIContext ) )
             {
             }
             else if( auto pInterupt = db_cast< Interupt >( pIContext ) )
@@ -670,13 +670,13 @@ public:
                 VERIFY_PARSER( pDecider->get_singular(), "Decider cannot have non-singular size", pContainer );
                 VERIFY_PARSER( pDecider->is_events(), "Decider MUST have events", pContainer );
             }
-            else if( auto pObject = db_cast< Object >( pIContext ) )
+            else if( db_cast< Object >( pIContext ) )
             {
             }
-            else if( auto pAction = db_cast< Action >( pIContext ) )
+            else if( db_cast< Action >( pIContext ) )
             {
             }
-            else if( auto pComponent = db_cast< Component >( pIContext ) )
+            else if( db_cast< Component >( pIContext ) )
             {
             }
             else if( auto pState = db_cast< State >( pIContext ) )

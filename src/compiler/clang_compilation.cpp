@@ -59,9 +59,9 @@ common::Command Compilation::generatePCHVerificationCMD() const
     }
 
     // input pch
-    for( const boost::filesystem::path& inputPCH : inputPCH )
+    for( const boost::filesystem::path& pchPath : inputPCH )
     {
-        osCmd << g_PCH_In_Flags << " -Xclang -include-pch -Xclang " << inputPCH.string() << " ";
+        osCmd << g_PCH_In_Flags << " -Xclang -include-pch -Xclang " << pchPath.string() << " ";
     }
 
     VERIFY_RTE( compilationMode.has_value() );
@@ -154,9 +154,9 @@ common::Command Compilation::generateCompilationCMD( Compilation::CompilerCacheO
     }
 
     // input pch
-    for( const boost::filesystem::path& inputPCH : inputPCH )
+    for( const boost::filesystem::path& pchPath : inputPCH )
     {
-        osCmd << g_PCH_In_Flags << " -Xclang -include-pch -Xclang " << inputPCH.string() << " ";
+        osCmd << g_PCH_In_Flags << " -Xclang -include-pch -Xclang " << pchPath.string() << " ";
     }
 
     VERIFY_RTE( compilationMode.has_value() );

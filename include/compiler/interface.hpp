@@ -75,79 +75,79 @@ static const std::string& getKind( const Node* pNode )
 {
     using namespace std::string_literals;
 
-    if( auto* p = db_cast< UserDimension >( pNode ) )
+    if( db_cast< UserDimension >( pNode ) )
     {
         return getKind< UserDimension >();
     }
-    else if( auto* p = db_cast< UserAlias >( pNode ) )
+    else if( db_cast< UserAlias >( pNode ) )
     {
         return getKind< UserAlias >();
     }
-    else if( auto* p = db_cast< UserUsing >( pNode ) )
+    else if( db_cast< UserUsing >( pNode ) )
     {
         return getKind< UserUsing >();
     }
-    else if( auto* p = db_cast< UserLink >( pNode ) )
+    else if( db_cast< UserLink >( pNode ) )
     {
         return getKind< UserLink >();
     }
-    else if( auto* p = db_cast< Aggregate >( pNode ) )
+    else if( db_cast< Aggregate >( pNode ) )
     {
         return getKind< Aggregate >();
     }
-    else if( auto* p = db_cast< Namespace >( pNode ) )
+    else if( db_cast< Namespace >( pNode ) )
     {
         return getKind< Namespace >();
     }
-    else if( auto* p = db_cast< Abstract >( pNode ) )
+    else if( db_cast< Abstract >( pNode ) )
     {
         return getKind< Abstract >();
     }
-    else if( auto* p = db_cast< Event >( pNode ) )
+    else if( db_cast< Event >( pNode ) )
     {
         return getKind< Event >();
     }
-    else if( auto* p = db_cast< Object >( pNode ) )
+    else if( db_cast< Object >( pNode ) )
     {
         return getKind< Object >();
     }
-    else if( auto* p = db_cast< Interupt >( pNode ) )
+    else if( db_cast< Interupt >( pNode ) )
     {
         return getKind< Interupt >();
     }
-    else if( auto* p = db_cast< Requirement >( pNode ) )
+    else if( db_cast< Requirement >( pNode ) )
     {
         return getKind< Requirement >();
     }
-    else if( auto* p = db_cast< Decider >( pNode ) )
+    else if( db_cast< Decider >( pNode ) )
     {
         return getKind< Decider >();
     }
-    else if( auto* p = db_cast< Function >( pNode ) )
+    else if( db_cast< Function >( pNode ) )
     {
         return getKind< Function >();
     }
-    else if( auto* p = db_cast< Action >( pNode ) )
+    else if( db_cast< Action >( pNode ) )
     {
         return getKind< Action >();
     }
-    else if( auto* p = db_cast< Component >( pNode ) )
+    else if( db_cast< Component >( pNode ) )
     {
         return getKind< Component >();
     }
-    else if( auto* p = db_cast< State >( pNode ) )
+    else if( db_cast< State >( pNode ) )
     {
         return getKind< State >();
     }
-    else if( auto* p = db_cast< InvocationContext >( pNode ) )
+    else if( db_cast< InvocationContext >( pNode ) )
     {
         return getKind< InvocationContext >();
     }
-    else if( auto* p = db_cast< Unspecified >( pNode ) )
+    else if( db_cast< Unspecified >( pNode ) )
     {
         return getKind< Unspecified >();
     }
-    else if( auto* p = db_cast< IContext >( pNode ) )
+    else if( db_cast< IContext >( pNode ) )
     {
         return getKind< IContext >();
     }

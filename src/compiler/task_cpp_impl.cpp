@@ -160,7 +160,7 @@ public:
 
                 osReturnType << pReturnType->get_canonical_type();
 
-                if( auto pVoid = db_cast< Functions::ReturnTypes::Void >( pReturnType ) )
+                if( db_cast< Functions::ReturnTypes::Void >( pReturnType ) )
                 {
                     osReturnType << "void";
                 }
