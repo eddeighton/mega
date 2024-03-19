@@ -304,9 +304,9 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
 
     struct ProgressReport : public mega::pipeline::Progress
     {
+        mega::pipeline::PipelineResult& m_pipelineResult;
         task::Stash&                    m_stash;
         task::BuildHashCodes&           m_buildHashCodes;
-        mega::pipeline::PipelineResult& m_pipelineResult;
         std::ostream&                   m_osLog;
         using clock = std::chrono::steady_clock;
         std::chrono::time_point< clock > m_stopWatch;
@@ -319,7 +319,7 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
             , m_osLog( osLog )
         {
         }
-        virtual void onStarted( const std::string& strMsg )
+        virtual void onStarted( const std::string& )
         {
             m_stopWatch = clock::now();
             // m_osLog << strMsg << std::endl;
@@ -344,11 +344,11 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
         bool                  bForceNoStash;
 
         StashImpl( task::Stash& stash, task::BuildHashCodes& buildHashCodes, SymbolTable& symbolTable,
-                   bool bForceNoStash )
+                   bool _bForceNoStash )
             : m_stash( stash )
             , m_buildHashCodes( buildHashCodes )
             , m_symbolTable( symbolTable )
-            , bForceNoStash( bForceNoStash )
+            , bForceNoStash( _bForceNoStash )
         {
         }
 
@@ -378,10 +378,10 @@ PipelineResult runPipelineLocally( const boost::filesystem::path&           stas
         }
     } stashImpl( stash, buildHashCodes, symbolTable, bForceNoStash );
 
-    struct Dependencies : public mega::pipeline::DependencyProvider
+    struct DependenciesImpl : public mega::pipeline::DependencyProvider
     {
         boost::shared_ptr< EG_PARSER_INTERFACE > m_pParser;
-        Dependencies( const mega::utilities::ToolChain& toolChain )
+        DependenciesImpl( const mega::utilities::ToolChain& toolChain )
         {
             try
             {

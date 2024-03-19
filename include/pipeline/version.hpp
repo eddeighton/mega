@@ -44,7 +44,7 @@ struct Version
     }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int v )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& boost::serialization::make_nvp( "major", major );
         archive& boost::serialization::make_nvp( "minor", minor );

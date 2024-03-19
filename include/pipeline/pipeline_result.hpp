@@ -52,7 +52,7 @@ public:
     const BuildHashCodeMap& getBuildHashCodes() const { return m_buildHashCodes; }
 
     template < typename Archive >
-    void save( Archive& archive, const unsigned int v ) const
+    void save( Archive& archive, const unsigned int ) const
     {
         archive& boost::serialization::make_nvp( "Success", m_bSuccess );
         archive& boost::serialization::make_nvp( "Message", m_strMsg );
@@ -66,7 +66,7 @@ public:
     }
 
     template < typename Archive >
-    void load( Archive& archive, const unsigned int v )
+    void load( Archive& archive, const unsigned int )
     {
         archive& boost::serialization::make_nvp( "Success", m_bSuccess );
         archive& boost::serialization::make_nvp( "Message", m_strMsg );
