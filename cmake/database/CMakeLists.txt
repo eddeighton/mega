@@ -28,9 +28,11 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #get the database macro
 include( ${WORKSPACE_ROOT_PATH}/src/database/db_include.cmake )
 
-find_path( DB_LIB NAMES "api/component_info.hpp" PATHS "${BUILD_PATH}/${CFG_TUPLE}/db/install/lib" REQUIRED NO_DEFAULT_PATH)
-find_path( DB_TEMPLATES NAMES "manifest.cxx.jinja" PATHS "${BUILD_PATH}/${CFG_TUPLE}/db/install/templates" REQUIRED NO_DEFAULT_PATH)
-find_file( DB_COMPILER NAMES "database_compiler_driver" PATHS "${BUILD_PATH}/${CFG_TUPLE}/db/install/bin" REQUIRED NO_DEFAULT_PATH)
+find_path( DB_LIB NAMES "api/component_info.hpp" PATHS "${BUILD_PATH}/${CFG_TUPLE}/database/install/lib" REQUIRED NO_DEFAULT_PATH)
+find_path( DB_TEMPLATES NAMES "manifest.cxx.jinja" PATHS "${BUILD_PATH}/${CFG_TUPLE}/database/install/templates" REQUIRED NO_DEFAULT_PATH)
+find_file( DB_COMPILER NAMES "database_compiler_driver" PATHS "${BUILD_PATH}/${CFG_TUPLE}/database/install/bin" REQUIRED NO_DEFAULT_PATH)
+
+message( STATUS "Using database compiler: ${DB_COMPILER}" )
 
 list(APPEND CMAKE_PREFIX_PATH "${COMMON_INSTALL_PATH}/share" )
 
@@ -108,6 +110,16 @@ add_library( database SHARED
 target_include_directories( database PUBLIC ${MEGA_API_DIR} )
 
 target_link_libraries( database mega_values )
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+
+target_compile_options( database PRIVATE "-Wno-unused-function")
+target_compile_options( database PRIVATE "-Wno-unused-parameter")
+target_compile_options( database PRIVATE "-Wno-shadow")
+
+endif()
 
 link_boost( database filesystem )
 link_boost( database system )
