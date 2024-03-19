@@ -87,9 +87,9 @@ protected:
 
 public:
     using Ptr = std::unique_ptr< Session >;
-    InvocationsSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir,
+    InvocationsSession( ASTContext* pASTContext_, Sema* pSema_, const char* strSrcDir, const char* strBuildDir,
                         const char* strSourceFile )
-        : SymbolSession( pASTContext, pSema, strSrcDir, strBuildDir )
+        : SymbolSession( pASTContext_, pSema_, strSrcDir, strBuildDir )
         , m_sourceFile( m_environment.cppFilePath_fromPath( strSourceFile ) )
         , m_database( m_environment, m_sourceFile )
         , m_pSymbolTable( m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() ) )
@@ -242,8 +242,7 @@ public:
         }
     }
 
-    bool buildRangeReturnType( Functions::ReturnTypes::Range* pRangeReturnType, clang::QualType& resultType,
-                               const clang::SourceLocation& loc )
+    bool buildRangeReturnType( Functions::ReturnTypes::Range*, clang::QualType&, const clang::SourceLocation& loc )
     {
         // non-homogeneous case - could generate variant ??
         std::ostringstream os;
@@ -258,7 +257,7 @@ public:
     {
         auto pReturnType = pInvocation->get_return_type();
 
-        if( auto pVoid = db_cast< Functions::ReturnTypes::Void >( pReturnType ) )
+        if( db_cast< Functions::ReturnTypes::Void >( pReturnType ) )
         {
             resultType = clang::makeVoidType( pASTContext );
             return true;
@@ -534,7 +533,7 @@ public:
             {
                 auto results
                     = match( cxxMethodDecl( hasDescendant( findAll( cxxMemberCallExpr().bind( "invocation" ) ) ) ),
-                                *pMethod, *pASTContext );
+                             *pMethod, *pASTContext );
 
                 for( auto result : results )
                 {
@@ -778,9 +777,9 @@ public:
 
         if( bSuccess )
         {
-            const mega::io::CompilationFilePath InvocationsSession = m_environment.ObjectStage_Obj( m_sourceFile );
+            const mega::io::CompilationFilePath invocationsSession = m_environment.ObjectStage_Obj( m_sourceFile );
             m_database.save_Obj_to_temp();
-            m_environment.temp_to_real( InvocationsSession );
+            m_environment.temp_to_real( invocationsSession );
         }
     }
 };

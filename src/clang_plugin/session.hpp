@@ -20,7 +20,6 @@
 #ifndef SESSION_10_MAY_2022
 #define SESSION_10_MAY_2022
 
-
 #include "mega/values/compilation/modes.hpp"
 
 #include "database/sources.hpp"
@@ -49,9 +48,9 @@ protected:
 
 public:
     using Ptr = std::unique_ptr< Session >;
-    Session( ASTContext* pASTContext, Sema* pSema )
-        : pASTContext( pASTContext )
-        , pSema( pSema )
+    Session( ASTContext* _pASTContext, Sema* _pSema )
+        : pASTContext( _pASTContext )
+        , pSema( _pSema )
     {
     }
     virtual ~Session() = default;
@@ -65,15 +64,14 @@ public:
     ASTContext* getASTContext() const { return pASTContext; }
     Sema*       getSema() const { return pSema; }
 
-    virtual unsigned int getSymbolID( const std::string& strIdentifier ) const { return 0U; }
+    virtual unsigned int getSymbolID( const std::string& ) const { return 0U; }
 
     virtual void runFinalAnalysis()
     {
         // do nothing
     }
 
-    virtual bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& type,
-                                          clang::QualType& resultType )
+    virtual bool getInvocationResultType( const clang::SourceLocation&, const clang::QualType&, clang::QualType& )
     {
         THROW_RTE( "Unimplemented" );
     }

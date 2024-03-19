@@ -738,7 +738,6 @@ bool getContextTypeIDs( ASTContext* pASTContext, QualType contextType, mega::Inv
     QualType canonicalType = contextType.getCanonicalType();
     if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
     {
-        auto strName = pBaseTypeID->getName();
         if( pBaseTypeID == pASTContext->getEGPointerName() )
         {
             const Type* pType = canonicalType.getTypePtr();
@@ -758,8 +757,7 @@ bool getContextTypeIDs( ASTContext* pASTContext, QualType contextType, mega::Inv
                 }
                 return bSuccess;
             }
-            else if( auto pDependentTemplateType
-                     = llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
+            else if( llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
             {
                 return false;
             }
@@ -851,7 +849,6 @@ bool getSymbolPath( ASTContext* pASTContext, QualType contextType, mega::Invocat
     QualType canonicalType = contextType.getCanonicalType();
     if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
     {
-        auto strName = pBaseTypeID->getName();
         if( pBaseTypeID == pASTContext->getEGSymbolPathName() )
         {
             const Type* pType = canonicalType.getTypePtr();
@@ -871,8 +868,7 @@ bool getSymbolPath( ASTContext* pASTContext, QualType contextType, mega::Invocat
                 }
                 return bSuccess;
             }
-            else if( auto pDependentTemplateType
-                     = llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
+            else if( llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
             {
                 return false;
             }
@@ -975,7 +971,7 @@ const IdentifierInfo* getImplicitParamsOperation( ASTContext* pASTContext )
 }
 } // namespace
 
-const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters )
+const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType, bool bHasParameters )
 {
     if( bHasParameters )
     {

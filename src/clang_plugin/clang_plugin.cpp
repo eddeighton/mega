@@ -27,10 +27,12 @@
 
 #include "clang_utils.hpp"
 
+#include "common/clang_warnings_begin.hpp"
 #include "clang/Lex/Pragma.h"
 #include "clang/Lex/Preprocessor.h"
 #include "clang/Sema/Lookup.h"
 #include "clang/Basic/DiagnosticParse.h"
+#include "common/clang_warnings_end.hpp"
 
 #include <sstream>
 #include <cstdlib>

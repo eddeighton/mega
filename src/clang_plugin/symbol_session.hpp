@@ -37,8 +37,8 @@ protected:
 
 public:
     using Ptr = std::unique_ptr< Session >;
-    SymbolSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir )
-        : Session( pASTContext, pSema )
+    SymbolSession( ASTContext* _pASTContext, Sema* _pSema, const char* strSrcDir, const char* strBuildDir )
+        : Session( _pASTContext, _pSema )
         , m_srcDir( strSrcDir )
         , m_buildDir( strBuildDir )
         , m_directories{ m_srcDir, m_buildDir, "", "" }

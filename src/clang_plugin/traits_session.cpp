@@ -67,8 +67,8 @@ class TraitsSession : public SymbolSession
     std::map< std::string, Symbols::SymbolID* > m_symbols;
 
 public:
-    TraitsSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir )
-        : SymbolSession( pASTContext, pSema, strSrcDir, strBuildDir )
+    TraitsSession( ASTContext* pASTContext_, Sema* pSema_, const char* strSrcDir, const char* strBuildDir )
+        : SymbolSession( pASTContext_, pSema_, strSrcDir, strBuildDir )
         , m_database( m_environment, m_environment.project_manifest() )
     {
         Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
@@ -109,16 +109,16 @@ public:
         DeclContext*   pDeclContext = nullptr;
         SourceLocation loc;
 
-        Visitor( Database&             database,
-                 ASTContext*           pASTContext,
-                 Sema*                 pSema,
-                 ItaniumMangleContext& mangle,
-                 TypeInfoMap&          typeInfoMap )
-            : database( database )
-            , pASTContext( pASTContext )
-            , pSema( pSema )
-            , mangle( mangle )
-            , typeInfoMap( typeInfoMap )
+        Visitor( Database&             database_,
+                 ASTContext*           pASTContext_,
+                 Sema*                 pSema_,
+                 ItaniumMangleContext& mangle_,
+                 TypeInfoMap&          typeInfoMap_ )
+            : database( database_ )
+            , pASTContext( pASTContext_ )
+            , pSema( pSema_ )
+            , mangle( mangle_ )
+            , typeInfoMap( typeInfoMap_ )
         {
         }
 
@@ -175,7 +175,7 @@ public:
             return true;
         }
 
-        virtual bool visit( Interface::Aggregate* pNode ) const { return true; }
+        virtual bool visit( Interface::Aggregate* ) const { return true; }
 
         virtual bool visit( Interface::Function* pNode ) const
         {
@@ -201,7 +201,7 @@ public:
 
             return true;
         }
-        virtual bool visit( Interface::IContext* pNode ) const { return true; }
+        virtual bool visit( Interface::IContext* ) const { return true; }
     };
 
     bool recurse( Interface::Node*      pNode,

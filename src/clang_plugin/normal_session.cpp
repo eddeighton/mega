@@ -30,15 +30,13 @@
 #include "common/clang_warnings_end.hpp"
 ////////////////////////////////////////
 
-#pragma warning( pop )
-
 namespace clang
 {
 class NormalSession : public Session
 {
 public:
-    NormalSession( ASTContext* pASTContext, Sema* pSema )
-        : Session( pASTContext, pSema )
+    NormalSession( ASTContext* _pASTContext, Sema* _pSema )
+        : Session( _pASTContext, _pSema )
     {
     }
 };
