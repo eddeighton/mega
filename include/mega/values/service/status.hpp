@@ -39,7 +39,7 @@ namespace mega::network
 struct AllocatorStatus
 {
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& total;
         archive& blockSize;
@@ -56,7 +56,7 @@ struct AllocatorStatus
 struct MemoryStatus
 {
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_heap;
         archive& m_object;
@@ -69,7 +69,7 @@ struct MemoryStatus
     struct TypedAllocatorStatus
     {
         template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
+        inline void serialize( Archive& archive, const unsigned int )
         {
             archive& typeID;
             archive& status;
@@ -84,7 +84,7 @@ struct MemoryStatus
 struct ComponentMgrStatus
 {
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_interfaceComponents;
         archive& m_pythonComponents;
@@ -97,7 +97,7 @@ struct ComponentMgrStatus
 struct JITStatus
 {
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_functionPointers;
         archive& m_allocators;
@@ -211,7 +211,7 @@ public:
     void setDescription( const std::string& strDescription ) { m_description = strDescription; }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_machineID;
         archive& m_mp;

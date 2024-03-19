@@ -82,7 +82,7 @@ public:
     }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {

@@ -25,12 +25,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
-
-#pragma warning( push )
-#pragma warning( disable : 4996 ) // iterator thing
-#pragma warning( disable : 4244 ) // conversion to DWORD from system_clock::rep
 #include <boost/process.hpp>
-#pragma warning( pop )
 
 #include <cstdlib>
 
@@ -44,8 +39,6 @@ extern void run_inja( const boost::filesystem::path& jsonFilePath,
 
 int main( int argc, const char* argv[] )
 {
-    bool bWait = false;
-
     {
         namespace po = boost::program_options;
         po::variables_map vm;

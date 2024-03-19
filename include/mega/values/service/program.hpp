@@ -58,7 +58,7 @@ public:
         inline bool operator<( const Version& cmp ) const { return m_value < cmp.m_value; }
 
         template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
+        inline void serialize( Archive& archive, const unsigned int )
         {
             if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
             {
@@ -103,7 +103,7 @@ public:
     inline bool empty() const { return m_project.empty(); }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {

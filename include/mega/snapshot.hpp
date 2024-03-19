@@ -62,7 +62,7 @@ public:
     void remap( const AddressTable::Index& index, const runtime::Pointer& ref ) { m_table.remap( index, ref ); }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_table;
         archive& m_timeStamp;

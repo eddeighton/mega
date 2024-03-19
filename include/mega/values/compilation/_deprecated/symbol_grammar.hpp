@@ -45,7 +45,7 @@ struct Symbol
     inline bool operator==( const Symbol& ) const = default;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_identifier;
     }
@@ -61,7 +61,7 @@ struct SymbolVariant
     inline bool operator==( const SymbolVariant& ) const = default;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_symbols;
     }
@@ -76,7 +76,7 @@ struct SymbolVariantPath
     inline bool operator==( const SymbolVariantPath& ) const = default;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_symbolVariants;
     }
@@ -91,7 +91,7 @@ struct SymbolVariantPathSequence
     inline bool operator==( const SymbolVariantPathSequence& ) const = default;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_symbolVariantPaths;
     }
@@ -106,7 +106,7 @@ struct NamedSymbolVariantPath
     inline bool operator==( const NamedSymbolVariantPath& ) const = default;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_symbolVariantPath;
         archive& m_name;
@@ -124,7 +124,7 @@ struct NamedSymbolVariantPathSequence
     inline bool operator==( const NamedSymbolVariantPathSequence& ) const = default;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_symbolVariantPaths;
     }

@@ -48,7 +48,7 @@ struct Cardinality
     }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_number;
     }
@@ -99,7 +99,7 @@ struct CardinalityRange
     }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_minimum;
         archive& m_maximum;

@@ -51,12 +51,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/dll.hpp>
-
-#pragma warning( push )
-#pragma warning( disable : 4996 ) // iterator thing
-#pragma warning( disable : 4244 ) // conversion to DWORD from system_clock::rep
 #include <boost/process.hpp>
-#pragma warning( pop )
 
 #include <iostream>
 #include <ostream>

@@ -45,7 +45,7 @@ struct Configuration
     boost::filesystem::path          unityEditor;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         // NOTE: header serialization handled seperately so can access in pipeline abstraction
         // archive& boost::serialization::make_nvp( "header", header );

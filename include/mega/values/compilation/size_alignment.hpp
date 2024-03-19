@@ -35,7 +35,7 @@ struct SizeAlignment
     U64 alignment = 0U;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& size;
         archive& alignment;

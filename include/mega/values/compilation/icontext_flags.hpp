@@ -50,7 +50,7 @@ public:
     inline void reset( Value bit ) { m_value.reset( bit ); }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {

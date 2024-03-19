@@ -100,10 +100,10 @@ public:
     operator bool() const { return index != 0; }
 
     template < typename Archive >
-    void save( Archive& ar, const unsigned int version ) const;
+    void save( Archive& ar, const unsigned int ) const;
 
     template < typename Archive >
-    void load( Archive& ar, const unsigned int version );
+    void load( Archive& ar, const unsigned int );
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
@@ -167,7 +167,7 @@ inline void decode( boost::interprocess::basic_vectorbuf< std::vector< char > >&
 }
 
 template < typename Archive >
-void Message::load( Archive& ar, const unsigned int version )
+void Message::load( Archive& ar, const unsigned int )
 {
     *this = decode( ar );
 }
@@ -181,7 +181,7 @@ inline void encode( boost::interprocess::basic_vectorbuf< std::vector< char > >&
 }
 
 template < typename Archive >
-void Message::save( Archive& ar, const unsigned int version ) const
+void Message::save( Archive& ar, const unsigned int ) const
 {
     encode( ar, *this );
 }

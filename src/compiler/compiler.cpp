@@ -89,7 +89,7 @@ struct Task
     }
 
     template < class Archive >
-    void save( Archive& ar, const unsigned int version ) const
+    void save( Archive& ar, const unsigned int ) const
     {
         int index = sourceFilePath.index();
         ar& index;
@@ -110,7 +110,7 @@ struct Task
     }
 
     template < class Archive >
-    void load( Archive& ar, const unsigned int version )
+    void load( Archive& ar, const unsigned int )
     {
         int index = 0;
         ar& index;

@@ -60,7 +60,7 @@ public:
     void  set( Value value ) { m_value = value; }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_value;
     }

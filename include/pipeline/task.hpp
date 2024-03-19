@@ -52,7 +52,7 @@ public:
     const Buffer&      getBuffer() const { return m_buffer; }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_strName;
         archive& m_strSourceFile;

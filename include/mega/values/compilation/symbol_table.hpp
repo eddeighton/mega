@@ -80,7 +80,7 @@ public:
     std::set< SymbolTraits::TypeIDSequencePair > newConcreteElements;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {
@@ -114,7 +114,7 @@ public:
             = std::unordered_map< interface::SymbolIDSequence, interface::SubObjectID, SymbolTraits::SymbolVectorHash >;
 
         template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
+        inline void serialize( Archive& archive, const unsigned int )
         {
             if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
             {
@@ -158,7 +158,7 @@ public:
             = std::unordered_map< interface::TypeIDSequence, concrete::SubObjectID, SymbolTraits::TypeIDSequenceHash >;
 
         template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
+        inline void serialize( Archive& archive, const unsigned int )
         {
             if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
             {
@@ -195,7 +195,7 @@ public:
     SymbolTable();
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {

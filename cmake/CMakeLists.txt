@@ -24,26 +24,20 @@ cmake_policy(SET CMP0091 NEW)
 
 project( mega VERSION 1.1 LANGUAGES CXX )
 
-#insist on ALL projects using c++ 17
-#set( CMAKE_CXX_STANDARD 17 )
-set( CMAKE_CXX_STANDARD 20 )
+include( ${WORKSPACE_ROOT_PATH}/src/env/src/common_settings.cmake )
 
-# add_link_options("-fuse-ld=gold;LINKER:--threads,--thread-count=12,--split-stack-adjust-size=1048510")
+# generically enable coroutines project wide
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
-set( CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE true )
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
-#add_compile_options("-Wshadow")
-add_compile_options("-Wfatal-errors")
-add_compile_options("-Wpessimizing-move")
 add_compile_options("-fcoroutines")
-#add_compile_options("-Werror")
-#add_compile_options("-Wall")
-#add_compile_options("-Wextra")
+
+endif()
 
 
 set_property(GLOBAL PROPERTY LLVM_ENABLE_RTTI ON )
 set_property(GLOBAL PROPERTY LLVM_ENABLE_EH ON )
-set_property(GLOBAL PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 #setup some common directories from the root of the project
 set( CMAKE_PARENT_PATH ${CMAKE_CURRENT_LIST_DIR}/.. )
@@ -51,56 +45,27 @@ find_path( MEGA_ROOT_DIR NAMES include PATHS ${CMAKE_PARENT_PATH} REQUIRED NO_DE
 set( MEGA_API_DIR ${MEGA_ROOT_DIR}/include )
 set( MEGA_SRC_DIR ${MEGA_ROOT_DIR}/src )
 
-#enable folders within generated IDE build systems
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-# attempt to enable link time optimizations for ALL targets
-set_property(GLOBAL PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
-
-#ensure language runtimes and other system libs are copied to installation folder
-include (InstallRequiredSystemLibraries)
-
 add_subdirectory(pch)
-
 add_subdirectory(inja)
-
 add_subdirectory(il)
-
-add_subdirectory(mega)
-
-add_subdirectory(log)
- 
-add_subdirectory(database)
-
-add_subdirectory(parser)
-
-add_subdirectory(pipeline)
-
-add_subdirectory(invocation)
-
-add_subdirectory(compiler)
-
-add_subdirectory(clang_plugin)
-
-add_subdirectory(database_reporters)
-
-add_subdirectory(event)
-
-add_subdirectory(runtime)
-
-add_subdirectory(map)
-
-add_subdirectory(schematic)
-
-add_subdirectory(service)
-
-add_subdirectory(driver)
-
-add_subdirectory(editor)
-
-add_subdirectory(tests)
-
-add_subdirectory(toolchain)
+# add_subdirectory(mega)
+# add_subdirectory(log)
+# add_subdirectory(database)
+# add_subdirectory(parser)
+# add_subdirectory(pipeline)
+# add_subdirectory(invocation)
+# add_subdirectory(compiler)
+# add_subdirectory(clang_plugin)
+# add_subdirectory(database_reporters)
+# add_subdirectory(event)
+# add_subdirectory(runtime)
+# add_subdirectory(map)
+# add_subdirectory(schematic)
+# add_subdirectory(service)
+# add_subdirectory(driver)
+# add_subdirectory(editor)
+# add_subdirectory(tests)
+# add_subdirectory(toolchain)
 
 # # install scripts
 set( MEGA_SCRIPTS

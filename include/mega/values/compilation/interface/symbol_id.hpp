@@ -64,7 +64,7 @@ public:
     constexpr inline bool operator<( const SymbolID& cmp ) const { return value < cmp.value; }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {

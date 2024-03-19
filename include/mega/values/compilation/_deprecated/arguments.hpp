@@ -43,7 +43,7 @@ struct Type
     const std::string& get() const { return m_type; }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_type;
     }
@@ -71,7 +71,7 @@ struct TypeName
     std::string str() const;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_type;
         archive& m_name;

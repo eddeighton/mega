@@ -45,7 +45,7 @@ public:
     inline bool operator==( const Project& cmp ) const { return m_name == cmp.m_name; }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {
