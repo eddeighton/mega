@@ -103,7 +103,7 @@ nlohmann::json generateJSON( const Model& model, const std::vector< boost::files
             std::ostringstream os;
             os << std::dec << function.name.size();
             const auto iExistingNameLen = os.str().size();
-            VERIFY_RTE( iNameStart > iExistingNameLen );
+            VERIFY_RTE( iNameStart > static_cast< int >( iExistingNameLen ) );
 
             functionData[ "symbol_prefix" ]  = function.mangle.substr( 0, iNameStart - iExistingNameLen );
             functionData[ "symbol_postfix" ] = function.mangle.substr( iNameStart + function.name.size() );
@@ -138,12 +138,12 @@ nlohmann::json generateJSON( const Model& model, const std::vector< boost::files
         jsonModel[ "materialisers" ].push_back( materialiserData );
     }
 
-    for( const auto function : model.inlineFunctions )
+    for( const auto& function : model.inlineFunctions )
     {
         jsonModel[ "inlines" ].push_back( addFunction( function ) );
     }
 
-    for( const auto function : model.externFunctions )
+    for( const auto& function : model.externFunctions )
     {
         jsonModel[ "externs" ].push_back( addFunction( function ) );
     }

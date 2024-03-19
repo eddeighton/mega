@@ -19,7 +19,6 @@
 
 // disable clang warnings
 
-#include "common/clang_warnings.hpp"
 
 #include "parser/parser.hpp"
 #include "clang.hpp"
@@ -38,9 +37,6 @@
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
-#include "clang/Basic/LLVM.h"
-#include "clang/Basic/TokenKinds.h"
-
 #include <boost/config.hpp> // for BOOST_SYMBOL_EXPORT
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -48,6 +44,11 @@
 #include <boost/filesystem/file_status.hpp>
 #include <boost/tokenizer.hpp>
 
+////////////////////////////////////////
+#include "common/clang_warnings_begin.hpp"
+
+#include "clang/Basic/LLVM.h"
+#include "clang/Basic/TokenKinds.h"
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/BitmaskEnum.h"
@@ -66,6 +67,9 @@
 #include "clang/Basic/FileSystemOptions.h"
 #include "clang/Basic/DiagnosticIDs.h"
 #include "clang/Basic/DiagnosticOptions.h"
+
+#include "common/clang_warnings_end.hpp"
+////////////////////////////////////////
 
 #include <unordered_map>
 

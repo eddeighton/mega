@@ -51,13 +51,13 @@ public:
     {
     }
 
-    constexpr inline explicit OwnerID( c_owner_id value )
-        : c_owner_id( value )
+    constexpr inline explicit OwnerID( c_owner_id _value )
+        : c_owner_id( _value )
     {
     }
 
-    constexpr inline explicit OwnerID( ValueType value )
-        : c_owner_id{ value }
+    constexpr inline explicit OwnerID( ValueType _value )
+        : c_owner_id{ _value }
     {
     }
 

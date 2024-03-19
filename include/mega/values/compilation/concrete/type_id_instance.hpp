@@ -57,8 +57,8 @@ public:
         : c_concrete_type_id_instance( value )
     {
     }
-    constexpr inline explicit TypeIDInstance( TypeID typeID, Instance instance )
-        : c_concrete_type_id_instance( c_concrete_type_id_instance_make( typeID.getValue(), instance.getValue() ) )
+    constexpr inline explicit TypeIDInstance( TypeID _typeID, Instance _instance )
+        : c_concrete_type_id_instance( c_concrete_type_id_instance_make( _typeID.getValue(), _instance.getValue() ) )
     {
     }
 

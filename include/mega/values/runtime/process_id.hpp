@@ -43,13 +43,13 @@ public:
     {
     }
 
-    constexpr inline explicit ProcessID( c_process_id value )
-        : c_process_id( value )
+    constexpr inline explicit ProcessID( c_process_id _value )
+        : c_process_id( _value )
     {
     }
 
-    constexpr inline explicit ProcessID( ValueType value )
-        : c_process_id{ value }
+    constexpr inline explicit ProcessID( ValueType _value )
+        : c_process_id{ _value }
     {
     }
 

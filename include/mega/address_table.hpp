@@ -45,7 +45,7 @@ public:
 
     // NOTE: ensure the object address is always mapped to index
     // besides underlying contexts of the object
-    inline const Index& refToIndex( const runtime::Pointer& maybeNetAddress )
+    inline const Index& refToIndex( const runtime::Pointer& )
     {
         THROW_TODO;
         /*if( maybeNetAddress.isHeap() )
@@ -71,7 +71,7 @@ public:
 
     // if the object has an index then store and index for the Pointer even if
     // it is a context of the object
-    inline std::optional< Index > refToIndexIfObjectExist( const runtime::Pointer& maybeNetAddress )
+    inline std::optional< Index > refToIndexIfObjectExist( const runtime::Pointer& )
     {
         THROW_TODO;
         /*const auto net = maybeNetAddress.getNetworkAddress();
@@ -99,7 +99,7 @@ public:
         return m_references[ index ];
     }
 
-    inline void remap( const Index& index, const runtime::Pointer& ref )
+    inline void remap( const Index&, const runtime::Pointer& )
     {
         THROW_TODO;
         /*const auto existing = indexToRef( index );

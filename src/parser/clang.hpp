@@ -22,7 +22,8 @@
 
 // disable clang warnings
 
-#include "common/clang_warnings.hpp"
+////////////////////////////////////////
+#include "common/clang_warnings_begin.hpp"
 
 #include "clang/Basic/LLVM.h"
 
@@ -50,6 +51,9 @@
 #include "clang/Basic/FileSystemOptions.h"
 #include "clang/Basic/DiagnosticIDs.h"
 #include "clang/Basic/DiagnosticOptions.h"
+
+#include "common/clang_warnings_end.hpp"
+////////////////////////////////////////
 
 class ParserDiagnosticSystem
 {

@@ -101,12 +101,12 @@ inline std::string getVariableType( const Type& type )
     {
         // see mega/src/include/il/elements/types.hpp
         std::ostream& os;
-        void          operator()( const Mutable& v ) { os << "Mutable"; }
-        void          operator()( const Ptr& v ) { os << "Ptr"; }
-        void          operator()( const Ref& v ) { os << "Ref"; }
-        void          operator()( const Const& v ) { os << "Const"; }
-        void          operator()( const ConstRef& v ) { os << "ConstRef"; }
-        void          operator()( const ConstPtr& v ) { os << "ConstPtr"; }
+        void          operator()( const Mutable& ) { os << "Mutable"; }
+        void          operator()( const Ptr& ) { os << "Ptr"; }
+        void          operator()( const Ref& ) { os << "Ref"; }
+        void          operator()( const Const& ) { os << "Const"; }
+        void          operator()( const ConstRef& ) { os << "ConstRef"; }
+        void          operator()( const ConstPtr& ) { os << "ConstPtr"; }
     } visitor{ os };
     std::visit( visitor, type );
     return os.str();
@@ -246,7 +246,7 @@ inline std::ostream& operator<<( std::ostream& os, const Function& function )
 
 struct Materialiser
 {
-    std::string name;
+    std::string             name;
     std::vector< Variable > arguments;
     std::vector< Function > functions;
 };

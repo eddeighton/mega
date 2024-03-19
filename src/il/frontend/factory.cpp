@@ -36,10 +36,10 @@ using namespace std::string_literals;
 namespace
 {
 
-ValueType voidPtr = Ptr{ e_void };
-Mutable   intType{ e_int };
-ValueType charPtr = Ptr{ e_char };
-ValueType u64     = Mutable{ e_unsignedlong };
+// ValueType voidPtr = Ptr{ e_void };
+// Mutable   intType{ e_int };
+// ValueType charPtr = Ptr{ e_char };
+// ValueType u64     = Mutable{ e_unsignedlong };
 
 auto expAdd( auto expression, U64 size )
 {
@@ -102,7 +102,7 @@ void collectStartStates( FinalStage::Concrete::Object* pObject, FinalStage::Conc
 }*/
 } // namespace
 
-FunctionDefinition Factory::generate_Object_constructor( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
+FunctionDefinition Factory::generate_Object_constructor( runtime::JITDatabase& , const runtime::FunctorID&  )
 {
     THROW_TODO;
     /*auto pObject = db.getObject( functorID.m_Object.typeID );
@@ -199,7 +199,7 @@ FunctionDefinition Factory::generate_Object_constructor( runtime::JITDatabase& d
 
     return { functorID.name(), Mutable{ e_void }, { pMemory }, statements };*/
 }
-FunctionDefinition Factory::generate_Object_destructor( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
+FunctionDefinition Factory::generate_Object_destructor( runtime::JITDatabase& , const runtime::FunctorID&  )
 {
     THROW_TODO;
     /* auto pObject = db.getObject( functorID.m_Object.typeID );
@@ -300,107 +300,157 @@ FunctionDefinition Factory::generate_Object_destructor( runtime::JITDatabase& db
 FunctionDefinition Factory::generate_Object_binaryLoad( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;
 }
 FunctionDefinition Factory::generate_Object_binarySave( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Object_getFunction( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Object_unParent( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Object_traverse( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Object_linkSize( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Object_linkGet( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Object_anyRead( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Object_anyWrite( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Object_enumerate( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 
 FunctionDefinition Factory::generate_Relation_Make( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Relation_Break( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Relation_Reset( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Relation_Size( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Relation_Get( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 
 FunctionDefinition Factory::generate_Invocation_Read( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Invocation_Write( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Invocation_LinkRead( runtime::JITDatabase&     db,
                                                           const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Invocation_LinkAdd( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Invocation_LinkRemove( runtime::JITDatabase&     db,
                                                             const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Invocation_LinkClear( runtime::JITDatabase&     db,
                                                            const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Invocation_Call( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Invocation_Start( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Invocation_Move( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 FunctionDefinition Factory::generate_Invocation_Get( runtime::JITDatabase& db, const runtime::FunctorID& functorID )
 {
     THROW_TODO;
+    (void)db;
+    (void)functorID;;
 }
 
 } // namespace mega::il

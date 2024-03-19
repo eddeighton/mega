@@ -73,8 +73,8 @@ public:
     {
     }
 
-    constexpr inline explicit MPO( ValueType value )
-        : c_machine_process_owner_id( c_machine_process_owner_id_from_int( value ) )
+    constexpr inline explicit MPO( ValueType _value )
+        : c_machine_process_owner_id( c_machine_process_owner_id_from_int( _value ) )
     {
     }
 

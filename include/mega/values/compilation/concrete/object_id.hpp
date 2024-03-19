@@ -48,13 +48,13 @@ public:
     {
     }
 
-    constexpr inline explicit ObjectID( c_concrete_object_id value )
-        : c_concrete_object_id( value )
+    constexpr inline explicit ObjectID( c_concrete_object_id _value )
+        : c_concrete_object_id( _value )
     {
     }
 
-    constexpr inline explicit ObjectID( ValueType value )
-        : c_concrete_object_id{ value }
+    constexpr inline explicit ObjectID( ValueType _value )
+        : c_concrete_object_id{ _value }
     {
     }
 

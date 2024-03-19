@@ -21,7 +21,9 @@
 
 #include "common/string.hpp"
 #include "common/assert_verify.hpp"
-#include "common/clang_warnings.hpp"
+
+////////////////////////////////////////
+#include "common/clang_warnings_begin.hpp"
 
 #include "llvm/ExecutionEngine/Orc/ExecutionUtils.h"
 #include "llvm/IR/Function.h"
@@ -59,6 +61,9 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/SourceMgr.h"
+
+#include "common/clang_warnings_end.hpp"
+////////////////////////////////////////
 
 namespace mega::runtime
 {

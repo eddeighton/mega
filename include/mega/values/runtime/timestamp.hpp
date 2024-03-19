@@ -47,8 +47,8 @@ public:
     {
     }
 
-    explicit TimeStamp( ValueType value )
-        : c_time_stamp{ value }
+    explicit TimeStamp( ValueType _value )
+        : c_time_stamp{ _value }
     {
     }
 

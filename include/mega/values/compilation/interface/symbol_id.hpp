@@ -48,8 +48,8 @@ public:
         : c_symbol_id{ 0 }
     {
     }
-    constexpr inline explicit SymbolID( c_symbol_id value )
-        : c_symbol_id( value )
+    constexpr inline explicit SymbolID( c_symbol_id _value )
+        : c_symbol_id( _value )
     {
     }
     constexpr inline SymbolID( ValueType v )

@@ -37,16 +37,16 @@ class Variable
     std::string name;
 
 public:
-    inline Variable( TValueType value, std::string name )
-        : value( std::move( value ) )
-        , name( std::move( name ) )
+    inline Variable( TValueType _value, std::string _name )
+        : value( std::move( _value ) )
+        , name( std::move( _name ) )
     {
     }
 
     template < typename TOtherValueType >
-    inline Variable( TOtherValueType value, std::string name )
-        : value( std::move( value ) )
-        , name( std::move( name ) )
+    inline Variable( TOtherValueType _value, std::string _name )
+        : value( std::move( _value ) )
+        , name( std::move( _name ) )
     {
     }
 
@@ -79,14 +79,14 @@ class Literal
     std::string    text;
 
 public:
-    inline Literal( ConstValueType type, std::string text )
-        : type( std::move( type ) )
-        , text( std::move( text ) )
+    inline Literal( ConstValueType _type, std::string _text )
+        : type( std::move( _type ) )
+        , text( std::move( _text ) )
     {
     }
-    inline Literal( DataType dataType, std::string text )
+    inline Literal( DataType dataType, std::string _text )
         : type{ Const{ dataType } }
-        , text( std::move( text ) )
+        , text( std::move( _text ) )
     {
     }
     inline Literal( const Literal& ) = default;

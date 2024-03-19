@@ -51,13 +51,13 @@ public:
     {
     }
 
-    constexpr inline explicit AllocationID( c_allocation_id value )
-        : c_allocation_id( value )
+    constexpr inline explicit AllocationID( c_allocation_id _value )
+        : c_allocation_id( _value )
     {
     }
 
-    constexpr inline explicit AllocationID( ValueType value )
-        : c_allocation_id{ value }
+    constexpr inline explicit AllocationID( ValueType _value )
+        : c_allocation_id{ _value }
     {
     }
 

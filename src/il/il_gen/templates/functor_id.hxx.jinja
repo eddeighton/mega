@@ -65,9 +65,9 @@ struct FunctorID
     };
 
 {% for materialiser in materialisers %}
-    FunctorID( Type type, {{ materialiser.name }}_id id )
-        :   type( type )
-        ,   m_{{ materialiser.name }}{ id }
+    FunctorID( Type _type, {{ materialiser.name }}_id _id )
+        :   type( _type )
+        ,   m_{{ materialiser.name }}{ _id }
     {
     }
 {% endfor %}

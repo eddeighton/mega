@@ -34,10 +34,10 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "clang/Basic/SourceLocation.h"
+////////////////////////////////////////
+#include "common/clang_warnings_begin.hpp"
 
-#pragma warning( push )
-#include "common/clang_warnings.hpp"
+#include "clang/Basic/SourceLocation.h"
 
 #include "llvm/Support/Casting.h"
 
@@ -54,9 +54,10 @@
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/AST/ASTConsumer.h"
 
-#include <iostream>
+#include "common/clang_warnings_end.hpp"
+////////////////////////////////////////
 
-#pragma warning( pop )
+#include <iostream>
 
 namespace ObjectStage
 {

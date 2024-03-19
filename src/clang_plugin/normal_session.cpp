@@ -19,13 +19,16 @@
 
 #include "session.hpp"
 
-#pragma warning( push )
-#include "common/clang_warnings.hpp"
+////////////////////////////////////////
+#include "common/clang_warnings_begin.hpp"
 
 #include "llvm/Support/Casting.h"
 
 #include "clang/AST/Type.h"
 #include "clang/Basic/DiagnosticParse.h"
+
+#include "common/clang_warnings_end.hpp"
+////////////////////////////////////////
 
 #pragma warning( pop )
 

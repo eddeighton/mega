@@ -61,8 +61,8 @@ public:
     {
     }
 
-    constexpr inline explicit MP( ValueType value )
-        : c_machine_process_id( c_machine_process_id_from_int( value ) )
+    constexpr inline explicit MP( ValueType _value )
+        : c_machine_process_id( c_machine_process_id_from_int( _value ) )
     {
     }
 

@@ -51,13 +51,13 @@ public:
     {
     }
 
-    constexpr inline explicit MachineID( c_machine_id value )
-        : c_machine_id( value )
+    constexpr inline explicit MachineID( c_machine_id _value )
+        : c_machine_id( _value )
     {
     }
 
-    constexpr inline explicit MachineID( ValueType value )
-        : c_machine_id{ value }
+    constexpr inline explicit MachineID( ValueType _value )
+        : c_machine_id{ _value }
     {
     }
 

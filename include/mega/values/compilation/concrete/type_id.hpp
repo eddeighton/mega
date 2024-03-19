@@ -51,8 +51,8 @@ public:
         : c_concrete_type_id{ 0, 0 }
     {
     }
-    constexpr inline explicit TypeID( c_concrete_type_id value )
-        : c_concrete_type_id( value )
+    constexpr inline explicit TypeID( c_concrete_type_id _value )
+        : c_concrete_type_id( _value )
     {
     }
     constexpr inline explicit TypeID( ObjectID object, SubObjectID subObject )
@@ -60,8 +60,8 @@ public:
     {
     }
 
-    constexpr inline explicit TypeID( ValueType value )
-        : c_concrete_type_id( c_concrete_type_id_from_int( value ) )
+    constexpr inline explicit TypeID( ValueType _value )
+        : c_concrete_type_id( c_concrete_type_id_from_int( _value ) )
     {
     }
 

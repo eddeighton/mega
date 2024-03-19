@@ -26,8 +26,8 @@
 
 #include "common/requireSemicolon.hpp"
 
-#pragma warning( push )
-#include "common/clang_warnings.hpp"
+////////////////////////////////////////
+#include "common/clang_warnings_begin.hpp"
 
 #include "llvm/Support/Casting.h"
 
@@ -35,7 +35,8 @@
 #include "clang/Basic/DiagnosticParse.h"
 #include "clang/AST/Mangle.h"
 
-#pragma warning( pop )
+#include "common/clang_warnings_end.hpp"
+////////////////////////////////////////
 
 #include <map>
 

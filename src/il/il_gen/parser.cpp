@@ -22,6 +22,9 @@
 
 #include "common/assert_verify.hpp"
 
+////////////////////////////////////////////
+#include "common/clang_warnings_begin.hpp"
+
 #include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/AST/ASTConsumer.h"
@@ -31,6 +34,9 @@
 
 #include "clang/Tooling/CompilationDatabase.h"
 #include "clang/Tooling/Tooling.h"
+
+#include "common/clang_warnings_end.hpp"
+////////////////////////////////////////////
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
@@ -108,7 +114,7 @@ struct ToolDB : public clang::tooling::CompilationDatabase
 
         m_commands.push_back( cmd );
     }
-    virtual std::vector< clang::tooling::CompileCommand > getCompileCommands( llvm::StringRef FilePath ) const
+    virtual std::vector< clang::tooling::CompileCommand > getCompileCommands( llvm::StringRef ) const
     {
         return m_commands;
     }
@@ -248,8 +254,8 @@ class ExternFunctionCallback : public MatchFinder::MatchCallback
     Model& model;
 
 public:
-    ExternFunctionCallback( Model& model )
-        : model( model )
+    ExternFunctionCallback( Model& _model )
+        : model( _model )
     {
     }
     virtual void run( const MatchFinder::MatchResult& Result )
@@ -264,7 +270,7 @@ public:
                 {
                     std::vector< Variable > arguments;
                     {
-                        for( int i = 0; i != pFunctionDecl->getNumParams(); ++i )
+                        for( auto i = 0U; i != pFunctionDecl->getNumParams(); ++i )
                         {
                             auto pParam      = pFunctionDecl->getParamDecl( i );
                             auto qualType    = pParam->getType().getCanonicalType();
@@ -292,8 +298,8 @@ class InlineFunctionCallback : public MatchFinder::MatchCallback
     Model& model;
 
 public:
-    InlineFunctionCallback( Model& model )
-        : model( model )
+    InlineFunctionCallback( Model& _model )
+        : model( _model )
     {
     }
     virtual void run( const MatchFinder::MatchResult& Result )
@@ -309,7 +315,7 @@ public:
                     {
                         std::vector< Variable > arguments;
                         {
-                            for( int i = 0; i != pFunctionDecl->getNumParams(); ++i )
+                            for( auto i = 0U; i != pFunctionDecl->getNumParams(); ++i )
                             {
                                 auto pParam = pFunctionDecl->getParamDecl( i );
 
@@ -350,8 +356,8 @@ class InlineTypeCallback : public MatchFinder::MatchCallback
     Model& model;
 
 public:
-    InlineTypeCallback( Model& model )
-        : model( model )
+    InlineTypeCallback( Model& _model )
+        : model( _model )
     {
     }
     virtual void run( const MatchFinder::MatchResult& Result )
@@ -386,8 +392,8 @@ class NativeTypeCallback : public MatchFinder::MatchCallback
     Model& model;
 
 public:
-    NativeTypeCallback( Model& model )
-        : model( model )
+    NativeTypeCallback( Model& _model )
+        : model( _model )
     {
     }
     virtual void run( const MatchFinder::MatchResult& Result )
@@ -423,8 +429,8 @@ class MaterialiserCallback : public MatchFinder::MatchCallback
     Model& model;
 
 public:
-    MaterialiserCallback( Model& model )
-        : model( model )
+    MaterialiserCallback( Model& _model )
+        : model( _model )
     {
     }
     virtual void run( const MatchFinder::MatchResult& Result )
@@ -460,7 +466,7 @@ public:
                                         std::cout << "Found naming function: " << pFunctionDecl->getNameAsString()
                                                   << " with arguments: " << pFunctionDecl->getNumParams() << std::endl;
                                         VERIFY_RTE_MSG( arguments.empty(), "Found multiple naming functions" );
-                                        for( int i = 0; i != pFunctionDecl->getNumParams(); ++i )
+                                        for( auto i = 0U; i != pFunctionDecl->getNumParams(); ++i )
                                         {
                                             auto pParam = pFunctionDecl->getParamDecl( i );
                                             auto adaptedType
@@ -478,7 +484,7 @@ public:
                                     {
                                         std::vector< Variable > functionArgs;
                                         {
-                                            for( int i = 0; i != pFunctionDecl->getNumParams(); ++i )
+                                            for( auto i = 0U; i != pFunctionDecl->getNumParams(); ++i )
                                             {
                                                 auto pParam = pFunctionDecl->getParamDecl( i );
                                                 auto adaptedType
@@ -521,7 +527,7 @@ public:
                     }
 
                     bool bFound = false;
-                    for( const auto existing : model.materialisers )
+                    for( const auto& existing : model.materialisers )
                     {
                         if( existing.name == pCXXRecordDecl->getNameAsString() )
                         {
@@ -567,8 +573,8 @@ class StubFunctionCallback : public MatchFinder::MatchCallback
     std::unique_ptr< ItaniumMangleContext > pMangle;
 
 public:
-    StubFunctionCallback( Model& model )
-        : model( model )
+    StubFunctionCallback( Model& _model )
+        : model( _model )
     {
     }
     virtual void run( const MatchFinder::MatchResult& Result )

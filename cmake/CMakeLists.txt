@@ -33,6 +33,8 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
 add_compile_options("-fcoroutines")
 
+add_compile_options("-Wno-sign-conversion")
+
 endif()
 
 

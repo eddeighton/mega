@@ -21,7 +21,6 @@
 #ifndef GUARD_2022_November_03_bin_archive
 #define GUARD_2022_November_03_bin_archive
 
-
 #include "mega/values/compilation/concrete/type_id.hpp"
 #include "mega/values/compilation/concrete/sub_object_id_instance.hpp"
 
@@ -116,32 +115,34 @@ BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::SnapshotOArchive )
 
 namespace boost::serialization
 {
-inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::runtime::Pointer& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::runtime::Pointer& value, const unsigned int )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::runtime::Pointer& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::runtime::Pointer& value, const unsigned int )
 {
     ar.save( value );
 }
 
-inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::concrete::TypeID& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::concrete::TypeID& value, const unsigned int )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::concrete::TypeID& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::concrete::TypeID& value, const unsigned int )
 {
     ar.save( value );
 }
 
-inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::concrete::SubObjectIDInstance& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::concrete::SubObjectIDInstance& value,
+                       const unsigned int )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::concrete::SubObjectIDInstance& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::concrete::SubObjectIDInstance& value,
+                       const unsigned int )
 {
     ar.save( value );
 }

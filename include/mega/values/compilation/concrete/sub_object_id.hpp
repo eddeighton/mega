@@ -47,12 +47,12 @@ public:
         : c_concrete_sub_object_id{ 0 }
     {
     }
-    constexpr inline explicit SubObjectID( c_concrete_sub_object_id value )
-        : c_concrete_sub_object_id( value )
+    constexpr inline explicit SubObjectID( c_concrete_sub_object_id _value )
+        : c_concrete_sub_object_id( _value )
     {
     }
-    constexpr inline explicit SubObjectID( ValueType value )
-        : c_concrete_sub_object_id{ value }
+    constexpr inline explicit SubObjectID( ValueType _value )
+        : c_concrete_sub_object_id{ _value }
     {
     }
 

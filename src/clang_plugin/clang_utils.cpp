@@ -26,8 +26,7 @@
 #include <boost/config.hpp> // for BOOST_SYMBOL_EXPORT
 #include <boost/algorithm/string.hpp>
 
-#pragma warning( push )
-#include "common/clang_warnings.hpp"
+#include "common/clang_warnings_begin.hpp"
 
 #include "clang/Sema/Ownership.h"
 #include "clang/Sema/ParsedTemplate.h"
@@ -43,7 +42,7 @@
 
 #include "llvm/ADT/APSInt.h"
 
-#pragma warning( pop )
+#include "common/clang_warnings_end.hpp"
 
 namespace clang
 {

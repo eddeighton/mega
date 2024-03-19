@@ -31,7 +31,6 @@
 #include "mega/values/runtime/mp.hpp"
 #include "mega/values/runtime/mpo.hpp"
 
-
 #include "common/serialisation.hpp"
 #include "common/assert_verify.hpp"
 
@@ -68,31 +67,25 @@ public:
 
     inline concrete::TypeIDInstance getTypeIDInstance() const { return concrete::TypeIDInstance{ m_type }; }
 
-    bool operator<( const PointerNet& cmp ) const
-    {
-        THROW_TODO;
-    }
-    bool operator==( const PointerNet& cmp ) const
-    {
-        THROW_TODO;
-    }
+    bool operator<( const PointerNet& ) const { THROW_TODO; }
+    bool operator==( const PointerNet& ) const { THROW_TODO; }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int )
+    inline void serialize( Archive&, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {
             THROW_TODO;
-            //archive& boost::serialization::make_nvp( "value", m_value );
+            // archive& boost::serialization::make_nvp( "value", m_value );
         }
         else
         {
             THROW_TODO;
-            //archive& m_value;
+            // archive& m_value;
         }
     }
 };
-inline std::ostream& operator<<( std::ostream& os, const PointerNet& ref )
+inline std::ostream& operator<<( std::ostream&, const PointerNet& )
 {
     THROW_TODO;
 }
@@ -145,17 +138,17 @@ public:
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {
             THROW_TODO;
-            //archive& boost::serialization::make_nvp( "value", m_value );
+            // archive& boost::serialization::make_nvp( "value", m_value );
         }
         else
         {
             THROW_TODO;
-            //archive& m_value;
+            // archive& m_value;
         }
     }
 };
 
-inline std::ostream& operator<<( std::ostream& os, const PointerHeap& ref )
+inline std::ostream& operator<<( std::ostream&, const PointerHeap& )
 {
     THROW_TODO;
 }
@@ -188,39 +181,39 @@ public:
         }
     };*/
 
-    inline bool operator==( const Pointer& cmp ) const { throw "TODO"; }
-    inline bool operator<( const Pointer& cmp ) const { throw "TODO"; }
+    inline bool operator==( const Pointer& ) const { throw "TODO"; }
+    inline bool operator<( const Pointer& ) const { throw "TODO"; }
     inline bool valid() const { throw "TODO"; }
 
     inline Pointer getNetworkAddress() const { THROW_TODO; }
     inline Pointer getHeapAddress() const { THROW_TODO; }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int )
+    inline void serialize( Archive&, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {
             THROW_TODO;
-            //archive& boost::serialization::make_nvp( "value", m_value );
+            // archive& boost::serialization::make_nvp( "value", m_value );
         }
         else
         {
             THROW_TODO;
-            //archive& m_value;
+            // archive& m_value;
         }
     }
 };
 
-inline std::istream& operator>>( std::istream& is, Pointer& ref )
+inline std::istream& operator>>( std::istream&, Pointer& )
 {
     THROW_TODO;
 }
-inline std::ostream& operator<<( std::ostream& os, const Pointer& ref )
+inline std::ostream& operator<<( std::ostream&, const Pointer& )
 {
     THROW_TODO;
 }
 
-inline std::ostream& operator<<( std::ostream& os, const std::vector< Pointer >& refVector )
+inline std::ostream& operator<<( std::ostream&, const std::vector< Pointer >& )
 {
     THROW_TODO;
 }

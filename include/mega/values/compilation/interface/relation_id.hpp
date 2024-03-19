@@ -52,16 +52,16 @@ public:
         : c_interface_relation_id( c_interface_relation_id_make( 0, 0 ) )
     {
     }
-    constexpr inline explicit RelationID( c_interface_relation_id value )
-        : c_interface_relation_id( value )
+    constexpr inline explicit RelationID( c_interface_relation_id _value )
+        : c_interface_relation_id( _value )
     {
     }
     constexpr inline explicit RelationID( TypeID up, TypeID lo )
         : c_interface_relation_id( c_interface_relation_id_make( up.getValue(), lo.getValue() ) )
     {
     }
-    constexpr inline explicit RelationID( ValueType value )
-        : c_interface_relation_id( c_interface_relation_id_from_int( value ) )
+    constexpr inline explicit RelationID( ValueType _value )
+        : c_interface_relation_id( c_interface_relation_id_from_int( _value ) )
     {
     }
 

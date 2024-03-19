@@ -20,7 +20,6 @@
 #ifndef SESSION_10_MAY_2022
 #define SESSION_10_MAY_2022
 
-#include "common/clang_warnings.hpp"
 
 #include "mega/values/compilation/modes.hpp"
 
@@ -28,8 +27,12 @@
 
 #include "environment/environment_build.hpp"
 
+////////////////////////////////////////
+#include "common/clang_warnings_begin.hpp"
 #include "clang/AST/ASTContext.h"
 #include "clang/Sema/Sema.h"
+#include "common/clang_warnings_end.hpp"
+////////////////////////////////////////
 
 #include <boost/filesystem/path.hpp>
 

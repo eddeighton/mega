@@ -24,13 +24,14 @@
 #include "mega/values/compilation/interface/type_id.hpp"
 #include "mega/values/compilation/invocation_id.hpp"
 
-#include "common/clang_warnings.hpp"
 #include "common/requireSemicolon.hpp"
 
 #include <boost/current_function.hpp>
 
+#include "common/clang_warnings_begin.hpp"
 #include "clang/AST/Type.h"
 #include "clang/Sema/Sema.h"
+#include "common/clang_warnings_end.hpp"
 
 #include <optional>
 #include <iostream>

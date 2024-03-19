@@ -48,13 +48,13 @@ public:
     {
     }
 
-    constexpr inline explicit Instance( c_concrete_instance value )
-        : c_concrete_instance( value )
+    constexpr inline explicit Instance( c_concrete_instance _value )
+        : c_concrete_instance( _value )
     {
     }
 
-    constexpr inline explicit Instance( ValueType value )
-        : c_concrete_instance{ value }
+    constexpr inline explicit Instance( ValueType _value )
+        : c_concrete_instance{ _value }
     {
     }
 

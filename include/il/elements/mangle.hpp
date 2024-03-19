@@ -37,8 +37,8 @@ struct MangleFunction : ExternFunction
         name = os.str();
     }
 
-    MangleFunction( std::string mangleType )
-        : mangleType( std::move( mangleType ) )
+    MangleFunction( std::string _mangleType )
+        : mangleType( std::move( _mangleType ) )
     {
         returnType = Mutable{ e_void };
     }
@@ -46,8 +46,8 @@ struct MangleFunction : ExternFunction
 
 struct MangleCTor : MangleFunction
 {
-    MangleCTor( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleCTor( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "new_"s );
@@ -57,8 +57,8 @@ struct MangleCTor : MangleFunction
 
 struct MangleDTor : MangleFunction
 {
-    MangleDTor( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleDTor( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "delete_"s );
@@ -68,8 +68,8 @@ struct MangleDTor : MangleFunction
 
 struct MangleCopy : MangleFunction
 {
-    MangleCopy( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleCopy( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "copy_"s );
@@ -80,8 +80,8 @@ struct MangleCopy : MangleFunction
 
 struct MangleSaveXML : MangleFunction
 {
-    MangleSaveXML( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleSaveXML( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "save_xml_"s );
@@ -93,8 +93,8 @@ struct MangleSaveXML : MangleFunction
 
 struct MangleLoadXML : MangleFunction
 {
-    MangleLoadXML( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleLoadXML( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "load_xml_"s );
@@ -106,8 +106,8 @@ struct MangleLoadXML : MangleFunction
 
 struct MangleSaveBin : MangleFunction
 {
-    MangleSaveBin( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleSaveBin( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "save_bin_"s );
@@ -118,8 +118,8 @@ struct MangleSaveBin : MangleFunction
 
 struct MangleLoadBin : MangleFunction
 {
-    MangleLoadBin( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleLoadBin( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "load_bin_"s );
@@ -130,8 +130,8 @@ struct MangleLoadBin : MangleFunction
 /*
 struct MangleSaveRecord : MangleFunction
 {
-    MangleSaveRecord( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleSaveRecord( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "save_record_"s );
@@ -142,8 +142,8 @@ struct MangleSaveRecord : MangleFunction
 */
 struct MangleLoadRecord : MangleFunction
 {
-    MangleLoadRecord( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleLoadRecord( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "load_record_"s );
@@ -155,8 +155,8 @@ struct MangleLoadRecord : MangleFunction
 /*
 struct MangleReadAny : MangleFunction
 {
-    MangleReadAny( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleReadAny( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "read_any_"s );
@@ -166,8 +166,8 @@ struct MangleReadAny : MangleFunction
 
 struct MangleWriteAny : MangleFunction
 {
-    MangleWriteAny( std::string mangleType )
-        : MangleFunction( std::move( mangleType ) )
+    MangleWriteAny( std::string _mangleType )
+        : MangleFunction( std::move( _mangleType ) )
     {
         using namespace std::string_literals;
         setName( "write_any_"s );

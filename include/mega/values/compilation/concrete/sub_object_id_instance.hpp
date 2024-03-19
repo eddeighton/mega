@@ -51,17 +51,17 @@ public:
         : c_concrete_sub_object_id_instance{ 0, 0 }
     {
     }
-    constexpr inline explicit SubObjectIDInstance( c_concrete_sub_object_id_instance value )
-        : c_concrete_sub_object_id_instance( value )
+    constexpr inline explicit SubObjectIDInstance( c_concrete_sub_object_id_instance _value )
+        : c_concrete_sub_object_id_instance( _value )
     {
     }
-    constexpr inline explicit SubObjectIDInstance( SubObjectID subObjectID, Instance instance )
+    constexpr inline explicit SubObjectIDInstance( SubObjectID _subObjectID, Instance _instance )
         : c_concrete_sub_object_id_instance(
-            c_concrete_sub_object_id_instance_make( subObjectID.getValue(), instance.getValue() ) )
+            c_concrete_sub_object_id_instance_make( _subObjectID.getValue(), _instance.getValue() ) )
     {
     }
-    constexpr inline explicit SubObjectIDInstance( ValueType value )
-        : c_concrete_sub_object_id_instance( c_concrete_sub_object_id_instance_from_int( value ) )
+    constexpr inline explicit SubObjectIDInstance( ValueType _value )
+        : c_concrete_sub_object_id_instance( c_concrete_sub_object_id_instance_from_int( _value ) )
     {
     }
 

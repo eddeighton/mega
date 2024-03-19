@@ -43,8 +43,6 @@ extern void parseStubs( const boost::filesystem::path& filePath, Model& model );
 
 int main( int argc, const char* argv[] )
 {
-    bool bWait = false;
-
     {
         namespace po = boost::program_options;
         po::variables_map vm;

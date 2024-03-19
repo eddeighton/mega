@@ -20,6 +20,8 @@
 
 #include "il/backend/backend.hpp"
 
+#include "common/clang_warnings_begin.hpp"
+
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -31,6 +33,8 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+
+#include "common/clang_warnings_end.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -53,11 +57,7 @@ public:
     {
     }
 
-    void result() 
-    {
-        
-
-    }
+    void result() {}
 };
 
 void generate( const ValueType& valueType, Printer& print )
@@ -65,25 +65,27 @@ void generate( const ValueType& valueType, Printer& print )
     struct Visitor
     {
         Printer& print;
-        void     operator()( const Mutable& type ) const { ; }
-        void     operator()( const Const& type ) const { ; }
-        void     operator()( const Ptr& type ) const { ; }
-        void     operator()( const ConstPtr& type ) const { ; }
-        void     operator()( const Ref& type ) const { ; }
-        void     operator()( const ConstRef& type ) const { ; }
+        void     operator()( const Mutable& ) const { ; }
+        void     operator()( const Const& ) const { ; }
+        void     operator()( const Ptr& ) const { ; }
+        void     operator()( const ConstPtr& ) const { ; }
+        void     operator()( const Ref& ) const { ; }
+        void     operator()( const ConstRef& ) const { ; }
 
     } visitor{ print };
     std::visit( visitor, valueType );
 }
 
 template < typename T >
-void generate( const Variable< T >& var, Printer& print )
+void generate( const Variable< T >& var, Printer& )
 {
 }
 
-void generate( const Variable< Materialiser >& var, const JIT& function, Printer& print )
+/*
+void generate( const Variable< Materialiser >&, const JIT&, Printer& )
 {
 }
+*/
 
 void generate( const Expression& exp, Printer& print )
 {
@@ -91,9 +93,9 @@ void generate( const Expression& exp, Printer& print )
     {
         Printer& print;
 
-        void operator()( const ReadLiteral& literal ) const {}
+        void operator()( const ReadLiteral& ) const {}
 
-        void operator()( const Read& read ) const {}
+        void operator()( const Read& ) const {}
 
         void operator()( const Cast& cast ) const
         {
@@ -218,7 +220,7 @@ void generate( const Statement& statement, Printer& print )
             }
         }
 
-        void operator()( const Return& returnStatement ) const {}
+        void operator()( const Return& ) const {}
 
         void operator()( const Scope& scope ) const
         {
@@ -249,7 +251,7 @@ void generate( const Statement& statement, Printer& print )
             }
         }
 
-        void operator()( const VariableDeclaration& varDecl ) const
+        void operator()( const VariableDeclaration& ) const
         {
             // generate( varDecl.lValue, print );
             // if( varDecl.rValue.has_value() )
