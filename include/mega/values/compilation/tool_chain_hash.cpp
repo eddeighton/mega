@@ -29,29 +29,29 @@ namespace mega::utilities
 
 ToolChain::ToolChain() = default;
 
-ToolChain::ToolChain( const std::string& strClangCompilerVersion,
-                      mega::U64          szDatabaseVersion,
+ToolChain::ToolChain( const std::string& _strClangCompilerVersion,
+                      mega::U64          _szDatabaseVersion,
 
-                      const boost::filesystem::path& parser,
-                      const boost::filesystem::path& path_megaCompiler,
-                      const boost::filesystem::path& path_clangCompiler,
-                      const boost::filesystem::path& path_clangPlugin,
-                      const boost::filesystem::path& database )
+                      const boost::filesystem::path& _parser,
+                      const boost::filesystem::path& _path_megaCompiler,
+                      const boost::filesystem::path& _path_clangCompiler,
+                      const boost::filesystem::path& _path_clangPlugin,
+                      const boost::filesystem::path& _database )
 
-    : parserPath( parser )
-    , megaCompilerPath( path_megaCompiler )
-    , clangCompilerPath( path_clangCompiler )
-    , clangPluginPath( path_clangPlugin )
-    , databasePath( database )
+    : parserPath( _parser )
+    , megaCompilerPath( _path_megaCompiler )
+    , clangCompilerPath( _path_clangCompiler )
+    , clangPluginPath( _path_clangPlugin )
+    , databasePath( _database )
 
-    , parserHash( parser )
-    , megaCompilerHash( path_megaCompiler )
-    , clangPluginHash( path_clangPlugin )
+    , parserHash( _parser )
+    , megaCompilerHash( _path_megaCompiler )
+    , clangPluginHash( _path_clangPlugin )
 
-    , strClangCompilerVersion( strClangCompilerVersion )
+    , strClangCompilerVersion( _strClangCompilerVersion )
 
-    , databaseVersion( szDatabaseVersion )
-    , clangCompilerHash( strClangCompilerVersion )
+    , databaseVersion( _szDatabaseVersion )
+    , clangCompilerHash( _strClangCompilerVersion )
 
     , toolChainHash( parserHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseVersion )
 {

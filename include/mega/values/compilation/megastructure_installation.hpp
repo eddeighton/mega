@@ -37,7 +37,7 @@ public:
     MegastructureInstallation();
     MegastructureInstallation( const boost::filesystem::path& megastructureInstallationPath );
 
-    const bool isEmpty() const;
+    bool isEmpty() const;
 
     const boost::filesystem::path& getInstallationPath() const { return m_installationPath; }
     mega::utilities::ToolChain     getToolchain() const;

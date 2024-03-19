@@ -83,8 +83,8 @@ concrete::SubObjectID SymbolTable::ConcreteObject::add( const interface::TypeIDS
     else
     {
         const auto newSubType = static_cast< concrete::SubObjectID >( m_subTypes.size() + 1 );
-        auto [ iFind, _ ]     = m_subTypes.insert( { typeIDSequence, newSubType } );
-        return iFind->second;
+        auto [ iFind2, _ ]     = m_subTypes.insert( { typeIDSequence, newSubType } );
+        return iFind2->second;
     }
 }
 
@@ -136,8 +136,8 @@ SymbolTable::SymbolTable()
 
 const std::string& SymbolTable::getSymbol( const interface::SymbolID& symbolID ) const
 {
-    const auto symbolIndex = symbolID.getValue();
-    VERIFY_RTE_MSG( symbolIndex >= 0 && symbolIndex < m_symbolVector.size(), "Invalid symbol index" );
+    const std::size_t symbolIndex = symbolID.getValue();
+    VERIFY_RTE_MSG( symbolIndex < m_symbolVector.size(), "Invalid symbol index" );
     return m_symbolVector[ symbolIndex ];
 }
 

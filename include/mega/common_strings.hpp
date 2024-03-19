@@ -24,9 +24,9 @@
 
 namespace mega
 {
-static const char* EG_ROOT = "Root";
-static const char* EG_OWNER = "Owner";
-static const char* EG_STATE = "State";
+inline static const char* const EG_ROOT = "Root";
+inline static const char* const EG_OWNER = "Owner";
+inline static const char* const EG_STATE = "State";
 } // namespace mega
 
 #endif // GUARD_2023_December_30_common_strings

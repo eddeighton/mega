@@ -90,7 +90,7 @@ struct ToolChain
     }
 
     template < typename Archive >
-    void load( Archive& archive, const unsigned int v )
+    void load( Archive& archive, const unsigned int )
     {
         archive& boost::serialization::make_nvp( "parserPath", parserPath );
         archive& boost::serialization::make_nvp( "megaCompilerPath", megaCompilerPath );

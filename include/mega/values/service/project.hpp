@@ -37,7 +37,7 @@ public:
     {
     }
 
-    inline const bool         empty() const { return m_name.empty(); }
+    inline bool               empty() const { return m_name.empty(); }
     inline const std::string& str() const { return m_name; }
 
     inline bool operator<( const Project& cmp ) const { return m_name < cmp.m_name; }

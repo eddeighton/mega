@@ -41,12 +41,12 @@
 
 namespace mega
 {
-static const char* MEGA_SYMBOL_PATH                 = "__mega_symbol_path";
-static const char* MEGA_INVOCATION                  = "__mega_invocation";
-static const char* MEGA_POINTER                     = "__mega_ptr";
-static const char* MEGA_RESULT_TYPE                 = "__eg_result_type";
-static const char* MEGA_INVOKE_MEMBER_FUNCTION_NAME = "__mega_invoke";
-static const char* MEGA_TRAITS                      = "__mega";
+inline static const char* const MEGA_SYMBOL_PATH                 = "__mega_symbol_path";
+inline static const char* const MEGA_INVOCATION                  = "__mega_invocation";
+inline static const char* const MEGA_POINTER                     = "__mega_ptr";
+inline static const char* const MEGA_RESULT_TYPE                 = "__eg_result_type";
+inline static const char* const MEGA_INVOKE_MEMBER_FUNCTION_NAME = "__mega_invoke";
+inline static const char* const MEGA_TRAITS                      = "__mega";
 } // namespace mega
 
 #endif // GUARD_2023_December_30_eg_common_strings

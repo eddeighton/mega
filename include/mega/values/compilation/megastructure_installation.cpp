@@ -37,7 +37,7 @@ MegastructureInstallation::MegastructureInstallation( const boost::filesystem::p
 {
 }
 
-const bool MegastructureInstallation::isEmpty() const
+bool MegastructureInstallation::isEmpty() const
 {
     return m_installationPath.empty();
 }
