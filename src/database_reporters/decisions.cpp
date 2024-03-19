@@ -50,7 +50,6 @@ using ContextVector = std::vector< const Context* >;
 static ContextVector getSubTypes( const Node* pVertex )
 {
     auto pContext       = db_cast< const Context >( pVertex );
-    using ContextVector = std::vector< const Context* >;
     ContextVector path;
     while( pContext )
     {
@@ -421,14 +420,13 @@ std::size_t recurseAndOrTree( Graph& graph, Automata::Vertex* pVertex, std::vect
 {
     std::string strType;
     Colour      colour      = Colour::lightblue;
-    int         borderWidth = 1;
     {
-        if( auto pAND = db_cast< Automata::And >( pVertex ) )
+        if( db_cast< Automata::And >( pVertex ) )
         {
             strType = "AND";
             colour  = Colour::lightgreen;
         }
-        else if( auto pOR = db_cast< Automata::Or >( pVertex ) )
+        else if( db_cast< Automata::Or >( pVertex ) )
         {
             strType = "OR";
             colour  = Colour::lightblue;
@@ -620,7 +618,7 @@ void recurseTree( Concrete::Node* pNode, Branch& tree )
 
 } // namespace
 
-Report DecisionsReporter::generate( const URL& url )
+Report DecisionsReporter::generate( const URL& )
 {
     Branch root{ { ID } };
 

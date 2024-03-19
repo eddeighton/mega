@@ -55,15 +55,14 @@ std::size_t recurse( Graph& graph, Automata::Vertex* pVertex, std::vector< std::
     using namespace std::string_literals;
 
     std::string strType;
-    Colour      colour      = Colour::lightblue;
-    int         borderWidth = 1;
+    Colour      colour = Colour::lightblue;
     {
-        if( auto pAND = db_cast< Automata::And >( pVertex ) )
+        if( db_cast< Automata::And >( pVertex ) )
         {
             strType = "AND";
             colour  = Colour::lightgreen;
         }
-        else if( auto pOR = db_cast< Automata::Or >( pVertex ) )
+        else if( db_cast< Automata::Or >( pVertex ) )
         {
             strType = "OR";
             colour  = Colour::lightblue;
@@ -113,7 +112,7 @@ std::size_t recurse( Graph& graph, Automata::Vertex* pVertex, std::vector< std::
 }
 } // namespace
 
-Report AutomataReporter::generate( const URL& url )
+Report AutomataReporter::generate( const URL& )
 {
     using namespace std::string_literals;
 

@@ -273,7 +273,7 @@ void recurse( Concrete::Node* pNode, Branch& tree )
 
 } // namespace
 
-Report ClangTraitsGenReporter::generate( const URL& url )
+Report ClangTraitsGenReporter::generate( const URL&  )
 {
     Branch root{ { ID } };
 

@@ -50,7 +50,7 @@ namespace mega::reporters
 {
 using namespace ConcreteTypeAnalysis;
 
-Report ConcreteIDReporter::generate( const URL& url )
+Report ConcreteIDReporter::generate( const URL& )
 {
     using namespace std::string_literals;
 

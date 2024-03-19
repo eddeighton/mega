@@ -120,7 +120,7 @@ void recurse( Concrete::Node* pNode, TableTree& table, Branch& tree )
 
 } // namespace
 
-Report ConcreteReporter::generate( const URL& url )
+Report ConcreteReporter::generate( const URL&  )
 {
     using namespace ConcreteStage;
     using namespace std::string_literals;

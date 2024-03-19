@@ -48,7 +48,7 @@ namespace mega::reporters
 {
 using namespace HyperGraphAnalysis;
 
-Report HyperGraphReporter::generate( const URL& url )
+Report HyperGraphReporter::generate( const URL& )
 {
     using namespace std::string_literals;
 

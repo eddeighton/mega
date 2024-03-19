@@ -90,11 +90,11 @@ Report reportDataType( Parser::TypeDecl::Data* pDataType )
                 }
             }
 
-            if( auto pAbsolute = db_cast< Type::Absolute >( pFragment ) )
+            if( db_cast< Type::Absolute >( pFragment ) )
             {
                 container.m_elements.push_back( Multiline{ { "Absolute: "s, osPath.str() } } );
             }
-            else if( auto pDeriving = db_cast< Type::Deriving >( pFragment ) )
+            else if( db_cast< Type::Deriving >( pFragment ) )
             {
                 container.m_elements.push_back( Multiline{ { "Deriving: "s, osPath.str() } } );
             }
@@ -119,14 +119,14 @@ void recurse( Parser::Container* pContainer, Branch& branch )
 
     Branch container;
 
-    for( auto pAlias : pContainer->get_aliases() )
-    {
-    }
-    // pContainer->get_body_type_opt()
+    // for( pContainer->get_aliases() )
+    //{
+    // }
+    //  pContainer->get_body_type_opt()
 
     for( auto p : pContainer->get_dimensions() )
     {
-        auto pType = p->get_data_type();
+        // auto pType = p->get_data_type();
 
         Branch dim{ { "Dimension"s },
                     { Multiline{ { "Name: "s, symbolsToStr( p->get_symbols(), "." ) } },
@@ -135,68 +135,67 @@ void recurse( Parser::Container* pContainer, Branch& branch )
 
         container.m_elements.emplace_back( std::move( dim ) );
     }
-    for( auto p : pContainer->get_links() )
-    {
-    }
-    for( auto p : pContainer->get_aliases() )
-    {
-    }
-    for( auto p : pContainer->get_usings() )
-    {
-    }
-    for( auto p : pContainer->get_includes() )
-    {
-    }
-    for( auto p : pContainer->get_parts() )
-    {
-    }
+    // for( pContainer->get_links() )
+    // {
+    // }
+    // for( pContainer->get_aliases() )
+    // {
+    // }
+    // for( pContainer->get_usings() )
+    // {
+    // }
+    // for( pContainer->get_includes() )
+    // {
+    // }
+    // for( pContainer->get_parts() )
+    // {
+    // }
 
-    if( auto bodyOpt = pContainer->get_body_type_opt() )
-    {
-        
-    }
+    // if( auto bodyOpt = pContainer->get_body_type_opt() )
+    // {
+    // }
 
-    if( auto pNamespace = db_cast< Namespace >( pContainer ) )
+    if( db_cast< Namespace >( pContainer ) )
     {
         container.m_label.emplace_back( "Namespace"s );
     }
-    else if( auto pAbstract = db_cast< Abstract >( pContainer ) )
+    else if( db_cast< Abstract >( pContainer ) )
     {
         container.m_label.emplace_back( "Abstract"s );
     }
-    else if( auto pEvent = db_cast< Event >( pContainer ) )
+    else if( db_cast< Event >( pContainer ) )
     {
         container.m_label.emplace_back( "Event"s );
     }
-    else if( auto pInterupt = db_cast< Interupt >( pContainer ) )
+    else if( db_cast< Interupt >( pContainer ) )
     {
         container.m_label.emplace_back( "Interupt"s );
     }
-    else if( auto pRequirement = db_cast< Requirement >( pContainer ) )
+    else if( db_cast< Requirement >( pContainer ) )
     {
         container.m_label.emplace_back( "Requirement"s );
     }
-    else if( auto pFunction = db_cast< Function >( pContainer ) )
+    else if( db_cast< Function >( pContainer ) )
     {
         container.m_label.emplace_back( "Function"s );
     }
-    else if( auto pDecider = db_cast< Decider >( pContainer ) )
+    else if( db_cast< Decider >( pContainer ) )
     {
         container.m_label.emplace_back( "Decider"s );
     }
-    else if( auto pObject = db_cast< Object >( pContainer ) )
+    else if( db_cast< Object >( pContainer ) )
     {
         container.m_label.emplace_back( "Object"s );
     }
-    else if( auto pAction = db_cast< Action >( pContainer ) )
+    else if( db_cast< Action >( pContainer ) )
     {
         container.m_label.emplace_back( "Action"s );
     }
-    else if( auto pComponent = db_cast< Component >( pContainer ) )
+    else if( db_cast< Component >( pContainer ) )
     {
         container.m_label.emplace_back( "Component"s );
     }
-    else if( auto pState = db_cast< State >( pContainer ) )
+    else if( db_cast< State >( pContainer ) )
     {
         container.m_label.emplace_back( "State"s );
     }
@@ -216,7 +215,7 @@ void recurse( Parser::Container* pContainer, Branch& branch )
 
 } // namespace
 
-Report ParserReporter::generate( const URL& url )
+Report ParserReporter::generate( const URL& )
 {
     using namespace std::string_literals;
 

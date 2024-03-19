@@ -49,7 +49,7 @@ namespace mega::reporters
 {
 using namespace SymbolRollout;
 
-Report SymbolsReporter::generate( const URL& url )
+Report SymbolsReporter::generate( const URL&  )
 {
     using namespace std::string_literals;
 
@@ -74,7 +74,7 @@ Report SymbolsReporter::generate( const URL& url )
     return branch;
 }
 
-Report InterfaceTypeIDReporter::generate( const URL& url )
+Report InterfaceTypeIDReporter::generate( const URL&  )
 {
     using namespace std::string_literals;
 

@@ -50,7 +50,7 @@ using namespace InterfaceStage;
 
 namespace
 {
-    
+
 void recurse( Interface::Aggregate* pNode, Branch& tree )
 {
     using namespace InterfaceStage;
@@ -98,7 +98,7 @@ void recurse( Interface::Node* pNode, Branch& tree )
 
 } // namespace
 
-Report ASTReporter::generate( const URL& url )
+Report ASTReporter::generate( const URL& )
 {
     using namespace InterfaceStage;
     using namespace std::string_literals;
