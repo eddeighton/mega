@@ -34,6 +34,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 add_compile_options("-fcoroutines")
 
 add_compile_options("-Wno-sign-conversion")
+add_compile_options("-Wno-unused-function")
 
 endif()
 
@@ -55,7 +56,7 @@ add_subdirectory(database)
 add_subdirectory(log)
 add_subdirectory(parser)
 add_subdirectory(pipeline)
-# add_subdirectory(invocation)
+add_subdirectory(invocation)
 # add_subdirectory(compiler)
 # add_subdirectory(clang_plugin)
 # add_subdirectory(database_reporters)

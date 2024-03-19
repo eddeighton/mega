@@ -31,8 +31,8 @@ struct DerivationPolicyBase
 
         Spec() = default;
 
-        Spec( GraphVertexVector context, Parser::Type::Deriving* pDerivation, bool bIncludeLinks = false )
-            : context( std::move( context ) )
+        Spec( GraphVertexVector _context, Parser::Type::Deriving* pDerivation, bool bIncludeLinks = false )
+            : context( std::move( _context ) )
         {
             for( auto pSymbolVariant : pDerivation->get_variants() )
             {
@@ -64,9 +64,9 @@ struct DerivationPolicyBase
             path = mega::make_unique_without_reorder( path );
         }
 
-        Spec( GraphVertexVector context, const std::vector< Symbols::SymbolID* >& symbolPath,
+        Spec( GraphVertexVector _context, const std::vector< Symbols::SymbolID* >& symbolPath,
               bool bIncludeLinks = false )
-            : context( std::move( context ) )
+            : context( std::move( _context ) )
         {
             for( auto pSymbolID : symbolPath )
             {

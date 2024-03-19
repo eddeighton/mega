@@ -174,9 +174,9 @@ class OperationBuilder
             }
 
 #define OPERATION_CONTEXT( CONCRETE_TYPE, NAME )                                                  \
-    else if( auto p = db_cast< Concrete::CONCRETE_TYPE >( pVert ) )                               \
+    else if( auto p##NAME = db_cast< Concrete::CONCRETE_TYPE >( pVert ) )                         \
     {                                                                                             \
-        NAME.push_back( p );                                                                      \
+        NAME.push_back( p##NAME );                                                                \
         VERIFY_RTE_MSG( ( m_targetType == eUNSET ) || ( m_targetType == e_##NAME ),               \
                         "Conflicting target types for invocation: " << m_pInvocation->get_id() ); \
         m_targetType = e_##NAME;                                                                  \
@@ -655,10 +655,10 @@ Functions::Invocation* compileInvocation( Database& database, const SymbolTables
                                           const mega::InvocationID& id )
 {
     // determine the derivation of the invocationID
-    std::vector< Concrete::Node* >             contextTypes;
-    InvocationPolicy::Spec                     derivationSpec;
-    std::optional< mega::interface::SymbolID > operationSymbolOpt
-        = fromInvocationID( symbolTables, id, contextTypes, derivationSpec );
+    std::vector< Concrete::Node* > contextTypes;
+    InvocationPolicy::Spec         derivationSpec;
+    // std::optional< mega::interface::SymbolID > operationSymbolOpt  =
+    fromInvocationID( symbolTables, id, contextTypes, derivationSpec );
 
     // solve the context free derivation
     InvocationPolicy               policy( database );

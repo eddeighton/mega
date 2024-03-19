@@ -153,11 +153,11 @@ static Disambiguation disambiguate( Derivation::Step* pStep, const std::vector< 
 {
     std::optional< Disambiguation > result;
 
-    if( Derivation::And* pAnd = db_cast< Derivation::And >( pStep ) )
+    if( db_cast< Derivation::And >( pStep ) )
     {
         for( auto pEdge : pStep->get_edges() )
         {
-            const auto EdgeResult = inclusive( pEdge->get_next(), finalFrontier, result );
+            inclusive( pEdge->get_next(), finalFrontier, result );
         }
     }
     else if( Derivation::Or* pOr = db_cast< Derivation::Or >( pStep ) )
@@ -327,6 +327,11 @@ static void precedence( Derivation::Edge* pEdge )
                     case ::mega::EdgeType::eParent:
                     {
                         pEdge->set_precedence( pEdge->get_precedence() - 1 );
+                    }
+                    break;
+                    default:
+                    {
+                        // do nothing
                     }
                     break;
                 }
