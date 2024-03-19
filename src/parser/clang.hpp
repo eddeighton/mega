@@ -132,9 +132,9 @@ protected:
     llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > Diags;
 
     clang::DiagnosticBuilder Diag( clang::SourceLocation Loc, unsigned DiagID ) { return Diags->Report( Loc, DiagID ); }
-    clang::DiagnosticBuilder Diag( const clang::Token& Tok, unsigned DiagID )
+    clang::DiagnosticBuilder Diag( const clang::Token& _Tok, unsigned _DiagID )
     {
-        return Diag( Tok.getLocation(), DiagID );
+        return Diag( _Tok.getLocation(), _DiagID );
     }
     clang::DiagnosticBuilder Diag( unsigned DiagID ) { return Diag( Tok, DiagID ); }
 

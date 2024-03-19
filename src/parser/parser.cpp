@@ -19,7 +19,6 @@
 
 // disable clang warnings
 
-
 #include "parser/parser.hpp"
 #include "clang.hpp"
 
@@ -90,7 +89,7 @@ public:
     {
     }
 
-    SourceRange* getSourceRange( clang::SourceLocation startLoc, clang::SourceLocation endLoc )
+    SourceRange* getSourceRange( clang::SourceLocation startLoc, clang::SourceLocation )
     {
         return m_database.construct< SourceRange >( SourceRange::Args{
             sm.getFilename( startLoc ).str(),    // value< std::string > source_file;
@@ -142,8 +141,7 @@ public:
 
     Identifier* parse_identifier()
     {
-        std::string str;
-        auto        startLoc = Tok.getLocation();
+        auto startLoc = Tok.getLocation();
 
         std::vector< Symbol* > symbols;
         while( Tok.is( clang::tok::identifier ) )
@@ -313,9 +311,6 @@ public:
     {
         std::vector< Type::Fragment* > fragments;
 
-        const unsigned short startParenCount = ParenCount, startBracketCount = BracketCount,
-                             startBraceCount = BraceCount;
-
         // could be:
         //      dimension type -> semi
         //      return type    -> semi OR l_brace OR equal
@@ -428,8 +423,6 @@ public:
 
     std::optional< Size* > parse_size()
     {
-        auto startLoc = Tok.getLocation();
-
         if( Tok.is( clang::tok::l_square ) )
         {
             BalancedDelimiterTracker T( *this, clang::tok::l_square );

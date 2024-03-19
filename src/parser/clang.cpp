@@ -112,7 +112,7 @@ get_llvm_diagnosticEngine( ParserDiagnosticSystem& diagnosticSystem )
     return diagnosticSystem.get_llvm_diagnosticEngine();
 }
 
-Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
+Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > _headerSearchOptions,
               const std::vector< boost::filesystem::path >& includeDirectories,
               std::shared_ptr< clang::FileManager >
                   pFileManager,
@@ -121,7 +121,7 @@ Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
               const boost::filesystem::path& sourceFile )
 
     : pSourceManager( std::make_unique< clang::SourceManager >( *pDiagnosticsEngine, *pFileManager ) )
-    , headerSearchOptions( headerSearchOptions )
+    , headerSearchOptions( _headerSearchOptions )
     , languageOptions( createEGLangOpts() )
     , pHeaderSearch( std::make_unique< clang::HeaderSearch >(
           headerSearchOptions, *pSourceManager, *pDiagnosticsEngine, languageOptions, nullptr ) )
@@ -151,9 +151,9 @@ Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
 
         for( const boost::filesystem::path& includeDir : includeDirectories )
         {
-            if( auto f = pFileManager->getDirectoryRef( includeDir.string(), false ) )
+            if( auto dirRef = pFileManager->getDirectoryRef( includeDir.string(), false ) )
             {
-                auto dirLookup = clang::DirectoryLookup( f.get(), clang::SrcMgr::C_System, false );
+                auto dirLookup = clang::DirectoryLookup( dirRef.get(), clang::SrcMgr::C_System, false );
                 pHeaderSearch->AddSearchPath( dirLookup, false );
             }
         }
@@ -183,15 +183,15 @@ clang::LangOptions Stuff::createEGLangOpts()
 
 std::shared_ptr< clang::TargetOptions > Stuff::getTargetOptions()
 {
-    std::shared_ptr< clang::TargetOptions > pTargetOptions = std::make_shared< clang::TargetOptions >();
+    std::shared_ptr< clang::TargetOptions > _pTargetOptions = std::make_shared< clang::TargetOptions >();
 
     llvm::Triple triple;
     triple.setArch( llvm::Triple::x86 );
     triple.setVendor( llvm::Triple::PC );
     triple.setOS( llvm::Triple::Linux );
 
-    pTargetOptions->Triple = triple.normalize();
-    return pTargetOptions;
+    _pTargetOptions->Triple = triple.normalize();
+    return _pTargetOptions;
 }
 
 // Parser
@@ -207,13 +207,13 @@ bool Parser::getSourceText( clang::SourceLocation startLoc, clang::SourceLocatio
     return !bInvalid;
 }
 
-Parser::Parser( Stuff& stuff, llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > Diags )
+Parser::Parser( Stuff& stuff, llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > _Diags )
     : fileEntry( *stuff.pFileEntry )
     , PP( *stuff.pPreprocessor )
     , sm( *stuff.pSourceManager )
     , languageOptions( stuff.languageOptions )
     , headerSearch( *stuff.pHeaderSearch )
-    , Diags( Diags )
+    , Diags( _Diags )
 {
     PP.EnterMainSourceFile();
 }
@@ -246,7 +246,7 @@ bool Parser::TryConsumeToken( clang::tok::TokenKind Expected )
     return true;
 }
 
-clang::SourceLocation Parser::ConsumeAnyToken( bool ConsumeCodeCompletionTok /*= false*/ )
+clang::SourceLocation Parser::ConsumeAnyToken( bool )
 {
     if( isTokenParen() )
         return ConsumeParen();
@@ -425,19 +425,19 @@ public:
 class Parser::RevertingTentativeParsingAction : private Parser::TentativeParsingAction
 {
 public:
-    RevertingTentativeParsingAction( Parser& P )
-        : Parser::TentativeParsingAction( P )
+    RevertingTentativeParsingAction( Parser& _P )
+        : Parser::TentativeParsingAction( _P )
     {
     }
     ~RevertingTentativeParsingAction() { Revert(); }
 };
 
 Parser::BalancedDelimiterTracker::BalancedDelimiterTracker( Parser& p, clang::tok::TokenKind k,
-                                                            clang::tok::TokenKind FinalToken /*= clang::tok::semi*/ )
+                                                            clang::tok::TokenKind _FinalToken /*= clang::tok::semi*/ )
     : GreaterThanIsOperatorScope( p.GreaterThanIsOperator, true )
     , P( p )
     , Kind( k )
-    , FinalToken( FinalToken )
+    , FinalToken( _FinalToken )
 {
     switch( Kind )
     {
