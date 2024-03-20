@@ -134,10 +134,10 @@ public:
         Server&                          server;
         const Server::Connection::Label& label;
         Connection::Ptr                  pConnection;
-        ConnectionLabelRAII( Server& server, const Server::Connection::Label& label, Connection::Ptr pConnection )
-            : server( server )
-            , label( label )
-            , pConnection( pConnection )
+        ConnectionLabelRAII( Server& server_, const Server::Connection::Label& label_, Connection::Ptr pConnection_ )
+            : server( server_ )
+            , label( label_ )
+            , pConnection( pConnection_ )
         {
             server.labelConnection( label, pConnection );
         }

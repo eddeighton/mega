@@ -93,7 +93,6 @@ void Server::stop()
 
 void Server::waitForConnection()
 {
-    using tcp                      = boost::asio::ip::tcp;
     Connection::Ptr pNewConnection = std::make_shared< Connection >( *this, m_ioContext, m_logicalThreadManager );
     m_acceptor.async_accept( pNewConnection->getSocket(),
                              boost::asio::bind_executor( pNewConnection->getStrand(),

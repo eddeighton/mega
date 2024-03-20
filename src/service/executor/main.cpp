@@ -119,7 +119,7 @@ int main( int argc, const char* argv[] )
         // signals.async_wait( signalHandler );
 
         std::vector< std::thread > threads;
-        for( int i = 0; i < uiNumThreads; ++i )
+        for( NumThreadsType i = NumThreadsType{}; i < uiNumThreads; ++i )
         {
             threads.emplace_back( std::move( std::thread( [ &ioContext ]() { ioContext.run(); } ) ) );
         }

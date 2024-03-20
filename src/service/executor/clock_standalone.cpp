@@ -49,7 +49,6 @@ void ProcessClockStandalone::registerMPO( network::SenderRef sender )
 
 void ProcessClockStandalone::unregisterMPO( network::SenderRef sender )
 {
-    ProcessClockStandalone* pThis = this;
     boost::asio::post( m_strand, [ this, sender ]() { unregisterMPOImpl( sender ); } );
 }
 
@@ -73,8 +72,7 @@ bool ProcessClockStandalone::unrequestClock( network::LogicalThreadBase* pSender
 
 void ProcessClockStandalone::requestMove( network::LogicalThreadBase* pSender, runtime::MPO mpo )
 {
-    ProcessClockStandalone* pThis = this;
-    boost::asio::post( m_strand, [ pThis, pSender, mpo ]() { pThis->requestMoveImpl( pSender, mpo ); } );
+    boost::asio::post( m_strand, [ this, pSender, mpo ]() { requestMoveImpl( pSender, mpo ); } );
 }
 
 void ProcessClockStandalone::registerMPOImpl( network::SenderRef sender )
@@ -94,7 +92,7 @@ void ProcessClockStandalone::unregisterMPOImpl( network::SenderRef sender )
     checkClock();
 }
 
-void ProcessClockStandalone::requestMoveImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo )
+void ProcessClockStandalone::requestMoveImpl( network::LogicalThreadBase*, runtime::MPO mpo )
 {
     {
         auto iFind = m_mpos.find( mpo );
@@ -105,7 +103,7 @@ void ProcessClockStandalone::requestMoveImpl( network::LogicalThreadBase* pSende
     checkClock();
 }
 
-void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo )
+void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase*, runtime::MPO mpo )
 {
     {
         auto iFind = m_mpos.find( mpo );
@@ -116,7 +114,7 @@ void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSend
     checkClock();
 }
 
-bool ProcessClockStandalone::unrequestClockImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo )
+bool ProcessClockStandalone::unrequestClockImpl( network::LogicalThreadBase*, runtime::MPO mpo )
 {
     // allow to unrequest if there is any other thread waiting
     bool bOtherThreadWaiting = false;
@@ -239,7 +237,7 @@ void ProcessClockStandalone::issueClock()
     {
         using namespace std::chrono_literals;
         m_timer.expires_from_now( m_tickRate - timeSinceLastTick );
-        m_timer.async_wait( [ pThis ]( boost::system::error_code ec ) { pThis->clock(); } );
+        m_timer.async_wait( [ pThis ]( boost::system::error_code ) { pThis->clock(); } );
     }
     m_bClockIssued = true;
 }

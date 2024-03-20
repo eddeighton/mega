@@ -53,7 +53,6 @@ boost::filesystem::path inputStringToPath( const std::string strPath )
 int main( int argc, const char* argv[] )
 {
     namespace po = boost::program_options;
-    po::variables_map vm;
     try
     {
         bool bHelp             = false;

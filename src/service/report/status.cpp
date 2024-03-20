@@ -29,7 +29,7 @@ namespace mega::service::report
 // network::project::Impl
 
 network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                              boost::asio::yield_context&           yield_ctx )
+                                              boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "HTTPLogicalThread::GetStatus" );
 
@@ -51,7 +51,6 @@ network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status
         status.setDescription( m_reportServer.getProcessName() );
 
         using MPOTimeStampVec = std::vector< std::pair< runtime::MPO, runtime::TimeStamp > >;
-        using MPOVec          = std::vector< runtime::MPO >;
         if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
             status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
         if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
@@ -69,9 +68,7 @@ network::Status HTTPLogicalThread::GetStatus( const std::vector< network::Status
     return status;
 }
 
-Report HTTPLogicalThread::GetReport( const URL&                   url,
-                                     const std::vector< Report >& report,
-                                     boost::asio::yield_context&  yield_ctx )
+Report HTTPLogicalThread::GetReport( const URL& url, const std::vector< Report >&, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "HTTPLogicalThread::GetReport" );
     using namespace std::string_literals;
@@ -82,7 +79,7 @@ Report HTTPLogicalThread::GetReport( const URL&                   url,
 }
 
 network::Status ReportRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                       boost::asio::yield_context&           yield_ctx )
+                                                       boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "ReportRequestLogicalThread::GetStatus" );
 
@@ -106,16 +103,15 @@ network::Status ReportRequestLogicalThread::GetStatus( const std::vector< networ
     return status;
 }
 
-std::string ReportRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string ReportRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& )
 {
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }
 
-Report ReportRequestLogicalThread::GetReport( const URL&                   url,
-                                              const std::vector< Report >& report,
-                                              boost::asio::yield_context&  yield_ctx )
+Report
+ReportRequestLogicalThread::GetReport( const URL&, const std::vector< Report >& report, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "ReportRequestLogicalThread::GetReport" );
     Branch branch{

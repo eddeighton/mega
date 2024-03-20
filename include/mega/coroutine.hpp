@@ -46,10 +46,7 @@ struct ActionCoroutine
 
         auto initial_suspend() { return std::suspend_always{}; } // suspend_never
         auto final_suspend() noexcept { return std::suspend_always{}; }
-        void unhandled_exception() 
-        {
-            throw std::current_exception();
-        }
+        void unhandled_exception() { throw std::current_exception(); }
 
         auto return_value( ReturnReason reason )
         {
@@ -63,8 +60,8 @@ struct ActionCoroutine
         }
     };
 
-    ReturnReason*                         m_pReason = nullptr;
     std::coroutine_handle< promise_type > m_coroutine;
+    ReturnReason*                         m_pReason = nullptr;
 
     const ReturnReason& getReason() const
     {

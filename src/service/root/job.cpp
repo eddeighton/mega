@@ -76,7 +76,7 @@ void RootJobLogicalThread::JobReadyForWork( const network::LogicalThreadID& root
     }
 }
 
-void RootJobLogicalThread::JobProgress( const std::string& message, boost::asio::yield_context& yield_ctx )
+void RootJobLogicalThread::JobProgress( const std::string& message, boost::asio::yield_context&  )
 {
     network::logLinesInfo( message );
 }

@@ -96,11 +96,11 @@ void toJSON( const boost::filesystem::path& dataDir, const std::string& strFileN
             const schema::Transaction&                transaction;
             const std::optional< schema::Parameter >& returnParam;
             nlohmann::json&                           data;
-            Visitor( const schema::Transaction& transaction, const std::optional< schema::Parameter >& returnParam,
-                     nlohmann::json& data )
-                : transaction( transaction )
-                , returnParam( returnParam )
-                , data( data )
+            Visitor( const schema::Transaction& transaction_, const std::optional< schema::Parameter >& returnParam_,
+                     nlohmann::json& data_ )
+                : transaction( transaction_ )
+                , returnParam( returnParam_ )
+                , data( data_ )
             {
             }
             void operator()( const protocol::schema::PointToPointRequest& request ) const
@@ -185,9 +185,9 @@ void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std
                 {
                     const schema::Transaction& transaction;
                     nlohmann::json&            data;
-                    Visitor( const schema::Transaction& transaction, nlohmann::json& data )
-                        : transaction( transaction )
-                        , data( data )
+                    Visitor( const schema::Transaction& transaction_, nlohmann::json& data_ )
+                        : transaction( transaction_ )
+                        , data( data_ )
                     {
                     }
                     void operator()( const protocol::schema::PointToPointRequest& request ) const

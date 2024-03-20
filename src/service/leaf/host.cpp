@@ -30,32 +30,31 @@ Host::Host( network::Log log, network::Sender::Ptr pSender, network::Node nodeTy
 {
 }
 
-void LeafRequestLogicalThread::SaveSnapshot( boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::SaveSnapshot( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::SaveSnapshot" );
     THROW_TODO;
 }
 
-void LeafRequestLogicalThread::LoadSnapshot( boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::LoadSnapshot( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::LoadSnapshot" );
     THROW_TODO;
 }
 
-void LeafRequestLogicalThread::LoadProgram( const mega::service::Program& program,
-                                            boost::asio::yield_context&   yield_ctx )
+void LeafRequestLogicalThread::LoadProgram( const mega::service::Program& program, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::LoadProgram {}", program );
     m_leaf.getRuntime().loadProgram( program );
 }
 
-void LeafRequestLogicalThread::UnloadProgram( boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::UnloadProgram( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::UnloadProgram" );
     m_leaf.getRuntime().unloadProgram();
 }
 
-mega::service::Program LeafRequestLogicalThread::GetProgram( boost::asio::yield_context& yield_ctx )
+mega::service::Program LeafRequestLogicalThread::GetProgram( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::GetProgram" );
     return m_leaf.getRuntime().getProgram();

@@ -36,7 +36,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 
-void handle_sigchld( int signum )
+void handle_sigchld( int )
 {
     wait( NULL ); // or some other wait variant that reads the child process' status information
 }
@@ -54,10 +54,10 @@ MPOContext* getMPOContext()
 void resetMPOContext()
 {
 }
-void setMPOContext( MPOContext* pMPOContext )
+void setMPOContext( MPOContext* )
 {
 }
-} // namespace mega
+} // namespace mega::runtime
 
 int main( int argc, const char* argv[] )
 {

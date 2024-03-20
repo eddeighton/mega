@@ -61,6 +61,7 @@ protected:
     void         acknowledgeInboundRequest( const ReceivedMessage& msg, boost::asio::yield_context& yield_ctx );
     void         dispatchRemaining( boost::asio::yield_context& yield_ctx );
 
+
     virtual ReceivedMessage                  receive( boost::asio::yield_context& yield_ctx )           = 0;
     virtual std::optional< ReceivedMessage > try_receive( boost::asio::yield_context& yield_ctx )       = 0;
     virtual Message dispatchInBoundRequest( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
@@ -119,7 +120,7 @@ public:
 protected:
     virtual ReceivedMessage                  receive( boost::asio::yield_context& yield_ctx ) override;
     virtual std::optional< ReceivedMessage > try_receive( boost::asio::yield_context& yield_ctx ) override;
-    virtual void                             receive( const ReceivedMessage& msg ) override;
+    virtual void                             receiveMessage( const ReceivedMessage& msg ) override;
 
 private:
     MessageChannel m_channel;
@@ -138,7 +139,7 @@ public:
 protected:
     virtual ReceivedMessage                  receive( boost::asio::yield_context& yield_ctx ) override;
     virtual std::optional< ReceivedMessage > try_receive( boost::asio::yield_context& yield_ctx ) override;
-    virtual void                             receive( const ReceivedMessage& msg ) override;
+    virtual void                             receiveMessage( const ReceivedMessage& msg ) override;
 
 protected:
     MessageChannel m_channel;
@@ -158,7 +159,7 @@ public:
 
     // make this virtual so that windows can build...
     virtual ReceivedMessage receive();
-    virtual void            receive( const ReceivedMessage& msg ) override;
+    virtual void            receiveMessage( const ReceivedMessage& msg ) override;
 
 protected:
     boost::asio::io_context& m_ioContext;

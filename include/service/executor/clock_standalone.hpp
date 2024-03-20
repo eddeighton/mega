@@ -73,12 +73,12 @@ private:
 
 private:
     network::ClockTick        m_clockTick;
-    Tick                      m_startTimeStamp;
-    Tick                      m_lastTick;
     bool                      m_bClockIssued = false;
     boost::asio::io_context&  m_ioContext;
     Strand                    m_strand;
     boost::asio::steady_timer m_timer;
+    Tick                      m_startTimeStamp;
+    Tick                      m_lastTick;
     TickDuration              m_tickRate;
     MPOMap                    m_mpos;
 };

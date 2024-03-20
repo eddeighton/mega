@@ -40,6 +40,7 @@ namespace
                 THROW_RTE( "Unknown message type: " << id );
             }
         }
+        UNREACHABLE;
     }
 }
 
@@ -107,6 +108,7 @@ bool isRequest( const Message& _message_ )
             THROW_RTE( "Unknown message: " << _message_.getName() );
         }
     }
+    UNREACHABLE;
 }
 
 Message decode( boost::archive::binary_iarchive& _archive_ )
@@ -133,6 +135,7 @@ Message decode( boost::archive::binary_iarchive& _archive_ )
             THROW_RTE( "Error decoding message: " << header.getName() );
         }
     }
+    UNREACHABLE;
 }
 
 void encode( boost::archive::binary_oarchive& _archive_, const Message& _message_ )
@@ -144,14 +147,13 @@ void encode( boost::archive::binary_oarchive& _archive_, const Message& _message
 {%for message in messages%}
         case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID:
         {
+{% if length( message.members ) %}
             using Type = {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }};
-            if( sizeof( Type ) )
-            {
-                const Type& msg = *reinterpret_cast< const Type* >( getData( _message_ ) );
+            const Type& msg = *reinterpret_cast< const Type* >( getData( _message_ ) );
 {%for member in message.members%}
-                _archive_& msg.{{ member.name }}; 
-{%endfor%}
-            }
+            _archive_& msg.{{ member.name }}; 
+{% endfor %}
+{% endif %}
         }
         break;
 {% endfor %}
@@ -180,6 +182,7 @@ void aggregate( Message& _request_, const std::vector< Message >& _responses_ )
 {% if message.is_broadcast %}
         case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID:
         {
+{% if length( message.members ) %}
             using Type = {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }};
             Type& msg = *reinterpret_cast< Type* >( getData( _request_ ) );
 {%for member in message.members%}
@@ -193,6 +196,7 @@ void aggregate( Message& _request_, const std::vector< Message >& _responses_ )
             }
 {% endif %}
 {%endfor%}
+{% endif %}
         }
         break;
 {% endif %}

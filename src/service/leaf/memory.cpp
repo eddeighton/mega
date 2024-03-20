@@ -38,7 +38,7 @@ namespace mega::service
 {
 
 // network::memory::Impl
-void LeafRequestLogicalThread::MPODestroyed( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::MPODestroyed( const runtime::MPO&, boost::asio::yield_context& )
 {
     // THROW_TODO;
     /*if( m_leaf.m_pRemoteMemoryManager.get() )
@@ -47,10 +47,10 @@ void LeafRequestLogicalThread::MPODestroyed( const runtime::MPO& mpo, boost::asi
     }*/
 }
 
-runtime::PointerNet LeafRequestLogicalThread::NetworkAllocate( const runtime::MPO&         parent,
-                                                               const concrete::ObjectID&   objectTypeID,
-                                                               const runtime::TimeStamp&   lockCycle,
-                                                               boost::asio::yield_context& yield_ctx )
+runtime::PointerNet LeafRequestLogicalThread::NetworkAllocate( const runtime::MPO&       parent,
+                                                               const concrete::ObjectID& objectTypeID,
+                                                               const runtime::TimeStamp&,
+                                                               boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkAllocate: {} {}", parent, objectTypeID );
 
@@ -82,9 +82,9 @@ runtime::PointerNet LeafRequestLogicalThread::NetworkAllocate( const runtime::MP
     // return m_leaf.m_pRemoteMemoryManager->networkToHeap( result, llvm );*/
 }
 
-runtime::PointerHeap LeafRequestLogicalThread::NetworkToHeap( const runtime::PointerNet&  ref,
-                                                              const runtime::TimeStamp&   lockCycle,
-                                                              boost::asio::yield_context& yield_ctx )
+runtime::PointerHeap LeafRequestLogicalThread::NetworkToHeap( const runtime::PointerNet& ref,
+                                                              const runtime::TimeStamp&  lockCycle,
+                                                              boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkToHeap: {} {}", ref, lockCycle );
 

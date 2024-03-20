@@ -51,7 +51,7 @@ void LogicalThreadManager::onDisconnect( network::Sender::Ptr pConnectionSender 
     for( const auto& [ id, pLogicalThread ] : m_logicalthreads )
     {
         ReceivedMessage receivedMessage{ pConnectionSender, network::make_disconnect_error_msg( id, "Disconnection" ) };
-        pLogicalThread->receive( receivedMessage );
+        pLogicalThread->receiveMessage( receivedMessage );
     }
 }
 
@@ -190,7 +190,7 @@ void LogicalThreadManager::dispatch( const ReceivedMessage& msg )
         ASSERT( pJoinedThread );
         logicalthreadJoined( pJoinedThread );
     }
-    pLogicalThread->receive( msg );
+    pLogicalThread->receiveMessage( msg );
 }
 
 } // namespace mega::network

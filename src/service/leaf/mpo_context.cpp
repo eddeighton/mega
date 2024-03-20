@@ -129,7 +129,7 @@ void MPOContext::destroyExecutor( runtime::MP mp )
     return request.EnroleDestroy();
 }
 
-runtime::PointerHeap MPOContext::allocate( concrete::ObjectID objectTypeID )
+runtime::PointerHeap MPOContext::allocate( concrete::ObjectID  )
 {
     THROW_TODO;
     /*VERIFY_RTE_MSG( m_pMemoryManager, "Memory manager not instantiated" );
@@ -166,7 +166,7 @@ runtime::PointerNet MPOContext::allocateRemote( const runtime::MPO& remote, conc
 }
 
 // networkToHeap ONLY called when MPO matches
-runtime::PointerHeap MPOContext::networkToHeap( const runtime::PointerNet& ref )
+runtime::PointerHeap MPOContext::networkToHeap( const runtime::PointerNet&  )
 {
     THROW_TODO;
     /*SPDLOG_TRACE( "MPOContext::networkToHeap: {}", ref );
@@ -302,7 +302,7 @@ void MPOContext::yield()
     boost::asio::post( *m_pYieldContext );
 }
 
-void MPOContext::applyTransaction( const network::Transaction& transaction )
+void MPOContext::applyTransaction( const network::Transaction&  )
 {
     // NOTE: can context switch when call get_load_record
     THROW_TODO;

@@ -25,7 +25,7 @@ namespace mega::service
 {
 // network::project::Impl
 network::Status DaemonRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                       boost::asio::yield_context&           yield_ctx )
+                                                       boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::GetStatus" );
 
@@ -48,16 +48,16 @@ network::Status DaemonRequestLogicalThread::GetStatus( const std::vector< networ
     return status;
 }
 
-std::string DaemonRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string DaemonRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& )
 {
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }
 
-Report DaemonRequestLogicalThread::GetReport( const URL&    url,
+Report DaemonRequestLogicalThread::GetReport( const URL&                   url,
                                               const std::vector< Report >& report,
-                                              boost::asio::yield_context&  yield_ctx )
+                                              boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::GetReport" );
     using namespace std::string_literals;

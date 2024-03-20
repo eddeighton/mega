@@ -31,17 +31,17 @@ namespace mega::service
 {
 
 std::vector< network::LogicalThreadID >
-ExecutorRequestLogicalThread::JobStart( const mega::utilities::ToolChain&                            toolChain,
-                                       const mega::pipeline::Configuration&                         configuration,
-                                       const network::LogicalThreadID&                               rootLogicalThreadID,
-                                       const std::vector< std::vector< network::LogicalThreadID > >& resultJobs,
-                                       boost::asio::yield_context&                                  yield_ctx )
+ExecutorRequestLogicalThread::JobStart( const mega::utilities::ToolChain&    toolChain,
+                                        const mega::pipeline::Configuration& configuration,
+                                        const network::LogicalThreadID&      rootLogicalThreadID,
+                                        const std::vector< std::vector< network::LogicalThreadID > >&,
+                                        boost::asio::yield_context& )
 {
     mega::pipeline::Pipeline::Ptr pPipeline;
     {
         std::ostringstream osLog;
         pPipeline = pipeline::Registry::getPipeline( toolChain, configuration, osLog );
-        if ( !pPipeline )
+        if( !pPipeline )
         {
             SPDLOG_ERROR( "PIPELINE: Executor: Failed to load pipeline: {}", configuration.getPipelineID() );
             THROW_RTE( "Executor: Failed to load pipeline: " << configuration.get() );
@@ -54,16 +54,15 @@ ExecutorRequestLogicalThread::JobStart( const mega::utilities::ToolChain&       
 
     std::vector< network::LogicalThreadID > jobIDs;
     std::vector< JobLogicalThread::Ptr >    jobs;
-    for ( int i = 0; i < m_executor.getNumThreads(); ++i )
+    for( U64 i = 0u; i < m_executor.getNumThreads(); ++i )
     {
         JobLogicalThread::Ptr pJob = std::make_shared< JobLogicalThread >(
-            m_executor, m_executor.createLogicalThreadID(), pPipeline,
-            rootLogicalThreadID );
+            m_executor, m_executor.createLogicalThreadID(), pPipeline, rootLogicalThreadID );
         jobIDs.push_back( pJob->getID() );
         jobs.push_back( pJob );
     }
 
-    for ( JobLogicalThread::Ptr pJob : jobs )
+    for( JobLogicalThread::Ptr pJob : jobs )
     {
         m_executor.logicalthreadInitiated( pJob );
     }
@@ -72,23 +71,24 @@ ExecutorRequestLogicalThread::JobStart( const mega::utilities::ToolChain&       
 }
 
 JobLogicalThread::JobLogicalThread( Executor& executor, const network::LogicalThreadID& logicalthreadID,
-                                  mega::pipeline::Pipeline::Ptr  pPipeline,
-                                  const network::LogicalThreadID& rootLogicalThreadID )
+                                    mega::pipeline::Pipeline::Ptr   pPipeline,
+                                    const network::LogicalThreadID& rootLogicalThreadID )
     : ExecutorRequestLogicalThread( executor, logicalthreadID )
-    , m_pPipeline( pPipeline )
     , m_rootLogicalThreadID( rootLogicalThreadID )
+    , m_pPipeline( pPipeline )
 {
     VERIFY_RTE( m_pPipeline );
 }
 
-network::Message JobLogicalThread::dispatchInBoundRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message JobLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
+                                                           boost::asio::yield_context& yield_ctx )
 {
     // base already inherits job interface
     return ExecutorRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
 
 pipeline::PipelineResult JobLogicalThread::JobStartTask( const mega::pipeline::TaskDescriptor& task,
-                                                       boost::asio::yield_context&           yield_ctx )
+                                                         boost::asio::yield_context& )
 {
     m_resultOpt.reset();
     m_pPipeline->execute( task, *this, *this, *this );
@@ -97,7 +97,10 @@ pipeline::PipelineResult JobLogicalThread::JobStartTask( const mega::pipeline::T
 }
 
 // pipeline::DependencyProvider
-EG_PARSER_INTERFACE* JobLogicalThread::getParser() { return m_executor.m_pParser.get(); }
+EG_PARSER_INTERFACE* JobLogicalThread::getParser()
+{
+    return m_executor.m_pParser.get();
+}
 
 // pipeline::Progress
 
@@ -115,13 +118,13 @@ void JobLogicalThread::onProgress( const std::string& strMsg )
 void JobLogicalThread::onFailed( const std::string& strMsg )
 {
     m_resultOpt = pipeline::PipelineResult( false, strMsg, {} );
-    m_lastMsg = strMsg;
+    m_lastMsg   = strMsg;
 }
 
 void JobLogicalThread::onCompleted( const std::string& strMsg )
 {
     m_resultOpt = pipeline::PipelineResult( true, strMsg, {} );
-    m_lastMsg = strMsg;
+    m_lastMsg   = strMsg;
 }
 
 // pipeline::Stash
@@ -142,12 +145,12 @@ bool JobLogicalThread::restore( const boost::filesystem::path& file, task::Deter
     return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).StashRestore( file, code );
 }
 
-mega::SymbolTable JobLogicalThread::getSymbolTable() 
+mega::SymbolTable JobLogicalThread::getSymbolTable()
 {
     return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).BuildGetSymbolTable();
 }
 
-mega::SymbolTable JobLogicalThread::newSymbols( const mega::SymbolRequest& request ) 
+mega::SymbolTable JobLogicalThread::newSymbols( const mega::SymbolRequest& request )
 {
     return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).BuildNewSymbols( request );
 }
@@ -159,7 +162,7 @@ void JobLogicalThread::run( boost::asio::yield_context& yield_ctx )
 }
 
 network::Status JobLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                       boost::asio::yield_context&           yield_ctx )
+                                             boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "JobLogicalThread::GetStatus" );
     network::Status status{ childNodeStatus };

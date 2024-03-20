@@ -111,7 +111,7 @@ Request_Sender::Request_Sender( LogicalThread&              _logicalthread_,
                 std::dynamic_pointer_cast< LogicalThreadBase >( m_pSender ) )
             {
                 ReceivedMessage _receivedMessage( m_logicalthread.shared_from_this(), _msg_ );
-                pInterThread->receive( _receivedMessage );
+                pInterThread->receiveMessage( _receivedMessage );
             }
             else
             {
@@ -187,7 +187,7 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, Ext
         );
 
         const network::ReceivedMessage rMsg{ m_receiver.shared_from_this(), _msg_ };
-        m_sender.receive( rMsg );
+        m_sender.receiveMessage( rMsg );
     }
 
     const network::ReceivedMessage result = m_receiver.receive();
@@ -231,7 +231,9 @@ Message Impl::dispatchInBoundRequest( const Message& _message_, boost::asio::yie
 {% for request in requests %}
         case {{ filename }}::MSG_{{ request.name }}_Request::ID:
         {
+{% if length( request.params ) %}
             auto& _msg_ = {{ filename }}::MSG_{{ request.name }}_Request::get( _message_ );
+{% endif %}
 {% if request.return_type == "void" %}
             {{ request.name }}
             ( 

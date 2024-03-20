@@ -42,7 +42,7 @@ public:
     mega::F32                m_ct = {}, m_dt = {};
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int )
+    inline void serialize( Archive&, const unsigned int )
     {
         THROW_RTE( "Attempted to serialize ClockTick" );
     }
@@ -52,7 +52,7 @@ class SenderRef
 {
 public:
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int )
+    inline void serialize( Archive&, const unsigned int )
     {
         THROW_RTE( "Attempted to serialize SenderRef" );
     }

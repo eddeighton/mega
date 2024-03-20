@@ -315,7 +315,7 @@ ReceivedMessage InThreadLogicalThread::receive( boost::asio::yield_context& yiel
     return m_channel.async_receive( yield_ctx );
 }
 
-std::optional< ReceivedMessage > InThreadLogicalThread::try_receive( boost::asio::yield_context& yield_ctx )
+std::optional< ReceivedMessage > InThreadLogicalThread::try_receive( boost::asio::yield_context&  )
 {
     std::optional< ReceivedMessage > result;
 
@@ -335,7 +335,7 @@ std::optional< ReceivedMessage > InThreadLogicalThread::try_receive( boost::asio
     return result;
 }
 
-void InThreadLogicalThread::receive( const ReceivedMessage& msg )
+void InThreadLogicalThread::receiveMessage( const ReceivedMessage& msg )
 {
     m_channel.async_send(
         boost::system::error_code(), msg,
@@ -379,7 +379,7 @@ ReceivedMessage ConcurrentLogicalThread::receive( boost::asio::yield_context& yi
     return m_channel.async_receive( yield_ctx );
 }
 
-std::optional< ReceivedMessage > ConcurrentLogicalThread::try_receive( boost::asio::yield_context& yield_ctx )
+std::optional< ReceivedMessage > ConcurrentLogicalThread::try_receive( boost::asio::yield_context& )
 {
     std::optional< ReceivedMessage > result;
 
@@ -399,7 +399,7 @@ std::optional< ReceivedMessage > ConcurrentLogicalThread::try_receive( boost::as
     return result;
 }
 
-void ConcurrentLogicalThread::receive( const ReceivedMessage& msg )
+void ConcurrentLogicalThread::receiveMessage( const ReceivedMessage& msg )
 {
     m_channel.async_send(
         boost::system::error_code(), msg,
@@ -465,7 +465,7 @@ ReceivedMessage ExternalLogicalThread::receive()
     return result;
 }
 
-void ExternalLogicalThread::receive( const ReceivedMessage& msg )
+void ExternalLogicalThread::receiveMessage( const ReceivedMessage& msg )
 {
     m_channel.async_send(
         boost::system::error_code(), msg,

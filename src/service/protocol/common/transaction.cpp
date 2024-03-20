@@ -31,8 +31,7 @@ TransactionProducer::TransactionProducer( mega::event::FileStorage& log )
     , m_iterator( m_log.getIterator() )
 {
 }
-void TransactionProducer::generateStructure( MPOTransactions& transactions, UnparentedSet& unparented,
-                                             MovedObjects& movedObjects )
+void TransactionProducer::generateStructure( MPOTransactions& transactions, UnparentedSet&, MovedObjects& movedObjects )
 {
     using RecordType                          = event::Structure::Read;
     event::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );

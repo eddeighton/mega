@@ -113,7 +113,7 @@ network::Message ReportRequestLogicalThread::RootAllBroadcast( const network::Me
 
     SPDLOG_TRACE( "ReportRequestLogicalThread::RootAllBroadcast got: {} responses", responses.size() );
 
-    network::Message aggregateRequest = std::move( request );
+    network::Message aggregateRequest = request;
     network::aggregate( aggregateRequest, responses );
 
     return dispatchInBoundRequest( aggregateRequest, yield_ctx );

@@ -37,12 +37,12 @@ void LeafRequestLogicalThread::ExecuteJIT( const runtime::RuntimeFunctor& func, 
         network::Sender::Ptr        m_pSender;
         boost::asio::yield_context& m_yield_ctx;
 
-        StashProviderImpl( LogicalThread&              m_logicalthread,
-                           network::Sender::Ptr        m_pSender,
-                           boost::asio::yield_context& m_yield_ctx )
-            : m_logicalthread( m_logicalthread )
-            , m_pSender( m_pSender )
-            , m_yield_ctx( m_yield_ctx )
+        StashProviderImpl( LogicalThread&              logicalthread,
+                           network::Sender::Ptr        pSender,
+                           boost::asio::yield_context& yield_ctx )
+            : m_logicalthread( logicalthread )
+            , m_pSender( pSender )
+            , m_yield_ctx( yield_ctx )
         {
         }
 
@@ -71,12 +71,13 @@ void LeafRequestLogicalThread::ExecuteJIT( const runtime::RuntimeFunctor& func, 
     func( m_leaf.getRuntime(), stashProvider );
 }
 
-interface::TypeID LeafRequestLogicalThread::GetInterfaceTypeID( const concrete::TypeID& concreteTypeID,
+interface::TypeID LeafRequestLogicalThread::GetInterfaceTypeID( const concrete::TypeID& ,
                                                                 boost::asio::yield_context& )
 {
     THROW_TODO;
     // VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
     // return m_leaf.m_pJIT->getInterfaceTypeID( concreteTypeID );
+    UNREACHABLE;
 }
 
 } // namespace mega::service

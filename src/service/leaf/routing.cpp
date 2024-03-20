@@ -272,7 +272,7 @@ network::Message LeafRequestLogicalThread::RootAllBroadcast( const network::Mess
         }
     }
 
-    network::Message aggregateRequest = std::move( request );
+    network::Message aggregateRequest = request;
     network::aggregate( aggregateRequest, responses );
 
     // dispatch to this
@@ -322,8 +322,7 @@ network::Message LeafRequestLogicalThread::RootExe( const network::Message&     
     }
 }
 
-void LeafRequestLogicalThread::RootSimRun( const runtime::MPO& mpo,
-                                           boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::RootSimRun( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestLogicalThread::RootSimRun {}", mpo );
     switch( m_leaf.m_nodeType )

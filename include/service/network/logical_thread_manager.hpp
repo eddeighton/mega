@@ -62,8 +62,8 @@ protected:
     void spawnInitiatedLogicalThread( LogicalThread::Ptr pLogicalThread );
 
 protected:
-    boost::asio::io_context&   m_ioContext;
     std::string                m_strProcessName;
+    boost::asio::io_context&   m_ioContext;
     LogicalThreadPtrMap        m_logicalthreads;
     ExternalLogicalThread::Ptr m_pExternalLogicalThread;
     mutable std::shared_mutex  m_mutex;

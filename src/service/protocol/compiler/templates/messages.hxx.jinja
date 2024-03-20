@@ -86,10 +86,10 @@ class Message
 
 public:
     Message() = default;
-    Message( MessageID index, LogicalThreadID logicalThreadID, std::shared_ptr< void > data )
-        : index( index )
-        , logicalThreadID( std::move( logicalThreadID ) )
-        , data( std::move( data ) )
+    Message( MessageID index_, LogicalThreadID logicalThreadID_, std::shared_ptr< void > data_ )
+        : index( index_ )
+        , logicalThreadID( std::move( logicalThreadID_ ) )
+        , data( std::move( data_ ) )
     {
     }
 

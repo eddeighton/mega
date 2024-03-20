@@ -145,6 +145,16 @@ add_library( protocol
 					${MEGA_PROTOCOL_GENERATED_SOURCES}
 				)
 
+                
+                
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+
+# target_compile_options( protocol PRIVATE "-Wno-overloaded-virtual")
+
+endif()
+
 target_link_libraries( protocol mega_interface )
 target_link_libraries( protocol mega_values )
 target_link_libraries( protocol pipeline )

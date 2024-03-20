@@ -47,7 +47,7 @@ MPOContext* getMPOContext()
 void resetMPOContext()
 {
 }
-void setMPOContext( MPOContext* pMPOContext )
+void setMPOContext( MPOContext* )
 {
 }
 } // namespace mega::runtime
@@ -112,7 +112,7 @@ int main( int argc, const char* argv[] )
         mega::service::Root root( ioContext, log, stashFolder, portNumber );
 
         std::vector< std::thread > threads;
-        for( int i = 0; i < uiNumThreads; ++i )
+        for( NumThreadsType i = NumThreadsType{}; i < uiNumThreads; ++i )
         {
             threads.emplace_back( std::move( std::thread( [ &ioContext ]() { ioContext.run(); } ) ) );
         }

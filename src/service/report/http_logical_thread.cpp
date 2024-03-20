@@ -355,7 +355,6 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
     namespace beast = boost::beast;
     namespace http  = beast::http;
     namespace net   = boost::asio;
-    using tcp       = boost::asio::ip::tcp;
 
     // Returns a bad request response
     auto const bad_request = [ &httpRequest ]( beast::string_view why )
@@ -370,7 +369,7 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
     };
 
     // Returns a not found response
-    auto const not_found = [ &httpRequest ]( beast::string_view target )
+    /*auto const not_found = [ &httpRequest ]( beast::string_view target )
     {
         http::response< http::string_body > res{ http::status::not_found, httpRequest.version };
         res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
@@ -379,10 +378,10 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
         res.body() = "The resource '" + std::string( target ) + "' was not found.";
         res.prepare_payload();
         return res;
-    };
+    };*/
 
     // Returns a server error response
-    auto const server_error = [ &httpRequest ]( beast::string_view what )
+    /*auto const server_error = [ &httpRequest ]( beast::string_view what )
     {
         http::response< http::string_body > res{ http::status::internal_server_error, httpRequest.version };
         res.set( http::field::server, BOOST_BEAST_VERSION_STRING );
@@ -391,7 +390,7 @@ boost::beast::http::message_generator HTTPLogicalThread::handleHTTPRequest( cons
         res.body() = "An error occurred: '" + std::string( what ) + "'";
         res.prepare_payload();
         return res;
-    };
+    };*/
 
     // Make sure we can handle the method
     if( httpRequest.verb != eGet && httpRequest.verb != eHead )

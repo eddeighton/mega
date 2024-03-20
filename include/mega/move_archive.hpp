@@ -29,7 +29,7 @@ class SimMoveArchive
 {
 public:
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int )
+    inline void serialize( Archive& , const unsigned int )
     {
     }
 };
@@ -38,7 +38,7 @@ class ToolMoveArchive
 {
 public:
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int )
+    inline void serialize( Archive& , const unsigned int )
     {
     }
 };

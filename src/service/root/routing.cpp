@@ -165,7 +165,7 @@ network::Message RootRequestLogicalThread::DaemonRoot( const network::Message&  
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
-network::Message RootRequestLogicalThread::MPRoot( const network::Message& request, const runtime::MP& mp,
+network::Message RootRequestLogicalThread::MPRoot( const network::Message&     request, const runtime::MP&,
                                                    boost::asio::yield_context& yield_ctx )
 {
     return dispatchInBoundRequest( request, yield_ctx );

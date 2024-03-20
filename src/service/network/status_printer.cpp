@@ -33,7 +33,7 @@ std::ostream& StatusPrinter::print( std::ostream& os, int iIndent, char c ) cons
 {
     int iBarCount = m_stack.size() - 1;
 
-    for( int iIndex = 0; iIndex != m_stack.size(); ++iIndex )
+    for( std::size_t iIndex = 0U; iIndex != m_stack.size(); ++iIndex )
     {
         const int  iBar      = m_stack[ iIndex ];
         const bool bLastLast = ( ( iIndex + 1 ) < m_stackLast.size() ) ? m_stackLast[ iIndex + 1 ] : false;

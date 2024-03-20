@@ -81,7 +81,6 @@ void SocketReceiver::receive( Sender::Ptr pSender, boost::asio::yield_context& y
     boost::system::error_code           ec;
     mega::U64                           szBytesTransferred = 0U;
     std::array< char, MessageSizeSize > buf;
-    MessageID                           messageID;
 
     if( m_bContinue && m_socket.is_open() )
     {

@@ -127,9 +127,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
         m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
 
-        event::FileIterator< event::Event::Read >      m_iter_events      = m_pLog->begin< event::Event::Read >();
-        event::FileIterator< event::Transition::Read > m_iter_transitions = m_pLog->begin< event::Transition::Read >();
-        event::FileIterator< event::Structure::Read >  m_iter_structure   = m_pLog->begin< event::Structure::Read >();
+        event::FileIterator< event::Event::Read > m_iter_events = m_pLog->begin< event::Event::Read >();
+        // event::FileIterator< event::Transition::Read > m_iter_transitions = m_pLog->begin< event::Transition::Read
+        // >();
+        event::FileIterator< event::Structure::Read > m_iter_structure = m_pLog->begin< event::Structure::Read >();
 
         // ActionFunctionCache   actionFunctionCache;
         // DecisionFunctionCache decisionFunctionCache;
@@ -147,16 +148,16 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
             // acknowledge simulation requests
             {
-                for( const auto& msg : m_ackVector )
+                for( const auto& ackMsg : m_ackVector )
                 {
-                    if( SM::isBlock( msg ) )
+                    if( SM::isBlock( ackMsg ) )
                     {
                         SPDLOG_TRACE( "SIM: runSimulation Blocking Destroy msg" );
-                        m_blockDestroyMsgOpt = msg;
+                        m_blockDestroyMsgOpt = ackMsg;
                     }
                     else
                     {
-                        acknowledgeInboundRequest( msg, yield_ctx );
+                        acknowledgeInboundRequest( ackMsg, yield_ctx );
                     }
                 }
                 m_ackVector.clear();
@@ -182,8 +183,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         for( ; m_iter_events != m_pLog->end< event::Event::Read >(); ++m_iter_events )
                         {
-                            const auto& event = *m_iter_events;
                             THROW_TODO;
+                            // const auto& event = *m_iter_events;
                             // funcDispatch( event.getRef() );
 
                             // switch( event.getType() )
@@ -458,12 +459,12 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     }
 }
 
-void Simulation::SimErrorCheck( boost::asio::yield_context& yield_ctx )
+void Simulation::SimErrorCheck( boost::asio::yield_context& )
 {
     THROW_RTE( "Simulation::SimErrorCheck: " << getThisMPO() );
 }
 
-Snapshot Simulation::SimObjectSnapshot( const runtime::PointerNet& object, boost::asio::yield_context& yield_ctx )
+Snapshot Simulation::SimObjectSnapshot( const runtime::PointerNet& object, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimObjectSnapshot: {} {}", getThisMPO(), object );
     QueueStackDepth queueMsgs( m_queueStack );
@@ -482,7 +483,7 @@ Snapshot Simulation::SimObjectSnapshot( const runtime::PointerNet& object, boost
     return archive.makeSnapshot( getLog().getTimeStamp() );*/
 }
 
-runtime::PointerHeap Simulation::SimAllocate( const concrete::ObjectID& objectTypeID, boost::asio::yield_context& )
+runtime::PointerHeap Simulation::SimAllocate( const concrete::ObjectID&, boost::asio::yield_context& )
 {
     THROW_TODO;
 
@@ -494,7 +495,7 @@ runtime::PointerHeap Simulation::SimAllocate( const concrete::ObjectID& objectTy
     ); return allocated.getHeaderAddress();*/
 }
 
-Snapshot Simulation::SimSnapshot( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx )
+Snapshot Simulation::SimSnapshot( const runtime::MPO& mpo, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimSnapshot: {}", mpo );
     THROW_TODO;
@@ -502,7 +503,7 @@ Snapshot Simulation::SimSnapshot( const runtime::MPO& mpo, boost::asio::yield_co
 }
 
 runtime::TimeStamp Simulation::SimLockRead( const runtime::MPO& requestingMPO, const runtime::MPO& targetMPO,
-                                            boost::asio::yield_context& yield_ctx )
+                                            boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimLockRead: {} {}", requestingMPO, targetMPO );
     if( m_stateMachine.isTerminated() )
@@ -513,7 +514,7 @@ runtime::TimeStamp Simulation::SimLockRead( const runtime::MPO& requestingMPO, c
 }
 
 runtime::TimeStamp Simulation::SimLockWrite( const runtime::MPO& requestingMPO, const runtime::MPO& targetMPO,
-                                             boost::asio::yield_context& yield_ctx )
+                                             boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimLockWrite: {} {}", requestingMPO, targetMPO );
     if( m_stateMachine.isTerminated() )
@@ -585,7 +586,7 @@ void Simulation::SimDestroyBlocking( boost::asio::yield_context& )
 
 // network::status::Impl
 network::Status Simulation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                       boost::asio::yield_context&           yield_ctx )
+                                       boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "Simulation::GetStatus" );
     QueueStackDepth queueMsgs( m_queueStack );
@@ -603,7 +604,6 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         status.setLogFolder( getLog().getLogFolderPath().string() );
 
         using MPOTimeStampVec = std::vector< std::pair< runtime::MPO, runtime::TimeStamp > >;
-        using MPOVec          = std::vector< runtime::MPO >;
         if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
             status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
         if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
@@ -617,9 +617,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
     return status;
 }
 
-Report Simulation::GetReport( const URL&    url,
-                              const std::vector< Report >& report,
-                              boost::asio::yield_context&  yield_ctx )
+Report Simulation::GetReport( const URL& url, const std::vector< Report >& report, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "Simulation::GetReport" );
     VERIFY_RTE( report.empty() );
@@ -644,7 +642,7 @@ Report Simulation::GetReport( const URL&    url,
     return table;
 }
 
-std::string Simulation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string Simulation::Ping( const std::string& strMsg, boost::asio::yield_context& )
 {
     using ::           operator<<;
     std::ostringstream os;

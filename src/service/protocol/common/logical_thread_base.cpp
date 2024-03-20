@@ -24,7 +24,8 @@
 namespace mega::network
 {
 
-LogicalThreadBase::LogicalThreadBase( LogicalThreadManager& logicalThreadManager, const LogicalThreadID& logicalthreadID )
+LogicalThreadBase::LogicalThreadBase( LogicalThreadManager&  logicalThreadManager,
+                                      const LogicalThreadID& logicalthreadID )
     : m_logicalThreadManager( logicalThreadManager )
     , m_logicalThreadID( logicalthreadID )
 {
@@ -35,9 +36,8 @@ boost::system::error_code LogicalThreadBase::send( const Message& responseMessag
 {
     VERIFY_RTE_MSG(
         !network::isRequest( responseMessage ), "Logical thread sent request: " << responseMessage.getName() );
-    ReceivedMessage    receivedMessage{ Sender::Ptr{}, responseMessage };
-    LogicalThreadBase* pThis = this;
-    pThis->receive( receivedMessage );
+    ReceivedMessage receivedMessage{ Sender::Ptr{}, responseMessage };
+    receiveMessage( receivedMessage );
     return {};
 }
 
@@ -45,14 +45,13 @@ boost::system::error_code LogicalThreadBase::send( const Message& responseMessag
 {
     VERIFY_RTE_MSG(
         !network::isRequest( responseMessage ), "Logical thread sent request: " << responseMessage.getName() );
-    ReceivedMessage    receivedMessage{ Sender::Ptr{}, responseMessage };
-    LogicalThreadBase* pThis = this;
-    pThis->receive( receivedMessage );
+    ReceivedMessage receivedMessage{ Sender::Ptr{}, responseMessage };
+    receiveMessage( receivedMessage );
     return {};
 }
 
-LogicalThreadBase::InitiatedRequestStack::InitiatedRequestStack( LogicalThreadBase::Ptr pLogicalThread )
-    : pLogicalThread( pLogicalThread )
+LogicalThreadBase::InitiatedRequestStack::InitiatedRequestStack( LogicalThreadBase::Ptr pLogicalThread_ )
+    : pLogicalThread( pLogicalThread_ )
 {
     pLogicalThread->requestStarted( Sender::Ptr{} );
 }
@@ -61,8 +60,8 @@ LogicalThreadBase::InitiatedRequestStack::~InitiatedRequestStack()
     pLogicalThread->requestCompleted();
 }
 
-LogicalThreadBase::OutBoundRequestStack::OutBoundRequestStack( LogicalThreadBase::Ptr pLogicalThread )
-    : pLogicalThread( pLogicalThread )
+LogicalThreadBase::OutBoundRequestStack::OutBoundRequestStack( LogicalThreadBase::Ptr pLogicalThread_ )
+    : pLogicalThread( pLogicalThread_ )
 {
     pLogicalThread->requestStarted( Sender::Ptr{} );
 }
@@ -71,9 +70,9 @@ LogicalThreadBase::OutBoundRequestStack::~OutBoundRequestStack()
     pLogicalThread->requestCompleted();
 }
 
-LogicalThreadBase::InBoundRequestStack::InBoundRequestStack( LogicalThreadBase::Ptr pLogicalThread,
+LogicalThreadBase::InBoundRequestStack::InBoundRequestStack( LogicalThreadBase::Ptr pLogicalThread_,
                                                              Sender::Ptr            pRequestResponseSender )
-    : pLogicalThread( pLogicalThread )
+    : pLogicalThread( pLogicalThread_ )
 {
     ASSERT( pRequestResponseSender );
     pLogicalThread->requestStarted( pRequestResponseSender );

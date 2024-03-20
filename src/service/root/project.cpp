@@ -24,8 +24,7 @@
 namespace mega::service
 {
 
-mega::MegastructureInstallation
-RootRequestLogicalThread::GetMegastructureInstallation( boost::asio::yield_context& yield_ctx )
+mega::MegastructureInstallation RootRequestLogicalThread::GetMegastructureInstallation( boost::asio::yield_context& )
 {
     return m_root.getMegastructureInstallation();
 }

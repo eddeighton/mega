@@ -442,8 +442,8 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::RequestVaria
     struct Visitor
     {
         std::ostream& os;
-        Visitor( std::ostream& os )
-            : os( os )
+        Visitor( std::ostream& os_ )
+            : os( os_ )
         {
         }
         void operator()( const protocol::schema::PointToPointRequest& message ) const { os << message << "\n"; }

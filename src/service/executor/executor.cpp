@@ -84,7 +84,7 @@ Executor::~Executor()
     }
 }
 
-void Executor::getGeneralStatusReport( const URL& url, Branch& report )
+void Executor::getGeneralStatusReport( const URL&, Branch& report )
 {
     using namespace std::string_literals;
 
@@ -154,15 +154,15 @@ void Executor::shutdown()
 
 class ExecutorShutdown : public ExecutorRequestLogicalThread
 {
+    network::ConcurrentChannel&    m_completionChannel;
     std::vector< Simulation::Ptr > m_simulations;
-    network::ConcurrentChannel&    completionChannel;
 
 public:
-    ExecutorShutdown( Executor& exe, network::ConcurrentChannel& completionChannel,
+    ExecutorShutdown( Executor& exe, network::ConcurrentChannel& completionChannel_,
                       std::vector< Simulation::Ptr > simulations )
         : ExecutorRequestLogicalThread( exe, exe.createLogicalThreadID() )
-        , completionChannel( completionChannel )
-        , m_simulations( simulations )
+        , m_completionChannel( completionChannel_ )
+        , m_simulations( std::move( simulations ) )
     {
     }
     void run( boost::asio::yield_context& yield_ctx )
@@ -177,7 +177,7 @@ public:
         }
 
         boost::system::error_code ec;
-        completionChannel.async_send( ec, network::make_disconnect_error_msg( this->getID(), "" ), yield_ctx );
+        m_completionChannel.async_send( ec, network::make_disconnect_error_msg( this->getID(), "" ), yield_ctx );
     }
 };
 

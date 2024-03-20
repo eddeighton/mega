@@ -27,6 +27,7 @@
 #include "service/protocol/model/messages.hxx"
 
 #include "common/assert_verify.hpp"
+#include "common/unreachable.hpp"
 
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/experimental/channel_error.hpp>
@@ -36,6 +37,7 @@
 #include <boost/interprocess/streams/vectorstream.hpp>
 
 #include <boost/archive/binary_oarchive.hpp>
+
 #include <algorithm>
 #include <sstream>
 #include <utility>
@@ -59,7 +61,7 @@ public:
 
     virtual ~SocketSender() = default;
 
-    virtual boost::system::error_code send( const Message& msg )
+    virtual boost::system::error_code send( const Message&  )
     {
         THROW_RTE( "non async send called on SocketSender" );
         UNREACHABLE;
@@ -109,7 +111,7 @@ public:
 
     virtual ~ConcurrentChannelSender() = default;
 
-    virtual boost::system::error_code send( const Message& msg )
+    virtual boost::system::error_code send( const Message&  )
     {
         THROW_RTE( "non async send called on ConcurrentChannelSender" );
         UNREACHABLE;
@@ -164,7 +166,7 @@ public:
 
     virtual ~ChannelSender() = default;
 
-    virtual boost::system::error_code send( const Message& msg )
+    virtual boost::system::error_code send( const Message& )
     {
         THROW_RTE( "non async send called on ChannelSender" );
         UNREACHABLE;

@@ -24,6 +24,8 @@
 #include "mega/values/native_types.hpp"
 #include "mega/values/compilation/concrete/type_id_instance.hpp"
 
+#include "common/assert_verify.hpp"
+
 namespace mega
 {
 
@@ -65,15 +67,17 @@ struct LogicalPointer
         return ( id == cmp.id ) && ( typeInstance == cmp.typeInstance );
     }
 
-    static inline LogicalPointer make( const LogicalObject& logicalObject, const concrete::TypeIDInstance& typeInstance )
+    static inline LogicalPointer make( const LogicalObject&            logicalObject,
+                                       const concrete::TypeIDInstance& typeInstance )
     {
         return { logicalObject.id, typeInstance };
     }
 
-    static inline LogicalObject toLogicalObject( const LogicalPointer& ref )
+    static inline LogicalObject toLogicalObject( const LogicalPointer& )
     {
         THROW_TODO;
         // return { ref.id, TypeID::make_object_from_typeID( ref.typeInstance.type ) };
+        UNREACHABLE;
     }
 };
 

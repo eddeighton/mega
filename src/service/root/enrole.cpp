@@ -33,7 +33,7 @@ namespace mega::service
 {
 
 // network::enrole::Impl
-runtime::MachineID RootRequestLogicalThread::EnroleDaemon( boost::asio::yield_context& yield_ctx )
+runtime::MachineID RootRequestLogicalThread::EnroleDaemon( boost::asio::yield_context& )
 {
     auto pOriginalRequestResponseSender = getOriginatingStackResponseSender();
     VERIFY_RTE( pOriginalRequestResponseSender );
@@ -50,9 +50,9 @@ runtime::MachineID RootRequestLogicalThread::EnroleDaemon( boost::asio::yield_co
     return machineID;
 }
 
-runtime::MP RootRequestLogicalThread::EnroleLeafWithRoot( const std::string&          startupUUID,
-                                                          const runtime::MachineID&   machineID,
-                                                          boost::asio::yield_context& yield_ctx )
+runtime::MP RootRequestLogicalThread::EnroleLeafWithRoot( const std::string&        startupUUID,
+                                                          const runtime::MachineID& machineID,
+                                                          boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::EnroleLeafWithRoot: {} {}", startupUUID, machineID );
 
@@ -85,17 +85,17 @@ void RootRequestLogicalThread::EnroleLeafDisconnect( const runtime::MP& mp, boos
     }
 }
 
-std::vector< runtime::MachineID > RootRequestLogicalThread::EnroleGetDaemons( boost::asio::yield_context& yield_ctx )
+std::vector< runtime::MachineID > RootRequestLogicalThread::EnroleGetDaemons( boost::asio::yield_context& )
 {
     return m_root.m_mpoManager.getMachines();
 }
-std::vector< runtime::MP > RootRequestLogicalThread::EnroleGetProcesses( const runtime::MachineID&   machineID,
-                                                                         boost::asio::yield_context& yield_ctx )
+std::vector< runtime::MP > RootRequestLogicalThread::EnroleGetProcesses( const runtime::MachineID& machineID,
+                                                                         boost::asio::yield_context& )
 {
     return m_root.m_mpoManager.getMachineProcesses( machineID );
 }
-std::vector< runtime::MPO > RootRequestLogicalThread::EnroleGetMPO( const runtime::MP&          machineProcess,
-                                                                    boost::asio::yield_context& yield_ctx )
+std::vector< runtime::MPO > RootRequestLogicalThread::EnroleGetMPO( const runtime::MP& machineProcess,
+                                                                    boost::asio::yield_context& )
 {
     return m_root.m_mpoManager.getMPO( machineProcess );
 }

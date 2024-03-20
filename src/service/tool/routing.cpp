@@ -107,7 +107,7 @@ network::Message ToolRequestLogicalThread::RootAllBroadcast( const network::Mess
     }
     SPDLOG_TRACE( "ToolRequestLogicalThread::RootAllBroadcast got: {} responses", responses.size() );
 
-    network::Message aggregateRequest = std::move( request );
+    network::Message aggregateRequest = request;
     network::aggregate( aggregateRequest, responses );
 
     return dispatchInBoundRequest( aggregateRequest, yield_ctx );

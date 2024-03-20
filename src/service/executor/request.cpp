@@ -42,7 +42,7 @@ network::Message ExecutorRequestLogicalThread::MPODown( const network::Message& 
     if( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
     {
         network::ReceivedMessage receivedMsg{ shared_from_this(), request };
-        pSim->receive( receivedMsg );
+        pSim->receiveMessage( receivedMsg );
         LogicalThreadBase::OutBoundRequestStack stack( shared_from_this() );
         return dispatchInBoundRequestsUntilResponse( yield_ctx );
     }

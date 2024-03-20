@@ -132,20 +132,19 @@ public:
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
     // network::report::Impl
-    virtual Report GetReport( const URL&    url,
-                              const std::vector< Report >& report,
-                              boost::asio::yield_context&  yield_ctx ) override;
+    virtual Report
+    GetReport( const URL& url, const std::vector< Report >& report, boost::asio::yield_context& yield_ctx ) override;
 
     // network::memory::Impl
     virtual void MPODestroyed( const runtime::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl
     virtual std::vector< network::LogicalThreadID >
-    JobStart( const utilities::ToolChain&                                   toolChain,
-              const pipeline::Configuration&                                configuration,
-              const network::LogicalThreadID&                               rootLogicalThreadID,
+    JobStart( const utilities::ToolChain&,
+              const pipeline::Configuration&,
+              const network::LogicalThreadID&,
               const std::vector< std::vector< network::LogicalThreadID > >& jobs,
-              boost::asio::yield_context&                                   yield_ctx ) override
+              boost::asio::yield_context& ) override
     {
         std::vector< network::LogicalThreadID > result;
         for( const auto& j : jobs )

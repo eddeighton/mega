@@ -59,10 +59,10 @@ public:
     virtual boost::system::error_code send( const Message& responseMessage ) override;
     virtual boost::system::error_code send( const Message& responseMessage, boost::asio::yield_context& ) override;
 
-    virtual void receive( const ReceivedMessage& msg ) = 0;
+    virtual void receiveMessage( const ReceivedMessage& msg ) = 0;
 
 protected:
-    virtual void requestStarted( Sender::Ptr pRequestResponseSender ){};
+    virtual void requestStarted( Sender::Ptr ){};
     virtual void requestCompleted(){};
 
 public:

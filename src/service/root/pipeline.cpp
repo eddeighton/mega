@@ -146,13 +146,17 @@ RootPipelineLogicalThread::PipelineRun( const mega::pipeline::Configuration& con
     }
 
     // send termination task to each job
-    for( const network::LogicalThreadID& jobID : m_jobs )
     {
-        m_taskReady.async_send( boost::system::error_code(), mega::pipeline::TaskDescriptor(), yield_ctx );
+        for( std::size_t s = 0U; s != m_jobs.size(); ++s )
+        {
+            m_taskReady.async_send( boost::system::error_code(), mega::pipeline::TaskDescriptor(), yield_ctx );
+        }
     }
-    for( const network::LogicalThreadID& jobID : m_jobs )
     {
-        m_taskComplete.async_receive( yield_ctx );
+        for( std::size_t s = 0U; s != m_jobs.size(); ++s )
+        {
+            m_taskComplete.async_receive( yield_ctx );
+        }
     }
 
     {

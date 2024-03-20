@@ -51,7 +51,6 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
         status.setDescription( m_python.getProcessName() );
 
         using MPOTimeStampVec = std::vector< std::pair< runtime::MPO, runtime::TimeStamp > >;
-        using MPOVec          = std::vector< runtime::MPO >;
         if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
             status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
         if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
@@ -69,9 +68,7 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
     return status;
 }
 
-Report MPOLogicalThread::GetReport( const URL&    url,
-                                    const std::vector< Report >& report,
-                                    boost::asio::yield_context&  yield_ctx )
+Report MPOLogicalThread::GetReport( const URL& url, const std::vector< Report >& report, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "MPOLogicalThread::GetReport" );
     VERIFY_RTE( report.empty() );
@@ -83,7 +80,7 @@ Report MPOLogicalThread::GetReport( const URL&    url,
 }
 
 network::Status PythonRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                       boost::asio::yield_context&           yield_ctx )
+                                                       boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "PythonRequestLogicalThread::GetStatus" );
 
@@ -106,16 +103,16 @@ network::Status PythonRequestLogicalThread::GetStatus( const std::vector< networ
     return status;
 }
 
-std::string PythonRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string PythonRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& )
 {
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }
 
-Report PythonRequestLogicalThread::GetReport( const URL&    url,
+Report PythonRequestLogicalThread::GetReport( const URL&                   url,
                                               const std::vector< Report >& report,
-                                              boost::asio::yield_context&  yield_ctx )
+                                              boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "PythonRequestLogicalThread::GetReport" );
     using namespace std::string_literals;

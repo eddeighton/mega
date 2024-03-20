@@ -101,7 +101,7 @@ public:
     {
         m_bSendingOwnMoveRequests = false;
 
-        for( const auto& [ from, to ] : m_movedObjects )
+        // for( const auto& [ from, to ] : m_movedObjects )
         {
             THROW_TODO;
             // MPORealVisitor                                        reader( from );
@@ -115,11 +115,11 @@ public:
         return !m_bSendingOwnMoveRequests;
     }
 
-    inline void onMoveRequest( const MoveRequest& msg )
+    inline void onMoveRequest( const MoveRequest& )
     {
         //
     }
-    inline void onMoveResponse( const MoveResponse& msg )
+    inline void onMoveResponse( const MoveResponse& )
     {
         //
     }

@@ -127,7 +127,7 @@ void ToolMPOLogicalThread::RootSimRun( const runtime::MPO& mpo, boost::asio::yie
 }
 
 network::Status ToolMPOLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                 boost::asio::yield_context&           yield_ctx )
+                                                 boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "ToolRequestLogicalThread::GetStatus" );
 
@@ -148,7 +148,6 @@ network::Status ToolMPOLogicalThread::GetStatus( const std::vector< network::Sta
         status.setDescription( m_tool.getProcessName() );
 
         using MPOTimeStampVec = std::vector< std::pair< runtime::MPO, runtime::TimeStamp > >;
-        using MPOVec          = std::vector< runtime::MPO >;
         if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
             status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
         if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
@@ -166,9 +165,8 @@ network::Status ToolMPOLogicalThread::GetStatus( const std::vector< network::Sta
     return status;
 }
 
-Report ToolMPOLogicalThread::GetReport( const URL&                   url,
-                                        const std::vector< Report >& report,
-                                        boost::asio::yield_context&  yield_ctx )
+Report
+ToolMPOLogicalThread::GetReport( const URL& url, const std::vector< Report >& report, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "Tool::GetReport" );
     VERIFY_RTE( report.empty() );

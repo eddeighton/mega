@@ -60,27 +60,24 @@ public:
                                                      boost::asio::yield_context& yield_ctx ) override;
 
     // pipeline::Stash implement pipeline::Stash so that can create schedule - not actually used
-    virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath ) override
+    virtual task::FileHash getBuildHashCode( const boost::filesystem::path& ) override
     {
         THROW_RTE( "Root: Unreachable" );
     }
-    virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) override
+    virtual void setBuildHashCode( const boost::filesystem::path&, task::FileHash ) override
     {
         THROW_RTE( "Root: Unreachable" );
     }
-    virtual void stash( const boost::filesystem::path& filePath, task::DeterminantHash determinant ) override
+    virtual void stash( const boost::filesystem::path&, task::DeterminantHash ) override
     {
         THROW_RTE( "Root: Unreachable" );
     }
-    virtual bool restore( const boost::filesystem::path& filePath, task::DeterminantHash determinant ) override
+    virtual bool restore( const boost::filesystem::path&, task::DeterminantHash ) override
     {
         THROW_RTE( "Root: Unreachable" );
     }
     virtual mega::SymbolTable getSymbolTable() override { THROW_RTE( "Root: Unreachable" ); }
-    virtual mega::SymbolTable newSymbols( const mega::SymbolRequest& request ) override
-    {
-        THROW_RTE( "Root: Unreachable" );
-    }
+    virtual mega::SymbolTable newSymbols( const mega::SymbolRequest& ) override { THROW_RTE( "Root: Unreachable" ); }
 
     // pipeline::Progress
     virtual void onStarted( const std::string& strMsg ) override { onProgress( strMsg ); }

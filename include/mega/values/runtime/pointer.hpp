@@ -133,7 +133,7 @@ public:
     inline concrete::TypeIDInstance getTypeIDInstance() const { return concrete::TypeIDInstance{ m_type }; }
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int )
+    inline void serialize( Archive&, const unsigned int )
     {
         if constexpr( boost::serialization::IsXMLArchive< Archive >::value )
         {

@@ -26,9 +26,9 @@
 namespace mega::service
 {
 // network::enrole::Impl
-runtime::MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&               startupUUID,
-                                                     const mega::network::Node& type,
-                                                     boost::asio::yield_context&      yield_ctx )
+runtime::MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&          startupUUID,
+                                                              const mega::network::Node&  type,
+                                                              boost::asio::yield_context& yield_ctx )
 {
     network::Server::Connection::Ptr pConnection
         = m_daemon.m_server.getConnection( getOriginatingStackResponseSender() );
@@ -36,7 +36,7 @@ runtime::MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&
     pConnection->setType( type );
 
     const mega::runtime::MP leafMP = getRootRequest< network::enrole::Request_Encoder >( yield_ctx )
-                                .EnroleLeafWithRoot( startupUUID, m_daemon.m_machineID );
+                                         .EnroleLeafWithRoot( startupUUID, m_daemon.m_machineID );
     SPDLOG_TRACE( "Leaf enroled as {}", leafMP );
 
     m_daemon.m_server.labelConnection( leafMP, pConnection );
@@ -45,9 +45,9 @@ runtime::MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&
     return leafMP;
 }
 
-void DaemonRequestLogicalThread::EnroleDaemonSpawn( const std::string&          strProgram,
-                                                    const std::string&          strStartupUUID,
-                                                    boost::asio::yield_context& yield_ctx )
+void DaemonRequestLogicalThread::EnroleDaemonSpawn( const std::string& strProgram,
+                                                    const std::string& strStartupUUID,
+                                                    boost::asio::yield_context& )
 {
     boost::asio::post(
         [ strProgram, strStartupUUID ]()

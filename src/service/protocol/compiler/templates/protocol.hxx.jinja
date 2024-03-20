@@ -101,7 +101,7 @@ public:
     Message dispatchInBoundRequest( const Message& msg, boost::asio::yield_context& yield_ctx );
 
 {% for request in requests %}
-    virtual {{ request.return_type }} {{ request.name }}( {%for p in request.params%}const {{p.type}}& {{p.name}},{%endfor%}boost::asio::yield_context& yield_ctx ) 
+    virtual {{ request.return_type }} {{ request.name }}( {%for p in request.params%}const {{p.type}}& ,{%endfor%}boost::asio::yield_context&  ) 
     {
         THROW_RTE( "{{ request.name }} called when NOT implemented" );
     }
