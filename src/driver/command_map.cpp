@@ -49,7 +49,7 @@
 namespace driver::map
 {
 
-void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& , bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path schematicFilePath, projectPath, outputFilePath;
     bool bTest = false;
@@ -87,7 +87,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         {
             schematic::format::Node c;
             c.name = "child";
-            schematic::format::Node::Site* pSite = c.mutable_site();
 
             root.children.insert( { i, c } );
         }

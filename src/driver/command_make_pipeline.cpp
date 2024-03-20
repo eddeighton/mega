@@ -48,7 +48,7 @@
 namespace driver::make_pipeline
 {
 
-void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& , bool bHelp, const std::vector< std::string >& args )
 {
     std::string             projectName, strComponentInfoPaths;
     boost::filesystem::path srcDir, buildDir, installDir, templatesDir, toolchainXML, unityProjectDir, unityEditor,

@@ -51,7 +51,7 @@ MPOContext* getMPOContext()
 void resetMPOContext()
 {
 }
-void setMPOContext( MPOContext* pMPOContext )
+void setMPOContext( MPOContext*  )
 {
 }
 } // namespace mega
@@ -83,7 +83,6 @@ int main( int argc, const char* argv[] )
     boost::filesystem::path logDir             = boost::filesystem::current_path();
     std::string             strConsoleLogLevel = "info";
     std::string             strLogFileLevel    = "off";
-    bool                    bWait              = false;
 
     std::bitset< TOTAL_MAIN_COMMANDS > cmds;
     MainCommand                        mainCmd = TOTAL_MAIN_COMMANDS;

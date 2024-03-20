@@ -58,7 +58,6 @@ mega::runtime::MPO toMPO( const std::string& strMPO )
 
 void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
 {
-    bool        bList = false;
     std::string strCreate, strList, strDestroy, strID, strRead, strWrite, strRelease, strSuspend, strResume, strStop,
         strStart, strErrorCheck;
 

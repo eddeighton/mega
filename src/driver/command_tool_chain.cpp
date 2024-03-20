@@ -39,7 +39,7 @@ namespace driver
 {
 namespace tool_chain
 {
-void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log& , bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path clangPlugin, parser, megaCompiler, megaExecutor, clangCompiler, database, megaMangle, leaf;
     boost::filesystem::path outputFilePath;

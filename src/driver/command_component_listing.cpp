@@ -44,7 +44,7 @@
 namespace driver::component_listing
 {
 
-void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log&, bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path srcDir, buildDir, componentSrcDir, componentBuildDir, componentFilePath;
     std::string strType, strComponentName, strCPPFlags, strCPPDefines, strIncludeDirectories, strDependencyFilePaths;
@@ -78,7 +78,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
-    if ( bHelp )
+    if( bHelp )
     {
         std::cout << commandOptions << "\n";
     }
@@ -96,29 +96,29 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         const std::vector< boost::filesystem::path > includeDirectories
             = mega::utilities::pathListToFolders( mega::utilities::parseCMakeStringList( strIncludeDirectories, ";" ) );
 
-        mega::io::Directories directories{ srcDir, buildDir, "", "" };
-        mega::io::BuildEnvironment  environment( directories );
+        mega::io::Directories      directories{ srcDir, buildDir, "", "" };
+        mega::io::BuildEnvironment environment( directories );
 
         const mega::ComponentType componentType = mega::ComponentType::fromStr( strType.c_str() );
 
-        switch ( componentType.get() )
+        switch( componentType.get() )
         {
             case mega::ComponentType::eInterface:
             {
-                for ( const boost::filesystem::path& srcFile : inputSourceFiles )
-                {
-                    // VERIFY_RTE_MSG( srcFile.extension() == mega::io::megaFilePath::extension() || 
-                    //                 srcFile.extension() == mega::io::schFilePath::extension(),
-                    //                 "Source file is NOT a mega source file or Schematic: " << srcFile.string() );
-                }
+                // for ( const boost::filesystem::path& srcFile : inputSourceFiles )
+                // {
+                //     // VERIFY_RTE_MSG( srcFile.extension() == mega::io::megaFilePath::extension() ||
+                //     //                 srcFile.extension() == mega::io::schFilePath::extension(),
+                //     //                 "Source file is NOT a mega source file or Schematic: " << srcFile.string() );
+                // }
             }
             break;
             case mega::ComponentType::eLibrary:
             {
-                for ( const boost::filesystem::path& srcFile : inputSourceFiles )
+                for( const boost::filesystem::path& srcFile : inputSourceFiles )
                 {
-                    VERIFY_RTE_MSG( srcFile.extension() == mega::io::cppFilePath::extension() ||
-                                    srcFile.extension() == mega::io::schFilePath::extension(),
+                    VERIFY_RTE_MSG( srcFile.extension() == mega::io::cppFilePath::extension()
+                                        || srcFile.extension() == mega::io::schFilePath::extension(),
                                     "Source file is NOT a C++ source file or Schematic: " << srcFile.string() );
                 }
             }
@@ -143,4 +143,4 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
         environment.temp_to_real( componentListingFilePath );
     }
 }
-} // namespace driver
+} // namespace driver::component_listing

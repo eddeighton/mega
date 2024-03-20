@@ -59,14 +59,11 @@ bool runBuild( const mega::service::Project& project, const mega::io::Directorie
         boost::asio::io_service ios;
         std::error_code         ec;
 
-        bp::child c( buildCmd
-                , bp::start_dir = directories.buildDir
-                , bp::std_in.close()
-                , bp::std_out > output
-                , bp::std_err > error
-                , bp::error_code( ec )
-                
-                , ios );
+        bp::child c( buildCmd, bp::start_dir = directories.buildDir, bp::std_in.close(), bp::std_out > output,
+                     bp::std_err > error, bp::error_code( ec )
+
+                                              ,
+                     ios );
 
         ios.run();
     }
@@ -84,8 +81,8 @@ bool runBuild( const mega::service::Project& project, const mega::io::Directorie
         using namespace std::string_literals;
         const std::string strFAILED = "FAILED:"s;
 
-         bWasError
-             = std::search( strOutput.begin(), strOutput.end(), strFAILED.begin(), strFAILED.end() ) != strOutput.end();
+        bWasError
+            = std::search( strOutput.begin(), strOutput.end(), strFAILED.begin(), strFAILED.end() ) != strOutput.end();
 
         if( bWasError )
         {
@@ -97,7 +94,7 @@ bool runBuild( const mega::service::Project& project, const mega::io::Directorie
     return bWasError;
 }
 
-void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log&, bool bHelp, const std::vector< std::string >& args )
 {
     std::string projectName;
 
@@ -145,7 +142,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
             boost::filesystem::create_directories( workBinPath );
         }
 
-        bool                    bNewDatabase = false;
         boost::filesystem::path databaseHashFile;
         {
             boost::filesystem::path  databaseArchivePath = directories.buildDir / "database.archive";
@@ -162,12 +158,10 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
             if( boost::filesystem::copyFileIfChanged( databaseArchivePath, databaseHashFile ) )
             {
-                bNewDatabase = true;
                 std::cout << "Generated db at: " << databaseHashFile.string() << std::endl;
             }
         }
 
-        bool                                          bNewComponent = false;
         std::vector< ProgramManifest::ComponentHash > components;
         {
             using namespace FinalStage;
@@ -186,7 +180,6 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
 
                 if( boost::filesystem::copyFileIfChanged( componentFilePath, soHashFile ) )
                 {
-                    bNewComponent = true;
                     std::cout << "Generated Component: " << pComponent->get_name() << " : " << pComponent->get_type()
                               << " : " << soHashFile.string() << std::endl;
                 }

@@ -144,11 +144,11 @@ void printLog( mega::event::FileStorage& log, const Options& options, mega::runt
             osMem << memoryRecord.getRef();
 
             int x = 0;
-            for( auto i = data.begin(), iEnd = data.end(); i != iEnd; ++i, ++x )
+            for( auto j = data.begin(), jEnd = data.end(); j != jEnd; ++j, ++x )
             {
                 if( x % 4 == 0 )
                     osMem << ' ';
-                osMem << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast< unsigned >( *i );
+                osMem << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast< unsigned >( *j );
             }
 
             SPDLOG_INFO( osMem.str() );
@@ -157,7 +157,7 @@ void printLog( mega::event::FileStorage& log, const Options& options, mega::runt
 }
 } // namespace
 
-void command( mega::network::Log& log, bool bHelp, const std::vector< std::string >& args )
+void command( mega::network::Log&, bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path logFolderPath;
 
@@ -233,7 +233,7 @@ void command( mega::network::Log& log, bool bHelp, const std::vector< std::strin
                         timestamp = log.getTimeStamp();
 
                         timer.expires_from_now( rate );
-                        timer.async_wait( [ next = *this ]( boost::system::error_code ec )
+                        timer.async_wait( [ next = *this ]( boost::system::error_code )
                                           { boost::asio::post( next.io, next ); } );
                     }
                 } callback{ io, timer, rate, timestamp, logFolderPath, options };
