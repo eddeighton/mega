@@ -193,7 +193,7 @@ void Analysis::properties()
     // interpret properties
     for( auto& pPartition : m_floors )
     {
-        for( const auto pProperty : pPartition->properties )
+        for( const auto& pProperty : pPartition->properties )
         {
             if( pProperty->getName() == "room" )
             {
@@ -231,7 +231,7 @@ void Analysis::properties()
     for( auto& pPartitionSegment : m_boundarySegments )
     {
         // determine the partition segment plane
-        for( const auto pProperty : pPartitionSegment->properties )
+        for( const auto& pProperty : pPartitionSegment->properties )
         {
             if( pProperty->getName() == "plane" )
             {

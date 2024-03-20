@@ -158,8 +158,8 @@ void Analysis::constructConnectionEdges( schematic::Connection::Ptr pConnection,
 
         for( auto v : first )
         {
-            Arrangement::Halfedge_around_vertex_circulator first, iter;
-            first = iter = v->incident_halfedges();
+            Arrangement::Halfedge_around_vertex_circulator firstVertex, iter;
+            firstVertex = iter = v->incident_halfedges();
             do
             {
                 if( second.contains( iter->source() ) )
@@ -176,7 +176,7 @@ void Analysis::constructConnectionEdges( schematic::Connection::Ptr pConnection,
                     }
                 }
                 ++iter;
-            } while( iter != first );
+            } while( iter != firstVertex );
         }
     }
 
@@ -374,7 +374,7 @@ void Analysis::cut( schematic::Site::Ptr pSite )
 
         Curve_handle curve = CGAL::insert( m_arr, Curve( ptStart, ptEnd ) );
 
-        //std::vector< HalfEdge > toRemove;
+        // std::vector< HalfEdge > toRemove;
         for( auto i = m_arr.induced_edges_begin( curve ); i != m_arr.induced_edges_end( curve ); ++i )
         {
             HalfEdge h = *i;

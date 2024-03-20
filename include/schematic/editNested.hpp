@@ -72,8 +72,8 @@ protected:
     IGlyph::Ptr  createControlPointGlyph( ControlPoint* pControlPoint );
     virtual IGlyph::Ptr  getControlPointGlyph( ControlPoint* pControlPoint );
 
-    Site::Ptr       m_pSite;
     IEditContext&   m_parent;
+    Site::Ptr       m_pSite;
     FeatureGlyphMap m_features;
     GlyphMap        m_glyphs;
     IGlyph::Ptr     m_pMainGlyph;

@@ -91,40 +91,42 @@ Interaction::Interaction( EditBase& edit, IEditContext::ToolMode toolMode, Float
                 if( const Feature* pFeature = dynamic_cast< const Feature* >( pProducer ) )
                 {
                     // find origin
-                    const Origin* pOrigin = nullptr;
-                    const Node*   pIter   = pFeature;
+                    const Origin* pFoundOrigin = nullptr;
+                    const Node*   pIter        = pFeature;
                     while( pIter )
                     {
-                        if( pOrigin = dynamic_cast< const Origin* >( pIter ) )
+                        if( pFoundOrigin = dynamic_cast< const Origin* >( pIter ); pFoundOrigin )
                         {
                             break;
                         }
                         pIter = pIter->getParent().get();
                     }
 
-                    VERIFY_RTE( pOrigin );
+                    VERIFY_RTE( pFoundOrigin );
 
-                    const Transform relativeTransform = pOrigin->getAbsoluteTransform() * pOrigin->getTransform();
+                    const Transform relativeTransform
+                        = pFoundOrigin->getAbsoluteTransform() * pFoundOrigin->getTransform();
 
                     // Transform relativeTransform =
-                    //     pOrigin->getAbsoluteTransform();
+                    //     pFoundOrigin->getAbsoluteTransform();
                     //
                     ////if( pIter != edit.getNode().get() )
-                    //    relativeTransform = relativeTransform * pOrigin->getTransform();
+                    //    relativeTransform = relativeTransform * pFoundOrigin->getTransform();
 
-                    m_initialTransforms.push_back( pOrigin->getTransform() );
+                    m_initialTransforms.push_back( pFoundOrigin->getTransform() );
                     m_initialRelativeTransforms.push_back( relativeTransform );
                     m_initialTransformInverses.push_back( relativeTransform.inverse() );
                 }
-                else if( const Origin* pOrigin = dynamic_cast< const Origin* >( pProducer ) )
+                else if( const Origin* pProducerOrigin = dynamic_cast< const Origin* >( pProducer ) )
                 {
-                    const Transform relativeTransform = pOrigin->getAbsoluteTransform() * pOrigin->getTransform();
+                    const Transform relativeTransform
+                        = pProducerOrigin->getAbsoluteTransform() * pProducerOrigin->getTransform();
 
-                    m_initialTransforms.push_back( pOrigin->getTransform() );
+                    m_initialTransforms.push_back( pProducerOrigin->getTransform() );
                     m_initialRelativeTransforms.push_back( relativeTransform );
                     m_initialTransformInverses.push_back( relativeTransform.inverse() );
                 }
-                else if( const File* pFile = dynamic_cast< const File* >( pProducer ) )
+                else if( dynamic_cast< const File* >( pProducer ) )
                 {
                     const Transform transform( CGAL::IDENTITY );
                     m_initialTransforms.push_back( transform );
@@ -216,8 +218,7 @@ Node::Ptr InteractionToolWrapper::GetInteractionNode() const
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-Polygon_Interaction::Polygon_Interaction( Site& site, Float x, Float y, Float qX, Float qY,
-                                          std::size_t szIndex )
+Polygon_Interaction::Polygon_Interaction( Site& site, Float x, Float y, Float qX, Float qY, std::size_t szIndex )
     : m_site( site )
     , m_qX( qX )
     , m_qY( qY )

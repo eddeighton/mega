@@ -403,10 +403,10 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
             }
 
             auto findSiteContours
-                = [ pSegment ]( const Analysis::HalfEdgeCstVector& boundary, Analysis::HalfEdgeCstSet& siteEdges )
+                = [ pSegment ]( const Analysis::HalfEdgeCstVector& boundary_, Analysis::HalfEdgeCstSet& siteEdges )
             {
                 Analysis::FaceCstVector facesWithinSegment;
-                getSortedFacesInsidePolygon( boundary, facesWithinSegment );
+                getSortedFacesInsidePolygon( boundary_, facesWithinSegment );
                 for( auto f : facesWithinSegment )
                 {
                     visitEdgesOfFace( f,

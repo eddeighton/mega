@@ -57,7 +57,7 @@ void EditBase::onEditted( bool bCommandCompleted )
     m_glyphFactory.onEditted( bCommandCompleted );
 }
 
-bool EditBase::interaction_hover( Float x, Float y, IGlyph*& pPoint1, IGlyph*& pPoint2 )
+bool EditBase::interaction_hover( Float, Float, IGlyph*&, IGlyph*& )
 {
     return false;
 }
@@ -266,8 +266,7 @@ IEditContext* EditBase::getNestedContext( const std::vector< IGlyph* >& candidat
 {
     IEditContext* pEditContext = 0u;
 
-    for( auto i = candidates.begin(), iEnd = candidates.end();
-         i != iEnd && !pEditContext; ++i )
+    for( auto i = candidates.begin(), iEnd = candidates.end(); i != iEnd && !pEditContext; ++i )
     {
         for( auto j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
         {
@@ -292,7 +291,7 @@ IEditContext* EditBase::getNodeContext( Node::Ptr pNode )
     return nullptr;
 }
 
-bool EditBase::canEdit( IGlyph* pGlyph, ToolType toolType, ToolMode toolMode, bool bAllowPoints, bool bAllowSites,
+bool EditBase::canEdit( IGlyph* pGlyph, ToolType, ToolMode toolMode, bool bAllowPoints, bool bAllowSites,
                         bool bAllowConnections ) const
 {
     const GlyphSpec* pGlyphSpec = pGlyph->getGlyphSpec();
@@ -553,8 +552,7 @@ IInteraction::Ptr EditBase::cmd_paste( Node::Ptr pPaste, Float x, Float y, Float
     Node::PtrVector nodes;
     if( Schematic::Ptr pClip = boost::dynamic_pointer_cast< Schematic >( pPaste ) )
     {
-        for( auto i = pClip->getChildren().begin(), iEnd = pClip->getChildren().end();
-             i != iEnd; ++i )
+        for( auto i = pClip->getChildren().begin(), iEnd = pClip->getChildren().end(); i != iEnd; ++i )
         {
             if( Node::Ptr pSite = boost::dynamic_pointer_cast< Node >( *i ) )
                 nodes.push_back( pSite );
@@ -752,7 +750,7 @@ void EditBase::cmd_extrude( const std::set< IGlyph* >& selection, double dbAmoun
     onEditted( true );
 }
 
-void EditBase::cmd_union_impl( const std::vector< Site* >& sites, bool bCreateWallsForHoles )
+void EditBase::cmd_union_impl( const std::vector< Site* >& sites, bool /* bCreateWallsForHoles */ )
 {
     if( sites.size() < 2U )
         return;
@@ -939,14 +937,14 @@ void EditBase::cmd_union( const std::set< IGlyph* >& selection )
         std::vector< Site* > walls;
         std::vector< Site* > objects;
 
-        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i : selection )
         {
-            if( const Space* pSite = dynamic_cast< const Space* >( ( *i )->getGlyphSpec() ) )
-                spaces.push_back( const_cast< Space* >( pSite ) );
-            else if( const Wall* pSite = dynamic_cast< const Wall* >( ( *i )->getGlyphSpec() ) )
-                walls.push_back( const_cast< Wall* >( pSite ) );
-            else if( const Object* pSite = dynamic_cast< const Object* >( ( *i )->getGlyphSpec() ) )
-                objects.push_back( const_cast< Object* >( pSite ) );
+            if( const Space* pSpace = dynamic_cast< const Space* >( i->getGlyphSpec() ) )
+                spaces.push_back( const_cast< Space* >( pSpace ) );
+            else if( const Wall* pWall = dynamic_cast< const Wall* >( i->getGlyphSpec() ) )
+                walls.push_back( const_cast< Wall* >( pWall ) );
+            else if( const Object* pObject = dynamic_cast< const Object* >( i->getGlyphSpec() ) )
+                objects.push_back( const_cast< Object* >( pObject ) );
         }
 
         cmd_union_impl( spaces, true );
@@ -959,9 +957,9 @@ void EditBase::cmd_union( const std::set< IGlyph* >& selection )
 void EditBase::cmd_filter( const std::set< IGlyph* >& selection )
 {
     {
-        for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+        for( auto i : selection )
         {
-            if( const Site* pSiteCst = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
+            if( const Site* pSiteCst = dynamic_cast< const Site* >( i->getGlyphSpec() ) )
             {
                 Site* pSite = const_cast< Site* >( pSiteCst );
                 pSite->cmd_filter();
@@ -976,9 +974,9 @@ void EditBase::cmd_aabb( const std::set< IGlyph* >& selection )
     {
         Site::PtrVector sites;
         {
-            for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+            for( auto i : selection )
             {
-                if( const Site* pSiteCst = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
+                if( const Site* pSiteCst = dynamic_cast< const Site* >( i->getGlyphSpec() ) )
                 {
                     Site* pSite = const_cast< Site* >( pSiteCst );
                     sites.push_back( boost::dynamic_pointer_cast< Site >( pSite->getPtr() ) );
@@ -999,9 +997,9 @@ void EditBase::cmd_convexHull( const std::set< IGlyph* >& selection )
     {
         Site::PtrVector sites;
         {
-            for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+            for( auto i : selection )
             {
-                if( const Site* pSiteCst = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
+                if( const Site* pSiteCst = dynamic_cast< const Site* >( i->getGlyphSpec() ) )
                 {
                     Site* pSite = const_cast< Site* >( pSiteCst );
                     sites.push_back( boost::dynamic_pointer_cast< Site >( pSite->getPtr() ) );
@@ -1023,9 +1021,9 @@ void EditBase::cmd_reparent( const std::set< IGlyph* >& selection )
         Site::PtrVector sites;
         {
             Site::PtrSet sitesSet;
-            for( auto i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
+            for( auto i : selection )
             {
-                if( const Site* pSiteCst = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
+                if( const Site* pSiteCst = dynamic_cast< const Site* >( i->getGlyphSpec() ) )
                 {
                     Site*     pSite    = const_cast< Site* >( pSiteCst );
                     Site::Ptr pSitePtr = boost::dynamic_pointer_cast< Site >( pSite->getPtr() );

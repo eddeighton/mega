@@ -51,7 +51,6 @@ void Object::load( const format::Node& node )
 {
     Site::load( node );
     VERIFY_RTE( node.has_site() && node.site().has_object() );
-    const format::Node::Site::Object& object = node.site().object();
     m_pContour = get< Feature_Contour >( "contour" );
     VERIFY_RTE_MSG( m_pContour, "Object contour not found" );
 
@@ -59,7 +58,6 @@ void Object::load( const format::Node& node )
 
 void Object::save( format::Node& node ) const
 {
-    format::Node::Site::Object& object = *node.mutable_site()->mutable_object();
     Site::save( node );
 }
 

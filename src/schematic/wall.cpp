@@ -49,14 +49,12 @@ void Wall::load( const format::Node& node )
 {
     Site::load( node );
     VERIFY_RTE( node.has_site() && node.site().has_wall() );
-    const format::Node::Site::Wall& wall = node.site().wall();
     m_pContour = get< Feature_Contour >( "contour" );
     VERIFY_RTE_MSG( m_pContour, "Wall contour not found" );
 }
 
 void Wall::save( format::Node& node ) const
 {
-    format::Node::Site::Wall& wall = *node.mutable_site()->mutable_wall();
     Site::save( node );
 }
 

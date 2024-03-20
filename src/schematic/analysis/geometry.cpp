@@ -31,8 +31,7 @@ namespace exact
 
 int pointLineSegmentDistance( const Value& point, const Value& lineStart, const Value& lineEnd )
 {
-    using IntPoint   = boost::geometry::model::point< int, 2, boost::geometry::cs::cartesian >;
-    using IntSegment = boost::geometry::model::segment< IntPoint >;
+    using IntPoint = boost::geometry::model::point< int, 2, boost::geometry::cs::cartesian >;
 
     // does the line segment face the point?
     const IntPoint v1{ lineStart.x, lineStart.y };

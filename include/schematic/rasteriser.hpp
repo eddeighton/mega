@@ -24,15 +24,16 @@
 
 #include "schematic/buffer.hpp"
 
-#ifdef _WIN32
 
-#else
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+#pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wno-deprecated-enum-enum-conversion"
+// #pragma GCC diagnostic ignored "-Wno-deprecated-enum-float-conversion"
+// #pragma GCC diagnostic ignored "-Wno-return-local-addr"
+// #pragma GCC diagnostic ignored "-Wno-register"
 
-// #pragma PUSH_GCC_OPTIONS
-#pragma diagnostic ignored "-Wno-deprecated-enum-enum-conversion"
-#pragma diagnostic ignored "-Wno-deprecated-enum-float-conversion"
-#pragma diagnostic ignored "-Wno-return-local-addr"
-#pragma diagnostic ignored "-Wno-register"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #include "agg_basics.h"
 // #include "agg_pixfmt_rgba.h"
@@ -46,9 +47,9 @@
 #include "agg_trans_affine.h"
 #include "agg_conv_transform.h"
 
-// #pragma POP_GCC_OPTIONS
-
-#endif
+#pragma GCC diagnostic pop
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 
 #include <vector>
 

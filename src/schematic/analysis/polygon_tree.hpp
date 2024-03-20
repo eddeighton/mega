@@ -220,7 +220,7 @@ sortPolygonNodes( std::vector< typename PolygonNodeT< HalfEdgeType, FaceType, No
     {
         iCount += r->validate();
     }
-    INVARIANT( iCount == nodes.size(), "Poly tree error" );
+    INVARIANT( iCount == static_cast< int >( nodes.size() ), "Poly tree error" );
 
     return rootNodes;
 }

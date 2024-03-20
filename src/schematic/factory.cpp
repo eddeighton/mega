@@ -54,16 +54,15 @@ format::Node loadFile( const std::string& strFilePath )
         Ed::Node rootNode;
         {
             Ed::BasicFileSystem fileSystem;
-            Ed::File            file( fileSystem, strFilePath );
+            Ed::File            edFile( fileSystem, strFilePath );
 
-            //file.expandShorthand();
-            //file.removeTypes();
+            // file.expandShorthand();
+            // file.removeTypes();
 
-            file.toNode( rootNode );
+            edFile.toNode( rootNode );
         }
 
-        VERIFY_RTE_MSG( rootNode.children.size() == 1,
-            "File has more than one root node: " << strFilePath );
+        VERIFY_RTE_MSG( rootNode.children.size() == 1U, "File has more than one root node: " << strFilePath );
 
         for( const auto& n : rootNode )
         {
@@ -113,7 +112,6 @@ File::Ptr load( const boost::filesystem::path& filePath )
         // dispatch to the concrete type and instantiate it
         if( file.has_schematic() )
         {
-            const format::Node::File::Schematic& schematic = file.schematic();
             pFile.reset( new schematic::Schematic( strFilePath ) );
         }
         else

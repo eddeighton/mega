@@ -52,7 +52,6 @@ void Cut::load( const format::Node& node )
     Site::load( node );
 
     VERIFY_RTE( node.has_site() && node.site().has_cut() );
-    const format::Node::Site::Cut& cut = node.site().cut();
 
     m_pLineSegment = get< Feature_LineSegment >( "segment" );
     VERIFY_RTE_MSG( m_pLineSegment, "Cut segment not found" );
@@ -60,7 +59,6 @@ void Cut::load( const format::Node& node )
 
 void Cut::save( format::Node& node ) const
 {
-    format::Node::Site::Cut& cut = *node.mutable_site()->mutable_cut();
     Site::save( node );
 }
 

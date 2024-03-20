@@ -189,7 +189,7 @@ public:
     {
         Pimpl*                        pThis = this;
         std::shared_ptr< ModuleImpl > pModule(
-            new ModuleImpl( *m_pLLJit, strModule ), [ pThis ]( Module* pModule ) { pThis->unload( pModule ); } );
+            new ModuleImpl( *m_pLLJit, strModule ), [ pThis ]( Module* pModule_ ) { pThis->unload( pModule_ ); } );
         m_modules.insert( pModule.get() );
         return pModule;
     }

@@ -80,7 +80,8 @@ struct Adjacency
     {
         if( ( value.x >= 0 ) && ( value.y >= 0 ) )
         {
-            if( ( value.x < raster.getBuffer().getWidth() ) && ( value.y < raster.getBuffer().getHeight() ) )
+            if( ( value.x < static_cast< int >( raster.getBuffer().getWidth() ) )
+                && ( value.y < static_cast< int >( raster.getBuffer().getHeight() ) ) )
             {
                 if( raster.getPixel( value.x, value.y ) == colourSpace
                     || raster.getPixel( value.x, value.y ) == colourLine )
@@ -171,7 +172,6 @@ astar::ErrorCode drawPath( const Value& vStart, Value& vEnd, const ValueSegmentV
 
         [ &goalSegments, &vEnd ]( const Value& best )
         {
-            int iMinDist = std::numeric_limits< int >::max();
             for( const auto& segment : goalSegments )
             {
                 const int m = pointLineSegmentDistance( best, segment.first, segment.second );
@@ -255,7 +255,7 @@ struct SchematicToBitmap
     }
 };
 
-void renderPoly( const SchematicToBitmap& converter, agg::path_storage& path, const Analysis::Partition* pPartition,
+void renderPoly( const SchematicToBitmap& converter, agg::path_storage& path, const Analysis::Partition*,
                  const Analysis::HalfEdgeVector& poly )
 {
     double x, y;
@@ -341,10 +341,9 @@ void calculateLaneSegments( const SchematicToBitmap& converter, schematic::Raste
 
     for( auto e : doorSteps )
     {
-        const auto       v      = e->target()->point() - e->source()->point();
-        const auto       n      = v.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
-        const double     length = CGAL::approximate_sqrt( CGAL::to_double( n.squared_length() ) );
-        const auto       p1     = e->source()->point() + ( v / 2.0 );
+        const auto       v  = e->target()->point() - e->source()->point();
+        const auto       n  = v.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
+        const auto       p1 = e->source()->point() + ( v / 2.0 );
         const exact::Ray r( p1, n );
 
         exact::Point p2;
@@ -595,10 +594,12 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
             if( isPartitionEdge( pPartition1, pPartition2 ) )
             {
                 edges.push_back( { pPartition1->uniqueID, pPartition2->uniqueID } );
-                INVARIANT( ( pPartition1->uniqueID >= 0 ) && ( pPartition1->uniqueID < floors.size() ),
-                           "Invalid partition uniqueID" );
-                INVARIANT( ( pPartition2->uniqueID >= 0 ) && ( pPartition2->uniqueID < floors.size() ),
-                           "Invalid partition uniqueID" );
+                INVARIANT(
+                    ( pPartition1->uniqueID >= 0 ) && ( pPartition1->uniqueID < static_cast< int >( floors.size() ) ),
+                    "Invalid partition uniqueID" );
+                INVARIANT(
+                    ( pPartition2->uniqueID >= 0 ) && ( pPartition2->uniqueID < static_cast< int >( floors.size() ) ),
+                    "Invalid partition uniqueID" );
                 doorStepGroups[ pPartition1->uniqueID ].push_back( e );
                 doorStepGroups[ pPartition2->uniqueID ].push_back( e->twin() );
                 allUsedDoorSteps.insert( e );
@@ -616,7 +617,7 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
     components.resize( iNumComponents );
     using PartitionToComponentMap = std::map< Analysis::Partition*, typename Component::Vector::const_iterator >;
     PartitionToComponentMap partitionsToComponents;
-    for( int iPartition = 0; iPartition != floors.size(); ++iPartition )
+    for( std::size_t iPartition = 0U; iPartition != floors.size(); ++iPartition )
     {
         const int            iComponentIndex = componentIndices[ iPartition ];
         Component&           component       = components[ iComponentIndex ];
@@ -736,7 +737,7 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
             for( const auto& [ fOffset, mask, maskBoundary ] : extrusions )
             {
                 auto result = CGAL::create_offset_polygons_2( fOffset, *pStraightSkeleton );
-                for( const auto poly : result )
+                for( const auto& poly : result )
                 {
                     auto i = poly->begin(), iNext = poly->begin(), iEnd = poly->end();
                     for( ; i != iEnd; ++i )
@@ -1043,7 +1044,7 @@ void Analysis::lanes()
                     }
                 }
 
-            } visitor( partitionFaces );
+            } visitor{ partitionFaces };
             for( auto n : rootNodes )
             {
                 visitor.floor( n );

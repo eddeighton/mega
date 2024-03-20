@@ -113,7 +113,6 @@ void Schematic::load( const format::Node& node )
 
 void Schematic::save( format::Node& node ) const
 {
-    format::Node::File::Schematic& schematic = *node.mutable_file()->mutable_schematic();
     File::save( node );
 }
 
@@ -547,8 +546,6 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( Mega::Plane                       
         }
     }*/
 
-    using ArrVert = exact::Analysis::VertexCst;
-
     const Mega::F3 normal( 0.0f, 1.0f, 0.0f );
 
     std::vector< fb::Offset< Mega::Vertex3D > > vertices;
@@ -860,16 +857,6 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( Mega::Plane                         
                 break;
         }
 
-        const bool bFirst = i == edgeVerts.begin();
-        const bool bLast  = i == edgeVerts.end() - 1;
-
-        /*if( !bIsLoop && bFirst )
-        {
-        }
-        else if( !bIsLoop && bLast )
-        {
-        }
-        else*/
         {
             auto v     = *i;
             auto vNext = *iNext;

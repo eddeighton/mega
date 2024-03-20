@@ -60,10 +60,10 @@ void loadProperty( const Ed::Node& parentNode, const std::string& strName, T& va
 
 void Node::load( const Ed::Node& edNode )
 {
-    const std::string type = edNode.statement.getIdentifier();
+    const std::string strType = edNode.statement.getIdentifier();
     {
         auto shorthandOpt = edNode.getShorty();
-        VERIFY_RTE_MSG( shorthandOpt.has_value(), "Node: " << type << " is missing value" );
+        VERIFY_RTE_MSG( shorthandOpt.has_value(), "Node: " << strType << " is missing value" );
 
         Ed::IShorthandStream is( shorthandOpt.value() );
 
@@ -71,85 +71,78 @@ void Node::load( const Ed::Node& edNode )
             const Ed::ArgumentVariant&               arg = is.read();
             boost::optional< const Ed::Expression& > opt
                 = boost::apply_visitor( boost::TypeAccessor< const Ed::Expression >(), arg );
-            VERIFY_RTE_MSG( opt.has_value(), "Type name has incorrect value: " << type );
+            VERIFY_RTE_MSG( opt.has_value(), "Type name has incorrect value: " << strType );
             name = opt.value().string();
         }
         {
             const Ed::ArgumentVariant&       arg = is.read();
             boost::optional< const double& > opt = boost::apply_visitor( boost::TypeAccessor< const double >(), arg );
-            VERIFY_RTE_MSG( opt.has_value(), "Type name has incorrect index: " << type );
+            VERIFY_RTE_MSG( opt.has_value(), "Type name has incorrect index: " << strType );
             index = static_cast< int >( opt.value() );
         }
     }
 
-    if( type == Node::Feature::Contour::TYPE )
+    if( strType == Node::Feature::Contour::TYPE )
     {
         auto p = mutable_feature()->mutable_contour();
         loadProperty( edNode, ".path", p->path );
     }
-    else if( type == Node::Feature::LineSegment::TYPE )
+    else if( strType == Node::Feature::LineSegment::TYPE )
     {
         auto p = mutable_feature()->mutable_lineSegment();
         loadProperty( edNode, ".start", p->start );
         loadProperty( edNode, ".end", p->end );
     }
-    else if( type == Node::Feature::Pin::TYPE )
+    else if( strType == Node::Feature::Pin::TYPE )
     {
         auto p = mutable_feature()->mutable_pin();
         loadProperty( edNode, ".position", p->position );
     }
-    else if( type == Node::Feature::Point::TYPE )
+    else if( strType == Node::Feature::Point::TYPE )
     {
         auto p = mutable_feature()->mutable_point();
         loadProperty( edNode, ".position", p->position );
     }
-    else if( type == Node::File::Schematic::TYPE )
+    else if( strType == Node::File::Schematic::TYPE )
     {
-        auto p = mutable_file()->mutable_schematic();
     }
-    else if( type == Node::Property::TYPE )
+    else if( strType == Node::Property::TYPE )
     {
         auto           p = mutable_property();
         Ed::Expression exp;
         loadProperty( edNode, ".value", exp );
         p->value = exp.string();
     }
-    else if( type == Node::Site::Connection::TYPE )
+    else if( strType == Node::Site::Connection::TYPE )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
-        auto p = s->mutable_connection();
     }
-    else if( type == Node::Site::Cut::TYPE )
+    else if( strType == Node::Site::Cut::TYPE )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
-        auto p = s->mutable_cut();
     }
-    else if( type == Node::Site::Object::TYPE )
+    else if( strType == Node::Site::Object::TYPE )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
-        auto p = s->mutable_object();
     }
-    else if( type == Node::Site::Space::TYPE )
+    else if( strType == Node::Site::Space::TYPE )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
-        auto p = s->mutable_space();
     }
-    else if( type == Node::Site::Wall::TYPE )
+    else if( strType == Node::Site::Wall::TYPE )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
-        auto p = s->mutable_wall();
     }
     else
     {
-        THROW_RTE( "Encountered unsupported type: " << type );
+        THROW_RTE( "Encountered unsupported type: " << strType );
     }
 
-    int i = 0;
     for( const auto& child : edNode.children )
     {
         const auto& strID = child.statement.getIdentifier();
@@ -224,7 +217,6 @@ void Node::save( Ed::Node& edNode ) const
         const File& f = file();
         if( f.has_schematic() )
         {
-            const File::Schematic& s = f.schematic();
             // NOTE - not saving name due to issues with file paths in ed
             saveTypeName( edNode, Node::File::Schematic::TYPE, "base", index );
         }
@@ -244,27 +236,22 @@ void Node::save( Ed::Node& edNode ) const
         const Site& s = site();
         if( s.has_connection() )
         {
-            const Site::Connection& c = s.connection();
             saveTypeName( edNode, Node::Site::Connection::TYPE, name, index );
         }
         else if( s.has_cut() )
         {
-            const Site::Cut& c = s.cut();
             saveTypeName( edNode, Node::Site::Cut::TYPE, name, index );
         }
         else if( s.has_object() )
         {
-            const Site::Object& o = s.object();
             saveTypeName( edNode, Node::Site::Object::TYPE, name, index );
         }
         else if( s.has_space() )
         {
-            const Site::Space& o = s.space();
             saveTypeName( edNode, Node::Site::Space::TYPE, name, index );
         }
         else if( s.has_wall() )
         {
-            const Site::Wall& o = s.wall();
             saveTypeName( edNode, Node::Site::Wall::TYPE, name, index );
         }
         else

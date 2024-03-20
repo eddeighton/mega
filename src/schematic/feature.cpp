@@ -95,16 +95,16 @@ const std::string& Feature_Point::TypeName()
 
 Feature_Point::Feature_Point( Node::Ptr pParent, const std::string& strName )
     : Feature( pParent, strName )
-    , m_point( *this, 0, eStage_Site )
     , m_ptOrigin( 0.0f, 0.0f )
+    , m_point( *this, 0, eStage_Site )
 {
     m_controlPointSet.insert( &m_point );
 }
 
 Feature_Point::Feature_Point( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
     : Feature( pOriginal, pParent, strName )
-    , m_point( *this, 0, eStage_Site )
     , m_ptOrigin( pOriginal->m_ptOrigin )
+    , m_point( *this, 0, eStage_Site )
 {
     m_controlPointSet.insert( &m_point );
 }
@@ -141,7 +141,7 @@ std::string Feature_Point::getStatement() const
     return os.str();
 }
 
-const GlyphSpec* Feature_Point::getParent( ControlPoint::Index id ) const
+const GlyphSpec* Feature_Point::getParent( ControlPoint::Index ) const
 {
     return getParentGlyphSpecFromParentNode( m_pParent );
 }
@@ -213,20 +213,20 @@ std::string Feature_Contour::getStatement() const
     return "";
 }
 
-const GlyphSpec* Feature_Contour::getParent( ControlPoint::Index id ) const
+const GlyphSpec* Feature_Contour::getParent( ControlPoint::Index ) const
 {
     return getParentGlyphSpecFromParentNode( m_pParent );
 }
 
 const Point& Feature_Contour::getPoint( ControlPoint::Index id ) const
 {
-    VERIFY_RTE( id >= 0 && id < m_polygon.size() );
+    VERIFY_RTE( id < m_polygon.size() );
     return m_polygon[ id ];
 }
 
 void Feature_Contour::setPoint( ControlPoint::Index id, const Point& point )
 {
-    if( id >= 0 && id < m_polygon.size() )
+    if( id < m_polygon.size() )
     {
         if( m_polygon[ id ] != point )
         {
@@ -327,16 +327,16 @@ const std::string& Feature_Pin::TypeName()
 }
 Feature_Pin::Feature_Pin( Node::Ptr pParent, const std::string& strName )
     : Feature( pParent, strName )
-    , m_point( *this, 0, eStage_Site )
     , m_ptOrigin( 0.0f, 0.0f )
+    , m_point( *this, 0, eStage_Site )
 {
     m_controlPointSet.insert( &m_point );
 }
 
 Feature_Pin::Feature_Pin( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
     : Feature( pOriginal, pParent, strName )
-    , m_point( *this, 0, eStage_Site )
     , m_ptOrigin( pOriginal->m_ptOrigin )
+    , m_point( *this, 0, eStage_Site )
 {
     m_controlPointSet.insert( &m_point );
 }
@@ -369,7 +369,7 @@ std::string Feature_Pin::getStatement() const
     return "";
 }
 
-const GlyphSpec* Feature_Pin::getParent( ControlPoint::Index id ) const
+const GlyphSpec* Feature_Pin::getParent( ControlPoint::Index ) const
 {
     return getParentGlyphSpecFromParentNode( m_pParent );
 }
@@ -402,10 +402,10 @@ const std::string& Feature_LineSegment::TypeName()
 
 Feature_LineSegment::Feature_LineSegment( Node::Ptr pParent, const std::string& strName )
     : Feature( pParent, strName )
-    , m_start( *this, 0, eStage_Site )
-    , m_end( *this, 1, eStage_Site )
     , m_ptStart( 0.0f, 0.0f )
     , m_ptEnd( 0.0f, 0.0f )
+    , m_start( *this, 0, eStage_Site )
+    , m_end( *this, 1, eStage_Site )
 {
     m_controlPointSet.insert( &m_start );
     m_controlPointSet.insert( &m_end );
@@ -413,10 +413,10 @@ Feature_LineSegment::Feature_LineSegment( Node::Ptr pParent, const std::string& 
 
 Feature_LineSegment::Feature_LineSegment( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
     : Feature( pOriginal, pParent, strName )
-    , m_start( *this, 0, eStage_Site )
-    , m_end( *this, 1, eStage_Site )
     , m_ptStart( pOriginal->m_ptStart )
     , m_ptEnd( pOriginal->m_ptEnd )
+    , m_start( *this, 0, eStage_Site )
+    , m_end( *this, 1, eStage_Site )
 {
     m_controlPointSet.insert( &m_start );
     m_controlPointSet.insert( &m_end );
@@ -452,7 +452,7 @@ std::string Feature_LineSegment::getStatement() const
     return "";
 }
 
-const GlyphSpec* Feature_LineSegment::getParent( ControlPoint::Index id ) const
+const GlyphSpec* Feature_LineSegment::getParent( ControlPoint::Index ) const
 {
     return getParentGlyphSpecFromParentNode( m_pParent );
 }

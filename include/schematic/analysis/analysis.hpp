@@ -169,10 +169,8 @@ public:
         }
 
         // Capture the halfedge data before the edge is split - FOR BOTH sides
-        virtual void before_split_edge( Halfedge_handle           e,
-                                        Vertex_handle             v,
-                                        const X_monotone_curve_2& c1,
-                                        const X_monotone_curve_2& c2 )
+        virtual void
+        before_split_edge( Halfedge_handle e, Vertex_handle, const X_monotone_curve_2&, const X_monotone_curve_2& )
         {
             VERIFY_RTE_MSG( !m_edgeData.has_value() && !m_edgeDataTwin.has_value(),
                             "before_split_edge when already have halfedge data" );
@@ -194,13 +192,13 @@ public:
             m_edgeDataTwin.reset();
         }
 
-        virtual void before_split_face( Face_handle f, Halfedge_handle e )
+        virtual void before_split_face( Face_handle f, Halfedge_handle )
         {
             VERIFY_RTE_MSG( !m_faceData.has_value(), "before_split_face when already have face data" );
             m_faceData = f->data();
         }
 
-        virtual void after_split_face( Face_handle f1, Face_handle f2, bool is_hole )
+        virtual void after_split_face( Face_handle f1, Face_handle f2, bool )
         {
             VERIFY_RTE_MSG( m_faceData.has_value(), "after_split_face when no face data" );
             f1->set_data( m_faceData.value() );
@@ -216,6 +214,7 @@ public:
     class SkeletonRegionQuery
     {
         HalfEdgeCstSet m_skeletonEdges;
+
     public:
         SkeletonRegionQuery( Analysis& analysis );
         VertexCstVector getRegion( Analysis::VertexCst v, Analysis::HalfEdgeCst eNext ) const;

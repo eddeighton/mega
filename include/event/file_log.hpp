@@ -90,13 +90,13 @@ public:
 private:
     void loadIterator();
 
+private:
+    const boost::filesystem::path m_logFolderPath;
+
 protected:
     runtime::TimeStamp m_timestamp;
     IndexRecord        m_iterator;
     IndexType          m_index;
-
-private:
-    const boost::filesystem::path m_logFolderPath;
 };
 
 } // namespace impl

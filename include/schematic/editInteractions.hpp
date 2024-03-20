@@ -166,7 +166,7 @@ private:
 public:
     virtual void      OnMove( Float x, Float y );
     virtual Node::Ptr GetInteractionNode() const;
-    virtual void      GetSelection( std::set< IGlyph* >& selection ) const {}
+    virtual void      GetSelection( std::set< IGlyph* >& ) const {}
 
 private:
     EditBase&         m_edit;
@@ -185,7 +185,7 @@ private:
 public:
     virtual void      OnMove( Float x, Float y );
     virtual Node::Ptr GetInteractionNode() const;
-    virtual void      GetSelection( std::set< IGlyph* >& selection ) const {}
+    virtual void      GetSelection( std::set< IGlyph* >& ) const {}
 
 private:
     Site&       m_site;

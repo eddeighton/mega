@@ -53,7 +53,6 @@ void Connection::load( const format::Node& node )
     Site::load( node );
 
     VERIFY_RTE( node.has_site() && node.site().has_connection() );
-    const format::Node::Site::Connection& connection = node.site().connection();
 
     m_pControlPoint = get< Feature_Point >( "width" );
     VERIFY_RTE_MSG( m_pControlPoint, "Connection point not found" );
@@ -61,7 +60,6 @@ void Connection::load( const format::Node& node )
 
 void Connection::save( format::Node& node ) const
 {
-    format::Node::Site::Connection& connection = *node.mutable_site()->mutable_connection();
     Site::save( node );
 }
 

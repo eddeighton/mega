@@ -116,7 +116,7 @@ void EditNested::matchFeatures()
         generics::lessthan( generics::first< FeatureGlyphMap::const_iterator >(),
                             generics::deref< Feature::PtrSet::const_iterator >() ),
 
-        []( FeatureGlyphMap::const_iterator i, Feature::PtrSet::const_iterator j )
+        []( FeatureGlyphMap::const_iterator i, Feature::PtrSet::const_iterator )
         {
             const Feature::Ptr&    pFeature = i->first;
             const FeatureGlyphSet& glyphs   = i->second;
@@ -127,10 +127,8 @@ void EditNested::matchFeatures()
         generics::collect( additions, generics::deref< Feature::PtrSet::const_iterator >() ),
         generics::collect( updates ) );
 
-    for( UpdateVector::iterator iter = updates.begin(), iEnd = updates.end(); iter != iEnd; ++iter )
+    for( auto iterFeature : updates )
     {
-        FeatureGlyphMap::iterator iterFeature = *iter;
-
         Feature::Ptr     pFeature        = iterFeature->first;
         FeatureGlyphSet& featureGlyphSet = iterFeature->second;
         GlyphMap&        glyphs          = featureGlyphSet.glyphs;
@@ -139,8 +137,8 @@ void EditNested::matchFeatures()
 
         const ControlPoint::Set& controlPoints = pFeature->getControlPoints();
 
-        std::vector< GlyphMap::iterator >          removals;
-        std::vector< ControlPoint::Set::iterator > additions;
+        std::vector< GlyphMap::iterator >          removedGlyphs;
+        std::vector< ControlPoint::Set::iterator > addedGlyphs;
 
         generics::match( glyphs.begin(), glyphs.end(),               // what it is
                          controlPoints.begin(), controlPoints.end(), // what it should be
@@ -148,40 +146,37 @@ void EditNested::matchFeatures()
                          generics::lessthan( generics::first< GlyphMap::const_iterator >(),
                                              generics::deref< ControlPoint::Set::const_iterator >() ),
 
-                         generics::collect( removals ), // rem
-                         generics::collect( additions ) // add
+                         generics::collect( removedGlyphs ), // rem
+                         generics::collect( addedGlyphs )    // add
         );
 
         {
-            for( std::vector< GlyphMap::iterator >::iterator i = removals.begin(), iEnd = removals.end(); i != iEnd;
-                 ++i )
+            for( auto& removedGlyph : removedGlyphs )
             {
-                const GlyphSpec* pControlPoint = ( *i )->first;
-                glyphs.erase( *i );
+                const GlyphSpec* pControlPoint = removedGlyph->first;
+                glyphs.erase( removedGlyph );
                 m_glyphs.erase( pControlPoint );
             }
         }
 
         {
-            for( std::vector< ControlPoint::Set::iterator >::iterator i = additions.begin(), iEnd = additions.end();
-                 i != iEnd; ++i )
+            for( auto& addedGlyph : addedGlyphs )
             {
-                ControlPoint* pControlPoint = **i;
+                ControlPoint* pControlPoint = *addedGlyph;
                 IGlyph::Ptr   pGlyph        = createControlPointGlyph( pControlPoint );
                 glyphs.insert( std::make_pair( pControlPoint, pGlyph ) );
             }
         }
     }
 
-    for( Feature::PtrVector::iterator i = removals.begin(), iEnd = removals.end(); i != iEnd; ++i )
+    for( auto& removal : removals )
     {
-        FeatureGlyphMap::iterator iFind = m_features.find( *i );
+        auto iFind = m_features.find( removal );
         VERIFY_RTE( iFind != m_features.end() );
 
-        for( GlyphMap::const_iterator i = iFind->second.glyphs.begin(), iEnd = iFind->second.glyphs.end(); i != iEnd;
-             ++i )
+        for( const auto& glyph : iFind->second.glyphs )
         {
-            m_glyphs.erase( i->first );
+            m_glyphs.erase( glyph.first );
         }
         m_features.erase( iFind );
     }
@@ -194,14 +189,12 @@ void EditNested::matchFeatures()
 
     typedef std::vector< AddGlyphTask > AddGlyphTaskVector;
     AddGlyphTaskVector                  tasks;
-    for( Feature::PtrVector::iterator i = additions.begin(), iEnd = additions.end(); i != iEnd; ++i )
+    for( auto pFeature : additions )
     {
         // get the glyph from the feature...
-        Feature::Ptr pFeature = *i;
-
         ASSERT( m_features.find( pFeature ) == m_features.end() );
 
-        FeatureGlyphMap::iterator iFind = m_features.end();
+        auto iFind = m_features.end();
         {
             FeatureGlyphSet glyphSet;
             auto            ib = m_features.insert( std::make_pair( pFeature, glyphSet ) );
@@ -224,9 +217,9 @@ void EditNested::matchFeatures()
 
         AddGlyphTaskVector taskSwap;
 
-        for( AddGlyphTaskVector::iterator i = tasks.begin(), iEnd = tasks.end(); i != iEnd; ++i )
+        for( auto& i : tasks )
         {
-            const AddGlyphTask& task = *i;
+            const AddGlyphTask& task = i;
 
             const ControlPoint::Set& controlPoints = task.pFeature->getControlPoints();
 
@@ -238,14 +231,14 @@ void EditNested::matchFeatures()
                 const GlyphSpec* pParentGlyphSpec = pFirst->getParent();
                 if( pParentGlyphSpec )
                 {
-                    if( const Origin* pParentOrigin = dynamic_cast< const Origin* >( pParentGlyphSpec ) )
+                    if( const auto* pParentOrigin = dynamic_cast< const Origin* >( pParentGlyphSpec ) )
                     {
                         VERIFY_RTE( m_pNode.get() == dynamic_cast< const Site* >( pParentOrigin ) );
                         pParentGlyph = m_pMainGlyph;
                     }
                     else
                     {
-                        GlyphMap::const_iterator iFind = m_glyphs.find( pParentGlyphSpec );
+                        auto iFind = m_glyphs.find( pParentGlyphSpec );
                         if( iFind != m_glyphs.end() )
                             pParentGlyph = iFind->second;
                     }
@@ -264,7 +257,7 @@ void EditNested::matchFeatures()
                 }
                 else
                 {
-                    taskSwap.push_back( *i );
+                    taskSwap.push_back( i );
                 }
             }
         }

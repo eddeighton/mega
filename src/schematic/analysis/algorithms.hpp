@@ -453,8 +453,7 @@ inline void searchSkeletonRegion( VertexType vStart, HalfEdgeType eNext, const s
 template < typename HalfEdgeType, typename FaceType >
 inline void getFacesBoundary( const std::vector< FaceType >& faces, std::vector< HalfEdgeType >& boundaryEdges )
 {
-    using HalfEdge = HalfEdgeType;
-    using Face     = FaceType;
+    using Face = FaceType;
 
     std::set< FaceType > allFaces( faces.begin(), faces.end() );
     for( auto f : faces )

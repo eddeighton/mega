@@ -53,7 +53,6 @@ void Space::load( const format::Node& node )
 {
     Site::load( node );
     VERIFY_RTE( node.has_site() && node.site().has_space() );
-    const format::Node::Site::Space& space = node.site().space();
 
     m_pContour = get< Feature_Contour >( "contour" );
     VERIFY_RTE_MSG( m_pContour, "Space contour not found" );
@@ -61,7 +60,6 @@ void Space::load( const format::Node& node )
 
 void Space::save( format::Node& node ) const
 {
-    format::Node::Site::Space& space = *node.mutable_site()->mutable_space();
     Site::save( node );
 }
 

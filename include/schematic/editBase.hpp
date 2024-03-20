@@ -58,7 +58,7 @@ public:
     // IEditContext
     virtual void update();
     virtual void updateGlyphs();
-    
+
     virtual void setProperty( Property::PtrCst pProperty, const std::string& strValue );
 
     virtual bool              interaction_hover( Float x, Float y, IGlyph*& pPoint1, IGlyph*& pPoint2 );
@@ -121,7 +121,7 @@ protected:
     IInteraction::Ptr cmd_paste( Node::PtrVector nodes, Float x, Float y, Float qX, Float qY );
     void              cmd_union_impl( const std::vector< Site* >& sites, bool bCreateWallsForHoles );
 
-    virtual IGlyph::Ptr getControlPointGlyph( ControlPoint* pControlPoint ) { return {}; };
+    virtual IGlyph::Ptr getControlPointGlyph( ControlPoint* ) { return {}; };
 
     EditRoot&     m_editRoot;
     GlyphFactory& m_glyphFactory;
