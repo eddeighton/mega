@@ -360,9 +360,9 @@ private:
     GlyphMap        m_map;
 
     PainterImpl        m_pathPainter;
-    QGraphicsPathItem* m_pPathItem;
     QGraphicsLineItem* m_pItemX;
     QGraphicsLineItem* m_pItemY;
+    QGraphicsPathItem* m_pPathItem;
 
     schematic::IEditContext*& m_pActiveContext;
     bool                      m_bActiveContext;

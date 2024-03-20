@@ -114,7 +114,7 @@ schematic::IGlyph::Ptr ClipScene::createImage( schematic::ImageSpec* pImage, sch
     return pNewGlyph;
 }
 
-void ClipScene::onEditted( bool bCommandCompleted )
+void ClipScene::onEditted( bool  )
 {
 }
 
@@ -373,7 +373,7 @@ schematic::Schematic::Ptr FlowView::getClickedSchematic( QMouseEvent* pEvent )
         QList< QGraphicsItem* > stack = items( pEvent->pos() );
         for( QList< QGraphicsItem* >::iterator i = stack.begin(), iEnd = stack.end(); i != iEnd; ++i )
         {
-            if( pImageItem = dynamic_cast< QGraphicsPixmapItem* >( *i ) )
+            if( pImageItem = dynamic_cast< QGraphicsPixmapItem* >( *i ); pImageItem )
                 break;
         }
 

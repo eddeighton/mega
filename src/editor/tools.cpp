@@ -226,7 +226,7 @@ void SelectTool::mousePressEvent( QMouseEvent* event )
 
     if( event->button() == Qt::LeftButton )
     {
-        if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
+        if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ); pGlyph )
         {
             SelectionSet currentSelection = m_view.getSelection();
             if( currentSelection.find( pGlyph ) == currentSelection.end() )
@@ -243,7 +243,8 @@ void SelectTool::mousePressEvent( QMouseEvent* event )
             if( event->modifiers() & Qt::ControlModifier )
             {
                 if( m_pInteraction
-                    = m_view.getActiveContext()->cmd_paste( currentSelection, pos.x(), pos.y(), q.x(), q.y() ) )
+                    = m_view.getActiveContext()->cmd_paste( currentSelection, pos.x(), pos.y(), q.x(), q.y() );
+                    m_pInteraction )
                 {
                     m_view.setCursor( Qt::DragCopyCursor );
                     m_toolMode = eDragCopyCmd;
@@ -287,7 +288,7 @@ void SelectTool::mouseMoveEvent( QMouseEvent* event )
             }
             else
             {
-                if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
+                if( m_view.findSelectableTopmostGlyph( event->pos() ) )
                 {
                     m_view.setCursor( Qt::SizeAllCursor );
                 }
@@ -320,7 +321,7 @@ void SelectTool::mouseReleaseEvent( QMouseEvent* pEvent )
 {
     reset();
 
-    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+    if( m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
     {
         m_view.setCursor( Qt::SizeAllCursor );
     }
@@ -374,7 +375,8 @@ void LassoTool::mousePressEvent( QMouseEvent* event )
             if( event->modifiers() & Qt::ControlModifier )
             {
                 if( m_pInteraction
-                    = m_view.getActiveContext()->cmd_paste( currentSelection, pos.x(), pos.y(), q.x(), q.y() ) )
+                    = m_view.getActiveContext()->cmd_paste( currentSelection, pos.x(), pos.y(), q.x(), q.y() );
+                    m_pInteraction )
                 {
                     m_view.setCursor( Qt::DragCopyCursor );
                     m_toolMode = eDragCopyCmd;
@@ -418,7 +420,7 @@ void LassoTool::mouseMoveEvent( QMouseEvent* event )
             }
             else
             {
-                if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
+                if( m_view.findSelectableTopmostGlyph( event->pos() ) )
                 {
                     m_view.setCursor( Qt::SizeAllCursor );
                 }
@@ -451,7 +453,7 @@ void LassoTool::mouseReleaseEvent( QMouseEvent* pEvent )
 {
     reset();
 
-    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+    if( m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
     {
         m_view.setCursor( Qt::SizeAllCursor );
     }
@@ -492,12 +494,13 @@ void PenTool::mousePressEvent( QMouseEvent* event )
     if( event->button() == Qt::LeftButton )
     {
         const QPointF pos = m_view.mapToScene( event->pos() );
-        if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
+        if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ); pGlyph )
         {
             SelectionSet selection;
             if( event->modifiers() & Qt::ControlModifier )
             {
-                if( m_pInteraction = m_view.getActiveContext()->cmd_paste( pGlyph, pos.x(), pos.y(), q.x(), q.y() ) )
+                if( m_pInteraction = m_view.getActiveContext()->cmd_paste( pGlyph, pos.x(), pos.y(), q.x(), q.y() );
+                    m_pInteraction )
                 {
                     m_toolMode = eDragCopy;
                     m_view.setCursor( Qt::DragCopyCursor );
@@ -554,7 +557,7 @@ void PenTool::mouseMoveEvent( QMouseEvent* pEvent )
             }
             else
             {
-                if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+                if( m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
                 {
                     m_view.setCursor( Qt::SizeAllCursor );
                 }
@@ -609,7 +612,7 @@ void PenTool::mouseReleaseEvent( QMouseEvent* pEvent )
 {
     reset();
 
-    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+    if( m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
     {
         m_view.setCursor( Qt::SizeAllCursor );
     }
@@ -793,7 +796,7 @@ void EditTool::mouseMoveEvent( QMouseEvent* pEvent )
                     m_pClosestEdge->setVisible( false );
                 }
 
-                if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+                if( m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
                 {
                     m_view.setCursor( Qt::SizeAllCursor );
                 }
@@ -854,7 +857,7 @@ void EditTool::mouseReleaseEvent( QMouseEvent* pEvent )
     }*/
     reset();
 
-    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+    if( m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
     {
         m_view.setCursor( Qt::SizeAllCursor );
     }

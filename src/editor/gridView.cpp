@@ -42,7 +42,7 @@ GridView::GridView( QWidget* pParentWidget, MainWindow* pMainWindow )
 
 GridView::~GridView() = default;
 
-void GridView::postCreate( Document::Ptr pDocument )
+void GridView::postCreate( Document::Ptr  )
 {
     m_bInitialising = false;
     CalculateOversizedSceneRect();

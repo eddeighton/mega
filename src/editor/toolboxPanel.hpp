@@ -155,9 +155,9 @@ private:
         const Timing::UpdateTick& getUpdateTick() const { return m_updateTick; }
 
     private:
-        std::string           m_strName;
         MissionToolbox&       m_toolbox;
         Toolbox::Palette::Ptr m_pPalette;
+        std::string           m_strName;
         FlowView*             m_pView;
         Timing::UpdateTick    m_updateTick;
     };

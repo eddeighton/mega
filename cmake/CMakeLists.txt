@@ -66,9 +66,9 @@ add_subdirectory(map)
 add_subdirectory(schematic)
 add_subdirectory(service)
 add_subdirectory(driver)
-# add_subdirectory(editor)
-# add_subdirectory(tests)
-# add_subdirectory(toolchain)
+add_subdirectory(editor)
+add_subdirectory(tests)
+add_subdirectory(toolchain)
 
 # # install scripts
 set( MEGA_SCRIPTS

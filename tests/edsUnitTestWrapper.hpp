@@ -299,7 +299,7 @@ namespace EDUTS
             }
         }
 
-        void initGoogleTestOptions( const UnitTestOptions& options )
+        void initGoogleTestOptions( const UnitTestOptions&  )
         {
             std::ostringstream osFileName;
             if ( m_options.bReport )

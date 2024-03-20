@@ -43,12 +43,11 @@ void SchematicView::postCreate( SchematicDocument::Ptr pDocument )
     m_pSchematicDocument->setCompilationConfig( m_compilationConfig );
 
     onDocumentUpdate();
-    
+
     CmdZoomToAll();
 }
 
-void SchematicView::OnItemModelDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight,
-                                            const QList< int >& roles )
+void SchematicView::OnItemModelDataChanged( const QModelIndex&, const QModelIndex&, const QList< int >& )
 {
     onDocumentUpdate();
 }

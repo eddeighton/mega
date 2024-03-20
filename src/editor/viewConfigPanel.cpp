@@ -138,9 +138,9 @@ void ViewConfigPanel::setViewConfig( editor::ViewConfig::Ptr pViewConfig )
     }
 }
 
-void ViewConfigPanel::drawBackground( QPainter* painter, const QRectF& rect )
+void ViewConfigPanel::drawBackground( QPainter* painter, const QRectF& bkRect )
 {
-    painter->fillRect( rect, m_bkgrnd );
+    painter->fillRect( bkRect, m_bkgrnd );
     QPen oldPen = painter->pen();
     {
         const QRectF rect = m_pScene->sceneRect();
@@ -181,7 +181,7 @@ bool ViewConfigPanel::setConfig( int iRow, int iCol )
 
     if( iCol >= 0 && iCol < 4 )
     {
-        if( iRow < static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS ) )
+        if( iRow < ViewConfig::TOTAL_GLYPH_SETTINGS )
         {
             const auto setting   = static_cast< ViewConfig::GlyphVisibility >( iRow );
             bool       bNewValue = iCol >= 2;
@@ -205,11 +205,9 @@ bool ViewConfigPanel::setConfig( int iRow, int iCol )
                 }
             }
         }
-        else if( ( iRow - static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS ) )
-                 < static_cast< std::size_t >( exact::EdgeMask::TOTAL_MASK_TYPES ) )
+        else if( ( iRow - ViewConfig::TOTAL_GLYPH_SETTINGS ) < exact::EdgeMask::TOTAL_MASK_TYPES )
         {
-            const auto maskType = static_cast< exact::EdgeMask::Type >(
-                iRow - static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS ) );
+            const auto maskType = static_cast< exact::EdgeMask::Type >( iRow - ViewConfig::TOTAL_GLYPH_SETTINGS );
             if( m_maskRows.size() > maskType )
             {
                 if( m_pConfig->getMaskSetting( maskType ) != iCol )

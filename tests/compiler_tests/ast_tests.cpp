@@ -33,7 +33,7 @@ struct Data
     std::vector< std::string > includeFiles;
 };
 
-std::ostream& operator<<( std::ostream& os, const Data& testData )
+std::ostream& operator<<( std::ostream& os, const Data&  )
 {
     return os;
 }

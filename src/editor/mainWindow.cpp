@@ -197,14 +197,14 @@ void MainWindow::OnDocumentChanged( Document* pDocument )
     }
 }
 
-void MainWindow::OnDocumentError( Document* pDocument, const std::string& strErrorMsg )
+void MainWindow::OnDocumentError( Document*, const std::string& strErrorMsg )
 {
     m_pMainWindowImpl->logView->appendPlainText( QString::fromUtf8( strErrorMsg ) );
     m_pMainWindowImpl->logView->verticalScrollBar()->setValue(
         m_pMainWindowImpl->logView->verticalScrollBar()->maximum() );
 }
 
-void MainWindow::OnDocumentSuccess( Document* pDocument )
+void MainWindow::OnDocumentSuccess( Document* )
 {
     m_pMainWindowImpl->logView->clear();
 }

@@ -108,7 +108,6 @@ void GlyphControlPoint::setShouldRender( bool bShouldRender )
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 static QColor g_pathColor( 155, 155, 155, 125 );
-static float  g_pathWidth( 4.0f );
 static QColor g_polygonColor( 155, 155, 155, 200 );
 static float  g_polygonWidth( 4.0f );
 
@@ -150,7 +149,7 @@ GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsS
     }
 
     bool bFirst = true;
-    for( const auto pPath : m_pathPainter.getPaths() )
+    for( const auto& pPath : m_pathPainter.getPaths() )
     {
         auto pItem = new QGraphicsPathItem( pPath->path, pParentItem );
         if( !pParentItem )
@@ -228,7 +227,7 @@ void GlyphPolygonGroup::update()
     {
         auto itemIter = m_items.begin();
         bool bFirst   = true;
-        for( const auto pPath : m_pathPainter.getPaths() )
+        for( const auto& pPath : m_pathPainter.getPaths() )
         {
             QGraphicsPathItem* pItem = nullptr;
             if( itemIter != m_items.end() )

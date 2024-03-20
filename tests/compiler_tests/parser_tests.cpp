@@ -31,7 +31,7 @@ struct Data
     std::string filename;
 };
 
-std::ostream& operator<<( std::ostream& os, const Data& testData )
+std::ostream& operator<<( std::ostream& os, const Data& )
 {
     return os;
 }

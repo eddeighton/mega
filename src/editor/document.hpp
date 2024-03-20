@@ -85,11 +85,11 @@ public:
 
 protected:
     DocumentChangeObserver&                  m_documentChangeObserver;
+    std::optional< boost::filesystem::path > m_optPath;
     const std::string                        m_uniqueObjectName;
     Timing::UpdateTick                       m_lastModifiedTick;
-    std::optional< boost::filesystem::path > m_optPath;
-    schematic::CompilationStage              m_compilationConfig;
     UndoHistory                              m_undoHistory;
+    schematic::CompilationStage              m_compilationConfig;
 };
 
 class SchematicDocument : public Document

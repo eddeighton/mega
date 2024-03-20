@@ -111,20 +111,18 @@ public:
 
         schematic::Node::PtrCst getNode() const { return m_pNode.lock(); }
 
+        const Timing::UpdateTick& getLastUpdateTick() const { return m_lastUpdateTick; }
+        
     private:
-        const Timing::UpdateTick& getTick() const { return m_lastUpdateTick; }
-
-        friend class CompareItersUpdate;
         void update( ItemModel& model, const QModelIndex& parentModelIndex = QModelIndex() );
 
     private:
-        schematic::IEditContext*& m_pEditContext;
-        TreeItem*                 m_pParent;
-        Vector                    m_children;
-        QVariant                  m_qName, m_qValue;
-
-        Timing::UpdateTick          m_lastUpdateTick;
+        schematic::IEditContext*&   m_pEditContext;
         schematic::Node::PtrCstWeak m_pNode;
+        TreeItem*                   m_pParent;
+        QVariant                    m_qName, m_qValue;
+        Vector                      m_children;
+        Timing::UpdateTick          m_lastUpdateTick;
         PtrTreeItemMap              m_nodeMap;
     };
 
@@ -135,8 +133,8 @@ public:
     schematic::Node::PtrCst getIndexNode( const QModelIndex& index ) const;
 
     virtual Qt::ItemFlags flags( const QModelIndex& index ) const;
-    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
-    virtual bool setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles);
+    virtual bool          setData( const QModelIndex& index, const QVariant& value, int role = Qt::EditRole );
+    virtual bool          setItemData( const QModelIndex& index, const QMap< int, QVariant >& roles );
     virtual QModelIndex   index( int row, int column, const QModelIndex& parent = QModelIndex() ) const;
     virtual QModelIndex   parent( const QModelIndex& child ) const;
     virtual int           rowCount( const QModelIndex& parent = QModelIndex() ) const;

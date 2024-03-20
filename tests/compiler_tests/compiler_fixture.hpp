@@ -86,13 +86,13 @@ public:
     const char* TASK_NAME;
 
     Compilation( mega::io::Directories directories, std::vector< boost::filesystem::path >& sourceFiles,
-                 std::vector< boost::filesystem::path >& includeDirs, const char* TEST_NAME, const char* TASK_NAME )
+                 std::vector< boost::filesystem::path >& includeDirs, const char* TEST_NAME_, const char* TASK_NAME_ )
         : m_directories{ std::move( directories ) }
         , m_environment( m_directories )
         , m_sourceFiles( sourceFiles )
         , m_includeDirs( includeDirs )
-        , TEST_NAME( TEST_NAME )
-        , TASK_NAME( TASK_NAME )
+        , TEST_NAME( TEST_NAME_ )
+        , TASK_NAME( TASK_NAME_ )
     {
         std::vector< mega::io::ComponentInfo > componentInfos;
         {

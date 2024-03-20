@@ -288,7 +288,7 @@ void ItemModel::TreeItem::update( ItemModel& model, const QModelIndex& parentMod
         bool operator()( PtrTreeItemMap::const_iterator i1, schematic::Node::PtrVector::const_iterator i2 ) const
         {
             ASSERT( i1->first.lock() == *i2 );
-            return i1->second->getTick() < ( *i2 )->getLastModifiedTick();
+            return i1->second->getLastUpdateTick() < ( *i2 )->getLastModifiedTick();
         }
     };
 

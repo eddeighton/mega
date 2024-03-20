@@ -225,7 +225,7 @@ schematic::IGlyph::Ptr GlyphView::createMarkupText( schematic::MarkupText* pMark
     return pNewGlyph;
 }
 
-schematic::IGlyph::Ptr GlyphView::createImage( schematic::ImageSpec* pImage, schematic::IGlyph::Ptr pParent )   
+schematic::IGlyph::Ptr GlyphView::createImage( schematic::ImageSpec* pImage, schematic::IGlyph::Ptr pParent )
 {
     schematic::IGlyph::Ptr pNewGlyph(
         new GlyphImage( pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pImage, getToolbox() ) );
@@ -248,7 +248,7 @@ void GlyphView::onDocumentUpdate()
 void GlyphView::OnViewConfigChanged()
 {
     onDocumentUpdate();
-    
+
     // force update on all glyphs
     for( auto& [ pItem, pGlyph ] : m_itemMap )
     {
@@ -375,9 +375,9 @@ void GlyphView::updateGlyphVisibility()
             }
             else if( dynamic_cast< const GlyphPolygonGroup* >( pGlyph ) )
             {
-                if( auto pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph->getParent().get() ) )
+                if( auto pOrigin_ = dynamic_cast< const GlyphOrigin* >( pGlyph->getParent().get() ) )
                 {
-                    if( !testGlyphOrigin( pOrigin, true ) )
+                    if( !testGlyphOrigin( pOrigin_, true ) )
                         bShowType = false;
                 }
             }
@@ -409,8 +409,7 @@ void GlyphView::selectContext( schematic::IEditContext* pNewContext )
 {
     setSelected( SelectionSet() );
 
-    schematic::IEditContext* pOldContext = m_pActiveContext;
-    m_pActiveContext                     = pNewContext;
+    m_pActiveContext = pNewContext;
 
     updateGlyphVisibility();
 
@@ -466,7 +465,7 @@ SelectionSet GlyphView::getSelectedByRect( const QRectF& rect ) const
 
                                                ) )
             {
-                if( Selectable* pSelectable = Selection::glyphToSelectable( pTest ) )
+                if( Selection::glyphToSelectable( pTest ) )
                 {
                     // const bool bIsCustomTool = m_pActiveTool->getToolType() != schematic::IEditContext::eSelect &&
                     //     m_pActiveTool->getToolType() != schematic::IEditContext::eDraw;
@@ -496,7 +495,7 @@ SelectionSet GlyphView::getSelectedByPath( const QPainterPath& path ) const
 
                                                ) )
             {
-                if( Selectable* pSelectable = Selection::glyphToSelectable( pTest ) )
+                if( Selection::glyphToSelectable( pTest ) )
                 {
                     // if( !pSelectable->isOrigin() )
                     selection.insert( pTest );
@@ -511,7 +510,7 @@ void GlyphView::setSelected( const SelectionSet& selection )
 {
     for( auto i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
     {
-        if( Selectable* pSelectable = Selection::glyphToSelectable( i->second ) )
+        if( auto pSelectable = Selection::glyphToSelectable( i->second ); pSelectable )
         {
             // if( !pSelectable->isOrigin() )
             {

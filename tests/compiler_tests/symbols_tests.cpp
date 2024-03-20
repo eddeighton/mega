@@ -30,7 +30,7 @@ struct Data
     std::string symbolReport, interfaceReport;
 };
 
-std::ostream& operator<<( std::ostream& os, const Data& testData )
+std::ostream& operator<<( std::ostream& os, const Data&  )
 {
     return os;
 }
