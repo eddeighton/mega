@@ -18,17 +18,41 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/player.hpp"
+
+#include "service/leaf/request_player.hpp"
 
 namespace mega::service
 {
-    
-Player::Player( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber, ProcessClock& processClock )
+
+Player::Player( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber,
+                ProcessClock& processClock )
     : Host( std::move( log ), pSender, nodeType, daemonPortNumber )
     , m_processClock( processClock )
 {
 }
 
-
+// network::LogicalThreadManager
+network::LogicalThreadBase::Ptr Player::joinLogicalThread( const network::Message& msg )
+{
+    switch( m_nodeType )
+    {
+        case network::Node::Leaf:
+        case network::Node::Terminal:
+        case network::Node::Tool:
+        case network::Node::Python:
+        case network::Node::Report:
+        case network::Node::Executor:
+        case network::Node::Plugin:
+            return network::LogicalThreadBase::Ptr( new PlayerRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
+            break;
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::TOTAL_NODE_TYPES:
+        default:
+            THROW_RTE( "Leaf: Unknown leaf type" );
+            break;
+    }
+    UNREACHABLE;
 }
+} // namespace mega::service

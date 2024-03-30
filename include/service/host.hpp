@@ -31,6 +31,8 @@ class Host : public Leaf
 public:
     Host( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber );
 
+    // network::LogicalThreadManager
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 private:
     // std::unique_ptr< runtime::RemoteMemoryManager >  m_pRemoteMemoryManager;
 };

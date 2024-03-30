@@ -49,6 +49,8 @@ set( MEGA_LEAF_SRC
     ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.hpp
     ${MEGA_SRC_DIR}/service/leaf/player.cpp
     ${MEGA_SRC_DIR}/service/leaf/request.hpp
+    ${MEGA_SRC_DIR}/service/leaf/request_host.hpp
+    ${MEGA_SRC_DIR}/service/leaf/request_player.hpp
     ${MEGA_SRC_DIR}/service/leaf/routing.cpp
     ${MEGA_SRC_DIR}/service/leaf/status.cpp
 )

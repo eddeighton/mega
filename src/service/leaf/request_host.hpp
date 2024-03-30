@@ -18,29 +18,25 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_November_28_player
-#define GUARD_2023_November_28_player
+#ifndef GUARD_2024_March_30_request_host
+#define GUARD_2024_March_30_request_host
 
-#include "service/host.hpp"
-#include "service/clock.hpp"
+#include "request.hpp"
 
 namespace mega::service
 {
 
-class Player : public Host
+class HostRequestLogicalThread : public LeafRequestLogicalThread
 {
 public:
-    Player( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber,
-            ProcessClock& processClock );
+    HostRequestLogicalThread( Leaf& leaf, const network::LogicalThreadID& logicalthreadID )
+        :   LeafRequestLogicalThread( leaf, logicalthreadID )
+    {
 
-    // network::LogicalThreadManager
-    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
+    }
 
-private:
-    // std::optional< task::FileHash >                  m_unityDatabaseHashCode;
-    ProcessClock& m_processClock;
 };
 
-} // namespace mega::service
+}
 
-#endif // GUARD_2023_November_28_player
+#endif //GUARD_2024_March_30_request_host

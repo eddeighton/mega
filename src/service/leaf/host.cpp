@@ -20,7 +20,7 @@
 
 #include "service/host.hpp"
 
-#include "service/leaf/request.hpp"
+#include "service/leaf/request_host.hpp"
 
 namespace mega::service
 {
@@ -28,6 +28,29 @@ namespace mega::service
 Host::Host( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber )
     : Leaf( std::move( log ), pSender, nodeType, daemonPortNumber )
 {
+}
+
+network::LogicalThreadBase::Ptr Host::joinLogicalThread( const network::Message& msg )
+{
+    switch( m_nodeType )
+    {
+        case network::Node::Leaf:
+        case network::Node::Terminal:
+        case network::Node::Tool:
+        case network::Node::Python:
+        case network::Node::Report:
+        case network::Node::Executor:
+        case network::Node::Plugin:
+            return network::LogicalThreadBase::Ptr( new HostRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
+            break;
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::TOTAL_NODE_TYPES:
+        default:
+            THROW_RTE( "Leaf: Unknown leaf type" );
+            break;
+    }
+    UNREACHABLE;
 }
 
 void LeafRequestLogicalThread::SaveSnapshot( boost::asio::yield_context& )

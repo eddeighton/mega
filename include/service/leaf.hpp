@@ -94,7 +94,7 @@ public:
         return *m_pRuntime;
     }
 
-private:
+protected:
     network::Log            m_log;
     network::Sender::Ptr    m_pSender;
     network::Sender::Ptr    m_pSelfSender;
