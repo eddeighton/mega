@@ -36,6 +36,9 @@ namespace mega::service
 class ProcessClock
 {
 public:
+    virtual void runtimeLock( network::LogicalThreadBase* pSender )   = 0;
+    virtual void runtimeUnLock( network::LogicalThreadBase* pSender ) = 0;
+
     virtual void registerMPO( network::SenderRef sender )                                                  = 0;
     virtual void unregisterMPO( network::SenderRef sender )                                                = 0;
     virtual void requestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo, event::Range range ) = 0;

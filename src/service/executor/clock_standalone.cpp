@@ -42,6 +42,34 @@ ProcessClockStandalone::ProcessClockStandalone( boost::asio::io_context&        
 {
 }
 
+void ProcessClockStandalone::runtimeLock( network::LogicalThreadBase* pSender )
+{
+    boost::asio::post( m_strand, [ this, pSender ]() { runtimeLockImpl( pSender ); } );
+    /*
+    std::promise< void > promise;
+    std::future< void >  fut = promise.get_future();
+    boost::asio::post( m_strand,
+                       [ this, pSender, &promise ]()
+                       {
+                           runtimeLockImpl( pSender );
+                           promise.set_value();
+                       } );
+    fut.get();*/
+}
+void ProcessClockStandalone::runtimeUnLock( network::LogicalThreadBase* pSender )
+{
+    boost::asio::post( m_strand, [ this, pSender ]() { runtimeUnLockImpl( pSender ); } );
+    /*std::promise< void > promise;
+    std::future< void >  fut = promise.get_future();
+    boost::asio::post( m_strand,
+                       [ this, pSender, &promise ]()
+                       {
+                           runtimeUnLockImpl( pSender );
+                           promise.set_value();
+                       } );
+    fut.get();*/
+}
+
 void ProcessClockStandalone::registerMPO( network::SenderRef sender )
 {
     boost::asio::post( m_strand, [ this, sender ]() { registerMPOImpl( sender ); } );
@@ -73,6 +101,70 @@ bool ProcessClockStandalone::unrequestClock( network::LogicalThreadBase* pSender
 void ProcessClockStandalone::requestMove( network::LogicalThreadBase* pSender, runtime::MPO mpo )
 {
     boost::asio::post( m_strand, [ this, pSender, mpo ]() { requestMoveImpl( pSender, mpo ); } );
+}
+
+void ProcessClockStandalone::runtimeLockImpl( network::LogicalThreadBase* pSender )
+{
+    SPDLOG_TRACE( "ProcessClockStandalone::runtimeLockImpl" );
+
+    switch( m_runtimeLock )
+    {
+        case eUnlocked:
+        {
+            m_runtimeLock = eAcquiring;
+        }
+        break;
+        case eAcquiring:
+        {
+        }
+        break;
+        case eLocked:
+        {
+        }
+        break;
+        case eReleasing:
+        {
+            m_runtimeLock = eAcquiring;
+        }
+        break;
+    }
+    
+    using namespace network::sim;
+    auto msg = MSG_SimLockRuntimeAcquire_Response::make(
+        pSender->getID(), std::move( MSG_SimLockRuntimeAcquire_Response{} ) );
+    pSender->send( msg );
+}
+
+void ProcessClockStandalone::runtimeUnLockImpl( network::LogicalThreadBase* pSender )
+{
+    SPDLOG_TRACE( "ProcessClockStandalone::runtimeUnLockImpl" );
+
+    switch( m_runtimeLock )
+    {
+        case eUnlocked:
+        {
+        }
+        break;
+        case eAcquiring:
+        {
+            m_runtimeLock = eReleasing;
+        }
+        break;
+        case eLocked:
+        {
+            m_runtimeLock = eReleasing;
+        }
+        break;
+        case eReleasing:
+        {
+        }
+        break;
+    }
+
+    using namespace network::sim;
+    auto msg = MSG_SimLockRuntimeRelease_Response::make(
+        pSender->getID(), std::move( MSG_SimLockRuntimeRelease_Response{} ) );
+    pSender->send( msg );
 }
 
 void ProcessClockStandalone::registerMPOImpl( network::SenderRef sender )

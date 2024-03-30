@@ -54,6 +54,10 @@ public:
 
 public:
     ProcessClockStandalone( boost::asio::io_context& ioContext, FloatTickDuration tickRate );
+
+    virtual void runtimeLock( network::LogicalThreadBase* pSender ) override;
+    virtual void runtimeUnLock( network::LogicalThreadBase* pSender ) override;
+
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
     virtual void requestClock( network::LogicalThreadBase* pSender, runtime::MPO mpo, event::Range ) override;
@@ -61,10 +65,15 @@ public:
     virtual void requestMove( network::LogicalThreadBase* pSender, runtime::MPO mpo ) override;
 
 private:
+    void runtimeLockImpl( network::LogicalThreadBase* pSender );
+    void runtimeUnLockImpl( network::LogicalThreadBase* pSender );
+
     void registerMPOImpl( network::SenderRef sender );
     void unregisterMPOImpl( network::SenderRef sender );
+
     void requestMoveImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo );
     void requestClockImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo );
+
     bool unrequestClockImpl( network::LogicalThreadBase* pSender, runtime::MPO mpo );
     void checkClock();
     void clock();
@@ -72,6 +81,15 @@ private:
     void issueClock();
 
 private:
+    enum RuntimeLockState
+    {
+        eUnlocked,
+        eAcquiring,
+        eLocked,
+        eReleasing
+    } m_runtimeLock
+        = eUnlocked;
+
     network::ClockTick        m_clockTick;
     bool                      m_bClockIssued = false;
     boost::asio::io_context&  m_ioContext;

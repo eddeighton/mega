@@ -22,17 +22,20 @@
 #define GUARD_2024_March_30_request_player
 
 #include "request_host.hpp"
+#include "service/player.hpp"
 
 namespace mega::service
 {
 
 class PlayerRequestLogicalThread : public HostRequestLogicalThread
 {
-public:
-    PlayerRequestLogicalThread( Leaf& leaf, const network::LogicalThreadID& logicalthreadID )
-        :   HostRequestLogicalThread( leaf, logicalthreadID )
-    {
+    Player& m_player;
 
+public:
+    PlayerRequestLogicalThread( Player& player, const network::LogicalThreadID& logicalthreadID )
+        : HostRequestLogicalThread( player, logicalthreadID )
+        , m_player( player )
+    {
     }
 
     void SaveSnapshot( boost::asio::yield_context& )
@@ -47,26 +50,35 @@ public:
         THROW_TODO;
     }
 
-    void LoadProgram( const mega::service::Program& program, boost::asio::yield_context& )
+    void LoadProgram( const mega::service::Program& program, boost::asio::yield_context& yield_context )
     {
         SPDLOG_TRACE( "PlayerRequestLogicalThread::LoadProgram {}", program );
-        m_leaf.getRuntime().loadProgram( program );
+
+        // first acquire runtime lock for entire process
+        {
+            Player::RuntimeLock lock = m_player.acquireRuntimeLock( *this, yield_context );
+
+            m_player.getRuntime().loadProgram( program );
+        }
     }
 
-    void UnloadProgram( boost::asio::yield_context& )
+    void UnloadProgram( boost::asio::yield_context& yield_context )
     {
         SPDLOG_TRACE( "PlayerRequestLogicalThread::UnloadProgram" );
-        m_leaf.getRuntime().unloadProgram();
+        {
+            Player::RuntimeLock lock = m_player.acquireRuntimeLock( *this, yield_context );
+
+            m_player.getRuntime().unloadProgram();
+        }
     }
 
     mega::service::Program GetProgram( boost::asio::yield_context& )
     {
         SPDLOG_TRACE( "PlayerRequestLogicalThread::GetProgram" );
-        return m_leaf.getRuntime().getProgram();
+        return m_player.getRuntime().getProgram();
     }
-
 };
 
-}
+} // namespace mega::service
 
-#endif //GUARD_2024_March_30_request_player
+#endif // GUARD_2024_March_30_request_player

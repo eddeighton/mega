@@ -24,20 +24,36 @@
 #include "service/host.hpp"
 #include "service/clock.hpp"
 
+#include "service/network/logical_thread.hpp"
+
 namespace mega::service
 {
 
 class Player : public Host
 {
 public:
+    struct RuntimeLock
+    {
+        Player&                     m_player;
+        network::LogicalThread&     m_logicalThread;
+        boost::asio::yield_context& m_yield_context;
+        RuntimeLock( Player& player, network::LogicalThread& logicalThread, boost::asio::yield_context& yield_context );
+        ~RuntimeLock();
+    };
+
     Player( network::Log log, network::Sender::Ptr pSender, network::Node nodeType, short daemonPortNumber,
             ProcessClock& processClock );
+
+    inline RuntimeLock acquireRuntimeLock( network::LogicalThread&     logicalThread,
+                                           boost::asio::yield_context& yield_context );
 
     // network::LogicalThreadManager
     virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
 private:
-    // std::optional< task::FileHash >                  m_unityDatabaseHashCode;
+    void releaseRuntimeLock( network::LogicalThread& logicalThread, boost::asio::yield_context& yield_context );
+
+    // std::optional< task::FileHash > m_unityDatabaseHashCode;
     ProcessClock& m_processClock;
 };
 

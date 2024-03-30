@@ -55,4 +55,44 @@ network::LogicalThreadBase::Ptr Player::joinLogicalThread( const network::Messag
     }
     UNREACHABLE;
 }
+
+Player::RuntimeLock::RuntimeLock( Player& player, network::LogicalThread& logicalThread,
+                                  boost::asio::yield_context& yield_context )
+    : m_player( player )
+    , m_logicalThread( logicalThread )
+    , m_yield_context( yield_context )
+{
+}
+
+Player::RuntimeLock::~RuntimeLock()
+{
+    m_player.releaseRuntimeLock( m_logicalThread, m_yield_context );
+}
+
+Player::RuntimeLock Player::acquireRuntimeLock( network::LogicalThread&     logicalThread,
+                                                boost::asio::yield_context& yield_ctx )
+{
+    m_processClock.runtimeLock( &logicalThread );
+
+    auto response = logicalThread.dispatchInBoundRequestsUntilResponse( yield_ctx );
+
+    VERIFY_RTE_MSG( response.getID() == network::sim::MSG_SimLockRuntimeAcquire_Response::ID,
+                    "Received incorrect response type of: " << response );
+    SPDLOG_TRACE( "Player::acquireRuntimeLock got MSG_SimLockRuntimeAcquire_Response" );
+
+    return RuntimeLock{ *this, logicalThread, yield_ctx };
+}
+
+void Player::releaseRuntimeLock( network::LogicalThread& logicalThread, boost::asio::yield_context& yield_ctx )
+{
+    m_processClock.runtimeUnLock( &logicalThread );
+
+    auto response = logicalThread.dispatchInBoundRequestsUntilResponse( yield_ctx );
+
+    VERIFY_RTE_MSG( response.getID() == network::sim::MSG_SimLockRuntimeRelease_Response::ID,
+                    "Received incorrect response type of: " << response );
+
+    SPDLOG_TRACE( "Player::releaseRuntimeLock got MSG_SimLockRuntimeRelease_Response" );
+}
+
 } // namespace mega::service

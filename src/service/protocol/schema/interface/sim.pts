@@ -41,6 +41,18 @@ msg SimSnapshot // TODO
     response( Snapshot snapshot );
 }
 
+msg SimLockRuntimeAcquire
+{
+    request();
+    response();
+}
+
+msg SimLockRuntimeRelease
+{
+    request();
+    response();
+}
+
 msg SimLockRead
 {
     request( runtime::MPO requestingMPO, runtime::MPO targetMPO );
