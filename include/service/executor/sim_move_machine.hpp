@@ -103,7 +103,7 @@ public:
 
         // for( const auto& [ from, to ] : m_movedObjects )
         {
-            THROW_TODO;
+            // THROW_TODO;
             // MPORealVisitor                                        reader( from );
             // MoveVisitor                                           writer;
             // ReferenceTreeTraversal< MPORealVisitor, MoveVisitor > traversal( reader, writer );

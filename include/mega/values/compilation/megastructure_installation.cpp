@@ -81,9 +81,4 @@ boost::filesystem::path MegastructureInstallation::getExecutorPath() const
     // return getToolchain().megaExecutorPath;
 }
 
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateDir() const
-{
-    return m_installationPath / "templates/";
-}
-
 } // namespace mega

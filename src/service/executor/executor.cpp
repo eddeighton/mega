@@ -267,11 +267,11 @@ void Executor::logicalthreadCompleted( network::LogicalThreadBase::Ptr pLogicalT
     if( Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( pLogicalThread ) )
     {
         // if the simulation failed to construct then the mpo will not be initialised yet so check
-        const mega::runtime::PointerHeap root = pSim->getThisRoot();
-        if( root.valid() )
+        const auto mpo = pSim->getThisMPO();
+        if( mpo.valid() )
         {
             WriteLock lock( m_mutex );
-            m_simulations.erase( root.getMPO() );
+            m_simulations.erase( mpo );
         }
         else
         {

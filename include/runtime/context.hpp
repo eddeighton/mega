@@ -55,7 +55,7 @@ public:
     // queries
     virtual MachineIDVector        getMachines()                       = 0;
     virtual MachineProcessIDVector getProcesses( MachineID machineID ) = 0;
-    virtual MPOVector              getMPO( MP machineProcess )         = 0;
+    virtual MPOVector              getMPOS( MP machineProcess )        = 0;
 
     virtual MPO         getThisMPO()                                   = 0;
     virtual PointerHeap getThisRoot()                                  = 0;

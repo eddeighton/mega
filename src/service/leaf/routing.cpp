@@ -175,7 +175,21 @@ network::Message LeafRequestLogicalThread::MPDown( const network::Message& reque
                                                    boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( mp == m_leaf.getMP() );
-    return dispatchInBoundRequest( request, yield_ctx );
+
+    switch( request.getID() )
+    {
+        case network::sim::MSG_SimCreate_Request::ID:
+        {
+            // special case to route SimCreate to executor
+            return getMPODownSender( yield_ctx ).MPDown( request, mp );
+        }
+        break;
+        default:
+        {
+            return dispatchInBoundRequest( request, yield_ctx );
+        }
+        break;
+    }
 }
 
 network::Message LeafRequestLogicalThread::MPUp( const network::Message& request, const mega::runtime::MP& mp,

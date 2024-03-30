@@ -69,7 +69,10 @@ FileBufferFactory::FileBufferFactory( const boost::filesystem::path logFolderPat
     {
         // create first cycle at timestamp 0
         BufferType*             pBuffer = m_index.getBuffer( IndexType::toBufferIndex( m_timestamp ) );
-        const InterBufferOffset offset  = pBuffer->write( &m_iterator, IndexType::RecordSize );
+#ifdef DEBUG
+        const InterBufferOffset offset  = 
+#endif
+            pBuffer->write( &m_iterator, IndexType::RecordSize );
         ASSERT( offset.get() == IndexType::RecordSize );
     }
 }

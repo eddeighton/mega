@@ -121,7 +121,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         VERIFY_RTE( m_mpo.has_value() );
         // SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
-        THROW_TODO;
+        //THROW_TODO;
         /*static mega::runtime::program::Enumerate funcEnumerate;
         static mega::runtime::program::Dispatch  funcDispatch;*/
 
@@ -183,7 +183,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         for( ; m_iter_events != m_pLog->end< event::Event::Read >(); ++m_iter_events )
                         {
-                            THROW_TODO;
+                            //THROW_TODO;
                             // const auto& event = *m_iter_events;
                             // funcDispatch( event.getRef() );
 
@@ -228,7 +228,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
 
-                        THROW_TODO;
+                        //THROW_TODO;
                         /*for( auto i = m_pMemoryManager->begin(), iEnd = m_pMemoryManager->end(); i != iEnd; ++i )
                         {
                             Pointer ref      = i->first;
@@ -610,7 +610,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
             status.setWrites( MPOTimeStampVec{ writes.begin(), writes.end() } );
         m_stateMachine.status( status );
 
-        THROW_TODO;
+        // THROW_TODO;
         // status.setMemory( m_pMemoryManager->getStatus() );
     }
 

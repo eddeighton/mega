@@ -35,6 +35,10 @@ add_compile_options("-fcoroutines")
 
 add_compile_options("-Wno-sign-conversion")
 add_compile_options("-Wno-unused-function")
+add_compile_options("-Wno-maybe-uninitialized")
+add_compile_options("-Wno-array-bounds")
+
+
 
 endif()
 

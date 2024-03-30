@@ -78,7 +78,11 @@ public:
     {
         m_timestamp                     = runtime::TimeStamp{ m_timestamp.getValue() + 1 };
         BufferType*             pBuffer = m_index.getBuffer( IndexType::toBufferIndex( m_timestamp ) );
-        const InterBufferOffset offset  = pBuffer->write( &m_iterator, IndexType::RecordSize );
+
+#ifdef DEBUG
+        const InterBufferOffset offset  = 
+#endif
+            pBuffer->write( &m_iterator, IndexType::RecordSize );
         ASSERT( offset.get() % IndexType::RecordSize == 0U );
         // this looks wierd but is correct - the timestamp record has identity that matches
         // the record start position within file / Index::RecordSize.

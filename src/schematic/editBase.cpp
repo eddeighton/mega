@@ -433,6 +433,7 @@ void EditBase::updateGlyphs()
 void EditBase::interaction_end( IInteraction* pInteraction )
 {
     {
+        (void)pInteraction;
         ASSERT( m_pActiveInteraction == pInteraction );
         delete m_pActiveInteraction;
         m_pActiveInteraction = 0u;

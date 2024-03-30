@@ -375,7 +375,7 @@ void MPOContext::cycleComplete()
     network::TransactionProducer::UnparentedSet   unparentedObjects;
     m_pTransactionProducer->generate( transactions, unparentedObjects, m_movedObjects );
 
-    THROW_TODO;
+    // THROW_TODO;
     /*if( m_pMemoryManager )
     {
         m_pMemoryManager->Garbage();

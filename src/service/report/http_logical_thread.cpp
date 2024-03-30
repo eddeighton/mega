@@ -525,8 +525,7 @@ HTTPLogicalThread::generateHTTPResponse( const URL& url, boost::asio::yield_cont
 
         if( !m_pHTMLTemplateEngine )
         {
-            m_pHTMLTemplateEngine = std::make_unique< ::report::HTMLTemplateEngine >(
-                m_reportServer.getMegastructureInstallation().getRuntimeTemplateDir(), true );
+            m_pHTMLTemplateEngine = std::make_unique< ::report::HTMLTemplateEngine >( true );
         }
 
         ::report::renderHTML( reportContainerOpt.value(), os, *m_pHTMLTemplateEngine );

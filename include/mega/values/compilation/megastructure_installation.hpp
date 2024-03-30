@@ -45,7 +45,6 @@ public:
     boost::filesystem::path        getClangPath() const;
     boost::filesystem::path        getMegaIncludePath() const;
     boost::filesystem::path        getExecutorPath() const;
-    boost::filesystem::path        getRuntimeTemplateDir() const;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int )

@@ -96,7 +96,7 @@ public:
         VERIFY_RTE( m_pYieldContext );
         return getRootEnroleRequest().EnroleGetProcesses( machineID );
     }
-    virtual MPOContext::MPOVector getMPO( runtime::MP machineProcess ) override
+    virtual MPOContext::MPOVector getMPOS( runtime::MP machineProcess ) override
     {
         VERIFY_RTE( m_pYieldContext );
         return getRootEnroleRequest().EnroleGetMPO( machineProcess );
@@ -112,7 +112,17 @@ public:
     void                 writeLock( runtime::PointerHeap& ref );
     */
 
-    virtual runtime::MPO         getThisMPO() override { return m_mpo.value(); }
+    virtual runtime::MPO getThisMPO() override
+    {
+        if( m_mpo.has_value() )
+        {
+            return m_mpo.value();
+        }
+        else
+        {
+            return {};
+        }
+    }
     virtual runtime::PointerHeap getThisRoot() override { return m_root; }
     virtual runtime::PointerNet  getRoot( runtime::MPO mpo ) override;
     virtual runtime::MPO         constructMPO( runtime::MP machineProcess ) override;
@@ -139,6 +149,6 @@ protected:
     void createRoot( const runtime::MPO& mpo );
 };
 
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // GUARD_2022_October_14_mpo_context
