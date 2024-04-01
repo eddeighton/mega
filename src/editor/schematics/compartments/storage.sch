@@ -1,4 +1,4 @@
-Schematic(Untitled Base;,0)
+Schematic(base;,0)
 {
     Space(space_0000;,0)
     {
