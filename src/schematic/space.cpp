@@ -60,6 +60,10 @@ void Space::load( const format::Node& node )
 
 void Space::save( format::Node& node ) const
 {
+    auto pSite = node.mutable_site();
+    auto pSpace = pSite->mutable_space();
+    ( void )pSpace;
+    
     Site::save( node );
 }
 

@@ -105,6 +105,9 @@ void Node::load( const Ed::Node& edNode )
     }
     else if( strType == Node::File::Schematic::TYPE )
     {
+        auto f = mutable_file();
+        auto s = f->mutable_schematic();
+        (void)s;
     }
     else if( strType == Node::Property::TYPE )
     {
@@ -117,26 +120,41 @@ void Node::load( const Ed::Node& edNode )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
+
+        auto c = s->mutable_connection();
+        (void)c;
     }
     else if( strType == Node::Site::Cut::TYPE )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
+
+        auto c = s->mutable_cut();
+        (void)c;
     }
     else if( strType == Node::Site::Object::TYPE )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
+
+        auto o = s->mutable_object();
+        (void)o;
     }
     else if( strType == Node::Site::Space::TYPE )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
+
+        auto sp = s->mutable_space();
+        (void)sp;
     }
     else if( strType == Node::Site::Wall::TYPE )
     {
         auto s = mutable_site();
         loadProperty( edNode, ".transform", s->transform );
+
+        auto w = s->mutable_wall();
+        (void)w;
     }
     else
     {

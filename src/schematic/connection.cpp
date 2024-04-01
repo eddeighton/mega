@@ -60,6 +60,10 @@ void Connection::load( const format::Node& node )
 
 void Connection::save( format::Node& node ) const
 {
+    auto pSite = node.mutable_site();
+    auto pConnection = pSite->mutable_connection();
+    ( void )pConnection;
+
     Site::save( node );
 }
 

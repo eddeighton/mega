@@ -1,0 +1,35 @@
+Schematic(base;,0)
+{
+    Space(spac_0000;,0)
+    {
+        transform(1,0,8,0,1,8)
+        Contour(contour;,0)
+        {
+            path(-8,-8,24,-8,24,24,-8,24)
+        }
+        Property(width;,1)
+        {
+            value(0.25f;)
+        }
+        Space(spac_0002;,2)
+        {
+            transform(1,0,8,0,1,8)
+            Contour(contour;,0)
+            {
+                path(-8,-8,8,-8,8,8,-8,8)
+            }
+            Property(width;,1)
+            {
+                value(0.25f;)
+            }
+        }
+        Connection(conn_0003;,3)
+        {
+            transform(1,0,8,0,1,16)
+            Point(width;,0)
+            {
+                position(1.5,3)
+            }
+        }
+    }
+}

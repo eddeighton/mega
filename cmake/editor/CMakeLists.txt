@@ -91,18 +91,10 @@ add_executable( editor
     ${EDITOR_SOURCE}
 )
 
-# CommandLine Error: Option 'use-dbg-addr' registered more than once!
-# LLVM ERROR: inconsistency in registered CommandLine options
-# target_compile_definitions( editor PUBLIC -DENABLE_LLVM_SHARED=1 )
-
 target_include_directories( editor PRIVATE ${MEGA_API_DIR} )
 target_include_directories( editor PRIVATE ${EDITOR_SRC_DIR} )
 
 set_target_properties( editor PROPERTIES FOLDER editor )
-
-IF( ${WIN32} )
-set_property(TARGET editor PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
-ENDIF( ${WIN32} )
 
 set_target_properties( editor PROPERTIES 
     AUTOMOC ON

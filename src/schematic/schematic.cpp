@@ -113,6 +113,10 @@ void Schematic::load( const format::Node& node )
 
 void Schematic::save( format::Node& node ) const
 {
+    auto pFile      = node.mutable_file();
+    auto pSchematic = pFile->mutable_schematic();
+    ( void )pSchematic;
+
     File::save( node );
 }
 
@@ -529,22 +533,22 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( Mega::Plane                       
         }
     }
 
-   /* if( bAddGridVertices )
-    {
-        INVARIANT( boundsOpt.has_value(), "no bounding box" );
-        // add grid vertices
-        const int xMin = static_cast< int >( std::floor( CGAL::to_double( boundsOpt.value().xmin() ) ) );
-        const int xMax = static_cast< int >( std::ceil( CGAL::to_double( boundsOpt.value().xmax() ) ) );
-        const int yMin = static_cast< int >( std::floor( CGAL::to_double( boundsOpt.value().ymin() ) ) );
-        const int yMax = static_cast< int >( std::ceil( CGAL::to_double( boundsOpt.value().ymax() ) ) );
-        for( int x = xMin; x <= xMax; x++ )
-        {
-            for( int y = yMin; y <= yMax; y++ )
-            {
-                triangulation.cdt.insert( exact::Point( x, y ) );
-            }
-        }
-    }*/
+    /* if( bAddGridVertices )
+     {
+         INVARIANT( boundsOpt.has_value(), "no bounding box" );
+         // add grid vertices
+         const int xMin = static_cast< int >( std::floor( CGAL::to_double( boundsOpt.value().xmin() ) ) );
+         const int xMax = static_cast< int >( std::ceil( CGAL::to_double( boundsOpt.value().xmax() ) ) );
+         const int yMin = static_cast< int >( std::floor( CGAL::to_double( boundsOpt.value().ymin() ) ) );
+         const int yMax = static_cast< int >( std::ceil( CGAL::to_double( boundsOpt.value().ymax() ) ) );
+         for( int x = xMin; x <= xMax; x++ )
+         {
+             for( int y = yMin; y <= yMax; y++ )
+             {
+                 triangulation.cdt.insert( exact::Point( x, y ) );
+             }
+         }
+     }*/
 
     const Mega::F3 normal( 0.0f, 1.0f, 0.0f );
 

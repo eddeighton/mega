@@ -55,6 +55,10 @@ void Wall::load( const format::Node& node )
 
 void Wall::save( format::Node& node ) const
 {
+    auto pSite = node.mutable_site();
+    auto pWall = pSite->mutable_wall();
+    ( void )pWall;
+
     Site::save( node );
 }
 
@@ -83,7 +87,7 @@ void Wall::init()
     {
         m_pWidthProperty = Property::Ptr( new Property( getPtr(), "width" ) );
         m_pWidthProperty->init();
-        m_pWidthProperty->setStatement("0.25f");
+        m_pWidthProperty->setStatement( "0.25f" );
         add( m_pWidthProperty );
     }
 
@@ -161,8 +165,10 @@ void Wall::task_extrusions()
         // calculate exterior
         {
             PolygonPtrVector outer_offset_polygons
-                = CGAL::create_exterior_skeleton_and_offset_polygons_2< exact::Kernel::FT, exact::Polygon,
-                                                                        exact::Kernel, exact::Kernel >(
+                = CGAL::create_exterior_skeleton_and_offset_polygons_2< exact::Kernel::FT,
+                                                                        exact::Polygon,
+                                                                        exact::Kernel,
+                                                                        exact::Kernel >(
                     wallWidth, m_sitePolygon, ( exact::Kernel() ), ( exact::Kernel() ) );
             if( !outer_offset_polygons.empty() )
             {

@@ -59,6 +59,10 @@ void Cut::load( const format::Node& node )
 
 void Cut::save( format::Node& node ) const
 {
+    auto pSite = node.mutable_site();
+    auto pCut = pSite->mutable_cut();
+    ( void )pCut;
+    
     Site::save( node );
 }
 

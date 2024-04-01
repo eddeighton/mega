@@ -58,6 +58,10 @@ void Object::load( const format::Node& node )
 
 void Object::save( format::Node& node ) const
 {
+    auto pSite = node.mutable_site();
+    auto pObject = pSite->mutable_object();
+    ( void )pObject;
+
     Site::save( node );
 }
 

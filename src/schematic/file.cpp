@@ -46,6 +46,8 @@ void File::load( const format::Node& node )
 
 void File::save( format::Node& node ) const
 {
+    auto pFile = node.mutable_file();
+    ( void )pFile;
     Node::save( node );
 }
 
