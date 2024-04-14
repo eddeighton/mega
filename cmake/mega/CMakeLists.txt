@@ -34,8 +34,6 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/pybind11/pybind11_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
-include( ../run_inja.cmake )
-
 ################################################################################
 ################################################################################
 set( MEGA_VALUES_DIR ${MEGA_API_DIR}/mega/values )

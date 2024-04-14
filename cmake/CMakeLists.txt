@@ -51,7 +51,6 @@ set( MEGA_API_DIR ${MEGA_ROOT_DIR}/include )
 set( MEGA_SRC_DIR ${MEGA_ROOT_DIR}/src )
 
 add_subdirectory(pch)
-add_subdirectory(inja)
 add_subdirectory(il)
 add_subdirectory(mega)
 add_subdirectory(database)

@@ -27,19 +27,22 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+include( ${WORKSPACE_ROOT_PATH}/src/common/run_inja.cmake )
 
-include( ../run_inja.cmake )
+run_inja_template( ${MEGA_API_DIR}/event/records.json
+                    ${MEGA_API_DIR}/event/records.hxx.jinja
+                    ${MEGA_API_DIR}/event/records.hxx )
 
-add_custom_target( generate_event_records
-    COMMAND inja
-        --data ${MEGA_API_DIR}/event/records.json
-        --template ${MEGA_API_DIR}/event/records.hxx.jinja
-        --output ${MEGA_API_DIR}/event/records.hxx
-    DEPENDS ${MEGA_API_DIR}/event/records.json ${MEGA_API_DIR}/event/records.hxx.jinja inja
-    BYPRODUCTS  ${MEGA_API_DIR}/event/records.hxx
-    COMMENT "Generating Log Record types" 
-    SOURCES ${MEGA_API_DIR}/event/records.json
-)
+# add_custom_target( generate_event_records
+#     COMMAND inja
+#         --data ${MEGA_API_DIR}/event/records.json
+#         --template ${MEGA_API_DIR}/event/records.hxx.jinja
+#         --output ${MEGA_API_DIR}/event/records.hxx
+#     DEPENDS ${MEGA_API_DIR}/event/records.json ${MEGA_API_DIR}/event/records.hxx.jinja inja
+#     BYPRODUCTS  ${MEGA_API_DIR}/event/records.hxx
+#     COMMENT "Generating Log Record types" 
+#     SOURCES ${MEGA_API_DIR}/event/records.json
+# )
 
 set( EVENT_HEADERS
     ${MEGA_API_DIR}/event/buffer.hpp
